@@ -1,0 +1,47 @@
+{
+  "name": "lux-knowledge-platform",
+  "version": "0.1.0",
+  "description": "TypeScript MCP server for CORPUS semantic search and knowledge retrieval",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "lux": "./dist/cli/index.js"
+  },
+  "scripts": {
+    "build": "tsc && npm run copy-assets",
+    "copy-assets": "cp src/db/schema.sql dist/db/ && cp bin/post-commit-hook.sh dist/../bin/",
+    "dev": "tsc --watch",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write 'src/**/*.ts'",
+    "start": "node dist/cli/index.js",
+    "mcp": "node dist/mcp/server.js"
+  },
+  "keywords": [
+    "mcp",
+    "knowledge-management",
+    "semantic-search",
+    "corpus"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "better-sqlite3": "^11.8.1",
+    "commander": "^12.1.0",
+    "glob": "^11.0.0",
+    "gray-matter": "^4.0.3",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.10.5",
+    "@typescript-eslint/eslint-plugin": "^8.20.0",
+    "@typescript-eslint/parser": "^8.20.0",
+    "eslint": "^9.18.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
