@@ -12,6 +12,7 @@ import { CorpusScanner } from '../scanner/index.js';
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { homedir } from 'os';
+import { createMarkdownWithFrontmatter } from '../utils/frontmatter.js';
 
 const DEFAULT_DB_PATH = join(homedir(), '.lux', 'lux.db');
 const DEFAULT_CORPUS_PATH = join(homedir(), 'CORPUS');
@@ -67,7 +68,8 @@ const TOOLS: Tool[] = [
   },
   {
     name: 'lux_get_client',
-    description: 'Get detailed information about a specific client including file path and metadata.',
+    description:
+      'Get detailed information about a specific client including file path and metadata.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -193,7 +195,7 @@ const TOOLS: Tool[] = [
 ];
 
 // Tool handlers
-server.setRequestHandler(ListToolsRequestSchema, async () => {
+server.setRequestHandler(ListToolsRequestSchema, () => {
   return { tools: TOOLS };
 });
 
@@ -203,14 +205,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     switch (name) {
       case 'lux_search': {
-        const { query, type = 'all', client, limit = 20 } = args as {
+        const {
+          query,
+          type = 'all',
+          client,
+          limit = 20,
+        } = args as {
           query: string;
           type?: string;
           client?: string;
           limit?: number;
         };
 
-        const searchQuery = query.toLowerCase();
         const results: Array<{
           type: string;
           title: string;
@@ -219,11 +225,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           context?: string;
         }> = [];
 
-        // Search clients
-        if (type === 'all' || type === 'client') {
-          const clients = db.getAllClients();
-          for (const c of clients) {
-            if (c.slug.toLowerCase().includes(searchQuery) || c.name.toLowerCase().includes(searchQuery)) {
+        try {
+          // Use FTS5 search by default
+          // Search clients
+          if (type === 'all' || type === 'client') {
+            const clients = db.searchClients(query);
+            for (const c of clients) {
               results.push({
                 type: 'client',
                 title: c.name,
@@ -233,54 +240,54 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               });
             }
           }
-        }
 
-        // Search projects
-        if (type === 'all' || type === 'project') {
-          const clients = client ? [db.getClient(client)].filter((c) => c !== undefined) : db.getAllClients();
-          for (const c of clients) {
-            if (!c) continue;
-            const projects = db.getProjectsByClient(c.id);
+          // Search projects
+          if (type === 'all' || type === 'project') {
+            const projects = db.searchProjects(query);
             for (const p of projects) {
-              if (p.slug.toLowerCase().includes(searchQuery) || p.name.toLowerCase().includes(searchQuery)) {
-                results.push({
-                  type: 'project',
-                  title: `${c.slug}/${p.name}`,
-                  slug: p.slug,
-                  path: p.file_path,
-                  context: p.status,
-                });
-              }
+              // Filter by client if specified
+              if (client && p.client_slug !== client) continue;
+
+              results.push({
+                type: 'project',
+                title: `${p.client_slug}/${p.name}`,
+                slug: p.slug,
+                path: p.file_path,
+                context: p.status,
+              });
             }
           }
-        }
 
-        // Search communications
-        if (type === 'all' || type === 'comm') {
-          const clients = client ? [db.getClient(client)].filter((c) => c !== undefined) : db.getAllClients();
-          for (const c of clients) {
-            if (!c) continue;
-            const comms = db.getCommunicationsByClient(c.id);
-            for (const comm of comms) {
+          // Search communications
+          if (type === 'all' || type === 'comm') {
+            const communications = db.searchCommunications(query);
+            for (const comm of communications) {
+              // Filter by client if specified
+              if (client) {
+                const clientRecord = db.getAllClients().find((c) => c.id === comm.client_id);
+                if (!clientRecord || clientRecord.slug !== client) continue;
+              }
+
               const subject = comm.subject ?? '';
-              if (subject.toLowerCase().includes(searchQuery) || comm.type.toLowerCase().includes(searchQuery)) {
-                results.push({
-                  type: 'communication',
-                  title: `[${comm.type}] ${subject}`,
-                  path: comm.file_path,
-                  context: comm.date_range,
-                });
-              }
+              results.push({
+                type: 'communication',
+                title: `[${comm.type}] ${subject}`,
+                path: comm.file_path,
+                context: comm.date_range,
+              });
             }
           }
-        }
 
-        // Search knowledge
-        if (type === 'all' || type === 'knowledge') {
-          const types = ['methodology', 'spec', 'architecture', 'exploration', 'implementation-payload', 'general'];
-          const allKnowledge = types.flatMap((t) => db.getKnowledgeEntriesByType(t));
-          for (const entry of allKnowledge) {
-            if (entry.title.toLowerCase().includes(searchQuery) || entry.type.toLowerCase().includes(searchQuery)) {
+          // Search knowledge entries
+          if (type === 'all' || type === 'knowledge') {
+            const entries = db.searchKnowledgeEntries(query);
+            for (const entry of entries) {
+              // Filter by client if specified
+              if (client && entry.client_id) {
+                const clientRecord = db.getAllClients().find((c) => c.id === entry.client_id);
+                if (!clientRecord || clientRecord.slug !== client) continue;
+              }
+
               results.push({
                 type: 'knowledge',
                 title: entry.title,
@@ -289,7 +296,124 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               });
             }
           }
+        } catch (error) {
+          // If FTS5 fails (e.g., schema not migrated), fall back to legacy search
+          console.error(
+            'FTS5 search failed, falling back to legacy search:',
+            (error as Error).message
+          );
+
+          const searchQuery = query.toLowerCase();
+
+          // Legacy search - clients
+          if (type === 'all' || type === 'client') {
+            const clients = db.getAllClients();
+            for (const c of clients) {
+              if (
+                c.slug.toLowerCase().includes(searchQuery) ||
+                c.name.toLowerCase().includes(searchQuery)
+              ) {
+                results.push({
+                  type: 'client',
+                  title: c.name,
+                  slug: c.slug,
+                  path: c.file_path,
+                  context: c.status,
+                });
+              }
+            }
+          }
+
+          // Legacy search - projects
+          if (type === 'all' || type === 'project') {
+            const clients = client
+              ? [db.getClient(client)].filter((c) => c !== undefined)
+              : db.getAllClients();
+            for (const c of clients) {
+              if (!c) continue;
+              const projects = db.getProjectsByClient(c.id);
+              for (const p of projects) {
+                if (
+                  p.slug.toLowerCase().includes(searchQuery) ||
+                  p.name.toLowerCase().includes(searchQuery)
+                ) {
+                  results.push({
+                    type: 'project',
+                    title: `${c.slug}/${p.name}`,
+                    slug: p.slug,
+                    path: p.file_path,
+                    context: p.status,
+                  });
+                }
+              }
+            }
+          }
+
+          // Legacy search - communications
+          if (type === 'all' || type === 'comm') {
+            const clients = client
+              ? [db.getClient(client)].filter((c) => c !== undefined)
+              : db.getAllClients();
+            for (const c of clients) {
+              if (!c) continue;
+              const comms = db.getCommunicationsByClient(c.id);
+              for (const comm of comms) {
+                const subject = comm.subject ?? '';
+                if (
+                  subject.toLowerCase().includes(searchQuery) ||
+                  comm.type.toLowerCase().includes(searchQuery)
+                ) {
+                  results.push({
+                    type: 'communication',
+                    title: `[${comm.type}] ${subject}`,
+                    path: comm.file_path,
+                    context: comm.date_range,
+                  });
+                }
+              }
+            }
+          }
+
+          // Legacy search - knowledge
+          if (type === 'all' || type === 'knowledge') {
+            const types = [
+              'methodology',
+              'spec',
+              'architecture',
+              'exploration',
+              'implementation-payload',
+              'general',
+            ];
+            const allKnowledge = types.flatMap((t) => db.getKnowledgeEntriesByType(t));
+            for (const entry of allKnowledge) {
+              if (
+                entry.title.toLowerCase().includes(searchQuery) ||
+                entry.type.toLowerCase().includes(searchQuery)
+              ) {
+                results.push({
+                  type: 'knowledge',
+                  title: entry.title,
+                  path: entry.file_path,
+                  context: entry.type,
+                });
+              }
+            }
+          }
         }
+
+        // Log search event
+        db.insertEvent({
+          source: 'mcp',
+          event_type: 'search',
+          summary: `Search query: "${query}" (type: ${type}, results: ${results.length})`,
+          payload: {
+            query,
+            type,
+            client,
+            limit,
+            results_count: results.length,
+          },
+        });
 
         return {
           content: [
@@ -352,7 +476,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'lux_log_comm': {
-        const { client_slug, project_slug, type, subject, date, participants = [], content = '' } = args as {
+        const {
+          client_slug,
+          project_slug,
+          type,
+          subject,
+          date,
+          participants = [],
+          content = '',
+        } = args as {
           client_slug: string;
           project_slug?: string;
           type: string;
@@ -375,7 +507,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           project = db.getProject(client_slug, project_slug);
           if (!project) {
             return {
-              content: [{ type: 'text', text: `Project not found: ${client_slug}/${project_slug}` }],
+              content: [
+                { type: 'text', text: `Project not found: ${client_slug}/${project_slug}` },
+              ],
               isError: true,
             };
           }
@@ -393,18 +527,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         mkdirSync(commsDir, { recursive: true });
         const filePath = join(commsDir, filename);
 
-        // Generate frontmatter
-        const frontmatter = ['---', `type: ${type}`, `subject: ${subject}`, `date: ${date}`];
-
-        if (participants.length > 0) {
-          frontmatter.push('participants:');
-          participants.forEach((p) => frontmatter.push(`  - ${p}`));
-        }
-
-        frontmatter.push('---', '');
+        // Generate file content with frontmatter
+        const fileContent = createMarkdownWithFrontmatter(
+          {
+            type,
+            subject,
+            date,
+            participants: participants.length > 0 ? participants : undefined,
+          },
+          content
+        );
 
         // Write file
-        const fileContent = frontmatter.join('\n') + '\n' + content + '\n';
         writeFileSync(filePath, fileContent, 'utf-8');
 
         // Add to database
@@ -417,6 +551,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           participants,
           file_path: filePath,
           metadata: {},
+          content,
         });
 
         // Log event
@@ -500,76 +635,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         db.clearAll();
 
-        // Index clients
-        const clientMap = new Map<string, number>();
-        for (const client of result.clients) {
-          const id = db.insertClient({
-            slug: client.slug,
-            name: client.name,
-            type: client.type,
-            status: client.status,
-            file_path: client.filePath,
-            metadata: client.frontmatter,
-          });
-          clientMap.set(client.slug, id);
-        }
-
-        // Index projects
-        const projectMap = new Map<string, number>();
-        for (const project of result.projects) {
-          const clientId = clientMap.get(project.clientSlug);
-          if (!clientId) continue;
-
-          const id = db.insertProject({
-            client_id: clientId,
-            slug: project.slug,
-            name: project.name,
-            status: project.status,
-            file_path: project.filePath,
-            metadata: project.frontmatter,
-          });
-          projectMap.set(`${project.clientSlug}/${project.slug}`, id);
-        }
-
-        // Index communications
-        for (const comm of result.communications) {
-          const clientId = clientMap.get(comm.clientSlug);
-          if (!clientId) continue;
-
-          const projectId = comm.projectSlug
-            ? projectMap.get(`${comm.clientSlug}/${comm.projectSlug}`)
-            : undefined;
-
-          db.insertCommunication({
-            client_id: clientId,
-            project_id: projectId,
-            type: comm.type,
-            subject: comm.subject,
-            date_range: comm.dateRange,
-            participants: comm.participants,
-            file_path: comm.filePath,
-            metadata: comm.frontmatter,
-          });
-        }
-
-        // Index knowledge
-        for (const entry of result.knowledge) {
-          const clientId = entry.clientSlug ? clientMap.get(entry.clientSlug) : undefined;
-          const projectId =
-            entry.clientSlug && entry.projectSlug
-              ? projectMap.get(`${entry.clientSlug}/${entry.projectSlug}`)
-              : undefined;
-
-          db.insertKnowledgeEntry({
-            client_id: clientId,
-            project_id: projectId,
-            type: entry.type,
-            title: entry.title,
-            file_path: entry.filePath,
-            tags: entry.tags,
-            metadata: entry.frontmatter,
-          });
-        }
+        // Use the scanner's index() method to write to database
+        await scanner.index(db, result);
 
         db.insertEvent({
           source: 'mcp',

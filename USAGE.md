@@ -87,25 +87,139 @@ lux comm list --client acme-corp --type email --limit 10
 
 ### Search
 
-Search across all entities:
+Search comprehensively across all entities using **FTS5 full-text search** (clients, projects, communications, knowledge):
+
 ```bash
-lux search "acme"
+# Basic search (fast FTS5 token-based matching)
+lux search "email"
+
+# Phrase search (exact phrase matching)
+lux search '"sinai chicago"'
+
+# Prefix search (wildcard matching)
+lux search "prov*"
+lux search "email*"
+
+# Boolean operators
+lux search "provider AND photos"
+lux search "email OR slack"
+lux search "meeting NOT cancelled"
+
+# Filter by client
 lux search "redesign" --client acme-corp
+
+# Filter by entity type
 lux search "meeting" --type comm
-lux search "architecture" --type knowledge --limit 5
+lux search "architecture" --type knowledge
+
+# Limit results
+lux search "email" --limit 5
+
+# Search by date
+lux search "2026-02-12"
+
+# Search by participant
+lux search "john smith"
+
+# Search only file content (not metadata)
+lux search "implementation details" --content
+lux search "React components" --content --type project
+
+# Legacy substring search (for backward compatibility)
+lux search "email" --legacy
 ```
+
+**FTS5 Features:**
+- ⚡ **Fast**: Uses inverted indexes for near-instantaneous search
+- 🎯 **Smart ranking**: Results ordered by relevance
+- 🔍 **Advanced queries**: Phrase search, prefix matching, boolean operators
+- 📊 **Scales**: Consistent performance even with 10,000+ entities
+
+**Search scope**: The search command searches across:
+- Client/project names, slugs, types, and status
+- Communication subjects, types, dates, and participants
+- Knowledge entry titles, types, and tags
+- All metadata JSON fields (frontmatter)
+- File content (markdown body) - use `--content` flag to search only content
+
+See [docs/SEARCH.md](./docs/SEARCH.md) for comprehensive search documentation.
 
 ### Git Hooks
 
-Install auto-indexing hook:
+The git post-commit hook automatically rebuilds the Lux index when CORPUS content changes.
+
+#### Installation
+
+Install the hook in your CORPUS repository:
 ```bash
 lux hooks install
 lux hooks install --corpus /path/to/CORPUS
 ```
 
-Uninstall hook:
+Uninstall the hook:
 ```bash
 lux hooks uninstall
+```
+
+#### Smart Rebuild Detection
+
+The hook intelligently determines when to rebuild:
+
+**✅ Triggers rebuild when:**
+- Files in `knowledge/` are modified
+- Files in `explorations/` are modified
+- Files in `implementation-payloads/` are modified
+
+**⏭️ Skips rebuild when:**
+- Only non-CORPUS files changed (e.g., `.gitignore`, scripts)
+- Commit message contains `[skip lux]`, `[lux skip]`, or `[no index]`
+- Environment variable `LUX_SKIP_REBUILD=1` is set
+- Lux CLI is not available
+
+#### Error Handling
+
+The hook is designed to **never fail your git commit**, even if:
+- Lux CLI is not found or not executable
+- Index rebuild encounters an error
+- Database is locked or corrupted
+
+All errors are logged and the commit proceeds successfully.
+
+#### Configuration
+
+Control hook behavior with environment variables:
+
+```bash
+# Skip all rebuilds (useful during bulk operations)
+export LUX_SKIP_REBUILD=1
+
+# Enable detailed logging
+export LUX_LOG_FILE=~/.lux/hook.log
+
+# Use a different lux binary
+export LUX_CLI=/usr/local/bin/lux
+```
+
+#### Example Workflows
+
+**Skip rebuild for a single commit:**
+```bash
+git commit -m "Update README [skip lux]"
+```
+
+**Skip rebuilds during bulk changes:**
+```bash
+export LUX_SKIP_REBUILD=1
+# ... make multiple commits ...
+unset LUX_SKIP_REBUILD
+lux index rebuild  # Manual rebuild when done
+```
+
+**Debug hook issues:**
+```bash
+export LUX_LOG_FILE=~/.lux/hook.log
+git commit -m "Test commit"
+cat ~/.lux/hook.log
 ```
 
 ## MCP Server
@@ -119,12 +233,19 @@ npm run mcp
 node dist/mcp/server.js
 ```
 
+For detailed configuration instructions, see [docs/MCP-CONFIGURATION.md](./docs/MCP-CONFIGURATION.md).
+
 ### MCP Tools
 
 The MCP server provides the following tools:
 
 #### lux_search
-Search for entities in CORPUS.
+Search for entities in CORPUS using **FTS5 full-text search** (with automatic fallback to legacy search if FTS5 is unavailable).
+
+Supports the same FTS5 query syntax as the CLI:
+- Phrase search: `"exact phrase"`
+- Prefix matching: `prov*`
+- Boolean operators: `term1 AND term2`, `term1 OR term2`, `term1 NOT term2`
 
 ```json
 {
@@ -134,6 +255,8 @@ Search for entities in CORPUS.
   "limit": 20
 }
 ```
+
+**Note**: Ensure database migrations are up to date (`lux migrate status`) for FTS5 functionality.
 
 #### lux_get_client
 Get detailed client information.
@@ -266,6 +389,22 @@ Configure your MCP client (e.g., Claude Desktop) to use the Lux server:
 }
 ```
 
+## Database Migrations
+
+Lux uses a migration system to manage database schema changes. Migrations are automatically run when the database is opened, but you can manage them manually:
+
+Check migration status:
+```bash
+lux migrate status
+```
+
+Apply pending migrations:
+```bash
+lux migrate up
+```
+
+**Important**: After upgrading Lux, run `lux migrate status` to check for pending migrations. The FTS5 search feature requires migration 002.
+
 ## Troubleshooting
 
 ### Database locked error
@@ -282,6 +421,12 @@ Manually rebuild:
 ```bash
 lux index rebuild
 ```
+
+### Search not working
+If search returns no results or errors:
+1. Check migration status: `lux migrate status`
+2. Apply pending migrations: `lux migrate up`
+3. Try legacy search: `lux search "query" --legacy`
 
 ## Development
 

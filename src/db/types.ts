@@ -8,6 +8,7 @@ export interface Client {
   status?: string;
   file_path: string;
   metadata?: string; // JSON string
+  content?: string; // Markdown content
   created_at: number;
   updated_at: number;
 }
@@ -20,6 +21,7 @@ export interface Project {
   status?: string;
   file_path: string;
   metadata?: string; // JSON string
+  content?: string; // Markdown content
   created_at: number;
   updated_at: number;
 }
@@ -34,6 +36,7 @@ export interface Communication {
   participants?: string; // JSON array
   file_path: string;
   metadata?: string; // JSON string
+  content?: string; // Markdown content
   created_at: number;
   updated_at: number;
 }
@@ -47,6 +50,7 @@ export interface KnowledgeEntry {
   file_path: string;
   tags?: string; // JSON array
   metadata?: string; // JSON string
+  content?: string; // Markdown content
   created_at: number;
   updated_at: number;
 }
@@ -71,6 +75,7 @@ export interface ClientInsert {
   status?: string;
   file_path: string;
   metadata?: Record<string, unknown>;
+  content?: string;
 }
 
 export interface ProjectInsert {
@@ -80,6 +85,7 @@ export interface ProjectInsert {
   status?: string;
   file_path: string;
   metadata?: Record<string, unknown>;
+  content?: string;
 }
 
 export interface CommunicationInsert {
@@ -91,6 +97,7 @@ export interface CommunicationInsert {
   participants?: string[];
   file_path: string;
   metadata?: Record<string, unknown>;
+  content?: string;
 }
 
 export interface KnowledgeEntryInsert {
@@ -101,6 +108,7 @@ export interface KnowledgeEntryInsert {
   file_path: string;
   tags?: string[];
   metadata?: Record<string, unknown>;
+  content?: string;
 }
 
 export interface EventInsert {

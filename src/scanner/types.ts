@@ -1,6 +1,9 @@
 // Scanner-specific types and frontmatter structures
 
 export interface Frontmatter {
+  name?: string;
+  title?: string;
+  subject?: string;
   type?: string;
   status?: string;
   date?: string;
@@ -16,6 +19,7 @@ export interface ScannedClient {
   status?: string;
   filePath: string;
   frontmatter?: Frontmatter;
+  content?: string;
 }
 
 export interface ScannedProject {
@@ -25,6 +29,7 @@ export interface ScannedProject {
   status?: string;
   filePath: string;
   frontmatter?: Frontmatter;
+  content?: string;
 }
 
 export interface ScannedCommunication {
@@ -36,6 +41,7 @@ export interface ScannedCommunication {
   participants?: string[];
   filePath: string;
   frontmatter?: Frontmatter;
+  content?: string;
 }
 
 export interface ScannedKnowledge {
@@ -46,6 +52,7 @@ export interface ScannedKnowledge {
   filePath: string;
   tags?: string[];
   frontmatter?: Frontmatter;
+  content?: string;
 }
 
 export interface ScanResult {

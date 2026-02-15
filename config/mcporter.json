@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "lux": {
+      "description": "Lux Knowledge Platform - CORPUS semantic search and knowledge retrieval",
+      "command": "node",
+      "args": [
+        "/path/to/lux/dist/mcp/server.js"
+      ],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  }
+}

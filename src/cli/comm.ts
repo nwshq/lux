@@ -1,7 +1,8 @@
 import { Command } from 'commander';
-import { writeFileSync, mkdirSync } from 'fs';
+import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { LuxDatabase } from '../db/index.js';
+import { createMarkdownWithFrontmatter } from '../utils/frontmatter.js';
 
 export function addCommCommands(program: Command) {
   const commCmd = program.command('comm').description('Manage communications');
@@ -16,8 +17,9 @@ export function addCommCommands(program: Command) {
     .option('--date <date>', 'Date (YYYY-MM-DD)', new Date().toISOString().split('T')[0])
     .option('--participants <participants>', 'Comma-separated participants')
     .option('--content <content>', 'Communication content')
+    .option('--file <path>', 'Path to file containing communication content')
     .action(
-      async (options: {
+      (options: {
         client: string;
         project?: string;
         type: string;
@@ -25,9 +27,34 @@ export function addCommCommands(program: Command) {
         date: string;
         participants?: string;
         content?: string;
+        file?: string;
       }) => {
         const opts = program.opts();
         const db = new LuxDatabase(opts.db as string);
+
+        // Validate content options
+        if (options.content && options.file) {
+          console.error('Cannot specify both --content and --file');
+          db.close();
+          process.exit(1);
+        }
+
+        // Read content from file if specified
+        let contentText = options.content ?? '';
+        if (options.file) {
+          if (!existsSync(options.file)) {
+            console.error(`File not found: ${options.file}`);
+            db.close();
+            process.exit(1);
+          }
+          try {
+            contentText = readFileSync(options.file, 'utf-8');
+          } catch (error) {
+            console.error(`Failed to read file: ${options.file}`, error);
+            db.close();
+            process.exit(1);
+          }
+        }
 
         // Verify client exists
         const client = db.getClient(options.client);
@@ -48,7 +75,7 @@ export function addCommCommands(program: Command) {
           }
         }
 
-        // Generate filename
+        // Generate filename: YYYY-MM-DD_type_subject.md
         const subjectSlug = options.subject
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
@@ -64,28 +91,20 @@ export function addCommCommands(program: Command) {
         mkdirSync(commsDir, { recursive: true });
         const filePath = join(commsDir, filename);
 
-        // Generate frontmatter
+        // Generate file content with frontmatter
         const participantsList = options.participants
           ? options.participants.split(',').map((p) => p.trim())
           : [];
 
-        const frontmatter = [
-          '---',
-          `type: ${options.type}`,
-          `subject: ${options.subject}`,
-          `date: ${options.date}`,
-        ];
-
-        if (participantsList.length > 0) {
-          frontmatter.push('participants:');
-          participantsList.forEach((p) => frontmatter.push(`  - ${p}`));
-        }
-
-        frontmatter.push('---', '');
-
-        // Generate content
-        const content = options.content ?? '';
-        const fileContent = frontmatter.join('\n') + '\n' + content + '\n';
+        const fileContent = createMarkdownWithFrontmatter(
+          {
+            type: options.type,
+            subject: options.subject,
+            date: options.date,
+            participants: participantsList.length > 0 ? participantsList : undefined,
+          },
+          contentText
+        );
 
         // Write file
         writeFileSync(filePath, fileContent, 'utf-8');
@@ -100,6 +119,7 @@ export function addCommCommands(program: Command) {
           participants: participantsList,
           file_path: filePath,
           metadata: {},
+          content: contentText,
         });
 
         // Log event
@@ -123,9 +143,18 @@ export function addCommCommands(program: Command) {
     .requiredOption('--client <slug>', 'Client slug')
     .option('--project <slug>', 'Project slug (optional)')
     .option('--type <type>', 'Filter by type')
+    .option('--since <date>', 'Filter by start date (YYYY-MM-DD)')
+    .option('--until <date>', 'Filter by end date (YYYY-MM-DD)')
     .option('--limit <n>', 'Limit results', '20')
     .action(
-      (options: { client: string; project?: string; type?: string; limit: string }) => {
+      (options: {
+        client: string;
+        project?: string;
+        type?: string;
+        since?: string;
+        until?: string;
+        limit: string;
+      }) => {
         const opts = program.opts();
         const db = new LuxDatabase(opts.db as string);
 
@@ -147,6 +176,19 @@ export function addCommCommands(program: Command) {
           comms = comms.filter((c) => c.type === options.type);
         }
 
+        // Filter by date range
+        if (options.since || options.until) {
+          comms = comms.filter((c) => {
+            if (!c.date_range) return false;
+            const commDate = c.date_range; // ISO date format YYYY-MM-DD
+
+            if (options.since && commDate < options.since) return false;
+            if (options.until && commDate > options.until) return false;
+
+            return true;
+          });
+        }
+
         const limit = parseInt(options.limit, 10);
         comms = comms.slice(0, limit);
 
@@ -162,7 +204,9 @@ export function addCommCommands(program: Command) {
           if (comm.date_range) console.log(`  Date: ${comm.date_range}`);
           if (comm.participants) {
             const participants = JSON.parse(comm.participants) as string[];
-            console.log(`  Participants: ${participants.join(', ')}`);
+            if (participants.length > 0) {
+              console.log(`  Participants: ${participants.join(', ')}`);
+            }
           }
           console.log(`  Path: ${comm.file_path}`);
           console.log();

@@ -1,7 +1,8 @@
 import Database from 'better-sqlite3';
-import { readFileSync, mkdirSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { mkdirSync } from 'fs';
+import { dirname } from 'path';
+import { PreparedQueries } from './queries.js';
+import { MigrationRunner } from './migrations.js';
 import type {
   Client,
   Project,
@@ -15,48 +16,136 @@ import type {
   EventInsert,
 } from './types.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
 export class LuxDatabase {
   private db: Database.Database;
+  private queries?: PreparedQueries;
+  private migrations: MigrationRunner;
 
-  constructor(dbPath: string) {
+  constructor(dbPath: string, autoMigrate = true) {
     // Ensure database directory exists
     mkdirSync(dirname(dbPath), { recursive: true });
     this.db = new Database(dbPath);
     this.db.pragma('journal_mode = WAL');
     this.db.pragma('foreign_keys = ON');
-    this.initSchema();
+
+    // Initialize migration system
+    this.migrations = new MigrationRunner(this.db);
+
+    // Run migrations automatically unless disabled
+    if (autoMigrate) {
+      this.runMigrations();
+      this.initQueries();
+    }
   }
 
-  private initSchema() {
-    const schemaPath = join(__dirname, 'schema.sql');
-    const schema = readFileSync(schemaPath, 'utf-8');
-    this.db.exec(schema);
+  /**
+   * Wrap database errors with more helpful messages
+   */
+  private wrapDbError(error: unknown, operation: string, context?: string): Error {
+    if (error instanceof Error) {
+      const message = error.message;
+
+      // Handle specific SQLite error codes
+      if (message.includes('UNIQUE constraint failed')) {
+        const match = message.match(/UNIQUE constraint failed: (\w+)\.(\w+)/);
+        if (match) {
+          const [, table, column] = match;
+          return new Error(
+            `Duplicate ${table.slice(0, -1)} detected: ${column} already exists. ${context || ''}`
+          );
+        }
+        return new Error(`Duplicate entry detected during ${operation}. ${context || ''}`);
+      }
+
+      if (message.includes('FOREIGN KEY constraint failed')) {
+        return new Error(
+          `Invalid relationship during ${operation}: Referenced parent entity does not exist. ${context || ''}`
+        );
+      }
+
+      if (message.includes('NOT NULL constraint failed')) {
+        const match = message.match(/NOT NULL constraint failed: (\w+)\.(\w+)/);
+        if (match) {
+          const [, table, column] = match;
+          return new Error(
+            `Missing required field during ${operation}: ${column} is required for ${table}. ${context || ''}`
+          );
+        }
+        return new Error(`Missing required field during ${operation}. ${context || ''}`);
+      }
+
+      if (message.includes('CHECK constraint failed')) {
+        return new Error(
+          `Validation failed during ${operation}: Data does not meet database constraints. ${context || ''}`
+        );
+      }
+
+      // Return original error with added context
+      return new Error(`${operation} failed: ${message}. ${context || ''}`);
+    }
+
+    return new Error(`${operation} failed: ${String(error)}. ${context || ''}`);
+  }
+
+  /**
+   * Initialize prepared queries. Must be called after migrations.
+   */
+  private initQueries() {
+    if (!this.queries) {
+      this.queries = new PreparedQueries(this.db);
+    }
+  }
+
+  /**
+   * Get prepared queries, ensuring they are initialized.
+   */
+  private getQueries(): PreparedQueries {
+    if (!this.queries) {
+      this.initQueries();
+    }
+    return this.queries!;
+  }
+
+  /**
+   * Run all pending database migrations.
+   */
+  runMigrations(): number {
+    return this.migrations.runMigrations();
+  }
+
+  /**
+   * Get migration status information.
+   */
+  getMigrationStatus() {
+    return this.migrations.getStatus();
+  }
+
+  /**
+   * Check if the database schema is up to date.
+   */
+  isSchemaUpToDate(): boolean {
+    return this.migrations.isUpToDate();
   }
 
   // Client operations
   insertClient(client: ClientInsert): number {
-    const stmt = this.db.prepare(`
-      INSERT INTO clients (slug, name, type, status, file_path, metadata)
-      VALUES (@slug, @name, @type, @status, @file_path, @metadata)
-    `);
-    const result = stmt.run({
-      ...client,
-      metadata: client.metadata ? JSON.stringify(client.metadata) : null,
-    });
-    return result.lastInsertRowid as number;
+    try {
+      const result = this.getQueries().insertClient.run({
+        ...client,
+        metadata: client.metadata ? JSON.stringify(client.metadata) : null,
+      });
+      return result.lastInsertRowid as number;
+    } catch (error) {
+      throw this.wrapDbError(error, 'insertClient', `Client slug: ${client.slug}`);
+    }
   }
 
   getClient(slug: string): Client | undefined {
-    const stmt = this.db.prepare('SELECT * FROM clients WHERE slug = ?');
-    return stmt.get(slug) as Client | undefined;
+    return this.getQueries().getClient.get(slug) as Client | undefined;
   }
 
   getAllClients(): Client[] {
-    const stmt = this.db.prepare('SELECT * FROM clients ORDER BY name');
-    return stmt.all() as Client[];
+    return this.getQueries().getAllClients.all() as Client[];
   }
 
   updateClient(slug: string, updates: Partial<ClientInsert>) {
@@ -94,72 +183,71 @@ export class LuxDatabase {
   }
 
   deleteClient(slug: string) {
-    const stmt = this.db.prepare('DELETE FROM clients WHERE slug = ?');
-    stmt.run(slug);
+    this.getQueries().deleteClient.run(slug);
   }
 
   // Project operations
   insertProject(project: ProjectInsert): number {
-    const stmt = this.db.prepare(`
-      INSERT INTO projects (client_id, slug, name, status, file_path, metadata)
-      VALUES (@client_id, @slug, @name, @status, @file_path, @metadata)
-    `);
-    const result = stmt.run({
-      ...project,
-      metadata: project.metadata ? JSON.stringify(project.metadata) : null,
-    });
-    return result.lastInsertRowid as number;
+    try {
+      const result = this.getQueries().insertProject.run({
+        ...project,
+        metadata: project.metadata ? JSON.stringify(project.metadata) : null,
+      });
+      return result.lastInsertRowid as number;
+    } catch (error) {
+      throw this.wrapDbError(
+        error,
+        'insertProject',
+        `Project slug: ${project.slug}, Client ID: ${project.client_id}`
+      );
+    }
   }
 
   getProject(clientSlug: string, projectSlug: string): Project | undefined {
-    const stmt = this.db.prepare(`
-      SELECT p.* FROM projects p
-      JOIN clients c ON p.client_id = c.id
-      WHERE c.slug = ? AND p.slug = ?
-    `);
-    return stmt.get(clientSlug, projectSlug) as Project | undefined;
+    return this.getQueries().getProject.get(clientSlug, projectSlug) as Project | undefined;
+  }
+
+  getProjectBySlug(
+    projectSlug: string
+  ): (Project & { client_slug: string; client_name: string }) | undefined {
+    return this.getQueries().getProjectBySlug.get(projectSlug) as
+      | (Project & { client_slug: string; client_name: string })
+      | undefined;
   }
 
   getProjectsByClient(clientId: number): Project[] {
-    const stmt = this.db.prepare('SELECT * FROM projects WHERE client_id = ? ORDER BY name');
-    return stmt.all(clientId) as Project[];
+    return this.getQueries().getProjectsByClient.all(clientId) as Project[];
   }
 
   // Communication operations
   insertCommunication(comm: CommunicationInsert): number {
-    const stmt = this.db.prepare(`
-      INSERT INTO communications (client_id, project_id, type, subject, date_range, participants, file_path, metadata)
-      VALUES (@client_id, @project_id, @type, @subject, @date_range, @participants, @file_path, @metadata)
-    `);
-    const result = stmt.run({
-      ...comm,
-      participants: comm.participants ? JSON.stringify(comm.participants) : null,
-      metadata: comm.metadata ? JSON.stringify(comm.metadata) : null,
-    });
-    return result.lastInsertRowid as number;
+    try {
+      const result = this.getQueries().insertCommunication.run({
+        ...comm,
+        participants: comm.participants ? JSON.stringify(comm.participants) : null,
+        metadata: comm.metadata ? JSON.stringify(comm.metadata) : null,
+      });
+      return result.lastInsertRowid as number;
+    } catch (error) {
+      throw this.wrapDbError(
+        error,
+        'insertCommunication',
+        `Client ID: ${comm.client_id}, Type: ${comm.type}`
+      );
+    }
   }
 
   getCommunicationsByClient(clientId: number): Communication[] {
-    const stmt = this.db.prepare(`
-      SELECT * FROM communications WHERE client_id = ? ORDER BY date_range DESC
-    `);
-    return stmt.all(clientId) as Communication[];
+    return this.getQueries().getCommunicationsByClient.all(clientId) as Communication[];
   }
 
   getCommunicationsByProject(projectId: number): Communication[] {
-    const stmt = this.db.prepare(`
-      SELECT * FROM communications WHERE project_id = ? ORDER BY date_range DESC
-    `);
-    return stmt.all(projectId) as Communication[];
+    return this.getQueries().getCommunicationsByProject.all(projectId) as Communication[];
   }
 
   // Knowledge entry operations
   insertKnowledgeEntry(entry: KnowledgeEntryInsert): number {
-    const stmt = this.db.prepare(`
-      INSERT INTO knowledge_entries (client_id, project_id, type, title, file_path, tags, metadata)
-      VALUES (@client_id, @project_id, @type, @title, @file_path, @tags, @metadata)
-    `);
-    const result = stmt.run({
+    const result = this.getQueries().insertKnowledgeEntry.run({
       ...entry,
       tags: entry.tags ? JSON.stringify(entry.tags) : null,
       metadata: entry.metadata ? JSON.stringify(entry.metadata) : null,
@@ -168,60 +256,149 @@ export class LuxDatabase {
   }
 
   getKnowledgeEntriesByType(type: string): KnowledgeEntry[] {
-    const stmt = this.db.prepare('SELECT * FROM knowledge_entries WHERE type = ?');
-    return stmt.all(type) as KnowledgeEntry[];
+    return this.getQueries().getKnowledgeEntriesByType.all(type) as KnowledgeEntry[];
   }
 
   getKnowledgeEntryByPath(filePath: string): KnowledgeEntry | undefined {
-    const stmt = this.db.prepare('SELECT * FROM knowledge_entries WHERE file_path = ?');
-    return stmt.get(filePath) as KnowledgeEntry | undefined;
+    return this.getQueries().getKnowledgeEntryByPath.get(filePath) as KnowledgeEntry | undefined;
+  }
+
+  getKnowledgeEntriesByClient(clientId: number): KnowledgeEntry[] {
+    return this.getQueries().getKnowledgeEntriesByClient.all(clientId) as KnowledgeEntry[];
+  }
+
+  getKnowledgeEntriesByProject(projectId: number): KnowledgeEntry[] {
+    return this.getQueries().getKnowledgeEntriesByProject.all(projectId) as KnowledgeEntry[];
   }
 
   // Event operations
   insertEvent(event: EventInsert): number {
-    const stmt = this.db.prepare(`
-      INSERT INTO events (source, source_id, client_id, project_id, event_type, summary, payload)
-      VALUES (@source, @source_id, @client_id, @project_id, @event_type, @summary, @payload)
-    `);
-    const result = stmt.run({
-      ...event,
+    const result = this.getQueries().insertEvent.run({
+      source: event.source,
+      source_id: event.source_id ?? null,
+      client_id: event.client_id ?? null,
+      project_id: event.project_id ?? null,
+      event_type: event.event_type,
+      summary: event.summary ?? null,
       payload: event.payload ? JSON.stringify(event.payload) : null,
     });
     return result.lastInsertRowid as number;
   }
 
   getRecentEvents(limit = 100): Event[] {
-    const stmt = this.db.prepare(`
-      SELECT * FROM events ORDER BY timestamp DESC LIMIT ?
-    `);
-    return stmt.all(limit) as Event[];
+    return this.getQueries().getRecentEvents.all(limit) as Event[];
+  }
+
+  // FTS5 Search operations
+  /**
+   * Search clients using FTS5 full-text search.
+   * @param query - FTS5 query (supports phrase search, AND/OR/NOT operators, prefix matching with *)
+   * @returns Array of matching clients ordered by relevance
+   *
+   * @example
+   * // Simple search
+   * db.searchClients('acme');
+   *
+   * // Phrase search
+   * db.searchClients('"sinai chicago"');
+   *
+   * // Prefix matching
+   * db.searchClients('prov*');
+   *
+   * // Boolean operators
+   * db.searchClients('active AND client');
+   */
+  searchClients(query: string): Client[] {
+    return this.getQueries().searchClientsFts.all(query) as Client[];
+  }
+
+  /**
+   * Search projects using FTS5 full-text search.
+   * @param query - FTS5 query
+   * @returns Array of matching projects with client info, ordered by relevance
+   */
+  searchProjects(query: string): (Project & { client_slug: string; client_name: string })[] {
+    return this.getQueries().searchProjectsFts.all(query) as (Project & {
+      client_slug: string;
+      client_name: string;
+    })[];
+  }
+
+  /**
+   * Search communications using FTS5 full-text search.
+   * @param query - FTS5 query
+   * @returns Array of matching communications ordered by relevance
+   */
+  searchCommunications(query: string): Communication[] {
+    return this.getQueries().searchCommunicationsFts.all(query) as Communication[];
+  }
+
+  /**
+   * Search knowledge entries using FTS5 full-text search.
+   * @param query - FTS5 query
+   * @returns Array of matching knowledge entries ordered by relevance
+   */
+  searchKnowledgeEntries(query: string): KnowledgeEntry[] {
+    return this.getQueries().searchKnowledgeEntriesFts.all(query) as KnowledgeEntry[];
+  }
+
+  // Content-only search operations
+  /**
+   * Search clients' content field only using FTS5 full-text search.
+   * @param query - FTS5 query (supports phrase search, AND/OR/NOT operators, prefix matching with *)
+   * @returns Array of matching clients ordered by relevance
+   */
+  searchClientsContent(query: string): Client[] {
+    return this.getQueries().searchClientsContentFts.all(query) as Client[];
+  }
+
+  /**
+   * Search projects' content field only using FTS5 full-text search.
+   * @param query - FTS5 query
+   * @returns Array of matching projects with client info, ordered by relevance
+   */
+  searchProjectsContent(query: string): (Project & { client_slug: string; client_name: string })[] {
+    return this.getQueries().searchProjectsContentFts.all(query) as (Project & {
+      client_slug: string;
+      client_name: string;
+    })[];
+  }
+
+  /**
+   * Search communications' content field only using FTS5 full-text search.
+   * @param query - FTS5 query
+   * @returns Array of matching communications ordered by relevance
+   */
+  searchCommunicationsContent(query: string): Communication[] {
+    return this.getQueries().searchCommunicationsContentFts.all(query) as Communication[];
+  }
+
+  /**
+   * Search knowledge entries' content field only using FTS5 full-text search.
+   * @param query - FTS5 query
+   * @returns Array of matching knowledge entries ordered by relevance
+   */
+  searchKnowledgeEntriesContent(query: string): KnowledgeEntry[] {
+    return this.getQueries().searchKnowledgeEntriesContentFts.all(query) as KnowledgeEntry[];
   }
 
   // Utility operations
   clearAll() {
-    this.db.exec('DELETE FROM events');
-    this.db.exec('DELETE FROM knowledge_entries');
-    this.db.exec('DELETE FROM communications');
-    this.db.exec('DELETE FROM projects');
-    this.db.exec('DELETE FROM clients');
+    const queries = this.getQueries();
+    queries.clearEvents.run();
+    queries.clearKnowledgeEntries.run();
+    queries.clearCommunications.run();
+    queries.clearProjects.run();
+    queries.clearClients.run();
   }
 
   getStats() {
-    const clients = this.db.prepare('SELECT COUNT(*) as count FROM clients').get() as {
-      count: number;
-    };
-    const projects = this.db.prepare('SELECT COUNT(*) as count FROM projects').get() as {
-      count: number;
-    };
-    const communications = this.db.prepare('SELECT COUNT(*) as count FROM communications').get() as {
-      count: number;
-    };
-    const knowledge = this.db.prepare('SELECT COUNT(*) as count FROM knowledge_entries').get() as {
-      count: number;
-    };
-    const events = this.db.prepare('SELECT COUNT(*) as count FROM events').get() as {
-      count: number;
-    };
+    const queries = this.getQueries();
+    const clients = queries.countClients.get() as { count: number };
+    const projects = queries.countProjects.get() as { count: number };
+    const communications = queries.countCommunications.get() as { count: number };
+    const knowledge = queries.countKnowledgeEntries.get() as { count: number };
+    const events = queries.countEvents.get() as { count: number };
 
     return {
       clients: clients.count,

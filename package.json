@@ -5,14 +5,22 @@
   "type": "module",
   "main": "./dist/index.js",
   "bin": {
-    "lux": "./dist/cli/index.js"
+    "lux": "./dist/cli/index.js",
+    "lux-mcp": "./dist/mcp/server.js"
   },
   "scripts": {
     "build": "tsc && npm run copy-assets",
-    "copy-assets": "cp src/db/schema.sql dist/db/ && cp bin/post-commit-hook.sh dist/../bin/",
+    "copy-assets": "cp src/db/schema.sql dist/db/ && cp -r src/db/migrations dist/db/",
     "dev": "tsc --watch",
     "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
     "format": "prettier --write 'src/**/*.ts'",
+    "format:check": "prettier --check 'src/**/*.ts'",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "check": "npm run lint && npm run format:check && npm run build && npm test",
     "start": "node dist/cli/index.js",
     "mcp": "node dist/mcp/server.js"
   },
@@ -37,9 +45,12 @@
     "@types/node": "^22.10.5",
     "@typescript-eslint/eslint-plugin": "^8.20.0",
     "@typescript-eslint/parser": "^8.20.0",
+    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/ui": "^4.0.18",
     "eslint": "^9.18.0",
     "prettier": "^3.4.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^4.0.18"
   },
   "engines": {
     "node": ">=20.0.0"
