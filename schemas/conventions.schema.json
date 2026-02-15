@@ -1,0 +1,108 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/nwshq/lux/schemas/conventions.schema.json",
+  "title": "Corpus Conventions",
+  "description": "Schema for defining lint rules in a Corpus",
+  "type": "object",
+  "required": ["version", "rules"],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "description": "Schema version for compatibility",
+      "const": 1
+    },
+    "rules": {
+      "type": "array",
+      "description": "List of lint rules",
+      "items": {
+        "$ref": "#/definitions/rule"
+      }
+    }
+  },
+  "definitions": {
+    "rule": {
+      "type": "object",
+      "required": ["id", "type", "severity", "applies_to", "description"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique rule identifier",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "type": {
+          "type": "string",
+          "description": "Rule type",
+          "enum": ["naming", "location", "structure"]
+        },
+        "severity": {
+          "type": "string",
+          "description": "Severity level",
+          "enum": ["error", "warning"]
+        },
+        "applies_to": {
+          "type": "string",
+          "description": "Artifact type this rule applies to",
+          "enum": ["exploration", "payload", "communication", "any"]
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the rule"
+        },
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether the rule is active",
+          "default": true
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "type": { "const": "naming" } }
+          },
+          "then": {
+            "required": ["pattern"],
+            "properties": {
+              "pattern": {
+                "type": "string",
+                "description": "Regex pattern for valid names"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "type": { "const": "location" } }
+          },
+          "then": {
+            "required": ["valid_paths"],
+            "properties": {
+              "valid_paths": {
+                "type": "array",
+                "description": "Regex patterns for valid locations",
+                "items": { "type": "string" },
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "type": { "const": "structure" } }
+          },
+          "then": {
+            "required": ["requires"],
+            "properties": {
+              "requires": {
+                "oneOf": [
+                  { "type": "string" },
+                  { "type": "array", "items": { "type": "string" } }
+                ],
+                "description": "Required file(s) in the artifact"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
