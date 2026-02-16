@@ -30,6 +30,8 @@ export interface ScannedProject {
   filePath: string;
   frontmatter?: Frontmatter;
   content?: string;
+  hasExplorations?: boolean;
+  hasPayloads?: boolean;
 }
 
 export interface ScannedCommunication {

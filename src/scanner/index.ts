@@ -134,6 +134,26 @@ export class CorpusScanner {
           }
         }
 
+        // Check for explorations/ and payloads/ subdirectories
+        const explorationsPath = join(projectPath, 'explorations');
+        const payloadsPath = join(projectPath, 'payloads');
+        let hasExplorations = false;
+        let hasPayloads = false;
+
+        try {
+          statSync(explorationsPath);
+          hasExplorations = true;
+        } catch {
+          // No explorations directory
+        }
+
+        try {
+          statSync(payloadsPath);
+          hasPayloads = true;
+        } catch {
+          // No payloads directory
+        }
+
         projects.push({
           clientSlug,
           slug: projectSlug,
@@ -144,7 +164,49 @@ export class CorpusScanner {
           filePath: projectFilePath,
           frontmatter: projectData.frontmatter,
           content: projectData.content,
+          hasExplorations,
+          hasPayloads,
         });
+
+        // Scan project-scoped explorations
+        if (hasExplorations) {
+          const explorationFiles = await glob('*.md', { cwd: explorationsPath });
+          for (const mdFile of explorationFiles) {
+            const filePath = join(explorationsPath, mdFile);
+            const fileData = this.parseMarkdownFile(filePath);
+
+            knowledge.push({
+              clientSlug,
+              projectSlug,
+              type: this.inferKnowledgeType('explorations', fileData.frontmatter),
+              title: fileData.frontmatter?.title ?? this.extractTitleFromFilename(mdFile),
+              filePath,
+              tags: fileData.frontmatter?.tags,
+              frontmatter: fileData.frontmatter,
+              content: fileData.content,
+            });
+          }
+        }
+
+        // Scan project-scoped payloads
+        if (hasPayloads) {
+          const payloadFiles = await glob('**/*.md', { cwd: payloadsPath });
+          for (const mdFile of payloadFiles) {
+            const filePath = join(payloadsPath, mdFile);
+            const fileData = this.parseMarkdownFile(filePath);
+
+            knowledge.push({
+              clientSlug,
+              projectSlug,
+              type: this.inferKnowledgeType('payloads', fileData.frontmatter),
+              title: fileData.frontmatter?.title ?? this.extractTitleFromFilename(mdFile),
+              filePath,
+              tags: fileData.frontmatter?.tags,
+              frontmatter: fileData.frontmatter,
+              content: fileData.content,
+            });
+          }
+        }
       }
 
       // Scan communications
@@ -268,6 +330,7 @@ export class CorpusScanner {
     if (dirPath.includes('architecture')) return 'architecture';
     if (dirPath.includes('explorations')) return 'exploration';
     if (dirPath.includes('implementation-payloads')) return 'implementation-payload';
+    if (dirPath.includes('payloads')) return 'payload';
 
     return 'general';
   }

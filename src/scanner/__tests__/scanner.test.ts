@@ -72,6 +72,65 @@ describe('CorpusScanner', () => {
       expect(project.content).toContain('This is a test project');
     });
 
+    it('should detect explorations/ and payloads/ subdirs in projects', async () => {
+      const scanner = new CorpusScanner(fixturesPath);
+      const result = await scanner.scan();
+
+      const project = result.projects[0];
+      expect(project.hasExplorations).toBe(true);
+      expect(project.hasPayloads).toBe(true);
+    });
+
+    it('should set hasExplorations/hasPayloads to false when subdirs missing', async () => {
+      const tempPath = join(__dirname, 'temp-no-subdirs');
+      const clientPath = join(tempPath, 'knowledge/10_clients/test-client');
+
+      try {
+        mkdirSync(join(clientPath, 'bare-project'), { recursive: true });
+        writeFileSync(join(clientPath, 'README.md'), '---\nname: Test Client\n---\n');
+        writeFileSync(
+          join(clientPath, 'bare-project', 'README.md'),
+          '---\nname: Bare Project\n---\n'
+        );
+
+        const scanner = new CorpusScanner(tempPath);
+        const result = await scanner.scan();
+
+        const project = result.projects[0];
+        expect(project.hasExplorations).toBe(false);
+        expect(project.hasPayloads).toBe(false);
+      } finally {
+        if (existsSync(tempPath)) {
+          rmSync(tempPath, { recursive: true, force: true });
+        }
+      }
+    });
+
+    it('should scan project-scoped explorations as knowledge entries', async () => {
+      const scanner = new CorpusScanner(fixturesPath);
+      const result = await scanner.scan();
+
+      const projectExploration = result.knowledge.find(
+        (k) => k.type === 'exploration' && k.clientSlug === 'test-client-1' && k.projectSlug === 'test-project'
+      );
+      expect(projectExploration).toBeDefined();
+      expect(projectExploration?.title).toBe('API Design Exploration');
+      expect(projectExploration?.tags).toEqual(['api', 'design']);
+      expect(projectExploration?.filePath).toContain('explorations/2026-02-15-api-design.md');
+    });
+
+    it('should scan project-scoped payloads as knowledge entries', async () => {
+      const scanner = new CorpusScanner(fixturesPath);
+      const result = await scanner.scan();
+
+      const projectPayload = result.knowledge.find(
+        (k) => k.type === 'payload' && k.clientSlug === 'test-client-1' && k.projectSlug === 'test-project'
+      );
+      expect(projectPayload).toBeDefined();
+      expect(projectPayload?.title).toBe('Feature Implementation Tasks');
+      expect(projectPayload?.filePath).toContain('payloads/2026-02-15-feature/TASKS.md');
+    });
+
     it('should skip special directories for projects', async () => {
       // Create a temporary test directory with special folders
       const tempPath = join(__dirname, 'temp-fixtures');
