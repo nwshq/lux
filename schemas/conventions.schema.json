@@ -37,7 +37,7 @@
         "severity": {
           "type": "string",
           "description": "Severity level",
-          "enum": ["error", "warning"]
+          "enum": ["error", "warning", "info"]
         },
         "applies_to": {
           "type": "string",

@@ -6,6 +6,7 @@ import { validExplorationFilename } from './rules/naming/valid-exploration-filen
 import { validPayloadDirname } from './rules/naming/valid-payload-dirname.js';
 import { payloadHasTasks } from './rules/structure/payload-has-tasks.js';
 import { explorationLocation } from './rules/location/exploration-location.js';
+import { explorationCorpusLocation } from './rules/location/exploration-corpus-location.js';
 import { payloadLocation } from './rules/location/payload-location.js';
 import { payloadCorpusLocation } from './rules/location/payload-corpus-location.js';
 
@@ -20,6 +21,7 @@ const DEFAULT_RULES: LintRule[] = [
   payloadHasTasks,
   // Location rules
   explorationLocation,
+  explorationCorpusLocation,
   payloadLocation,
   payloadCorpusLocation,
 ];
@@ -108,8 +110,16 @@ export function formatResults(results: LintResult[], corpusPath: string): string
 
   const errors = results.filter((r) => r.severity === 'error').length;
   const warnings = results.filter((r) => r.severity === 'warning').length;
+  const infos = results.filter((r) => r.severity === 'info').length;
 
-  lines.push(`${errors} error${errors !== 1 ? 's' : ''}, ${warnings} warning${warnings !== 1 ? 's' : ''}`);
+  const parts = [
+    `${errors} error${errors !== 1 ? 's' : ''}`,
+    `${warnings} warning${warnings !== 1 ? 's' : ''}`,
+  ];
+  if (infos > 0) {
+    parts.push(`${infos} info`);
+  }
+  lines.push(parts.join(', '));
 
   return lines.join('\n');
 }

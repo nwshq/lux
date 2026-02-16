@@ -17,7 +17,7 @@ describe('LintEngine', () => {
   });
 
   describe('lint()', () => {
-    it('should return no results for valid explorations', async () => {
+    it('should return only info for valid cross-cutting explorations', async () => {
       writeFileSync(
         join(tempPath, 'explorations/2026-02-14-valid-idea.md'),
         '# Valid Idea'
@@ -25,7 +25,11 @@ describe('LintEngine', () => {
 
       const engine = new LintEngine();
       const results = await engine.lint(tempPath);
-      expect(results).toEqual([]);
+      const errors = results.filter((r) => r.severity === 'error');
+      expect(errors).toEqual([]);
+      expect(results).toHaveLength(1);
+      expect(results[0].severity).toBe('info');
+      expect(results[0].rule).toBe('exploration-corpus-location');
     });
 
     it('should return errors for invalid exploration filenames', async () => {
@@ -36,9 +40,10 @@ describe('LintEngine', () => {
 
       const engine = new LintEngine();
       const results = await engine.lint(tempPath);
-      expect(results).toHaveLength(1);
-      expect(results[0].rule).toBe('valid-exploration-filename');
-      expect(results[0].severity).toBe('error');
+      const errors = results.filter((r) => r.severity === 'error');
+      expect(errors).toHaveLength(1);
+      expect(errors[0].rule).toBe('valid-exploration-filename');
+      expect(errors[0].severity).toBe('error');
     });
 
     it('should check both valid and invalid files', async () => {
@@ -53,8 +58,9 @@ describe('LintEngine', () => {
 
       const engine = new LintEngine();
       const results = await engine.lint(tempPath);
-      expect(results).toHaveLength(1);
-      expect(results[0].message).toContain('bad.md');
+      const errors = results.filter((r) => r.severity === 'error');
+      expect(errors).toHaveLength(1);
+      expect(errors[0].message).toContain('bad.md');
     });
 
     it('should lint a specific target path', async () => {
@@ -65,8 +71,9 @@ describe('LintEngine', () => {
       const engine = new LintEngine();
       const results = await engine.lint(tempPath, join(tempPath, 'explorations'));
       // Should only find the exploration file, not the other directory
-      expect(results).toHaveLength(1);
-      expect(results[0].message).toContain('bad.md');
+      const errors = results.filter((r) => r.severity === 'error');
+      expect(errors).toHaveLength(1);
+      expect(errors[0].message).toContain('bad.md');
     });
 
     it('should check project-scoped explorations', async () => {
@@ -79,8 +86,9 @@ describe('LintEngine', () => {
 
       const engine = new LintEngine();
       const results = await engine.lint(tempPath);
-      expect(results).toHaveLength(1);
-      expect(results[0].message).toContain('missing-date.md');
+      const errors = results.filter((r) => r.severity === 'error');
+      expect(errors).toHaveLength(1);
+      expect(errors[0].message).toContain('missing-date.md');
     });
 
     it('should handle empty corpus', async () => {
@@ -169,5 +177,39 @@ describe('formatResults', () => {
 
     const output = formatResults(results, '/corpus');
     expect(output).toContain('2 errors, 1 warning');
+  });
+
+  it('should include info count when present', () => {
+    const results = [
+      {
+        path: '/corpus/a.md',
+        rule: 'r1',
+        severity: 'error' as const,
+        message: 'Error',
+      },
+      {
+        path: '/corpus/b.md',
+        rule: 'r2',
+        severity: 'info' as const,
+        message: 'Info',
+      },
+    ];
+
+    const output = formatResults(results, '/corpus');
+    expect(output).toContain('1 error, 0 warnings, 1 info');
+  });
+
+  it('should omit info count when zero', () => {
+    const results = [
+      {
+        path: '/corpus/a.md',
+        rule: 'r1',
+        severity: 'error' as const,
+        message: 'Error',
+      },
+    ];
+
+    const output = formatResults(results, '/corpus');
+    expect(output).not.toContain('info');
   });
 });
