@@ -7,6 +7,7 @@ import { validPayloadDirname } from './rules/naming/valid-payload-dirname.js';
 import { payloadHasTasks } from './rules/structure/payload-has-tasks.js';
 import { explorationLocation } from './rules/location/exploration-location.js';
 import { payloadLocation } from './rules/location/payload-location.js';
+import { payloadCorpusLocation } from './rules/location/payload-corpus-location.js';
 
 export type { LintFile, LintResult, LintRule } from './types.js';
 export type { Severity } from './types.js';
@@ -20,6 +21,7 @@ const DEFAULT_RULES: LintRule[] = [
   // Location rules
   explorationLocation,
   payloadLocation,
+  payloadCorpusLocation,
 ];
 
 export class LintEngine {

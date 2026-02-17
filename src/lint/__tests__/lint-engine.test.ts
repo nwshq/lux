@@ -72,7 +72,7 @@ describe('LintEngine', () => {
     it('should check project-scoped explorations', async () => {
       const projectExplorations = join(
         tempPath,
-        'knowledge/10_clients/acme/web-app/explorations'
+        'knowledge/10_clients/acme/projects/web-app/explorations'
       );
       mkdirSync(projectExplorations, { recursive: true });
       writeFileSync(join(projectExplorations, 'missing-date.md'), '# Missing');
