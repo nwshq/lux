@@ -21,8 +21,11 @@ mcporter call lux.lux_search query="acme" type="all"
 # List registered experts
 mcporter call lux.lux_list_experts
 
-# Ask a domain expert a question
-mcporter call lux.lux_ask expert="my-expert" question="What is the project status?"
+# Ask a question (auto-routes to the best expert)
+mcporter call lux.lux_ask question="What is the project status?"
+
+# Ask a specific expert
+mcporter call lux.lux_ask question="What is the project status?" expert_hint="my-expert"
 ```
 
 ### Global Installation

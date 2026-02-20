@@ -9,14 +9,12 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { LuxDatabase } from '../db/index.js';
 import { CorpusScanner } from '../scanner/index.js';
+import { ExpertSessionManagerImpl } from '../experts/session-manager.js';
+import { routeQuery } from '../experts/router.js';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { homedir } from 'os';
-import { execFile } from 'child_process';
-import { promisify } from 'util';
 import { createMarkdownWithFrontmatter } from '../utils/frontmatter.js';
-
-const execFileAsync = promisify(execFile);
 
 const DEFAULT_DB_PATH = join(homedir(), '.lux', 'lux.db');
 const DEFAULT_CORPUS_PATH = join(homedir(), 'CORPUS');
@@ -215,20 +213,26 @@ const TOOLS: Tool[] = [
   {
     name: 'lux_ask',
     description:
-      "Ask a domain expert a question. Spawns a Claude session scoped to the expert's CORPUS mount path with their configured model and system prompt. Returns the expert's response.",
+      'Ask a question to the expert panel. Auto-routes to the most relevant expert(s) using FTS5 search, or routes to a specific expert when expert_hint is provided. Returns a structured response with the answer, which experts were consulted, and the routing reason.',
     inputSchema: {
       type: 'object',
       properties: {
-        expert: {
-          type: 'string',
-          description: 'Expert slug identifying which expert to ask',
-        },
         question: {
           type: 'string',
-          description: 'The question or prompt to send to the expert',
+          description: 'The question or prompt to send to the expert(s)',
+        },
+        expert_hint: {
+          type: 'string',
+          description:
+            'Optional expert slug to route to a specific expert instead of auto-routing',
+        },
+        context: {
+          type: 'string',
+          description:
+            'Optional additional context to include with the question (e.g., relevant background information)',
         },
       },
-      required: ['expert', 'question'],
+      required: ['question'],
     },
   },
 ];
@@ -735,67 +739,156 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'lux_ask': {
-        const { expert: expertSlug, question } = args as {
-          expert: string;
+        const {
+          question,
+          expert_hint: expertHint,
+          context,
+        } = args as {
           question: string;
+          expert_hint?: string;
+          context?: string;
         };
 
-        const expert = db.getExpert(expertSlug);
-        if (!expert) {
-          return {
-            content: [{ type: 'text', text: `Expert not found: ${expertSlug}` }],
-            isError: true,
-          };
+        const sessionManager = new ExpertSessionManagerImpl(db);
+
+        // Build the full question including context if provided
+        const fullQuestion = context ? `${question}\n\nContext:\n${context}` : question;
+
+        // If expert_hint is provided, route to that specific expert
+        if (expertHint) {
+          const expert = db.getExpert(expertHint);
+          if (!expert) {
+            return {
+              content: [{ type: 'text', text: `Expert not found: ${expertHint}` }],
+              isError: true,
+            };
+          }
+
+          if (expert.status !== 'active') {
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: `Expert is not active: ${expertHint} (status: ${expert.status})`,
+                },
+              ],
+              isError: true,
+            };
+          }
+
+          if (!existsSync(expert.mount_path)) {
+            return {
+              content: [
+                { type: 'text', text: `Expert mount path does not exist: ${expert.mount_path}` },
+              ],
+              isError: true,
+            };
+          }
+
+          try {
+            const result = await sessionManager.query(expertHint, fullQuestion);
+
+            db.insertEvent({
+              source: 'mcp',
+              event_type: 'expert_ask',
+              summary: `Asked expert "${expert.name}": ${question.slice(0, 100)}`,
+              payload: {
+                expert_hint: expertHint,
+                question,
+                context: context ?? null,
+                response_length: result.response.length,
+              },
+            });
+
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify(
+                    {
+                      answer: result.response,
+                      experts_consulted: [expertHint],
+                      routing_reason: `Directly routed to expert "${expert.name}" via expert_hint`,
+                    },
+                    null,
+                    2
+                  ),
+                },
+              ],
+            };
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+
+            db.insertEvent({
+              source: 'mcp',
+              event_type: 'expert_ask_error',
+              summary: `Expert ask failed for "${expert.name}": ${message.slice(0, 200)}`,
+              payload: {
+                expert_hint: expertHint,
+                question,
+                error: message,
+              },
+            });
+
+            return {
+              content: [{ type: 'text', text: `Expert session failed: ${message}` }],
+              isError: true,
+            };
+          }
         }
 
-        if (expert.status !== 'active') {
+        // No expert_hint — auto-route using the query router
+        const activeExperts = db.getExpertsByStatus('active');
+        if (activeExperts.length === 0) {
           return {
             content: [
               {
                 type: 'text',
-                text: `Expert is not active: ${expertSlug} (status: ${expert.status})`,
+                text: 'No active experts registered. Use "lux expert add" to register experts.',
               },
             ],
             isError: true,
           };
         }
 
-        if (!existsSync(expert.mount_path)) {
-          return {
-            content: [
-              { type: 'text', text: `Expert mount path does not exist: ${expert.mount_path}` },
-            ],
-            isError: true,
-          };
-        }
-
-        // Build claude CLI arguments
-        const claudeArgs = ['--print', '--model', expert.model];
-
-        // Append system prompt from claude.md if available
-        if (expert.claude_md_path && existsSync(expert.claude_md_path)) {
-          const systemPrompt = readFileSync(expert.claude_md_path, 'utf-8');
-          claudeArgs.push('--system-prompt', systemPrompt);
-        }
-
-        claudeArgs.push(question);
-
         try {
-          const { stdout } = await execFileAsync('claude', claudeArgs, {
-            cwd: expert.mount_path,
-            timeout: 300_000, // 5 minute timeout
-            maxBuffer: 10 * 1024 * 1024, // 10MB
-          });
+          const routeResult = await routeQuery(fullQuestion, db, sessionManager);
 
-          // Log the expert ask event
+          if (routeResult.responses.length === 0) {
+            return {
+              content: [
+                { type: 'text', text: 'No experts were able to respond to this query.' },
+              ],
+              isError: true,
+            };
+          }
+
+          const expertsConsulted = routeResult.responses.map((r) => r.expertSlug);
+          const answer =
+            routeResult.synthesis ?? routeResult.responses[0].response;
+
+          // Build routing reason
+          let routingReason: string;
+          if (routeResult.matchedExperts.some((m) => m.hits > 0)) {
+            const matches = routeResult.matchedExperts
+              .filter((m) => m.hits > 0)
+              .map((m) => `${m.expert.slug} (${m.hits} hits, score ${m.score.toFixed(2)})`)
+              .join(', ');
+            routingReason = `FTS5 search matched: ${matches}`;
+          } else {
+            routingReason = 'No FTS5 matches — queried all active experts as fallback';
+          }
+
           db.insertEvent({
             source: 'mcp',
             event_type: 'expert_ask',
-            summary: `Asked expert "${expert.name}": ${question.slice(0, 100)}`,
+            summary: `Auto-routed question to ${expertsConsulted.join(', ')}: ${question.slice(0, 100)}`,
             payload: {
-              expert_slug: expertSlug,
               question,
-              response_length: stdout.length,
+              context: context ?? null,
+              experts_consulted: expertsConsulted,
+              routing_reason: routingReason,
+              response_count: routeResult.responses.length,
             },
           });
 
@@ -803,7 +896,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             content: [
               {
                 type: 'text',
-                text: stdout,
+                text: JSON.stringify(
+                  {
+                    answer,
+                    experts_consulted: expertsConsulted,
+                    routing_reason: routingReason,
+                  },
+                  null,
+                  2
+                ),
               },
             ],
           };
@@ -813,16 +914,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           db.insertEvent({
             source: 'mcp',
             event_type: 'expert_ask_error',
-            summary: `Expert ask failed for "${expert.name}": ${message.slice(0, 200)}`,
+            summary: `Auto-routed expert ask failed: ${message.slice(0, 200)}`,
             payload: {
-              expert_slug: expertSlug,
               question,
               error: message,
             },
           });
 
           return {
-            content: [{ type: 'text', text: `Expert session failed: ${message}` }],
+            content: [{ type: 'text', text: `Expert panel query failed: ${message}` }],
             isError: true,
           };
         }

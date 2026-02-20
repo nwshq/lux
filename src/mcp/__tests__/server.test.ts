@@ -719,12 +719,12 @@ Our approach to testing.
   });
 
   describe('lux_ask', () => {
-    it('should return error for non-existent expert', () => {
+    it('should return error for non-existent expert via expert_hint', () => {
       const expert = db.getExpert('non-existent');
       expect(expert).toBeUndefined();
     });
 
-    it('should return error for inactive expert', () => {
+    it('should return error for inactive expert via expert_hint', () => {
       db.insertExpert({
         slug: 'disabled-expert',
         name: 'Disabled Expert',
@@ -738,7 +738,7 @@ Our approach to testing.
       expect(expert!.status).toBe('inactive');
     });
 
-    it('should resolve expert with valid mount path', () => {
+    it('should resolve expert with valid mount path when using expert_hint', () => {
       db.insertExpert({
         slug: 'valid-expert',
         name: 'Valid Expert',
@@ -752,7 +752,7 @@ Our approach to testing.
       expect(existsSync(expert!.mount_path)).toBe(true);
     });
 
-    it('should detect missing mount path', () => {
+    it('should detect missing mount path for expert_hint target', () => {
       db.insertExpert({
         slug: 'missing-mount',
         name: 'Missing Mount Expert',
@@ -763,6 +763,25 @@ Our approach to testing.
       const expert = db.getExpert('missing-mount');
       expect(expert).toBeDefined();
       expect(existsSync(expert!.mount_path)).toBe(false);
+    });
+
+    it('should have active experts available for auto-routing', () => {
+      // Without expert_hint, the handler auto-routes to active experts
+      const activeExperts = db.getExpertsByStatus('active');
+      expect(activeExperts).toHaveLength(0); // No experts registered yet
+
+      // Register an active expert
+      db.insertExpert({
+        slug: 'auto-route-expert',
+        name: 'Auto Route Expert',
+        mount_path: corpusPath,
+        model: 'claude-sonnet-4-20250514',
+        status: 'active',
+      });
+
+      const updated = db.getExpertsByStatus('active');
+      expect(updated).toHaveLength(1);
+      expect(updated[0].slug).toBe('auto-route-expert');
     });
   });
 
