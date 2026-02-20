@@ -9,7 +9,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { LuxDatabase } from '../db/index.js';
 import { CorpusScanner } from '../scanner/index.js';
-import { ExpertSessionManagerImpl } from '../experts/session-manager.js';
+import { SubprocessSessionManager } from '../experts/subprocess-manager.js';
 import { routeQuery } from '../experts/router.js';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
@@ -23,6 +23,7 @@ const DEFAULT_CORPUS_PATH = join(homedir(), 'CORPUS');
 mkdirSync(dirname(DEFAULT_DB_PATH), { recursive: true });
 
 const db = new LuxDatabase(DEFAULT_DB_PATH);
+const sessionManager = new SubprocessSessionManager(db);
 
 const server = new Server(
   {
@@ -749,8 +750,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           context?: string;
         };
 
-        const sessionManager = new ExpertSessionManagerImpl(db);
-
         // Build the full question including context if provided
         const fullQuestion = context ? `${question}\n\nContext:\n${context}` : question;
 
@@ -948,7 +947,18 @@ async function main() {
   console.error('Lux MCP server running on stdio');
 }
 
+// Graceful shutdown: terminate any active expert subprocesses
+process.on('SIGTERM', () => {
+  sessionManager.terminateAll();
+  process.exit(0);
+});
+process.on('SIGINT', () => {
+  sessionManager.terminateAll();
+  process.exit(0);
+});
+
 main().catch((error) => {
   console.error('Fatal error:', error);
+  sessionManager.terminateAll();
   process.exit(1);
 });
