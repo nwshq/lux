@@ -42,9 +42,7 @@ describe('payload-location', () => {
     });
 
     it('should accept payload under different client/project', () => {
-      const file = makeDir(
-        'knowledge/10_clients/acme/projects/web-app/payloads/2026-02-15-auth/'
-      );
+      const file = makeDir('knowledge/10_clients/acme/projects/web-app/payloads/2026-02-15-auth/');
       expect(rule.check(file, '/corpus')).toEqual([]);
     });
 

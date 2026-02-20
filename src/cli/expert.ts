@@ -91,9 +91,7 @@ export function addExpertCommands(program: Command) {
         }
         if (expert.memory_path) {
           const exists = existsSync(expert.memory_path);
-          console.log(
-            `    Memory: ${expert.memory_path}${exists ? '' : ' (missing)'}`
-          );
+          console.log(`    Memory: ${expert.memory_path}${exists ? '' : ' (missing)'}`);
         }
         console.log();
       }
@@ -139,9 +137,7 @@ export function addExpertCommands(program: Command) {
 
       if (expert.memory_path) {
         const memoryExists = existsSync(expert.memory_path);
-        console.log(
-          `Memory: ${expert.memory_path}${memoryExists ? '' : ' (missing)'}`
-        );
+        console.log(`Memory: ${expert.memory_path}${memoryExists ? '' : ' (missing)'}`);
       } else {
         console.log('Memory: not configured');
       }
@@ -155,62 +151,57 @@ export function addExpertCommands(program: Command) {
     .requiredOption('--mount <path>', 'Mount path (relative to CORPUS or absolute)')
     .option('--name <name>', 'Expert name (defaults to slug)')
     .option('--model <model>', 'Model to use', 'claude-sonnet-4-20250514')
-    .action(
-      (
-        slug: string,
-        options: { mount: string; name?: string; model: string }
-      ) => {
-        const opts = program.opts();
-        const corpusPath = opts.corpus as string;
-        const db = new LuxDatabase(opts.db as string);
+    .action((slug: string, options: { mount: string; name?: string; model: string }) => {
+      const opts = program.opts();
+      const corpusPath = opts.corpus as string;
+      const db = new LuxDatabase(opts.db as string);
 
-        // Resolve and validate mount path
-        const mountResult = validateMountPath(options.mount, corpusPath);
-        if (!mountResult.ok) {
-          console.error(mountResult.error);
-          db.close();
-          process.exit(1);
-        }
-        const mountPath = mountResult.path;
-
-        // Check for duplicate slug
-        const existing = db.getExpert(slug);
-        if (existing) {
-          console.error(`Expert already exists: ${slug}`);
-          db.close();
-          process.exit(1);
-        }
-
-        // Auto-detect claude.md (or CLAUDE.md) and memory.md
-        const detectedClaudeMd = detectClaudeMd(mountPath);
-        const memoryMdPath = join(mountPath, 'memory.md');
-        const detectedMemory = existsSync(memoryMdPath) ? memoryMdPath : undefined;
-
-        const expertName = options.name ?? slug;
-
-        db.insertExpert({
-          slug,
-          name: expertName,
-          mount_path: mountPath,
-          model: options.model,
-          claude_md_path: detectedClaudeMd,
-          memory_path: detectedMemory,
-        });
-
-        console.log(`Expert registered: ${slug}`);
-        console.log(`  Name: ${expertName}`);
-        console.log(`  Mount: ${mountPath}`);
-        console.log(`  Model: ${options.model}`);
-        if (detectedClaudeMd) {
-          console.log(`  Claude MD: ${detectedClaudeMd} (auto-detected)`);
-        }
-        if (detectedMemory) {
-          console.log(`  Memory: ${detectedMemory} (auto-detected)`);
-        }
-
+      // Resolve and validate mount path
+      const mountResult = validateMountPath(options.mount, corpusPath);
+      if (!mountResult.ok) {
+        console.error(mountResult.error);
         db.close();
+        process.exit(1);
       }
-    );
+      const mountPath = mountResult.path;
+
+      // Check for duplicate slug
+      const existing = db.getExpert(slug);
+      if (existing) {
+        console.error(`Expert already exists: ${slug}`);
+        db.close();
+        process.exit(1);
+      }
+
+      // Auto-detect claude.md (or CLAUDE.md) and memory.md
+      const detectedClaudeMd = detectClaudeMd(mountPath);
+      const memoryMdPath = join(mountPath, 'memory.md');
+      const detectedMemory = existsSync(memoryMdPath) ? memoryMdPath : undefined;
+
+      const expertName = options.name ?? slug;
+
+      db.insertExpert({
+        slug,
+        name: expertName,
+        mount_path: mountPath,
+        model: options.model,
+        claude_md_path: detectedClaudeMd,
+        memory_path: detectedMemory,
+      });
+
+      console.log(`Expert registered: ${slug}`);
+      console.log(`  Name: ${expertName}`);
+      console.log(`  Mount: ${mountPath}`);
+      console.log(`  Model: ${options.model}`);
+      if (detectedClaudeMd) {
+        console.log(`  Claude MD: ${detectedClaudeMd} (auto-detected)`);
+      }
+      if (detectedMemory) {
+        console.log(`  Memory: ${detectedMemory} (auto-detected)`);
+      }
+
+      db.close();
+    });
 
   expertCmd
     .command('remove <slug>')
@@ -228,9 +219,7 @@ export function addExpertCommands(program: Command) {
       }
 
       if (!options.yes) {
-        console.error(
-          `Use --yes to confirm removal of expert: ${expert.name} (${expert.slug})`
-        );
+        console.error(`Use --yes to confirm removal of expert: ${expert.name} (${expert.slug})`);
         db.close();
         process.exit(1);
       }

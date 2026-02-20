@@ -63,9 +63,7 @@ describe('exploration-location', () => {
     });
 
     it('should error for exploration under knowledge without project structure', () => {
-      const file = makeFile(
-        'knowledge/10_clients/nwshq/explorations/2026-02-15-feature.md'
-      );
+      const file = makeFile('knowledge/10_clients/nwshq/explorations/2026-02-15-feature.md');
       const results = rule.check(file, '/corpus');
       expect(results).toHaveLength(1);
       expect(results[0].severity).toBe('error');

@@ -18,10 +18,7 @@ describe('LintEngine', () => {
 
   describe('lint()', () => {
     it('should return only info for valid cross-cutting explorations', async () => {
-      writeFileSync(
-        join(tempPath, 'explorations/2026-02-14-valid-idea.md'),
-        '# Valid Idea'
-      );
+      writeFileSync(join(tempPath, 'explorations/2026-02-14-valid-idea.md'), '# Valid Idea');
 
       const engine = new LintEngine();
       const results = await engine.lint(tempPath);
@@ -33,10 +30,7 @@ describe('LintEngine', () => {
     });
 
     it('should return errors for invalid exploration filenames', async () => {
-      writeFileSync(
-        join(tempPath, 'explorations/bad-name.md'),
-        '# Bad Name'
-      );
+      writeFileSync(join(tempPath, 'explorations/bad-name.md'), '# Bad Name');
 
       const engine = new LintEngine();
       const results = await engine.lint(tempPath);
@@ -47,14 +41,8 @@ describe('LintEngine', () => {
     });
 
     it('should check both valid and invalid files', async () => {
-      writeFileSync(
-        join(tempPath, 'explorations/2026-02-14-good.md'),
-        '# Good'
-      );
-      writeFileSync(
-        join(tempPath, 'explorations/bad.md'),
-        '# Bad'
-      );
+      writeFileSync(join(tempPath, 'explorations/2026-02-14-good.md'), '# Good');
+      writeFileSync(join(tempPath, 'explorations/bad.md'), '# Bad');
 
       const engine = new LintEngine();
       const results = await engine.lint(tempPath);
@@ -100,10 +88,7 @@ describe('LintEngine', () => {
 
   describe('custom rules', () => {
     it('should accept custom rules via constructor', async () => {
-      writeFileSync(
-        join(tempPath, 'explorations/2026-02-14-test.md'),
-        '# Test'
-      );
+      writeFileSync(join(tempPath, 'explorations/2026-02-14-test.md'), '# Test');
 
       const customRule = {
         name: 'custom-rule',

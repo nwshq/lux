@@ -215,7 +215,7 @@ const TOOLS: Tool[] = [
   {
     name: 'lux_ask',
     description:
-      'Ask a domain expert a question. Spawns a Claude session scoped to the expert\'s CORPUS mount path with their configured model and system prompt. Returns the expert\'s response.',
+      "Ask a domain expert a question. Spawns a Claude session scoped to the expert's CORPUS mount path with their configured model and system prompt. Returns the expert's response.",
     inputSchema: {
       type: 'object',
       properties: {
@@ -721,9 +721,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           mount_path: e.mount_path,
           model: e.model,
           status: e.status,
-          claude_md: e.claude_md_path
-            ? existsSync(e.claude_md_path)
-            : false,
+          claude_md: e.claude_md_path ? existsSync(e.claude_md_path) : false,
         }));
 
         return {
@@ -753,7 +751,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         if (expert.status !== 'active') {
           return {
             content: [
-              { type: 'text', text: `Expert is not active: ${expertSlug} (status: ${expert.status})` },
+              {
+                type: 'text',
+                text: `Expert is not active: ${expertSlug} (status: ${expert.status})`,
+              },
             ],
             isError: true,
           };
@@ -821,9 +822,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           });
 
           return {
-            content: [
-              { type: 'text', text: `Expert session failed: ${message}` },
-            ],
+            content: [{ type: 'text', text: `Expert session failed: ${message}` }],
             isError: true,
           };
         }

@@ -14,11 +14,7 @@ const PAYLOAD_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})/;
 
 function isValidDate(year: number, month: number, day: number): boolean {
   const date = new Date(year, month - 1, day);
-  return (
-    date.getFullYear() === year &&
-    date.getMonth() === month - 1 &&
-    date.getDate() === day
-  );
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }
 
 function isPayloadDir(relativePath: string): boolean {

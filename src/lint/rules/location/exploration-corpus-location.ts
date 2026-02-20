@@ -33,7 +33,8 @@ export const explorationCorpusLocation: LintRule = {
         rule: this.name,
         severity: this.severity,
         message: `Exploration "${filename}" is cross-cutting (CORPUS root)`,
-        suggestion: 'Cross-cutting explorations are allowed. Move to a project if this is project-specific.',
+        suggestion:
+          'Cross-cutting explorations are allowed. Move to a project if this is project-specific.',
       },
     ];
   },

@@ -111,7 +111,10 @@ describe('CorpusScanner', () => {
       const result = await scanner.scan();
 
       const projectExploration = result.knowledge.find(
-        (k) => k.type === 'exploration' && k.clientSlug === 'test-client-1' && k.projectSlug === 'test-project'
+        (k) =>
+          k.type === 'exploration' &&
+          k.clientSlug === 'test-client-1' &&
+          k.projectSlug === 'test-project'
       );
       expect(projectExploration).toBeDefined();
       expect(projectExploration?.title).toBe('API Design Exploration');
@@ -124,7 +127,10 @@ describe('CorpusScanner', () => {
       const result = await scanner.scan();
 
       const projectPayload = result.knowledge.find(
-        (k) => k.type === 'payload' && k.clientSlug === 'test-client-1' && k.projectSlug === 'test-project'
+        (k) =>
+          k.type === 'payload' &&
+          k.clientSlug === 'test-client-1' &&
+          k.projectSlug === 'test-project'
       );
       expect(projectPayload).toBeDefined();
       expect(projectPayload?.title).toBe('Feature Implementation Tasks');

@@ -17,7 +17,8 @@ function isPayloadDir(relativePath: string): boolean {
 
 export const payloadLocation: LintRule = {
   name: 'payload-location',
-  description: 'Payloads must be in project-scoped locations (knowledge/.../projects/<name>/payloads/)',
+  description:
+    'Payloads must be in project-scoped locations (knowledge/.../projects/<name>/payloads/)',
   severity: 'error',
 
   check(file: LintFile, _corpusPath: string): LintResult[] {
@@ -31,7 +32,7 @@ export const payloadLocation: LintRule = {
 
     // It's a payload directory but not in the right location
     const dirname = file.relativePath.replace(/\/$/, '').split('/').pop();
-    
+
     let message: string;
     let suggestion: string;
 

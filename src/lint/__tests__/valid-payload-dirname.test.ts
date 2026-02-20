@@ -50,9 +50,7 @@ describe('valid-payload-dirname', () => {
     });
 
     it('should accept payload in project-scoped payloads/', () => {
-      const dir = makeDir(
-        'knowledge/10_clients/acme/web-app/payloads/2026-02-14-new-feature'
-      );
+      const dir = makeDir('knowledge/10_clients/acme/web-app/payloads/2026-02-14-new-feature');
       expect(rule.check(dir, '/corpus')).toEqual([]);
     });
 

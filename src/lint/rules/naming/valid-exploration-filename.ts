@@ -14,11 +14,7 @@ const EXPLORATION_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})/;
 
 function isValidDate(year: number, month: number, day: number): boolean {
   const date = new Date(year, month - 1, day);
-  return (
-    date.getFullYear() === year &&
-    date.getMonth() === month - 1 &&
-    date.getDate() === day
-  );
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }
 
 export const validExplorationFilename: LintRule = {
@@ -44,7 +40,11 @@ export const validExplorationFilename: LintRule = {
         // Has date but wrong separator or missing slug
         suggestion = `Rename to match YYYY-MM-DD-<slug>.md (use hyphens, not underscores)`;
       } else {
-        const slug = filename.replace(/\.md$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        const slug = filename
+          .replace(/\.md$/, '')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '');
         const today = new Date().toISOString().slice(0, 10);
         suggestion = `Rename to ${today}-${slug}.md`;
       }

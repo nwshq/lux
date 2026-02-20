@@ -114,10 +114,9 @@ describe('payload-has-tasks', () => {
     const tempPath = join(__dirname, 'temp-payload-tasks-scoped');
 
     beforeEach(() => {
-      mkdirSync(
-        join(tempPath, 'knowledge/10_clients/acme/web-app/payloads/2026-02-14-feature'),
-        { recursive: true }
-      );
+      mkdirSync(join(tempPath, 'knowledge/10_clients/acme/web-app/payloads/2026-02-14-feature'), {
+        recursive: true,
+      });
     });
 
     afterEach(() => {
@@ -139,11 +138,7 @@ describe('payload-has-tasks', () => {
 
     it('should pass for project-scoped payload with TASKS.md', () => {
       writeFileSync(
-        join(
-          tempPath,
-          'knowledge/10_clients/acme/web-app/payloads/2026-02-14-feature',
-          'TASKS.md'
-        ),
+        join(tempPath, 'knowledge/10_clients/acme/web-app/payloads/2026-02-14-feature', 'TASKS.md'),
         '# Tasks'
       );
 

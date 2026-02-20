@@ -25,7 +25,8 @@ function isExplorationFile(relativePath: string): boolean {
 
 export const explorationLocation: LintRule = {
   name: 'exploration-location',
-  description: 'Explorations must be cross-cutting (explorations/) or project-scoped (knowledge/.../projects/<name>/explorations/)',
+  description:
+    'Explorations must be cross-cutting (explorations/) or project-scoped (knowledge/.../projects/<name>/explorations/)',
   severity: 'error',
 
   check(file: LintFile, _corpusPath: string): LintResult[] {
@@ -49,7 +50,8 @@ export const explorationLocation: LintRule = {
         rule: this.name,
         severity: this.severity,
         message: `Exploration "${filename}" is not in a valid location`,
-        suggestion: 'Move to explorations/ (cross-cutting) or knowledge/.../projects/<name>/explorations/ (project-scoped)',
+        suggestion:
+          'Move to explorations/ (cross-cutting) or knowledge/.../projects/<name>/explorations/ (project-scoped)',
       },
     ];
   },

@@ -68,9 +68,7 @@ describe('payload-corpus-location', () => {
     });
 
     it('should not flag deeply nested project payloads', () => {
-      const file = makeDir(
-        'knowledge/10_clients/acme/projects/web-app/payloads/2026-02-15-auth/'
-      );
+      const file = makeDir('knowledge/10_clients/acme/projects/web-app/payloads/2026-02-15-auth/');
       expect(rule.check(file, '/corpus')).toEqual([]);
     });
   });

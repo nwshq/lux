@@ -442,11 +442,7 @@ export class LuxDatabase {
       });
       return result.lastInsertRowid as number;
     } catch (error) {
-      throw this.wrapDbError(
-        error,
-        'insertExpertSession',
-        `Expert ID: ${session.expert_id}`
-      );
+      throw this.wrapDbError(error, 'insertExpertSession', `Expert ID: ${session.expert_id}`);
     }
   }
 
@@ -468,9 +464,7 @@ export class LuxDatabase {
   }
 
   getActiveSessionForExpert(expertId: number): ExpertSession | undefined {
-    return this.getQueries().getActiveSessionForExpert.get(expertId) as
-      | ExpertSession
-      | undefined;
+    return this.getQueries().getActiveSessionForExpert.get(expertId) as ExpertSession | undefined;
   }
 
   touchExpertSession(id: number) {
