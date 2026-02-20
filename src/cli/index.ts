@@ -11,6 +11,7 @@ import { addSearchCommand } from './search.js';
 import { addHooksCommand } from './hooks.js';
 import { addMigrateCommands } from './migrate.js';
 import { addLintCommand } from './lint.js';
+import { addExpertCommands } from './expert.js';
 
 const program = new Command();
 
@@ -413,5 +414,8 @@ addMigrateCommands(program);
 
 // Add lint command
 addLintCommand(program);
+
+// Add expert commands
+addExpertCommands(program);
 
 program.parse();
