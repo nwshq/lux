@@ -120,3 +120,41 @@ export interface EventInsert {
   summary?: string;
   payload?: Record<string, unknown>;
 }
+
+export interface Expert {
+  id: number;
+  slug: string;
+  name: string;
+  mount_path: string;
+  model: string;
+  claude_md_path?: string;
+  memory_path?: string;
+  status: string;
+  created_at: number;
+  updated_at: number;
+}
+
+export interface ExpertInsert {
+  slug: string;
+  name: string;
+  mount_path: string;
+  model?: string;
+  claude_md_path?: string;
+  memory_path?: string;
+  status?: string;
+}
+
+export interface ExpertSession {
+  id: number;
+  expert_id: number;
+  session_ref: string;
+  spawned_at: number;
+  last_active_at: number;
+  status: string;
+}
+
+export interface ExpertSessionInsert {
+  expert_id: number;
+  session_ref: string;
+  status?: string;
+}

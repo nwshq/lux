@@ -9,11 +9,15 @@ import type {
   Communication,
   KnowledgeEntry,
   Event,
+  Expert,
+  ExpertSession,
   ClientInsert,
   ProjectInsert,
   CommunicationInsert,
   KnowledgeEntryInsert,
   EventInsert,
+  ExpertInsert,
+  ExpertSessionInsert,
 } from './types.js';
 
 export class LuxDatabase {
@@ -382,9 +386,114 @@ export class LuxDatabase {
     return this.getQueries().searchKnowledgeEntriesContentFts.all(query) as KnowledgeEntry[];
   }
 
+  // Expert operations
+  insertExpert(expert: ExpertInsert): number {
+    try {
+      const result = this.getQueries().insertExpert.run({
+        slug: expert.slug,
+        name: expert.name,
+        mount_path: expert.mount_path,
+        model: expert.model ?? 'claude-sonnet-4-20250514',
+        claude_md_path: expert.claude_md_path ?? null,
+        memory_path: expert.memory_path ?? null,
+        status: expert.status ?? 'active',
+      });
+      return result.lastInsertRowid as number;
+    } catch (error) {
+      throw this.wrapDbError(error, 'insertExpert', `Expert slug: ${expert.slug}`);
+    }
+  }
+
+  getExpert(slug: string): Expert | undefined {
+    return this.getQueries().getExpert.get(slug) as Expert | undefined;
+  }
+
+  getAllExperts(): Expert[] {
+    return this.getQueries().getAllExperts.all() as Expert[];
+  }
+
+  getExpertsByStatus(status: string): Expert[] {
+    return this.getQueries().getExpertsByStatus.all(status) as Expert[];
+  }
+
+  updateExpert(slug: string, updates: Partial<ExpertInsert>) {
+    this.getQueries().updateExpert.run({
+      slug,
+      name: updates.name ?? null,
+      mount_path: updates.mount_path ?? null,
+      model: updates.model ?? null,
+      claude_md_path: updates.claude_md_path ?? null,
+      memory_path: updates.memory_path ?? null,
+      status: updates.status ?? null,
+    });
+  }
+
+  deleteExpert(slug: string) {
+    this.getQueries().deleteExpert.run(slug);
+  }
+
+  // Expert session operations
+  insertExpertSession(session: ExpertSessionInsert): number {
+    try {
+      const result = this.getQueries().insertExpertSession.run({
+        expert_id: session.expert_id,
+        session_ref: session.session_ref,
+        status: session.status ?? 'warm',
+      });
+      return result.lastInsertRowid as number;
+    } catch (error) {
+      throw this.wrapDbError(
+        error,
+        'insertExpertSession',
+        `Expert ID: ${session.expert_id}`
+      );
+    }
+  }
+
+  getExpertSession(id: number): ExpertSession | undefined {
+    return this.getQueries().getExpertSession.get(id) as ExpertSession | undefined;
+  }
+
+  getSessionsByExpert(expertId: number): ExpertSession[] {
+    return this.getQueries().getSessionsByExpert.all(expertId) as ExpertSession[];
+  }
+
+  getSessionsByStatus(
+    status: string
+  ): (ExpertSession & { expert_slug: string; expert_name: string })[] {
+    return this.getQueries().getSessionsByStatus.all(status) as (ExpertSession & {
+      expert_slug: string;
+      expert_name: string;
+    })[];
+  }
+
+  getActiveSessionForExpert(expertId: number): ExpertSession | undefined {
+    return this.getQueries().getActiveSessionForExpert.get(expertId) as
+      | ExpertSession
+      | undefined;
+  }
+
+  touchExpertSession(id: number) {
+    this.getQueries().updateSessionLastActive.run(id);
+  }
+
+  updateExpertSessionStatus(id: number, status: string) {
+    this.getQueries().updateSessionStatus.run({ id, status });
+  }
+
+  deleteExpertSession(id: number) {
+    this.getQueries().deleteExpertSession.run(id);
+  }
+
+  deleteSessionsByExpert(expertId: number) {
+    this.getQueries().deleteSessionsByExpert.run(expertId);
+  }
+
   // Utility operations
   clearAll() {
     const queries = this.getQueries();
+    queries.clearExpertSessions.run();
+    queries.clearExperts.run();
     queries.clearEvents.run();
     queries.clearKnowledgeEntries.run();
     queries.clearCommunications.run();
@@ -399,6 +508,7 @@ export class LuxDatabase {
     const communications = queries.countCommunications.get() as { count: number };
     const knowledge = queries.countKnowledgeEntries.get() as { count: number };
     const events = queries.countEvents.get() as { count: number };
+    const experts = queries.countExperts.get() as { count: number };
 
     return {
       clients: clients.count,
@@ -406,6 +516,7 @@ export class LuxDatabase {
       communications: communications.count,
       knowledge_entries: knowledge.count,
       events: events.count,
+      experts: experts.count,
     };
   }
 

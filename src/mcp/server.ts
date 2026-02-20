@@ -9,10 +9,14 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { LuxDatabase } from '../db/index.js';
 import { CorpusScanner } from '../scanner/index.js';
-import { readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { homedir } from 'os';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 import { createMarkdownWithFrontmatter } from '../utils/frontmatter.js';
+
+const execFileAsync = promisify(execFile);
 
 const DEFAULT_DB_PATH = join(homedir(), '.lux', 'lux.db');
 const DEFAULT_CORPUS_PATH = join(homedir(), 'CORPUS');
@@ -190,6 +194,41 @@ const TOOLS: Tool[] = [
     inputSchema: {
       type: 'object',
       properties: {},
+    },
+  },
+  {
+    name: 'lux_list_experts',
+    description:
+      'List all registered domain experts in the expert panel. Returns expert slug, name, mount path, model, and status.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        status: {
+          type: 'string',
+          enum: ['active', 'inactive', 'all'],
+          description: 'Filter by expert status',
+          default: 'all',
+        },
+      },
+    },
+  },
+  {
+    name: 'lux_ask',
+    description:
+      'Ask a domain expert a question. Spawns a Claude session scoped to the expert\'s CORPUS mount path with their configured model and system prompt. Returns the expert\'s response.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        expert: {
+          type: 'string',
+          description: 'Expert slug identifying which expert to ask',
+        },
+        question: {
+          type: 'string',
+          description: 'The question or prompt to send to the expert',
+        },
+      },
+      required: ['expert', 'question'],
     },
   },
 ];
@@ -664,6 +703,130 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             },
           ],
         };
+      }
+
+      case 'lux_list_experts': {
+        const { status = 'all' } = args as { status?: string };
+
+        let experts;
+        if (status === 'all') {
+          experts = db.getAllExperts();
+        } else {
+          experts = db.getExpertsByStatus(status);
+        }
+
+        const result = experts.map((e) => ({
+          slug: e.slug,
+          name: e.name,
+          mount_path: e.mount_path,
+          model: e.model,
+          status: e.status,
+          claude_md: e.claude_md_path
+            ? existsSync(e.claude_md_path)
+            : false,
+        }));
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        };
+      }
+
+      case 'lux_ask': {
+        const { expert: expertSlug, question } = args as {
+          expert: string;
+          question: string;
+        };
+
+        const expert = db.getExpert(expertSlug);
+        if (!expert) {
+          return {
+            content: [{ type: 'text', text: `Expert not found: ${expertSlug}` }],
+            isError: true,
+          };
+        }
+
+        if (expert.status !== 'active') {
+          return {
+            content: [
+              { type: 'text', text: `Expert is not active: ${expertSlug} (status: ${expert.status})` },
+            ],
+            isError: true,
+          };
+        }
+
+        if (!existsSync(expert.mount_path)) {
+          return {
+            content: [
+              { type: 'text', text: `Expert mount path does not exist: ${expert.mount_path}` },
+            ],
+            isError: true,
+          };
+        }
+
+        // Build claude CLI arguments
+        const claudeArgs = ['--print', '--model', expert.model];
+
+        // Append system prompt from claude.md if available
+        if (expert.claude_md_path && existsSync(expert.claude_md_path)) {
+          const systemPrompt = readFileSync(expert.claude_md_path, 'utf-8');
+          claudeArgs.push('--system-prompt', systemPrompt);
+        }
+
+        claudeArgs.push(question);
+
+        try {
+          const { stdout } = await execFileAsync('claude', claudeArgs, {
+            cwd: expert.mount_path,
+            timeout: 300_000, // 5 minute timeout
+            maxBuffer: 10 * 1024 * 1024, // 10MB
+          });
+
+          // Log the expert ask event
+          db.insertEvent({
+            source: 'mcp',
+            event_type: 'expert_ask',
+            summary: `Asked expert "${expert.name}": ${question.slice(0, 100)}`,
+            payload: {
+              expert_slug: expertSlug,
+              question,
+              response_length: stdout.length,
+            },
+          });
+
+          return {
+            content: [
+              {
+                type: 'text',
+                text: stdout,
+              },
+            ],
+          };
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+
+          db.insertEvent({
+            source: 'mcp',
+            event_type: 'expert_ask_error',
+            summary: `Expert ask failed for "${expert.name}": ${message.slice(0, 200)}`,
+            payload: {
+              expert_slug: expertSlug,
+              question,
+              error: message,
+            },
+          });
+
+          return {
+            content: [
+              { type: 'text', text: `Expert session failed: ${message}` },
+            ],
+            isError: true,
+          };
+        }
       }
 
       default:

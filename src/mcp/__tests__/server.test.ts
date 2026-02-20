@@ -651,6 +651,106 @@ Our approach to testing.
     });
   });
 
+  describe('lux_list_experts', () => {
+    it('should list all experts', () => {
+      const experts = db.getAllExperts();
+      expect(experts).toHaveLength(0); // No experts registered yet
+    });
+
+    it('should list experts after registration', () => {
+      db.insertExpert({
+        slug: 'test-expert',
+        name: 'Test Expert',
+        mount_path: corpusPath,
+        model: 'claude-sonnet-4-20250514',
+      });
+
+      const experts = db.getAllExperts();
+      expect(experts).toHaveLength(1);
+      expect(experts[0].slug).toBe('test-expert');
+      expect(experts[0].name).toBe('Test Expert');
+      expect(experts[0].model).toBe('claude-sonnet-4-20250514');
+      expect(experts[0].status).toBe('active');
+    });
+
+    it('should filter experts by status', () => {
+      db.insertExpert({
+        slug: 'active-expert',
+        name: 'Active Expert',
+        mount_path: corpusPath,
+        model: 'claude-sonnet-4-20250514',
+        status: 'active',
+      });
+
+      db.insertExpert({
+        slug: 'inactive-expert',
+        name: 'Inactive Expert',
+        mount_path: corpusPath,
+        model: 'claude-sonnet-4-20250514',
+        status: 'inactive',
+      });
+
+      const activeExperts = db.getExpertsByStatus('active');
+      expect(activeExperts).toHaveLength(1);
+      expect(activeExperts[0].slug).toBe('active-expert');
+
+      const inactiveExperts = db.getExpertsByStatus('inactive');
+      expect(inactiveExperts).toHaveLength(1);
+      expect(inactiveExperts[0].slug).toBe('inactive-expert');
+
+      const allExperts = db.getAllExperts();
+      expect(allExperts).toHaveLength(2);
+    });
+  });
+
+  describe('lux_ask', () => {
+    it('should return error for non-existent expert', () => {
+      const expert = db.getExpert('non-existent');
+      expect(expert).toBeUndefined();
+    });
+
+    it('should return error for inactive expert', () => {
+      db.insertExpert({
+        slug: 'disabled-expert',
+        name: 'Disabled Expert',
+        mount_path: corpusPath,
+        model: 'claude-sonnet-4-20250514',
+        status: 'inactive',
+      });
+
+      const expert = db.getExpert('disabled-expert');
+      expect(expert).toBeDefined();
+      expect(expert!.status).toBe('inactive');
+    });
+
+    it('should resolve expert with valid mount path', () => {
+      db.insertExpert({
+        slug: 'valid-expert',
+        name: 'Valid Expert',
+        mount_path: corpusPath,
+        model: 'claude-sonnet-4-20250514',
+      });
+
+      const expert = db.getExpert('valid-expert');
+      expect(expert).toBeDefined();
+      expect(expert!.mount_path).toBe(corpusPath);
+      expect(existsSync(expert!.mount_path)).toBe(true);
+    });
+
+    it('should detect missing mount path', () => {
+      db.insertExpert({
+        slug: 'missing-mount',
+        name: 'Missing Mount Expert',
+        mount_path: '/nonexistent/path/that/does/not/exist',
+        model: 'claude-sonnet-4-20250514',
+      });
+
+      const expert = db.getExpert('missing-mount');
+      expect(expert).toBeDefined();
+      expect(existsSync(expert!.mount_path)).toBe(false);
+    });
+  });
+
   describe('Integration Tests', () => {
     it('should handle full workflow: search, get client, read file', () => {
       // 1. Search for client
