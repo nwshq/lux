@@ -12,6 +12,7 @@ import { addHooksCommand } from './hooks.js';
 import { addMigrateCommands } from './migrate.js';
 import { addLintCommand } from './lint.js';
 import { addExpertCommands } from './expert.js';
+import { addAskCommand } from './ask.js';
 
 const program = new Command();
 
@@ -417,5 +418,8 @@ addLintCommand(program);
 
 // Add expert commands
 addExpertCommands(program);
+
+// Add ask command
+addAskCommand(program);
 
 program.parse();
