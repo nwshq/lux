@@ -1,7 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { join } from 'path';
 import { mkdirSync, writeFileSync, rmSync, existsSync, readFileSync } from 'fs';
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { LuxDatabase } from '../../db/index.js';
 import { CorpusScanner } from '../../scanner/index.js';
 import { createMarkdownWithFrontmatter } from '../../utils/frontmatter.js';
@@ -305,9 +304,19 @@ Our approach to testing.
         '2024-01-25_slack-update.md'
       );
 
-      mkdirSync(join(corpusPath, 'knowledge', '10_clients', 'test-client', 'test-project', 'communications'), {
-        recursive: true,
-      });
+      mkdirSync(
+        join(
+          corpusPath,
+          'knowledge',
+          '10_clients',
+          'test-client',
+          'test-project',
+          'communications'
+        ),
+        {
+          recursive: true,
+        }
+      );
 
       const content = createMarkdownWithFrontmatter(
         {
@@ -483,7 +492,13 @@ Our approach to testing.
 
   describe('lux_get_file', () => {
     it('should read a file successfully', () => {
-      const clientFilePath = join(corpusPath, 'knowledge', '10_clients', 'test-client', 'README.md');
+      const clientFilePath = join(
+        corpusPath,
+        'knowledge',
+        '10_clients',
+        'test-client',
+        'README.md'
+      );
 
       const content = readFileSync(clientFilePath, 'utf-8');
       expect(content).toContain('Test Client');
