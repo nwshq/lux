@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { LuxDatabase } from '../db/index.js';
-import { ExpertSessionManagerImpl } from '../experts/session-manager.js';
+import { SubprocessSessionManager } from '../experts/subprocess-manager.js';
 import type { ExpertSessionManager } from '../experts/session-manager.js';
 import { routeQuery } from '../experts/router.js';
 import type { RouteResult } from '../experts/router.js';
@@ -19,7 +19,7 @@ export function addAskCommand(program: Command) {
       ) => {
         const opts = program.opts();
         const db = new LuxDatabase(opts.db as string);
-        const sessionManager = new ExpertSessionManagerImpl(db);
+        const sessionManager = new SubprocessSessionManager(db);
 
         try {
           if (options.expert) {

@@ -16,6 +16,7 @@ export interface QueryResult {
 export interface SessionInfo {
   session: ExpertSession;
   expert: Expert;
+  isExisting?: boolean;
 }
 
 export interface ExpertSessionManager {
@@ -114,7 +115,8 @@ export class ExpertSessionManagerImpl implements ExpertSessionManager {
       // Mark session as idle on failure
       this.db.updateExpertSessionStatus(session.id, 'idle');
 
-      const message = error instanceof Error ? error.message : String(error);
+      const stderr = (error as { stderr?: string }).stderr?.trim();
+      const message = stderr || (error instanceof Error ? error.message : String(error));
 
       this.db.insertEvent({
         source: 'expert-session-manager',

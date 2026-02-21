@@ -1,4 +1,5 @@
 import { spawn, type ChildProcess } from 'child_process';
+import { randomUUID } from 'crypto';
 import { existsSync, readFileSync } from 'fs';
 import type { LuxDatabase } from '../db/index.js';
 import type { ExpertSessionManager, QueryResult, SessionInfo } from './session-manager.js';
@@ -45,20 +46,20 @@ export class SubprocessSessionManager implements ExpertSessionManager {
     const existing = this.db.getActiveSessionForExpert(expert.id);
     if (existing) {
       this.db.touchExpertSession(existing.id);
-      return { session: this.db.getExpertSession(existing.id)!, expert };
+      return { session: this.db.getExpertSession(existing.id)!, expert, isExisting: true };
     }
 
-    const sessionRef = `session-${expertSlug}-${Date.now()}`;
+    const sessionRef = randomUUID();
     const sessionId = this.db.insertExpertSession({
       expert_id: expert.id,
       session_ref: sessionRef,
     });
 
-    return { session: this.db.getExpertSession(sessionId)!, expert };
+    return { session: this.db.getExpertSession(sessionId)!, expert, isExisting: false };
   }
 
   async query(expertSlug: string, question: string): Promise<QueryResult> {
-    const { session, expert } = this.getSession(expertSlug);
+    const { session, expert, isExisting } = this.getSession(expertSlug);
 
     if (expert.status !== 'active') {
       throw new Error(`Expert is not active: ${expertSlug} (status: ${expert.status})`);
@@ -77,7 +78,7 @@ export class SubprocessSessionManager implements ExpertSessionManager {
     this.db.updateExpertSessionStatus(session.id, 'active');
 
     try {
-      const response = await this.spawnQuery(session.id, expert.mount_path, expert.model, expert.claude_md_path, session.session_ref, question, expertSlug);
+      const response = await this.spawnQuery(session.id, expert.mount_path, expert.model, expert.claude_md_path, isExisting ? session.session_ref : undefined, question, expertSlug);
 
       this.db.updateExpertSessionStatus(session.id, 'warm');
       this.db.touchExpertSession(session.id);
@@ -176,12 +177,15 @@ export class SubprocessSessionManager implements ExpertSessionManager {
     cwd: string,
     model: string,
     claudeMdPath: string | undefined,
-    sessionRef: string,
+    sessionRef: string | undefined,
     question: string,
     expertSlug: string,
   ): Promise<string> {
     return new Promise((resolve, reject) => {
-      const args = ['--print', '--model', model, '--resume', sessionRef];
+      const args = ['--print', '--model', model];
+      if (sessionRef) {
+        args.push('--resume', sessionRef);
+      }
 
       if (claudeMdPath && existsSync(claudeMdPath)) {
         const systemPrompt = readFileSync(claudeMdPath, 'utf-8');

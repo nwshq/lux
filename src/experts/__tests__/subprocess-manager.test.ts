@@ -112,7 +112,7 @@ describe('SubprocessSessionManager', () => {
 
       expect(session).toBeDefined();
       expect(session.status).toBe('warm');
-      expect(session.session_ref).toMatch(/^session-test-expert-/);
+      expect(session.session_ref).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
       expect(expert.slug).toBe('test-expert');
     });
 
@@ -145,7 +145,7 @@ describe('SubprocessSessionManager', () => {
       expect(result.sessionId).toBeGreaterThan(0);
     });
 
-    it('should pass correct CLI arguments', async () => {
+    it('should pass correct CLI arguments without --resume on first query', async () => {
       createExpert();
 
       const mockProc = createMockProcess();
@@ -153,16 +153,18 @@ describe('SubprocessSessionManager', () => {
 
       const promise = manager.query('test-expert', 'Hello');
 
+      const spawnCall = mockSpawn.mock.calls[0];
+      const args = spawnCall[1] as string[];
+
+      expect(args).toContain('--print');
+      expect(args).toContain('--model');
+      expect(args).toContain('claude-sonnet-4-20250514');
+      expect(args).toContain('Hello');
+      expect(args).not.toContain('--resume');
+
       expect(mockSpawn).toHaveBeenCalledWith(
         'claude',
-        expect.arrayContaining([
-          '--print',
-          '--model',
-          'claude-sonnet-4-20250514',
-          '--resume',
-          expect.stringMatching(/^session-test-expert-/),
-          'Hello',
-        ]),
+        expect.anything(),
         expect.objectContaining({
           cwd: mountPath,
           stdio: ['ignore', 'pipe', 'pipe'],
@@ -538,20 +540,44 @@ describe('SubprocessSessionManager', () => {
   });
 
   describe('conversation resumption', () => {
-    it('should pass session_ref as --resume argument for conversation continuity', async () => {
+    it('should pass --resume with session_ref on follow-up queries', async () => {
+      createExpert();
+
+      // First query — establishes the session
+      const firstProc = createMockProcess();
+      mockSpawn.mockReturnValue(firstProc);
+
+      const { session } = manager.getSession('test-expert');
+      const firstPromise = manager.query('test-expert', 'First question');
+      resolveProcess(firstProc, 'first response');
+      await firstPromise;
+
+      // Second query — should resume the existing session
+      const secondProc = createMockProcess();
+      mockSpawn.mockReturnValue(secondProc);
+
+      const secondPromise = manager.query('test-expert', 'Follow up');
+
+      const spawnCall = mockSpawn.mock.calls[1];
+      const args = spawnCall[1] as string[];
+      expect(args).toContain('--resume');
+      expect(args).toContain(session.session_ref);
+
+      resolveProcess(secondProc, 'second response');
+      await secondPromise;
+    });
+
+    it('should not pass --resume on the first query of a new session', async () => {
       createExpert();
 
       const mockProc = createMockProcess();
       mockSpawn.mockReturnValue(mockProc);
 
-      const { session } = manager.getSession('test-expert');
-      const promise = manager.query('test-expert', 'Follow up');
+      const promise = manager.query('test-expert', 'First question');
 
-      expect(mockSpawn).toHaveBeenCalledWith(
-        'claude',
-        expect.arrayContaining(['--resume', session.session_ref]),
-        expect.anything(),
-      );
+      const spawnCall = mockSpawn.mock.calls[0];
+      const args = spawnCall[1] as string[];
+      expect(args).not.toContain('--resume');
 
       resolveProcess(mockProc, 'response');
       await promise;
