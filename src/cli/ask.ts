@@ -130,36 +130,31 @@ export async function askPanel(
     return;
   }
 
-  if (routeResult.synthesis) {
-    console.log(routeResult.synthesis);
-  } else if (routeResult.responses.length === 1) {
-    const resp = routeResult.responses[0];
-    if (options.verbose) {
-      console.error(`\nResponse from: ${resp.expertSlug}`);
-      console.error('---');
-      console.error('');
-    }
-    console.log(resp.response);
+  // Single expert response — just output the answer
+  const resp = routeResult.responses[0];
+  if (options.verbose) {
+    console.error(`\nResponse from: ${resp.expertSlug}`);
+    console.error('---');
+    console.error('');
   }
+  console.log(resp.response);
 }
 
 function printVerboseRouting(result: RouteResult): void {
   if (result.matchedExperts.length > 0) {
-    console.error('Matched experts:');
-    for (const match of result.matchedExperts) {
-      console.error(
-        `  ${match.expert.slug}: ${match.hits} hits, score ${match.score.toFixed(2)}`
-      );
+    const chosen = result.matchedExperts[0];
+    console.error(`Routed to: ${chosen.expert.name} (${chosen.expert.slug})`);
+    console.error(`  ${chosen.hits} FTS5 hits`);
+    if (result.matchedExperts.length > 1) {
+      console.error('Other matches:');
+      for (const match of result.matchedExperts.slice(1)) {
+        console.error(`  ${match.expert.slug}: ${match.hits} hits`);
+      }
     }
     console.error('');
   } else {
-    console.error('No FTS5 matches — querying all active experts.');
+    console.error('No FTS5 matches — using first active expert as fallback.');
     console.error('');
-  }
-
-  console.error(`Experts queried: ${result.responses.length}`);
-  for (const resp of result.responses) {
-    console.error(`  ${resp.expertSlug}: ${resp.response.length} chars`);
   }
 }
 
@@ -170,13 +165,11 @@ export function formatRouteResultJson(result: RouteResult): Record<string, unkno
       slug: m.expert.slug,
       name: m.expert.name,
       hits: m.hits,
-      score: m.score,
     })),
     responses: result.responses.map((r) => ({
       expertSlug: r.expertSlug,
       sessionId: r.sessionId,
       response: r.response,
     })),
-    synthesis: result.synthesis ?? null,
   };
 }

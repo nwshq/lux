@@ -280,7 +280,6 @@ describe('ask command', () => {
       expect(output.query).toBe('test');
       expect(output.responses).toBeDefined();
       expect(output.matchedExperts).toBeDefined();
-      expect(output.synthesis).toBeDefined();
 
       logSpy.mockRestore();
     });
@@ -313,38 +312,23 @@ describe('ask command', () => {
             response: 'The answer is 42',
           },
         ],
-        synthesis: undefined,
       };
 
       const json = formatRouteResultJson(result);
 
       expect(json.query).toBe('test query');
-      expect(json.synthesis).toBeNull();
 
       const experts = json.matchedExperts as Array<Record<string, unknown>>;
       expect(experts).toHaveLength(1);
       expect(experts[0].slug).toBe('expert-a');
       expect(experts[0].name).toBe('Expert A');
       expect(experts[0].hits).toBe(3);
-      expect(experts[0].score).toBe(-1.5);
 
       const responses = json.responses as Array<Record<string, unknown>>;
       expect(responses).toHaveLength(1);
       expect(responses[0].expertSlug).toBe('expert-a');
       expect(responses[0].sessionId).toBe(42);
       expect(responses[0].response).toBe('The answer is 42');
-    });
-
-    it('should include synthesis when present', () => {
-      const result: RouteResult = {
-        query: 'multi query',
-        matchedExperts: [],
-        responses: [],
-        synthesis: '## Synthesized\nMulti-expert response',
-      };
-
-      const json = formatRouteResultJson(result);
-      expect(json.synthesis).toBe('## Synthesized\nMulti-expert response');
     });
 
     it('should handle empty results', () => {
@@ -358,7 +342,6 @@ describe('ask command', () => {
       expect(json.query).toBe('empty');
       expect(json.matchedExperts).toEqual([]);
       expect(json.responses).toEqual([]);
-      expect(json.synthesis).toBeNull();
     });
   });
 });

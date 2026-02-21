@@ -851,7 +851,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
 
         try {
-          const routeResult = await routeQuery(fullQuestion, db, sessionManager);
+          const routeResult = await routeQuery(fullQuestion, db, sessionManager, {
+            maxExperts: 1,
+          });
 
           if (routeResult.responses.length === 0) {
             return {
@@ -863,19 +865,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           }
 
           const expertsConsulted = routeResult.responses.map((r) => r.expertSlug);
-          const answer =
-            routeResult.synthesis ?? routeResult.responses[0].response;
+          const answer = routeResult.responses[0].response;
 
           // Build routing reason
           let routingReason: string;
           if (routeResult.matchedExperts.some((m) => m.hits > 0)) {
             const matches = routeResult.matchedExperts
               .filter((m) => m.hits > 0)
-              .map((m) => `${m.expert.slug} (${m.hits} hits, score ${m.score.toFixed(2)})`)
+              .map((m) => `${m.expert.slug} (${m.hits} hits)`)
               .join(', ');
             routingReason = `FTS5 search matched: ${matches}`;
           } else {
-            routingReason = 'No FTS5 matches — queried all active experts as fallback';
+            routingReason = 'No FTS5 matches — queried first active expert as fallback';
           }
 
           db.insertEvent({
@@ -887,7 +888,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               context: context ?? null,
               experts_consulted: expertsConsulted,
               routing_reason: routingReason,
-              response_count: routeResult.responses.length,
             },
           });
 

@@ -2,7 +2,8 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { join } from 'path';
 import { mkdirSync, rmSync, existsSync, writeFileSync } from 'fs';
 import { LuxDatabase } from '../../db/index.js';
-import { routeQuery, sanitizeFtsQuery } from '../router.js';
+import { routeQuery, sanitizeFtsQuery, buildAugmentedQuery } from '../router.js';
+import type { FtsHit } from '../router.js';
 import type { ExpertSessionManager, QueryResult, SessionInfo } from '../session-manager.js';
 import type { Expert, ExpertSession, KnowledgeEntryInsert, ClientInsert } from '../../db/types.js';
 
@@ -116,6 +117,76 @@ describe('sanitizeFtsQuery', () => {
   });
 });
 
+describe('buildAugmentedQuery', () => {
+  it('should return raw question when no hits have content', () => {
+    const hits: FtsHit[] = [
+      { filePath: '/some/path', rank: 0 },
+      { filePath: '/other/path', rank: 0, content: '' },
+    ];
+    expect(buildAugmentedQuery('What is X?', hits)).toBe('What is X?');
+  });
+
+  it('should include reference documents with content', () => {
+    const hits: FtsHit[] = [
+      { filePath: '/path/doc.md', rank: 0, content: 'Doc content here', title: 'My Doc' },
+    ];
+    const result = buildAugmentedQuery('What is X?', hits);
+    expect(result).toContain('## Reference Documents');
+    expect(result).toContain('### My Doc');
+    expect(result).toContain('Doc content here');
+    expect(result).toContain('## Question');
+    expect(result).toContain('What is X?');
+  });
+
+  it('should use filePath as label when title is missing', () => {
+    const hits: FtsHit[] = [
+      { filePath: '/path/doc.md', rank: 0, content: 'Content' },
+    ];
+    const result = buildAugmentedQuery('Q?', hits);
+    expect(result).toContain('### /path/doc.md');
+  });
+
+  it('should cap context at maxContextBytes', () => {
+    const bigContent = 'x'.repeat(5000);
+    const hits: FtsHit[] = [
+      { filePath: '/a', rank: 0, content: bigContent, title: 'A' },
+      { filePath: '/b', rank: 0, content: bigContent, title: 'B' },
+      { filePath: '/c', rank: 0, content: bigContent, title: 'C' },
+    ];
+    // With a 6000 byte budget, only the first doc should fully fit
+    const result = buildAugmentedQuery('Q?', hits, 6000);
+    expect(result).toContain('### A');
+    // The overall reference section should respect the budget
+    const refSection = result.split('## Question')[0];
+    // B may be present but truncated, or absent
+    if (refSection.includes('### B')) {
+      expect(refSection).toContain('[...truncated]');
+    }
+  });
+
+  it('should skip hits with empty or whitespace-only content', () => {
+    const hits: FtsHit[] = [
+      { filePath: '/a', rank: 0, content: '   ', title: 'Empty' },
+      { filePath: '/b', rank: 0, content: 'Real content', title: 'Real' },
+    ];
+    const result = buildAugmentedQuery('Q?', hits);
+    expect(result).not.toContain('### Empty');
+    expect(result).toContain('### Real');
+  });
+
+  it('should include multiple documents when they fit', () => {
+    const hits: FtsHit[] = [
+      { filePath: '/a', rank: 0, content: 'Content A', title: 'Doc A' },
+      { filePath: '/b', rank: 0, content: 'Content B', title: 'Doc B' },
+    ];
+    const result = buildAugmentedQuery('Q?', hits);
+    expect(result).toContain('### Doc A');
+    expect(result).toContain('Content A');
+    expect(result).toContain('### Doc B');
+    expect(result).toContain('Content B');
+  });
+});
+
 describe('routeQuery', () => {
   const testDir = join(__dirname, 'fixtures', 'router-test');
   const dbPath = join(testDir, 'test.db');
@@ -145,10 +216,9 @@ describe('routeQuery', () => {
     expect(result.query).toBe('test query');
     expect(result.matchedExperts).toHaveLength(0);
     expect(result.responses).toHaveLength(0);
-    expect(result.synthesis).toBeUndefined();
   });
 
-  it('should fall back to all active experts when no FTS5 matches', async () => {
+  it('should fall back to first active expert when no FTS5 matches', async () => {
     const expertDir = join(corpusDir, 'expert-a');
     mkdirSync(expertDir, { recursive: true });
 
@@ -168,6 +238,8 @@ describe('routeQuery', () => {
     expect(result.responses).toHaveLength(1);
     expect(result.responses[0].expertSlug).toBe('expert-a');
     expect(result.responses[0].response).toBe('Expert A response');
+    // Fallback sends raw question, not augmented
+    expect(sessionManager.queryCalls[0].question).toBe('completely unrelated query xyz');
   });
 
   it('should skip inactive experts', async () => {
@@ -222,7 +294,41 @@ describe('routeQuery', () => {
     expect(result.responses[0].response).toBe('Agile is great!');
   });
 
-  it('should rank experts by hit count', async () => {
+  it('should send augmented query with document content to the expert', async () => {
+    const expertDir = join(corpusDir, 'platforms');
+    mkdirSync(expertDir, { recursive: true });
+
+    db.insertExpert({
+      slug: 'platform-expert',
+      name: 'Platform Expert',
+      mount_path: expertDir,
+      status: 'active',
+    });
+
+    db.insertKnowledgeEntry(
+      makeKnowledgeEntry({
+        type: 'doc',
+        title: 'Auction Platforms',
+        file_path: join(expertDir, 'auction-platforms.md'),
+        content: 'We manage eBay, Amazon, and Shopify auction platforms.',
+      }),
+    );
+
+    const sessionManager = createMockSessionManager({
+      'platform-expert': 'eBay, Amazon, and Shopify',
+    });
+
+    const result = await routeQuery('What auction platforms?', db, sessionManager);
+
+    expect(result.responses).toHaveLength(1);
+    // The query sent to the expert should include the document content
+    const sentQuery = sessionManager.queryCalls[0].question;
+    expect(sentQuery).toContain('Reference Documents');
+    expect(sentQuery).toContain('eBay, Amazon, and Shopify auction platforms');
+    expect(sentQuery).toContain('What auction platforms?');
+  });
+
+  it('should default to single-expert routing (maxExperts=1)', async () => {
     const dirA = join(corpusDir, 'expert-a');
     mkdirSync(dirA, { recursive: true });
     db.insertExpert({
@@ -264,41 +370,15 @@ describe('routeQuery', () => {
     const sessionManager = createMockSessionManager();
     const result = await routeQuery('deployment', db, sessionManager);
 
-    expect(result.matchedExperts.length).toBe(2);
+    // Default maxExperts=1, so only the best expert (expert-a with 3 hits) is queried
+    expect(result.matchedExperts).toHaveLength(1);
     expect(result.matchedExperts[0].expert.slug).toBe('expert-a');
-    expect(result.matchedExperts[0].hits).toBeGreaterThan(result.matchedExperts[1].hits);
+    expect(result.matchedExperts[0].hits).toBe(3);
+    expect(result.responses).toHaveLength(1);
+    expect(sessionManager.queryCalls).toHaveLength(1);
   });
 
-  it('should cap experts at maxExperts option', async () => {
-    for (let i = 0; i < 4; i++) {
-      const dir = join(corpusDir, `expert-${i}`);
-      mkdirSync(dir, { recursive: true });
-      db.insertExpert({
-        slug: `expert-${i}`,
-        name: `Expert ${i}`,
-        mount_path: dir,
-        status: 'active',
-      });
-      db.insertKnowledgeEntry(
-        makeKnowledgeEntry({
-          type: 'doc',
-          title: `Testing Doc ${i}`,
-          file_path: join(dir, `testing-${i}.md`),
-          content: `Testing strategies and approaches for expert ${i}.`,
-        }),
-      );
-    }
-
-    const sessionManager = createMockSessionManager();
-    const result = await routeQuery('testing', db, sessionManager, {
-      maxExperts: 2,
-    });
-
-    expect(result.matchedExperts.length).toBeLessThanOrEqual(2);
-    expect(result.responses.length).toBeLessThanOrEqual(2);
-  });
-
-  it('should produce synthesis when multiple experts respond', async () => {
+  it('should query multiple experts when maxExperts > 1', async () => {
     const dirA = join(corpusDir, 'alpha');
     const dirB = join(corpusDir, 'beta');
     mkdirSync(dirA, { recursive: true });
@@ -330,59 +410,53 @@ describe('routeQuery', () => {
       beta: 'Beta perspective on architecture',
     });
 
-    const result = await routeQuery('architecture', db, sessionManager);
+    const result = await routeQuery('architecture', db, sessionManager, { maxExperts: 2 });
 
     expect(result.responses.length).toBe(2);
-    expect(result.synthesis).toBeDefined();
-    expect(result.synthesis).toContain('alpha');
-    expect(result.synthesis).toContain('beta');
-    expect(result.synthesis).toContain('Alpha perspective');
-    expect(result.synthesis).toContain('Beta perspective');
+    // No synthesis field in the result
+    expect(result).not.toHaveProperty('synthesis');
   });
 
-  it('should not produce synthesis for single expert response', async () => {
-    const dir = join(corpusDir, 'solo');
-    mkdirSync(dir, { recursive: true });
+  it('should cap experts at maxExperts option', async () => {
+    for (let i = 0; i < 4; i++) {
+      const dir = join(corpusDir, `expert-${i}`);
+      mkdirSync(dir, { recursive: true });
+      db.insertExpert({
+        slug: `expert-${i}`,
+        name: `Expert ${i}`,
+        mount_path: dir,
+        status: 'active',
+      });
+      db.insertKnowledgeEntry(
+        makeKnowledgeEntry({
+          type: 'doc',
+          title: `Testing Doc ${i}`,
+          file_path: join(dir, `testing-${i}.md`),
+          content: `Testing strategies and approaches for expert ${i}.`,
+        }),
+      );
+    }
 
-    db.insertExpert({ slug: 'solo', name: 'Solo', mount_path: dir, status: 'active' });
-    db.insertKnowledgeEntry(
-      makeKnowledgeEntry({
-        type: 'doc',
-        title: 'Solo Topic',
-        file_path: join(dir, 'solo-topic.md'),
-        content: 'Unique solo topic content for testing.',
-      }),
-    );
+    const sessionManager = createMockSessionManager();
+    const result = await routeQuery('testing', db, sessionManager, {
+      maxExperts: 2,
+    });
 
-    const sessionManager = createMockSessionManager({ solo: 'Solo answer' });
-    const result = await routeQuery('solo topic', db, sessionManager);
-
-    expect(result.responses).toHaveLength(1);
-    expect(result.synthesis).toBeUndefined();
+    expect(result.matchedExperts.length).toBeLessThanOrEqual(2);
+    expect(result.responses.length).toBeLessThanOrEqual(2);
   });
 
   it('should handle expert query failures gracefully', async () => {
     const dirA = join(corpusDir, 'good');
-    const dirB = join(corpusDir, 'bad');
     mkdirSync(dirA, { recursive: true });
-    mkdirSync(dirB, { recursive: true });
 
     db.insertExpert({ slug: 'good', name: 'Good', mount_path: dirA, status: 'active' });
-    db.insertExpert({ slug: 'bad', name: 'Bad', mount_path: dirB, status: 'active' });
 
     db.insertKnowledgeEntry(
       makeKnowledgeEntry({
         type: 'doc',
         title: 'Shared Topic A',
         file_path: join(dirA, 'shared.md'),
-        content: 'Shared topic for routing test.',
-      }),
-    );
-    db.insertKnowledgeEntry(
-      makeKnowledgeEntry({
-        type: 'doc',
-        title: 'Shared Topic B',
-        file_path: join(dirB, 'shared.md'),
         content: 'Shared topic for routing test.',
       }),
     );
@@ -420,7 +494,7 @@ describe('routeQuery', () => {
 
     const sessionManager = createMockSessionManager({ sparse: 'Sparse answer' });
 
-    // With minHits=5, single hit shouldn't qualify — falls back to all active
+    // With minHits=5, single hit shouldn't qualify — falls back to first active expert
     const result = await routeQuery('sparse', db, sessionManager, { minHits: 5 });
 
     expect(result.responses.length).toBeGreaterThanOrEqual(1);
@@ -457,5 +531,26 @@ describe('routeQuery', () => {
 
     expect(result.matchedExperts.length).toBeGreaterThanOrEqual(1);
     expect(result.matchedExperts[0].expert.slug).toBe('client-expert');
+  });
+
+  it('should not include synthesis in route result', async () => {
+    const dir = join(corpusDir, 'solo');
+    mkdirSync(dir, { recursive: true });
+
+    db.insertExpert({ slug: 'solo', name: 'Solo', mount_path: dir, status: 'active' });
+    db.insertKnowledgeEntry(
+      makeKnowledgeEntry({
+        type: 'doc',
+        title: 'Solo Topic',
+        file_path: join(dir, 'solo-topic.md'),
+        content: 'Unique solo topic content for testing.',
+      }),
+    );
+
+    const sessionManager = createMockSessionManager({ solo: 'Solo answer' });
+    const result = await routeQuery('solo topic', db, sessionManager);
+
+    expect(result.responses).toHaveLength(1);
+    expect(result).not.toHaveProperty('synthesis');
   });
 });
