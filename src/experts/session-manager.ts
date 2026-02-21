@@ -3,6 +3,7 @@ import { promisify } from 'util';
 import { existsSync, readFileSync } from 'fs';
 import type { LuxDatabase } from '../db/index.js';
 import type { Expert, ExpertSession } from '../db/types.js';
+import { buildCleanEnv } from '../utils/subprocess-env.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -85,6 +86,7 @@ export class ExpertSessionManagerImpl implements ExpertSessionManager {
         cwd: expert.mount_path,
         timeout: 300_000,
         maxBuffer: 10 * 1024 * 1024,
+        env: buildCleanEnv(),
       });
 
       // Return session to warm after successful query

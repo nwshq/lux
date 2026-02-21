@@ -2,6 +2,7 @@ import { spawn, type ChildProcess } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
 import type { LuxDatabase } from '../db/index.js';
 import type { ExpertSessionManager, QueryResult, SessionInfo } from './session-manager.js';
+import { buildCleanEnv } from '../utils/subprocess-env.js';
 
 /** Tracks a running Claude CLI subprocess. */
 interface ActiveProcess {
@@ -192,7 +193,7 @@ export class SubprocessSessionManager implements ExpertSessionManager {
       const child = spawn('claude', args, {
         cwd,
         stdio: ['ignore', 'pipe', 'pipe'],
-        env: { ...process.env },
+        env: buildCleanEnv(),
       });
 
       const active: ActiveProcess = {

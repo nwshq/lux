@@ -504,6 +504,39 @@ describe('SubprocessSessionManager', () => {
     });
   });
 
+  describe('environment isolation', () => {
+    it('should spawn with a clean env that has PATH but lacks CLAUDECODE', async () => {
+      // Simulate a parent env with CLAUDECODE set
+      const originalClaudeCode = process.env.CLAUDECODE;
+      process.env.CLAUDECODE = '1';
+
+      try {
+        createExpert();
+
+        const mockProc = createMockProcess();
+        mockSpawn.mockReturnValue(mockProc);
+
+        const promise = manager.query('test-expert', 'Hello');
+
+        const spawnCall = mockSpawn.mock.calls[0];
+        const spawnOptions = spawnCall[2] as { env: Record<string, string> };
+
+        expect(spawnOptions.env).toBeDefined();
+        expect(spawnOptions.env.PATH).toBeDefined();
+        expect(spawnOptions.env).not.toHaveProperty('CLAUDECODE');
+
+        resolveProcess(mockProc, 'done');
+        await promise;
+      } finally {
+        if (originalClaudeCode === undefined) {
+          delete process.env.CLAUDECODE;
+        } else {
+          process.env.CLAUDECODE = originalClaudeCode;
+        }
+      }
+    });
+  });
+
   describe('conversation resumption', () => {
     it('should pass session_ref as --resume argument for conversation continuity', async () => {
       createExpert();
