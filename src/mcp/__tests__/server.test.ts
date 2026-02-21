@@ -224,10 +224,10 @@ Our approach to testing.
       const clientId = db.insertClient({
         slug: 'empty-client',
         name: 'Empty Client',
-        type: null,
-        status: null,
+        type: undefined,
+        status: undefined,
         file_path: '/test/path',
-        content: null,
+        content: undefined,
       });
 
       const projects = db.getProjectsByClient(clientId);
@@ -269,7 +269,7 @@ Our approach to testing.
       // Insert into database
       const commId = db.insertCommunication({
         client_id: client!.id,
-        project_id: null,
+        project_id: undefined,
         type: 'email',
         subject: 'Test Email',
         date_range: '2024-01-20',
@@ -366,7 +366,7 @@ Our approach to testing.
       types.forEach((type, index) => {
         const commId = db.insertCommunication({
           client_id: client!.id,
-          project_id: null,
+          project_id: undefined,
           type,
           subject: `Test ${type}`,
           date_range: `2024-01-${20 + index}`,

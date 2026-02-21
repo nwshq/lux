@@ -6,12 +6,14 @@ export interface LintResult {
   severity: Severity;
   message: string;
   suggestion?: string;
+  autoFixable?: boolean;
 }
 
 export interface LintFile {
   path: string;
   relativePath: string;
   isDirectory: boolean;
+  frontmatter?: Record<string, unknown>;
 }
 
 export interface LintRule {

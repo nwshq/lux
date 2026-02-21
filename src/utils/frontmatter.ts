@@ -3,9 +3,9 @@
  */
 
 export interface FrontmatterOptions {
-  type: string;
-  subject: string;
-  date: string;
+  type?: string;
+  subject?: string;
+  date?: string;
   participants?: string[];
   [key: string]: unknown;
 }
@@ -16,12 +16,18 @@ export interface FrontmatterOptions {
  * @returns Array of frontmatter lines (including opening/closing ---)
  */
 export function createFrontmatter(options: FrontmatterOptions): string[] {
-  const lines = [
-    '---',
-    `type: ${options.type}`,
-    `subject: ${options.subject}`,
-    `date: ${options.date}`,
-  ];
+  const lines = ['---'];
+
+  for (const [key, value] of Object.entries(options)) {
+    if (value === undefined) continue;
+    if (key === 'participants') continue; // handled separately below
+    if (Array.isArray(value)) {
+      lines.push(`${key}:`);
+      value.forEach((item) => lines.push(`  - ${item}`));
+    } else {
+      lines.push(`${key}: ${value}`);
+    }
+  }
 
   // Add participants if provided
   if (options.participants && options.participants.length > 0) {
