@@ -13,6 +13,11 @@ export interface QueryResult {
   expertSlug: string;
 }
 
+export interface QueryOptions {
+  /** Called with each chunk of output as it arrives from the subprocess. */
+  onChunk?: (chunk: string) => void;
+}
+
 export interface SessionInfo {
   session: ExpertSession;
   expert: Expert;
@@ -24,7 +29,7 @@ export interface ExpertSessionManager {
   getSession(expertSlug: string): SessionInfo;
 
   /** Send a question to an expert and return the response. */
-  query(expertSlug: string, question: string): Promise<QueryResult>;
+  query(expertSlug: string, question: string, options?: QueryOptions): Promise<QueryResult>;
 
   /** Terminate a session by its ID, cleaning up resources. */
   terminate(sessionId: number): void;
@@ -59,7 +64,7 @@ export class ExpertSessionManagerImpl implements ExpertSessionManager {
     return { session: this.db.getExpertSession(sessionId)!, expert };
   }
 
-  async query(expertSlug: string, question: string): Promise<QueryResult> {
+  async query(expertSlug: string, question: string, _options?: QueryOptions): Promise<QueryResult> {
     const { session, expert } = this.getSession(expertSlug);
 
     if (expert.status !== 'active') {

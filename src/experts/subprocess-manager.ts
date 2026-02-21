@@ -2,7 +2,7 @@ import { spawn, type ChildProcess } from 'child_process';
 import { randomUUID } from 'crypto';
 import { existsSync, readFileSync } from 'fs';
 import type { LuxDatabase } from '../db/index.js';
-import type { ExpertSessionManager, QueryResult, SessionInfo } from './session-manager.js';
+import type { ExpertSessionManager, QueryOptions, QueryResult, SessionInfo } from './session-manager.js';
 import { buildCleanEnv } from '../utils/subprocess-env.js';
 
 /** Tracks a running Claude CLI subprocess. */
@@ -58,7 +58,7 @@ export class SubprocessSessionManager implements ExpertSessionManager {
     return { session: this.db.getExpertSession(sessionId)!, expert, isExisting: false };
   }
 
-  async query(expertSlug: string, question: string): Promise<QueryResult> {
+  async query(expertSlug: string, question: string, options?: QueryOptions): Promise<QueryResult> {
     const { session, expert, isExisting } = this.getSession(expertSlug);
 
     if (expert.status !== 'active') {
@@ -78,7 +78,7 @@ export class SubprocessSessionManager implements ExpertSessionManager {
     this.db.updateExpertSessionStatus(session.id, 'active');
 
     try {
-      const response = await this.spawnQuery(session.id, expert.mount_path, expert.model, expert.claude_md_path, isExisting ? session.session_ref : undefined, question, expertSlug);
+      const response = await this.spawnQuery(session.id, expert.mount_path, expert.model, expert.claude_md_path, isExisting ? session.session_ref : undefined, question, expertSlug, options?.onChunk);
 
       this.db.updateExpertSessionStatus(session.id, 'warm');
       this.db.touchExpertSession(session.id);
@@ -180,6 +180,7 @@ export class SubprocessSessionManager implements ExpertSessionManager {
     sessionRef: string | undefined,
     question: string,
     expertSlug: string,
+    onChunk?: (chunk: string) => void,
   ): Promise<string> {
     return new Promise((resolve, reject) => {
       const args = ['--print', '--model', model];
@@ -221,6 +222,9 @@ export class SubprocessSessionManager implements ExpertSessionManager {
         totalBytes += chunk.length;
         if (totalBytes <= this.maxOutputBytes) {
           stdoutChunks.push(chunk);
+          if (onChunk) {
+            onChunk(chunk.toString('utf-8'));
+          }
         }
       });
 

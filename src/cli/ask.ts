@@ -12,10 +12,12 @@ export function addAskCommand(program: Command) {
     .option('--expert <slug>', 'Route to a specific expert instead of auto-routing')
     .option('--verbose', 'Show detailed routing and scoring information')
     .option('--json', 'Output as JSON')
+    .option('--stream', 'Stream response tokens as they arrive (default for TTY)')
+    .option('--no-stream', 'Buffer complete response before outputting')
     .action(
       async (
         question: string,
-        options: { expert?: string; verbose?: boolean; json?: boolean }
+        options: { expert?: string; verbose?: boolean; json?: boolean; stream?: boolean }
       ) => {
         const opts = program.opts();
         const db = new LuxDatabase(opts.db as string);
@@ -48,7 +50,7 @@ export async function askSpecificExpert(
   sessionManager: ExpertSessionManager,
   question: string,
   expertSlug: string,
-  options: { verbose?: boolean; json?: boolean }
+  options: { verbose?: boolean; json?: boolean; stream?: boolean }
 ): Promise<void> {
   const expert = db.getExpert(expertSlug);
   if (!expert) {
@@ -66,7 +68,17 @@ export async function askSpecificExpert(
     console.error('');
   }
 
-  const result = await sessionManager.query(expertSlug, question);
+  const shouldStream = options.json
+    ? false
+    : options.stream !== undefined
+      ? options.stream
+      : process.stdout.isTTY ?? false;
+
+  const queryOpts = shouldStream
+    ? { onChunk: (chunk: string) => process.stdout.write(chunk) }
+    : undefined;
+
+  const result = await sessionManager.query(expertSlug, question, queryOpts);
 
   if (options.json) {
     console.log(
@@ -94,14 +106,21 @@ export async function askSpecificExpert(
     console.error('');
   }
 
-  console.log(result.response);
+  if (shouldStream) {
+    // Response was already written chunk-by-chunk; ensure trailing newline
+    if (!result.response.endsWith('\n')) {
+      process.stdout.write('\n');
+    }
+  } else {
+    console.log(result.response);
+  }
 }
 
 export async function askPanel(
   db: LuxDatabase,
   sessionManager: ExpertSessionManager,
   question: string,
-  options: { verbose?: boolean; json?: boolean }
+  options: { verbose?: boolean; json?: boolean; stream?: boolean }
 ): Promise<void> {
   const activeExperts = db.getExpertsByStatus('active');
   if (activeExperts.length === 0) {
@@ -114,7 +133,17 @@ export async function askPanel(
     console.error('');
   }
 
-  const routeResult = await routeQuery(question, db, sessionManager);
+  const shouldStream = options.json
+    ? false
+    : options.stream !== undefined
+      ? options.stream
+      : process.stdout.isTTY ?? false;
+
+  const routerOpts = shouldStream
+    ? { onChunk: (chunk: string) => process.stdout.write(chunk) }
+    : {};
+
+  const routeResult = await routeQuery(question, db, sessionManager, routerOpts);
 
   if (options.json) {
     console.log(JSON.stringify(formatRouteResultJson(routeResult), null, 2));
@@ -137,7 +166,15 @@ export async function askPanel(
     console.error('---');
     console.error('');
   }
-  console.log(resp.response);
+
+  if (shouldStream) {
+    // Response was already written chunk-by-chunk; ensure trailing newline
+    if (!resp.response.endsWith('\n')) {
+      process.stdout.write('\n');
+    }
+  } else {
+    console.log(resp.response);
+  }
 }
 
 function printVerboseRouting(result: RouteResult): void {

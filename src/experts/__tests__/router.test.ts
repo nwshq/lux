@@ -10,7 +10,7 @@ import {
   selectExpertWithLlm,
 } from '../router.js';
 import type { FtsHit } from '../router.js';
-import type { ExpertSessionManager, QueryResult, SessionInfo } from '../session-manager.js';
+import type { ExpertSessionManager, QueryOptions, QueryResult, SessionInfo } from '../session-manager.js';
 import type { Expert, ExpertSession, KnowledgeEntryInsert, ClientInsert } from '../../db/types.js';
 
 // Mock child_process so selectExpertWithLlm doesn't call real claude binary
@@ -90,8 +90,8 @@ function makeClientInsert(
 /** A mock ExpertSessionManager that returns canned responses. */
 function createMockSessionManager(
   responses: Record<string, string> = {},
-): ExpertSessionManager & { queryCalls: Array<{ slug: string; question: string }> } {
-  const queryCalls: Array<{ slug: string; question: string }> = [];
+): ExpertSessionManager & { queryCalls: Array<{ slug: string; question: string; options?: QueryOptions }> } {
+  const queryCalls: Array<{ slug: string; question: string; options?: QueryOptions }> = [];
 
   return {
     queryCalls,
@@ -119,8 +119,8 @@ function createMockSessionManager(
       };
     },
 
-    async query(expertSlug: string, question: string): Promise<QueryResult> {
-      queryCalls.push({ slug: expertSlug, question });
+    async query(expertSlug: string, question: string, options?: QueryOptions): Promise<QueryResult> {
+      queryCalls.push({ slug: expertSlug, question, options });
       const response = responses[expertSlug] ?? `Response from ${expertSlug}`;
       return {
         response,
@@ -652,6 +652,50 @@ describe('routeQuery', () => {
     expect(result.routingMethod).toBe('fts5');
     expect(result.matchedExperts[0].expert.slug).toBe('fallback-expert');
     expect(result.responses[0].response).toBe('Fallback answer');
+  });
+
+  it('should forward onChunk callback to sessionManager.query()', async () => {
+    const expertDir = join(corpusDir, 'chunk-expert');
+    mkdirSync(expertDir, { recursive: true });
+
+    db.insertExpert({
+      slug: 'chunk-expert',
+      name: 'Chunk Expert',
+      mount_path: expertDir,
+      status: 'active',
+    });
+
+    const sessionManager = createMockSessionManager({
+      'chunk-expert': 'Chunk response',
+    });
+
+    const onChunk = vi.fn();
+    await routeQuery('test query', db, sessionManager, { useLlmRouting: false, onChunk });
+
+    expect(sessionManager.queryCalls).toHaveLength(1);
+    expect(sessionManager.queryCalls[0].options).toBeDefined();
+    expect(sessionManager.queryCalls[0].options!.onChunk).toBe(onChunk);
+  });
+
+  it('should not pass QueryOptions when onChunk is not provided', async () => {
+    const expertDir = join(corpusDir, 'no-chunk');
+    mkdirSync(expertDir, { recursive: true });
+
+    db.insertExpert({
+      slug: 'no-chunk',
+      name: 'No Chunk',
+      mount_path: expertDir,
+      status: 'active',
+    });
+
+    const sessionManager = createMockSessionManager({
+      'no-chunk': 'No chunk response',
+    });
+
+    await routeQuery('test query', db, sessionManager, { useLlmRouting: false });
+
+    expect(sessionManager.queryCalls).toHaveLength(1);
+    expect(sessionManager.queryCalls[0].options).toBeUndefined();
   });
 
   it('should use LLM-selected expert when LLM routing succeeds', async () => {

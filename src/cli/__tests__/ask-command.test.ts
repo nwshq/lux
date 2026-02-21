@@ -4,7 +4,7 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import { LuxDatabase } from '../../db/index.js';
 import { askSpecificExpert, askPanel, formatRouteResultJson } from '../ask.js';
-import type { ExpertSessionManager, QueryResult, SessionInfo } from '../../experts/session-manager.js';
+import type { ExpertSessionManager, QueryOptions, QueryResult, SessionInfo } from '../../experts/session-manager.js';
 import type { Expert, ExpertSession } from '../../db/types.js';
 import type { RouteResult } from '../../experts/router.js';
 
@@ -35,8 +35,8 @@ vi.mock('child_process', async () => {
 /** A mock ExpertSessionManager that returns canned responses. */
 function createMockSessionManager(
   responses: Record<string, string> = {}
-): ExpertSessionManager & { queryCalls: Array<{ slug: string; question: string }> } {
-  const queryCalls: Array<{ slug: string; question: string }> = [];
+): ExpertSessionManager & { queryCalls: Array<{ slug: string; question: string; options?: QueryOptions }> } {
+  const queryCalls: Array<{ slug: string; question: string; options?: QueryOptions }> = [];
 
   return {
     queryCalls,
@@ -64,8 +64,8 @@ function createMockSessionManager(
       };
     },
 
-    async query(expertSlug: string, question: string): Promise<QueryResult> {
-      queryCalls.push({ slug: expertSlug, question });
+    async query(expertSlug: string, question: string, options?: QueryOptions): Promise<QueryResult> {
+      queryCalls.push({ slug: expertSlug, question, options });
       const response = responses[expertSlug] ?? `Response from ${expertSlug}`;
       return {
         response,
@@ -305,6 +305,121 @@ describe('ask command', () => {
       expect(output.responses).toBeDefined();
       expect(output.matchedExperts).toBeDefined();
 
+      logSpy.mockRestore();
+    });
+  });
+
+  describe('streaming behavior', () => {
+    it('askPanel with stream: true should write chunks via process.stdout.write', async () => {
+      const mountDir = join(corpusDir, 'stream-panel');
+      mkdirSync(mountDir, { recursive: true });
+
+      db.insertExpert({
+        slug: 'stream-panel',
+        name: 'Stream Panel',
+        mount_path: mountDir,
+        status: 'active',
+      });
+
+      const sessionManager = createMockSessionManager({
+        'stream-panel': 'Streamed response\n',
+      });
+
+      const writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      await askPanel(db, sessionManager, 'test', { stream: true });
+
+      // stream: true should NOT call console.log with the response
+      expect(logSpy).not.toHaveBeenCalled();
+
+      writeSpy.mockRestore();
+      logSpy.mockRestore();
+    });
+
+    it('askPanel with stream: false should use console.log for complete response', async () => {
+      const mountDir = join(corpusDir, 'nostream-panel');
+      mkdirSync(mountDir, { recursive: true });
+
+      db.insertExpert({
+        slug: 'nostream-panel',
+        name: 'No Stream Panel',
+        mount_path: mountDir,
+        status: 'active',
+      });
+
+      const sessionManager = createMockSessionManager({
+        'nostream-panel': 'Buffered response',
+      });
+
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      await askPanel(db, sessionManager, 'test', { stream: false });
+
+      expect(logSpy).toHaveBeenCalledWith('Buffered response');
+
+      logSpy.mockRestore();
+    });
+
+    it('--json always buffers regardless of stream flag', async () => {
+      const mountDir = join(corpusDir, 'json-stream');
+      mkdirSync(mountDir, { recursive: true });
+
+      db.insertExpert({
+        slug: 'json-stream',
+        name: 'JSON Stream',
+        mount_path: mountDir,
+        status: 'active',
+      });
+
+      const sessionManager = createMockSessionManager({
+        'json-stream': 'JSON response',
+      });
+
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      await askPanel(db, sessionManager, 'test', { json: true, stream: true });
+
+      // JSON output should use console.log, not streaming
+      expect(logSpy).toHaveBeenCalledTimes(1);
+      const output = JSON.parse(logSpy.mock.calls[0][0] as string);
+      expect(output.responses).toBeDefined();
+
+      // sessionManager should NOT have been passed onChunk
+      expect(sessionManager.queryCalls[0].options).toBeUndefined();
+
+      logSpy.mockRestore();
+    });
+
+    it('askSpecificExpert with stream: true passes onChunk to session manager', async () => {
+      const mountDir = join(corpusDir, 'stream-specific');
+      mkdirSync(mountDir, { recursive: true });
+
+      db.insertExpert({
+        slug: 'stream-specific',
+        name: 'Stream Specific',
+        mount_path: mountDir,
+        model: 'claude-sonnet-4-20250514',
+        status: 'active',
+      });
+
+      const sessionManager = createMockSessionManager({
+        'stream-specific': 'Streamed specific\n',
+      });
+
+      const writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      await askSpecificExpert(db, sessionManager, 'test', 'stream-specific', { stream: true });
+
+      // With stream: true, onChunk should be passed to session manager
+      expect(sessionManager.queryCalls[0].options).toBeDefined();
+      expect(sessionManager.queryCalls[0].options!.onChunk).toBeTypeOf('function');
+
+      // console.log should NOT have been called with the response (it was streamed)
+      expect(logSpy).not.toHaveBeenCalled();
+
+      writeSpy.mockRestore();
       logSpy.mockRestore();
     });
   });

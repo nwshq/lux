@@ -2,7 +2,7 @@ import { spawn } from 'child_process';
 import { readFileSync } from 'fs';
 import type { LuxDatabase } from '../db/index.js';
 import type { Expert } from '../db/types.js';
-import type { ExpertSessionManager, QueryResult } from './session-manager.js';
+import type { ExpertSessionManager, QueryOptions, QueryResult } from './session-manager.js';
 import { buildCleanEnv } from '../utils/subprocess-env.js';
 
 /** An expert matched by FTS5 search with a relevance score. */
@@ -37,6 +37,8 @@ export interface RouterOptions {
   useLlmRouting?: boolean;
   /** Model to use for LLM routing. Defaults to claude-haiku-4-5-20251001. */
   routingModel?: string;
+  /** Called with each chunk of expert response as it arrives. */
+  onChunk?: (chunk: string) => void;
 }
 
 export interface FtsHit {
@@ -86,6 +88,7 @@ export async function routeQuery(
   const maxExperts = options.maxExperts ?? 1;
   const minHits = options.minHits ?? 1;
   const useLlmRouting = options.useLlmRouting ?? true;
+  const queryOpts: QueryOptions | undefined = options.onChunk ? { onChunk: options.onChunk } : undefined;
 
   // Get all active experts
   const activeExperts = db.getExpertsByStatus('active');
@@ -153,7 +156,7 @@ export async function routeQuery(
       // No FTS5 matches — fall back to first active expert
       const fallback = activeExperts.slice(0, maxExperts);
       const matchedExperts = fallback.map((e) => ({ expert: e, hits: 0, score: 0 }));
-      const responses = await queryExperts(fallback, query, sessionManager);
+      const responses = await queryExperts(fallback, query, sessionManager, queryOpts);
       const result: RouteResult = { query, matchedExperts, responses, routingMethod: 'fts5' };
       logRouteEvent(db, query, result, ftsTopN, llmResult);
       return result;
@@ -166,7 +169,7 @@ export async function routeQuery(
         const expertHits = hitsByExpert.get(se.expert.slug) ?? [];
         const augmented = buildAugmentedQuery(query, expertHits, options.maxContextBytes);
         const settled = await Promise.allSettled([
-          sessionManager.query(se.expert.slug, augmented),
+          sessionManager.query(se.expert.slug, augmented, queryOpts),
         ]);
         for (const outcome of settled) {
           if (outcome.status === 'fulfilled') {
@@ -195,7 +198,7 @@ export async function routeQuery(
   // Stage 3: Query the chosen expert
   const responses: QueryResult[] = [];
   const settled = await Promise.allSettled([
-    sessionManager.query(chosenExpert.slug, augmented),
+    sessionManager.query(chosenExpert.slug, augmented, queryOpts),
   ]);
   for (const outcome of settled) {
     if (outcome.status === 'fulfilled') {
@@ -594,9 +597,10 @@ async function queryExperts(
   experts: Expert[],
   question: string,
   sessionManager: ExpertSessionManager,
+  queryOpts?: QueryOptions,
 ): Promise<QueryResult[]> {
   const settled = await Promise.allSettled(
-    experts.map((expert) => sessionManager.query(expert.slug, question)),
+    experts.map((expert) => sessionManager.query(expert.slug, question, queryOpts)),
   );
 
   const results: QueryResult[] = [];

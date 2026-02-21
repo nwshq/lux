@@ -317,6 +317,69 @@ describe('SubprocessSessionManager', () => {
     });
   });
 
+  describe('streaming with onChunk', () => {
+    it('should call onChunk with each stdout chunk', async () => {
+      createExpert();
+
+      const mockProc = createMockProcess();
+      mockSpawn.mockReturnValue(mockProc);
+
+      const chunks: string[] = [];
+      const onChunk = (chunk: string) => chunks.push(chunk);
+
+      const promise = manager.query('test-expert', 'Hello', { onChunk });
+
+      // Emit multiple chunks before closing
+      mockProc.stdout!.emit('data', Buffer.from('Hello '));
+      mockProc.stdout!.emit('data', Buffer.from('World'));
+      (mockProc as unknown as { exitCode: number }).exitCode = 0;
+      mockProc.emit('close', 0);
+
+      const result = await promise;
+
+      expect(chunks).toEqual(['Hello ', 'World']);
+      expect(result.response).toBe('Hello World');
+    });
+
+    it('should not call onChunk when not provided', async () => {
+      createExpert();
+
+      const mockProc = createMockProcess();
+      mockSpawn.mockReturnValue(mockProc);
+
+      const promise = manager.query('test-expert', 'Hello');
+
+      // This should not throw even without onChunk
+      mockProc.stdout!.emit('data', Buffer.from('Response'));
+      (mockProc as unknown as { exitCode: number }).exitCode = 0;
+      mockProc.emit('close', 0);
+
+      const result = await promise;
+      expect(result.response).toBe('Response');
+    });
+
+    it('should still accumulate full response when streaming', async () => {
+      createExpert();
+
+      const mockProc = createMockProcess();
+      mockSpawn.mockReturnValue(mockProc);
+
+      const onChunk = vi.fn();
+      const promise = manager.query('test-expert', 'Hello', { onChunk });
+
+      mockProc.stdout!.emit('data', Buffer.from('Part 1 '));
+      mockProc.stdout!.emit('data', Buffer.from('Part 2 '));
+      mockProc.stdout!.emit('data', Buffer.from('Part 3'));
+      (mockProc as unknown as { exitCode: number }).exitCode = 0;
+      mockProc.emit('close', 0);
+
+      const result = await promise;
+
+      expect(onChunk).toHaveBeenCalledTimes(3);
+      expect(result.response).toBe('Part 1 Part 2 Part 3');
+    });
+  });
+
   describe('terminate', () => {
     it('should kill an active process and remove the session', async () => {
       createExpert();
