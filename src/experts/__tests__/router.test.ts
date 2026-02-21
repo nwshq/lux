@@ -643,13 +643,8 @@ describe('routeQuery', () => {
       }),
     );
 
-    // Mock spawn to emit an error (simulating missing claude binary)
-    mockSpawn.mockImplementation(() => {
-      const proc = createMockRoutingProcess('', 1);
-      // Override: emit error instead of close
-      queueMicrotask(() => proc.emit('error', new Error('spawn claude ENOENT')));
-      return proc;
-    });
+    // Mock spawn to fail (simulating missing claude binary)
+    mockSpawn.mockImplementation(() => createMockRoutingProcess('', 1));
 
     const sessionManager = createMockSessionManager({ 'fallback-expert': 'Fallback answer' });
     const result = await routeQuery('fallback', db, sessionManager, { useLlmRouting: true });
@@ -827,32 +822,36 @@ describe('selectExpertWithLlm', () => {
     mockSpawn.mockImplementation(() => createMockRoutingProcess('example-app\n'));
 
     const result = await selectExpertWithLlm('What is example-app?', experts);
-    expect(result).toBe('example-app');
+    expect(result.slug).toBe('example-app');
+    expect(result.error).toBeNull();
+    expect(result.durationMs).toBeGreaterThanOrEqual(0);
+    expect(result.prompt).toContain('example-app');
+    expect(result.rawResponse).toContain('example-app');
   });
 
   it('should handle slug wrapped in backticks', async () => {
     mockSpawn.mockImplementation(() => createMockRoutingProcess('`acme`\n'));
 
     const result = await selectExpertWithLlm('What platforms does acme manage?', experts);
-    expect(result).toBe('acme');
+    expect(result.slug).toBe('acme');
   });
 
-  it('should return null when LLM returns an invalid slug', async () => {
+  it('should return null slug when LLM returns an invalid slug', async () => {
     mockSpawn.mockImplementation(() => createMockRoutingProcess('nonexistent-expert\n'));
 
     const result = await selectExpertWithLlm('test question', experts);
-    expect(result).toBeNull();
+    expect(result.slug).toBeNull();
+    expect(result.error).toContain('invalid slug');
+    expect(result.rawResponse).toContain('nonexistent-expert');
   });
 
-  it('should return null when spawn fails', async () => {
-    mockSpawn.mockImplementation(() => {
-      const proc = createMockRoutingProcess('', 1);
-      queueMicrotask(() => proc.emit('error', new Error('spawn claude ENOENT')));
-      return proc;
-    });
+  it('should return null slug when spawn fails with non-zero exit', async () => {
+    mockSpawn.mockImplementation(() => createMockRoutingProcess('', 1));
 
     const result = await selectExpertWithLlm('test question', experts);
-    expect(result).toBeNull();
+    expect(result.slug).toBeNull();
+    expect(result.error).toBeTruthy();
+    expect(result.durationMs).toBeGreaterThanOrEqual(0);
   });
 
   it('should pass the routing model to claude CLI', async () => {
@@ -862,7 +861,8 @@ describe('selectExpertWithLlm', () => {
       return createMockRoutingProcess('example-app\n');
     });
 
-    await selectExpertWithLlm('test', experts, 'custom-model');
+    const result = await selectExpertWithLlm('test', experts, 'custom-model');
     expect(capturedArgs).toContain('custom-model');
+    expect(result.model).toBe('custom-model');
   });
 });

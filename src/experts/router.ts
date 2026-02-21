@@ -51,6 +51,22 @@ interface ScoreResult {
   hitsByExpert: Map<string, FtsHit[]>;
 }
 
+/** Telemetry captured from a single LLM routing call. */
+export interface LlmRoutingResult {
+  /** The expert slug returned, or null if routing failed. */
+  slug: string | null;
+  /** The full prompt sent to the routing LLM. */
+  prompt: string;
+  /** The raw stdout from the LLM (before parsing). Empty on failure. */
+  rawResponse: string;
+  /** Model used for routing. */
+  model: string;
+  /** Wall-clock time for the LLM call in milliseconds. */
+  durationMs: number;
+  /** Error message if the call failed, otherwise null. */
+  error: string | null;
+}
+
 /**
  * Routes a user query to the most relevant expert.
  *
@@ -80,14 +96,46 @@ export async function routeQuery(
   // Stage 1: FTS5 search for context enrichment
   const { scored, hitsByExpert } = scoreExperts(query, db, activeExperts);
 
+  // FTS5 top candidates for telemetry comparison
+  const ftsTopN = scored.slice(0, 5).map((s) => ({
+    slug: s.expert.slug,
+    hits: s.hits,
+    score: s.score,
+  }));
+
   // Stage 2: Expert selection — LLM or FTS5 fallback
   let chosenExpert: Expert | null = null;
   let routingMethod: 'llm' | 'fts5' = 'fts5';
+  let llmResult: LlmRoutingResult | null = null;
 
   if (useLlmRouting) {
-    const llmSlug = await selectExpertWithLlm(query, activeExperts, options.routingModel);
-    if (llmSlug) {
-      const found = activeExperts.find((e) => e.slug === llmSlug);
+    llmResult = await selectExpertWithLlm(query, activeExperts, options.routingModel);
+
+    // Log LLM routing telemetry (always, even on failure — that's the point)
+    try {
+      db.insertEvent({
+        source: 'expert-router',
+        event_type: 'expert_route_llm',
+        summary: llmResult.slug
+          ? `LLM selected "${llmResult.slug}" in ${llmResult.durationMs}ms`
+          : `LLM routing failed: ${llmResult.error}`,
+        payload: {
+          question: query,
+          model: llmResult.model,
+          chosen_slug: llmResult.slug,
+          raw_response: llmResult.rawResponse,
+          duration_ms: llmResult.durationMs,
+          error: llmResult.error,
+          prompt: llmResult.prompt,
+          expert_count: activeExperts.length,
+        },
+      });
+    } catch {
+      // Don't let telemetry failures break routing
+    }
+
+    if (llmResult.slug) {
+      const found = activeExperts.find((e) => e.slug === llmResult!.slug);
       if (found) {
         chosenExpert = found;
         routingMethod = 'llm';
@@ -106,7 +154,9 @@ export async function routeQuery(
       const fallback = activeExperts.slice(0, maxExperts);
       const matchedExperts = fallback.map((e) => ({ expert: e, hits: 0, score: 0 }));
       const responses = await queryExperts(fallback, query, sessionManager);
-      return { query, matchedExperts, responses, routingMethod: 'fts5' };
+      const result: RouteResult = { query, matchedExperts, responses, routingMethod: 'fts5' };
+      logRouteEvent(db, query, result, ftsTopN, llmResult);
+      return result;
     }
 
     // Multi-expert FTS5 path (maxExperts > 1)
@@ -124,7 +174,9 @@ export async function routeQuery(
           }
         }
       }
-      return { query, matchedExperts: qualified, responses, routingMethod: 'fts5' };
+      const result: RouteResult = { query, matchedExperts: qualified, responses, routingMethod: 'fts5' };
+      logRouteEvent(db, query, result, ftsTopN, llmResult);
+      return result;
     }
 
     chosenExpert = qualified[0].expert;
@@ -151,7 +203,48 @@ export async function routeQuery(
     }
   }
 
-  return { query, matchedExperts, responses, routingMethod };
+  const result: RouteResult = { query, matchedExperts, responses, routingMethod };
+  logRouteEvent(db, query, result, ftsTopN, llmResult);
+  return result;
+}
+
+/**
+ * Log a routing decision event for after-the-fact analysis.
+ * Captures the chosen expert, routing method, FTS5 rankings, and
+ * LLM telemetry (if applicable) so you can compare decisions.
+ */
+function logRouteEvent(
+  db: LuxDatabase,
+  question: string,
+  result: RouteResult,
+  ftsTopN: Array<{ slug: string; hits: number; score: number }>,
+  llmResult: LlmRoutingResult | null,
+): void {
+  try {
+    const chosenSlug = result.matchedExperts[0]?.expert.slug ?? null;
+    const ftsWouldPick = ftsTopN[0]?.slug ?? null;
+
+    db.insertEvent({
+      source: 'expert-router',
+      event_type: 'expert_route',
+      summary: `${result.routingMethod.toUpperCase()}-routed to "${chosenSlug}"`,
+      payload: {
+        question,
+        routing_method: result.routingMethod,
+        chosen_slug: chosenSlug,
+        fts5_top: ftsTopN,
+        fts5_would_pick: ftsWouldPick,
+        llm_agreed_with_fts5: llmResult?.slug === ftsWouldPick,
+        llm_slug: llmResult?.slug ?? null,
+        llm_duration_ms: llmResult?.durationMs ?? null,
+        llm_model: llmResult?.model ?? null,
+        expert_count: result.matchedExperts.length,
+        context_hits: result.matchedExperts[0]?.hits ?? 0,
+      },
+    });
+  } catch {
+    // Don't let telemetry failures break routing
+  }
 }
 
 const DEFAULT_ROUTING_MODEL = 'claude-haiku-4-5-20251001';
@@ -197,16 +290,17 @@ export function buildExpertRoster(experts: Expert[]): string {
  * Use a lightweight LLM (Haiku) to select the best expert for a question.
  *
  * Calls `claude --print --model <model>` as a stateless subprocess.
- * Returns the expert slug, or null on any failure (timeout, bad output,
- * missing binary) so the caller can fall back to FTS5 scoring.
+ * Returns an LlmRoutingResult with the slug (or null on failure) plus
+ * full telemetry for after-the-fact analysis.
  */
 export async function selectExpertWithLlm(
   question: string,
   experts: Expert[],
   model?: string,
-): Promise<string | null> {
+): Promise<LlmRoutingResult> {
   const roster = buildExpertRoster(experts);
   const validSlugs = new Set(experts.map((e) => e.slug));
+  const resolvedModel = model ?? DEFAULT_ROUTING_MODEL;
 
   const prompt = `You are a query router. Given a user's question and a list of domain experts, respond with ONLY the slug of the single best expert to answer the question. Do not explain your choice. Respond with just the slug.
 
@@ -218,22 +312,26 @@ ${roster}
 
 ${question}`;
 
+  const startTime = Date.now();
+
   try {
     const stdout = await spawnClaude(
-      ['--print', '--model', model ?? DEFAULT_ROUTING_MODEL, prompt],
+      ['--print', '--model', resolvedModel, prompt],
       ROUTING_TIMEOUT_MS,
     );
+    const durationMs = Date.now() - startTime;
 
     const slug = stdout.trim().replace(/`/g, '').trim();
     if (validSlugs.has(slug)) {
-      return slug;
+      return { slug, prompt, rawResponse: stdout, model: resolvedModel, durationMs, error: null };
     }
 
     // LLM returned something we don't recognize
-    return null;
-  } catch {
-    // Timeout, missing binary, or other failure — fall back gracefully
-    return null;
+    return { slug: null, prompt, rawResponse: stdout, model: resolvedModel, durationMs, error: `invalid slug: ${slug}` };
+  } catch (err) {
+    const durationMs = Date.now() - startTime;
+    const error = err instanceof Error ? err.message : String(err);
+    return { slug: null, prompt, rawResponse: '', model: resolvedModel, durationMs, error };
   }
 }
 
