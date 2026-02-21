@@ -1,6 +1,9 @@
+import { spawn } from 'child_process';
+import { readFileSync } from 'fs';
 import type { LuxDatabase } from '../db/index.js';
 import type { Expert } from '../db/types.js';
 import type { ExpertSessionManager, QueryResult } from './session-manager.js';
+import { buildCleanEnv } from '../utils/subprocess-env.js';
 
 /** An expert matched by FTS5 search with a relevance score. */
 export interface ScoredExpert {
@@ -19,6 +22,8 @@ export interface RouteResult {
   matchedExperts: ScoredExpert[];
   /** Individual responses from each queried expert. */
   responses: QueryResult[];
+  /** How the expert was selected: 'llm' or 'fts5'. */
+  routingMethod: 'llm' | 'fts5';
 }
 
 export interface RouterOptions {
@@ -28,6 +33,10 @@ export interface RouterOptions {
   minHits?: number;
   /** Maximum bytes of context to inject into the augmented query. Defaults to 30720 (~30KB). */
   maxContextBytes?: number;
+  /** Use LLM (Haiku) to select the best expert. Defaults to true. */
+  useLlmRouting?: boolean;
+  /** Model to use for LLM routing. Defaults to claude-haiku-4-5-20251001. */
+  routingModel?: string;
 }
 
 export interface FtsHit {
@@ -43,14 +52,14 @@ interface ScoreResult {
 }
 
 /**
- * Routes a user query to the most relevant expert using FTS5 search.
+ * Routes a user query to the most relevant expert.
  *
- * Strategy:
- * 1. Run the query against all FTS5 indexes (knowledge_entries, clients, projects, communications).
- * 2. Collect file_path + content from each hit and match it against active expert mount_paths.
- * 3. Score experts by hit count (primary) and FTS5 rank sum (secondary).
- * 4. Build an augmented query with retrieved document context for the best expert.
- * 5. Query the single best expert with the enriched prompt.
+ * Three-stage routing:
+ * 1. FTS5 search — find relevant documents for context enrichment.
+ * 2. LLM routing (Haiku) — pick the single best expert given the question + expert roster.
+ * 3. Expert query (Sonnet) — send augmented query to chosen expert.
+ *
+ * FTS5 scoring remains as fallback if LLM routing is disabled or fails.
  */
 export async function routeQuery(
   query: string,
@@ -60,45 +69,211 @@ export async function routeQuery(
 ): Promise<RouteResult> {
   const maxExperts = options.maxExperts ?? 1;
   const minHits = options.minHits ?? 1;
+  const useLlmRouting = options.useLlmRouting ?? true;
 
   // Get all active experts
   const activeExperts = db.getExpertsByStatus('active');
   if (activeExperts.length === 0) {
-    return { query, matchedExperts: [], responses: [] };
+    return { query, matchedExperts: [], responses: [], routingMethod: 'fts5' };
   }
 
-  // Score experts using FTS5 search
+  // Stage 1: FTS5 search for context enrichment
   const { scored, hitsByExpert } = scoreExperts(query, db, activeExperts);
 
-  // Filter by minimum hits and cap at maxExperts
-  const qualified = scored
-    .filter((s) => s.hits >= minHits)
-    .slice(0, maxExperts);
+  // Stage 2: Expert selection — LLM or FTS5 fallback
+  let chosenExpert: Expert | null = null;
+  let routingMethod: 'llm' | 'fts5' = 'fts5';
 
-  if (qualified.length === 0) {
-    // No FTS5 matches — fall back to first active expert
-    const fallback = activeExperts.slice(0, maxExperts);
-    const matchedExperts = fallback.map((e) => ({ expert: e, hits: 0, score: 0 }));
-    const responses = await queryExperts(fallback, query, sessionManager);
-    return { query, matchedExperts, responses };
-  }
-
-  // Build augmented queries per expert, then query
-  const responses: QueryResult[] = [];
-  for (const se of qualified) {
-    const expertHits = hitsByExpert.get(se.expert.slug) ?? [];
-    const augmented = buildAugmentedQuery(query, expertHits, options.maxContextBytes);
-    const settled = await Promise.allSettled([
-      sessionManager.query(se.expert.slug, augmented),
-    ]);
-    for (const outcome of settled) {
-      if (outcome.status === 'fulfilled') {
-        responses.push(outcome.value);
+  if (useLlmRouting) {
+    const llmSlug = await selectExpertWithLlm(query, activeExperts, options.routingModel);
+    if (llmSlug) {
+      const found = activeExperts.find((e) => e.slug === llmSlug);
+      if (found) {
+        chosenExpert = found;
+        routingMethod = 'llm';
       }
     }
   }
 
-  return { query, matchedExperts: qualified, responses };
+  // FTS5 fallback if LLM routing was disabled or failed
+  if (!chosenExpert) {
+    const qualified = scored
+      .filter((s) => s.hits >= minHits)
+      .slice(0, maxExperts);
+
+    if (qualified.length === 0) {
+      // No FTS5 matches — fall back to first active expert
+      const fallback = activeExperts.slice(0, maxExperts);
+      const matchedExperts = fallback.map((e) => ({ expert: e, hits: 0, score: 0 }));
+      const responses = await queryExperts(fallback, query, sessionManager);
+      return { query, matchedExperts, responses, routingMethod: 'fts5' };
+    }
+
+    // Multi-expert FTS5 path (maxExperts > 1)
+    if (qualified.length > 1) {
+      const responses: QueryResult[] = [];
+      for (const se of qualified) {
+        const expertHits = hitsByExpert.get(se.expert.slug) ?? [];
+        const augmented = buildAugmentedQuery(query, expertHits, options.maxContextBytes);
+        const settled = await Promise.allSettled([
+          sessionManager.query(se.expert.slug, augmented),
+        ]);
+        for (const outcome of settled) {
+          if (outcome.status === 'fulfilled') {
+            responses.push(outcome.value);
+          }
+        }
+      }
+      return { query, matchedExperts: qualified, responses, routingMethod: 'fts5' };
+    }
+
+    chosenExpert = qualified[0].expert;
+  }
+
+  // Build matched expert entry with FTS5 stats (if any)
+  const ftsEntry = scored.find((s) => s.expert.slug === chosenExpert!.slug);
+  const matchedExperts: ScoredExpert[] = [
+    ftsEntry ?? { expert: chosenExpert, hits: 0, score: 0 },
+  ];
+
+  // Collect FTS5 hits under chosen expert's mount_path for context enrichment
+  const expertHits = hitsByExpert.get(chosenExpert.slug) ?? [];
+  const augmented = buildAugmentedQuery(query, expertHits, options.maxContextBytes);
+
+  // Stage 3: Query the chosen expert
+  const responses: QueryResult[] = [];
+  const settled = await Promise.allSettled([
+    sessionManager.query(chosenExpert.slug, augmented),
+  ]);
+  for (const outcome of settled) {
+    if (outcome.status === 'fulfilled') {
+      responses.push(outcome.value);
+    }
+  }
+
+  return { query, matchedExperts, responses, routingMethod };
+}
+
+const DEFAULT_ROUTING_MODEL = 'claude-haiku-4-5-20251001';
+const ROUTING_TIMEOUT_MS = 30_000;
+
+/**
+ * Build a one-line-per-expert roster string for the LLM routing prompt.
+ * Each line: `` `{slug}` — {name}: {brief} ``
+ *
+ * Brief is the first ~200 chars from the expert's claude_md_path file,
+ * stripped of markdown headers and frontmatter.
+ */
+export function buildExpertRoster(experts: Expert[]): string {
+  const lines: string[] = [];
+
+  for (const expert of experts) {
+    let brief = 'No description available';
+
+    if (expert.claude_md_path) {
+      try {
+        const raw = readFileSync(expert.claude_md_path, 'utf-8');
+        // Strip YAML frontmatter (--- ... ---)
+        const withoutFrontmatter = raw.replace(/^---[\s\S]*?---\s*/, '');
+        // Strip markdown headers
+        const withoutHeaders = withoutFrontmatter.replace(/^#+\s+.*$/gm, '');
+        // Collapse whitespace and take first ~200 chars
+        const cleaned = withoutHeaders.trim().replace(/\s+/g, ' ');
+        if (cleaned.length > 0) {
+          brief = cleaned.slice(0, 200);
+        }
+      } catch {
+        // File missing or unreadable — use default
+      }
+    }
+
+    lines.push(`- \`${expert.slug}\` — ${expert.name}: ${brief}`);
+  }
+
+  return lines.join('\n');
+}
+
+/**
+ * Use a lightweight LLM (Haiku) to select the best expert for a question.
+ *
+ * Calls `claude --print --model <model>` as a stateless subprocess.
+ * Returns the expert slug, or null on any failure (timeout, bad output,
+ * missing binary) so the caller can fall back to FTS5 scoring.
+ */
+export async function selectExpertWithLlm(
+  question: string,
+  experts: Expert[],
+  model?: string,
+): Promise<string | null> {
+  const roster = buildExpertRoster(experts);
+  const validSlugs = new Set(experts.map((e) => e.slug));
+
+  const prompt = `You are a query router. Given a user's question and a list of domain experts, respond with ONLY the slug of the single best expert to answer the question. Do not explain your choice. Respond with just the slug.
+
+## Available Experts
+
+${roster}
+
+## Question
+
+${question}`;
+
+  try {
+    const stdout = await spawnClaude(
+      ['--print', '--model', model ?? DEFAULT_ROUTING_MODEL, prompt],
+      ROUTING_TIMEOUT_MS,
+    );
+
+    const slug = stdout.trim().replace(/`/g, '').trim();
+    if (validSlugs.has(slug)) {
+      return slug;
+    }
+
+    // LLM returned something we don't recognize
+    return null;
+  } catch {
+    // Timeout, missing binary, or other failure — fall back gracefully
+    return null;
+  }
+}
+
+/**
+ * Spawn `claude` CLI as a subprocess with stdin closed.
+ * Returns stdout on success, rejects on failure/timeout.
+ */
+function spawnClaude(args: string[], timeoutMs: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const child = spawn('claude', args, {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: buildCleanEnv(),
+    });
+
+    const stdoutChunks: Buffer[] = [];
+    const stderrChunks: Buffer[] = [];
+
+    const timer = setTimeout(() => {
+      child.kill('SIGTERM');
+      reject(new Error(`Routing timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+
+    child.stdout!.on('data', (chunk: Buffer) => stdoutChunks.push(chunk));
+    child.stderr!.on('data', (chunk: Buffer) => stderrChunks.push(chunk));
+
+    child.on('error', (err) => {
+      clearTimeout(timer);
+      reject(err);
+    });
+
+    child.on('close', (code) => {
+      clearTimeout(timer);
+      if (code !== 0) {
+        const stderr = Buffer.concat(stderrChunks).toString('utf-8').trim();
+        reject(new Error(stderr || `claude exited with code ${code}`));
+        return;
+      }
+      resolve(Buffer.concat(stdoutChunks).toString('utf-8'));
+    });
+  });
 }
 
 /**

@@ -8,6 +8,30 @@ import type { ExpertSessionManager, QueryResult, SessionInfo } from '../../exper
 import type { Expert, ExpertSession } from '../../db/types.js';
 import type { RouteResult } from '../../experts/router.js';
 
+// Mock child_process.spawn so LLM routing doesn't call the real claude binary
+vi.mock('child_process', async () => {
+  const actual = await vi.importActual<typeof import('child_process')>('child_process');
+  const { EventEmitter } = await import('events');
+  return {
+    ...actual,
+    spawn: vi.fn(() => {
+      // Return a mock process that immediately fails (simulates missing binary)
+      const proc = new EventEmitter();
+      const stdout = new EventEmitter();
+      const stderr = new EventEmitter();
+      Object.assign(proc, {
+        stdout, stderr, stdin: null,
+        stdio: [null, stdout, stderr],
+        pid: 1, exitCode: null, signalCode: null, killed: false,
+        connected: false, kill: () => true, ref: () => {}, unref: () => {},
+        disconnect: () => {}, send: () => false, [Symbol.dispose]: () => {},
+      });
+      queueMicrotask(() => proc.emit('error', new Error('spawn claude ENOENT')));
+      return proc;
+    }),
+  };
+});
+
 /** A mock ExpertSessionManager that returns canned responses. */
 function createMockSessionManager(
   responses: Record<string, string> = {}
@@ -312,6 +336,7 @@ describe('ask command', () => {
             response: 'The answer is 42',
           },
         ],
+        routingMethod: 'fts5',
       };
 
       const json = formatRouteResultJson(result);
@@ -336,6 +361,7 @@ describe('ask command', () => {
         query: 'empty',
         matchedExperts: [],
         responses: [],
+        routingMethod: 'fts5',
       };
 
       const json = formatRouteResultJson(result);

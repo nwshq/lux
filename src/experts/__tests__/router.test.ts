@@ -1,11 +1,64 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { join } from 'path';
 import { mkdirSync, rmSync, existsSync, writeFileSync } from 'fs';
 import { LuxDatabase } from '../../db/index.js';
-import { routeQuery, sanitizeFtsQuery, buildAugmentedQuery } from '../router.js';
+import {
+  routeQuery,
+  sanitizeFtsQuery,
+  buildAugmentedQuery,
+  buildExpertRoster,
+  selectExpertWithLlm,
+} from '../router.js';
 import type { FtsHit } from '../router.js';
 import type { ExpertSessionManager, QueryResult, SessionInfo } from '../session-manager.js';
 import type { Expert, ExpertSession, KnowledgeEntryInsert, ClientInsert } from '../../db/types.js';
+
+// Mock child_process so selectExpertWithLlm doesn't call real claude binary
+vi.mock('child_process', async () => {
+  const actual = await vi.importActual<typeof import('child_process')>('child_process');
+  return {
+    ...actual,
+    spawn: vi.fn(),
+  };
+});
+
+import { spawn } from 'child_process';
+import { EventEmitter } from 'events';
+
+const mockSpawn = vi.mocked(spawn);
+
+/** Creates a mock process that emits output and closes. */
+function createMockRoutingProcess(stdout: string, code = 0) {
+  const proc = new EventEmitter() as ReturnType<typeof spawn>;
+  const stdoutEmitter = new EventEmitter();
+  const stderrEmitter = new EventEmitter();
+  Object.assign(proc, {
+    stdout: stdoutEmitter,
+    stderr: stderrEmitter,
+    stdin: null,
+    stdio: [null, stdoutEmitter, stderrEmitter],
+    pid: 1,
+    exitCode: null as number | null,
+    signalCode: null,
+    killed: false,
+    connected: false,
+    kill: vi.fn().mockReturnValue(true),
+    ref: vi.fn(),
+    unref: vi.fn(),
+    disconnect: vi.fn(),
+    send: vi.fn(),
+    [Symbol.dispose]: vi.fn(),
+  });
+
+  // Schedule output and close asynchronously
+  queueMicrotask(() => {
+    stdoutEmitter.emit('data', Buffer.from(stdout));
+    (proc as unknown as { exitCode: number }).exitCode = code;
+    proc.emit('close', code);
+  });
+
+  return proc;
+}
 
 /** Helper to create knowledge entry with all required named params. */
 function makeKnowledgeEntry(
@@ -211,11 +264,12 @@ describe('routeQuery', () => {
 
   it('should return empty result when no experts exist', async () => {
     const sessionManager = createMockSessionManager();
-    const result = await routeQuery('test query', db, sessionManager);
+    const result = await routeQuery('test query', db, sessionManager, { useLlmRouting: false });
 
     expect(result.query).toBe('test query');
     expect(result.matchedExperts).toHaveLength(0);
     expect(result.responses).toHaveLength(0);
+    expect(result.routingMethod).toBe('fts5');
   });
 
   it('should fall back to first active expert when no FTS5 matches', async () => {
@@ -233,7 +287,7 @@ describe('routeQuery', () => {
       'expert-a': 'Expert A response',
     });
 
-    const result = await routeQuery('completely unrelated query xyz', db, sessionManager);
+    const result = await routeQuery('completely unrelated query xyz', db, sessionManager, { useLlmRouting: false });
 
     expect(result.responses).toHaveLength(1);
     expect(result.responses[0].expertSlug).toBe('expert-a');
@@ -254,7 +308,7 @@ describe('routeQuery', () => {
     });
 
     const sessionManager = createMockSessionManager();
-    const result = await routeQuery('test', db, sessionManager);
+    const result = await routeQuery('test', db, sessionManager, { useLlmRouting: false });
 
     expect(result.matchedExperts).toHaveLength(0);
     expect(result.responses).toHaveLength(0);
@@ -285,7 +339,7 @@ describe('routeQuery', () => {
       'method-expert': 'Agile is great!',
     });
 
-    const result = await routeQuery('agile process', db, sessionManager);
+    const result = await routeQuery('agile process', db, sessionManager, { useLlmRouting: false });
 
     expect(result.matchedExperts.length).toBeGreaterThanOrEqual(1);
     expect(result.matchedExperts[0].expert.slug).toBe('method-expert');
@@ -318,7 +372,7 @@ describe('routeQuery', () => {
       'platform-expert': 'eBay, Amazon, and Shopify',
     });
 
-    const result = await routeQuery('What auction platforms?', db, sessionManager);
+    const result = await routeQuery('What auction platforms?', db, sessionManager, { useLlmRouting: false });
 
     expect(result.responses).toHaveLength(1);
     // The query sent to the expert should include the document content
@@ -368,7 +422,7 @@ describe('routeQuery', () => {
     );
 
     const sessionManager = createMockSessionManager();
-    const result = await routeQuery('deployment', db, sessionManager);
+    const result = await routeQuery('deployment', db, sessionManager, { useLlmRouting: false });
 
     // Default maxExperts=1, so only the best expert (expert-a with 3 hits) is queried
     expect(result.matchedExperts).toHaveLength(1);
@@ -410,7 +464,7 @@ describe('routeQuery', () => {
       beta: 'Beta perspective on architecture',
     });
 
-    const result = await routeQuery('architecture', db, sessionManager, { maxExperts: 2 });
+    const result = await routeQuery('architecture', db, sessionManager, { maxExperts: 2, useLlmRouting: false });
 
     expect(result.responses.length).toBe(2);
     // No synthesis field in the result
@@ -440,6 +494,7 @@ describe('routeQuery', () => {
     const sessionManager = createMockSessionManager();
     const result = await routeQuery('testing', db, sessionManager, {
       maxExperts: 2,
+      useLlmRouting: false,
     });
 
     expect(result.matchedExperts.length).toBeLessThanOrEqual(2);
@@ -470,7 +525,7 @@ describe('routeQuery', () => {
       return originalQuery(slug, question);
     };
 
-    const result = await routeQuery('shared topic', db, sessionManager);
+    const result = await routeQuery('shared topic', db, sessionManager, { useLlmRouting: false });
 
     expect(result.responses.length).toBeGreaterThanOrEqual(1);
     const goodResponse = result.responses.find((r) => r.expertSlug === 'good');
@@ -495,7 +550,7 @@ describe('routeQuery', () => {
     const sessionManager = createMockSessionManager({ sparse: 'Sparse answer' });
 
     // With minHits=5, single hit shouldn't qualify — falls back to first active expert
-    const result = await routeQuery('sparse', db, sessionManager, { minHits: 5 });
+    const result = await routeQuery('sparse', db, sessionManager, { minHits: 5, useLlmRouting: false });
 
     expect(result.responses.length).toBeGreaterThanOrEqual(1);
   });
@@ -527,7 +582,7 @@ describe('routeQuery', () => {
       'client-expert': 'Acme details',
     });
 
-    const result = await routeQuery('acme', db, sessionManager);
+    const result = await routeQuery('acme', db, sessionManager, { useLlmRouting: false });
 
     expect(result.matchedExperts.length).toBeGreaterThanOrEqual(1);
     expect(result.matchedExperts[0].expert.slug).toBe('client-expert');
@@ -548,9 +603,266 @@ describe('routeQuery', () => {
     );
 
     const sessionManager = createMockSessionManager({ solo: 'Solo answer' });
-    const result = await routeQuery('solo topic', db, sessionManager);
+    const result = await routeQuery('solo topic', db, sessionManager, { useLlmRouting: false });
 
     expect(result.responses).toHaveLength(1);
     expect(result).not.toHaveProperty('synthesis');
+  });
+
+  it('should set routingMethod to fts5 when useLlmRouting is false', async () => {
+    const dir = join(corpusDir, 'method-test');
+    mkdirSync(dir, { recursive: true });
+
+    db.insertExpert({ slug: 'method-test', name: 'Method Test', mount_path: dir, status: 'active' });
+    db.insertKnowledgeEntry(
+      makeKnowledgeEntry({
+        type: 'doc',
+        title: 'Method Doc',
+        file_path: join(dir, 'method.md'),
+        content: 'Method test content.',
+      }),
+    );
+
+    const sessionManager = createMockSessionManager({ 'method-test': 'answer' });
+    const result = await routeQuery('method', db, sessionManager, { useLlmRouting: false });
+
+    expect(result.routingMethod).toBe('fts5');
+  });
+
+  it('should fall back to FTS5 when LLM routing fails', async () => {
+    const dir = join(corpusDir, 'fallback-test');
+    mkdirSync(dir, { recursive: true });
+
+    db.insertExpert({ slug: 'fallback-expert', name: 'Fallback Expert', mount_path: dir, status: 'active' });
+    db.insertKnowledgeEntry(
+      makeKnowledgeEntry({
+        type: 'doc',
+        title: 'Fallback Doc',
+        file_path: join(dir, 'fallback.md'),
+        content: 'Content for fallback routing test.',
+      }),
+    );
+
+    // Mock spawn to emit an error (simulating missing claude binary)
+    mockSpawn.mockImplementation(() => {
+      const proc = createMockRoutingProcess('', 1);
+      // Override: emit error instead of close
+      queueMicrotask(() => proc.emit('error', new Error('spawn claude ENOENT')));
+      return proc;
+    });
+
+    const sessionManager = createMockSessionManager({ 'fallback-expert': 'Fallback answer' });
+    const result = await routeQuery('fallback', db, sessionManager, { useLlmRouting: true });
+
+    expect(result.routingMethod).toBe('fts5');
+    expect(result.matchedExperts[0].expert.slug).toBe('fallback-expert');
+    expect(result.responses[0].response).toBe('Fallback answer');
+  });
+
+  it('should use LLM-selected expert when LLM routing succeeds', async () => {
+    const dirA = join(corpusDir, 'llm-a');
+    const dirB = join(corpusDir, 'llm-b');
+    mkdirSync(dirA, { recursive: true });
+    mkdirSync(dirB, { recursive: true });
+
+    db.insertExpert({ slug: 'llm-a', name: 'LLM Expert A', mount_path: dirA, status: 'active' });
+    db.insertExpert({ slug: 'llm-b', name: 'LLM Expert B', mount_path: dirB, status: 'active' });
+
+    // Give expert A more FTS5 hits so FTS5 would pick A
+    for (let i = 0; i < 5; i++) {
+      db.insertKnowledgeEntry(
+        makeKnowledgeEntry({
+          type: 'doc',
+          title: `Topic ${i}`,
+          file_path: join(dirA, `topic-${i}.md`),
+          content: `Information about topics and routing ${i}.`,
+        }),
+      );
+    }
+    db.insertKnowledgeEntry(
+      makeKnowledgeEntry({
+        type: 'doc',
+        title: 'Topic B',
+        file_path: join(dirB, 'topic-b.md'),
+        content: 'Information about topics and routing for B.',
+      }),
+    );
+
+    // Mock spawn to return "llm-b" — LLM overrides FTS5
+    mockSpawn.mockImplementation(() => createMockRoutingProcess('llm-b\n'));
+
+    const sessionManager = createMockSessionManager({
+      'llm-a': 'A answer',
+      'llm-b': 'B answer',
+    });
+
+    const result = await routeQuery('topics routing', db, sessionManager, { useLlmRouting: true });
+
+    expect(result.routingMethod).toBe('llm');
+    expect(result.matchedExperts[0].expert.slug).toBe('llm-b');
+    expect(result.responses[0].response).toBe('B answer');
+  });
+});
+
+describe('buildExpertRoster', () => {
+  const testDir = join(__dirname, 'fixtures', 'roster-test');
+
+  beforeEach(() => {
+    if (existsSync(testDir)) {
+      rmSync(testDir, { recursive: true, force: true });
+    }
+    mkdirSync(testDir, { recursive: true });
+  });
+
+  afterEach(() => {
+    if (existsSync(testDir)) {
+      rmSync(testDir, { recursive: true, force: true });
+    }
+  });
+
+  function makeExpert(overrides: Partial<Expert> & Pick<Expert, 'slug' | 'name'>): Expert {
+    return {
+      id: 1,
+      mount_path: '/mock',
+      model: 'claude-sonnet-4-20250514',
+      status: 'active',
+      created_at: Date.now(),
+      updated_at: Date.now(),
+      ...overrides,
+    };
+  }
+
+  it('should build a roster with slug, name, and brief for each expert', () => {
+    const claudeMdPath = join(testDir, 'expert.md');
+    writeFileSync(claudeMdPath, '# Expert Title\n\nThis expert handles chiropractic practice management and billing.');
+
+    const roster = buildExpertRoster([
+      makeExpert({ slug: 'example-app', name: 'example-app Expert', claude_md_path: claudeMdPath }),
+    ]);
+
+    expect(roster).toContain('`example-app`');
+    expect(roster).toContain('example-app Expert');
+    expect(roster).toContain('chiropractic practice management');
+  });
+
+  it('should use "No description available" when claude_md_path is missing', () => {
+    const roster = buildExpertRoster([
+      makeExpert({ slug: 'no-md', name: 'No MD Expert' }),
+    ]);
+
+    expect(roster).toContain('`no-md`');
+    expect(roster).toContain('No description available');
+  });
+
+  it('should use "No description available" when file does not exist', () => {
+    const roster = buildExpertRoster([
+      makeExpert({ slug: 'gone', name: 'Gone Expert', claude_md_path: '/nonexistent/path.md' }),
+    ]);
+
+    expect(roster).toContain('No description available');
+  });
+
+  it('should strip YAML frontmatter from claude_md content', () => {
+    const claudeMdPath = join(testDir, 'frontmatter.md');
+    writeFileSync(claudeMdPath, '---\ntitle: Test\nauthor: AI\n---\n\n# Title\n\nActual description content here.');
+
+    const roster = buildExpertRoster([
+      makeExpert({ slug: 'fm', name: 'FM Expert', claude_md_path: claudeMdPath }),
+    ]);
+
+    expect(roster).toContain('Actual description content here');
+    expect(roster).not.toContain('author: AI');
+  });
+
+  it('should truncate brief to ~200 chars', () => {
+    const claudeMdPath = join(testDir, 'long.md');
+    const longContent = 'A'.repeat(500);
+    writeFileSync(claudeMdPath, longContent);
+
+    const roster = buildExpertRoster([
+      makeExpert({ slug: 'long', name: 'Long Expert', claude_md_path: claudeMdPath }),
+    ]);
+
+    const briefMatch = roster.match(/Long Expert: (A+)/);
+    expect(briefMatch).not.toBeNull();
+    expect(briefMatch![1].length).toBe(200);
+  });
+
+  it('should list multiple experts on separate lines', () => {
+    const roster = buildExpertRoster([
+      makeExpert({ slug: 'alpha', name: 'Alpha' }),
+      makeExpert({ slug: 'beta', name: 'Beta' }),
+    ]);
+
+    const lines = roster.split('\n');
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toContain('`alpha`');
+    expect(lines[1]).toContain('`beta`');
+  });
+});
+
+describe('selectExpertWithLlm', () => {
+  function makeExpert(overrides: Partial<Expert> & Pick<Expert, 'slug' | 'name'>): Expert {
+    return {
+      id: 1,
+      mount_path: '/mock',
+      model: 'claude-sonnet-4-20250514',
+      status: 'active',
+      created_at: Date.now(),
+      updated_at: Date.now(),
+      ...overrides,
+    };
+  }
+
+  const experts = [
+    makeExpert({ slug: 'example-app', name: 'example-app Expert' }),
+    makeExpert({ slug: 'acme', name: 'acme Expert' }),
+  ];
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('should return the slug when LLM returns a valid expert', async () => {
+    mockSpawn.mockImplementation(() => createMockRoutingProcess('example-app\n'));
+
+    const result = await selectExpertWithLlm('What is example-app?', experts);
+    expect(result).toBe('example-app');
+  });
+
+  it('should handle slug wrapped in backticks', async () => {
+    mockSpawn.mockImplementation(() => createMockRoutingProcess('`acme`\n'));
+
+    const result = await selectExpertWithLlm('What platforms does acme manage?', experts);
+    expect(result).toBe('acme');
+  });
+
+  it('should return null when LLM returns an invalid slug', async () => {
+    mockSpawn.mockImplementation(() => createMockRoutingProcess('nonexistent-expert\n'));
+
+    const result = await selectExpertWithLlm('test question', experts);
+    expect(result).toBeNull();
+  });
+
+  it('should return null when spawn fails', async () => {
+    mockSpawn.mockImplementation(() => {
+      const proc = createMockRoutingProcess('', 1);
+      queueMicrotask(() => proc.emit('error', new Error('spawn claude ENOENT')));
+      return proc;
+    });
+
+    const result = await selectExpertWithLlm('test question', experts);
+    expect(result).toBeNull();
+  });
+
+  it('should pass the routing model to claude CLI', async () => {
+    let capturedArgs: string[] = [];
+    mockSpawn.mockImplementation((_cmd, args) => {
+      capturedArgs = args as string[];
+      return createMockRoutingProcess('example-app\n');
+    });
+
+    await selectExpertWithLlm('test', experts, 'custom-model');
+    expect(capturedArgs).toContain('custom-model');
   });
 });

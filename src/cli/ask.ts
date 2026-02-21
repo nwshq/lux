@@ -143,8 +143,11 @@ export async function askPanel(
 function printVerboseRouting(result: RouteResult): void {
   if (result.matchedExperts.length > 0) {
     const chosen = result.matchedExperts[0];
-    console.error(`Routed to: ${chosen.expert.name} (${chosen.expert.slug})`);
-    console.error(`  ${chosen.hits} FTS5 hits`);
+    if (result.routingMethod === 'llm') {
+      console.error(`LLM-routed to: ${chosen.expert.name} (${chosen.expert.slug})`);
+    } else {
+      console.error(`FTS5-routed to: ${chosen.expert.name} (${chosen.expert.slug}), ${chosen.hits} hits`);
+    }
     if (result.matchedExperts.length > 1) {
       console.error('Other matches:');
       for (const match of result.matchedExperts.slice(1)) {
@@ -161,6 +164,7 @@ function printVerboseRouting(result: RouteResult): void {
 export function formatRouteResultJson(result: RouteResult): Record<string, unknown> {
   return {
     query: result.query,
+    routingMethod: result.routingMethod,
     matchedExperts: result.matchedExperts.map((m) => ({
       slug: m.expert.slug,
       name: m.expert.name,
