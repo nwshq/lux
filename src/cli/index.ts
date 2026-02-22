@@ -13,6 +13,10 @@ import { addMigrateCommands } from './migrate.js';
 import { addLintCommand } from './lint.js';
 import { addExpertCommands } from './expert.js';
 import { addAskCommand } from './ask.js';
+import { addInitCommand } from './init.js';
+import { addDocsCommand } from './docs.js';
+import { addExplorationCommands } from './exploration.js';
+import { addJournalCommands } from './journal.js';
 
 const program = new Command();
 
@@ -421,5 +425,17 @@ addExpertCommands(program);
 
 // Add ask command
 addAskCommand(program);
+
+// Add init command
+addInitCommand(program);
+
+// Add docs command
+addDocsCommand(program);
+
+// Add exploration commands
+addExplorationCommands(program);
+
+// Add journal commands
+addJournalCommands(program);
 
 program.parse();
