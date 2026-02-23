@@ -11,8 +11,8 @@ export function addHooksCommand(program: Command) {
 
   hooksCmd
     .command('install')
-    .description('Install post-commit hook for CORPUS git repository')
-    .option('--corpus <path>', 'CORPUS directory path (default: from --corpus global option)')
+    .description('Install post-commit hook for content directory git repository')
+    .option('--corpus <path>', 'Content directory path (default: from --corpus global option)')
     .action((options: { corpus?: string }) => {
       const opts = program.opts();
       const corpusPath = options.corpus || (opts.corpus as string);
@@ -61,7 +61,7 @@ export function addHooksCommand(program: Command) {
   hooksCmd
     .command('uninstall')
     .description('Uninstall post-commit hook')
-    .option('--corpus <path>', 'CORPUS directory path (default: from --corpus global option)')
+    .option('--corpus <path>', 'Content directory path (default: from --corpus global option)')
     .action((options: { corpus?: string }) => {
       const opts = program.opts();
       const corpusPath = options.corpus || (opts.corpus as string);

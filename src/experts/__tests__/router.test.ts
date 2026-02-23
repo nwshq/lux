@@ -243,7 +243,7 @@ describe('buildAugmentedQuery', () => {
 describe('routeQuery', () => {
   const testDir = join(__dirname, 'fixtures', 'router-test');
   const dbPath = join(testDir, 'test.db');
-  const corpusDir = join(testDir, 'corpus');
+  const contentDir = join(testDir, 'content');
   let db: LuxDatabase;
 
   beforeEach(() => {
@@ -251,7 +251,7 @@ describe('routeQuery', () => {
       rmSync(testDir, { recursive: true, force: true });
     }
     mkdirSync(testDir, { recursive: true });
-    mkdirSync(corpusDir, { recursive: true });
+    mkdirSync(contentDir, { recursive: true });
     db = new LuxDatabase(dbPath);
   });
 
@@ -273,7 +273,7 @@ describe('routeQuery', () => {
   });
 
   it('should fall back to first active expert when no FTS5 matches', async () => {
-    const expertDir = join(corpusDir, 'expert-a');
+    const expertDir = join(contentDir, 'expert-a');
     mkdirSync(expertDir, { recursive: true });
 
     db.insertExpert({
@@ -297,7 +297,7 @@ describe('routeQuery', () => {
   });
 
   it('should skip inactive experts', async () => {
-    const expertDir = join(corpusDir, 'inactive');
+    const expertDir = join(contentDir, 'inactive');
     mkdirSync(expertDir, { recursive: true });
 
     db.insertExpert({
@@ -315,7 +315,7 @@ describe('routeQuery', () => {
   });
 
   it('should match expert by knowledge entry file path', async () => {
-    const expertDir = join(corpusDir, 'methodology');
+    const expertDir = join(contentDir, 'methodology');
     mkdirSync(expertDir, { recursive: true });
 
     db.insertExpert({
@@ -349,7 +349,7 @@ describe('routeQuery', () => {
   });
 
   it('should send augmented query with document content to the expert', async () => {
-    const expertDir = join(corpusDir, 'platforms');
+    const expertDir = join(contentDir, 'platforms');
     mkdirSync(expertDir, { recursive: true });
 
     db.insertExpert({
@@ -383,7 +383,7 @@ describe('routeQuery', () => {
   });
 
   it('should default to single-expert routing (maxExperts=1)', async () => {
-    const dirA = join(corpusDir, 'expert-a');
+    const dirA = join(contentDir, 'expert-a');
     mkdirSync(dirA, { recursive: true });
     db.insertExpert({
       slug: 'expert-a',
@@ -392,7 +392,7 @@ describe('routeQuery', () => {
       status: 'active',
     });
 
-    const dirB = join(corpusDir, 'expert-b');
+    const dirB = join(contentDir, 'expert-b');
     mkdirSync(dirB, { recursive: true });
     db.insertExpert({
       slug: 'expert-b',
@@ -433,8 +433,8 @@ describe('routeQuery', () => {
   });
 
   it('should query multiple experts when maxExperts > 1', async () => {
-    const dirA = join(corpusDir, 'alpha');
-    const dirB = join(corpusDir, 'beta');
+    const dirA = join(contentDir, 'alpha');
+    const dirB = join(contentDir, 'beta');
     mkdirSync(dirA, { recursive: true });
     mkdirSync(dirB, { recursive: true });
 
@@ -473,7 +473,7 @@ describe('routeQuery', () => {
 
   it('should cap experts at maxExperts option', async () => {
     for (let i = 0; i < 4; i++) {
-      const dir = join(corpusDir, `expert-${i}`);
+      const dir = join(contentDir, `expert-${i}`);
       mkdirSync(dir, { recursive: true });
       db.insertExpert({
         slug: `expert-${i}`,
@@ -502,7 +502,7 @@ describe('routeQuery', () => {
   });
 
   it('should handle expert query failures gracefully', async () => {
-    const dirA = join(corpusDir, 'good');
+    const dirA = join(contentDir, 'good');
     mkdirSync(dirA, { recursive: true });
 
     db.insertExpert({ slug: 'good', name: 'Good', mount_path: dirA, status: 'active' });
@@ -534,7 +534,7 @@ describe('routeQuery', () => {
   });
 
   it('should respect minHits option', async () => {
-    const dir = join(corpusDir, 'sparse');
+    const dir = join(contentDir, 'sparse');
     mkdirSync(dir, { recursive: true });
 
     db.insertExpert({ slug: 'sparse', name: 'Sparse', mount_path: dir, status: 'active' });
@@ -556,14 +556,14 @@ describe('routeQuery', () => {
   });
 
   it('should match client records to expert mount paths', async () => {
-    const clientDir = join(corpusDir, 'clients', 'acme');
+    const clientDir = join(contentDir, 'clients', 'acme');
     mkdirSync(clientDir, { recursive: true });
     writeFileSync(join(clientDir, 'README.md'), '# Acme Corp');
 
     db.insertExpert({
       slug: 'client-expert',
       name: 'Client Expert',
-      mount_path: join(corpusDir, 'clients'),
+      mount_path: join(contentDir, 'clients'),
       status: 'active',
     });
 
@@ -589,7 +589,7 @@ describe('routeQuery', () => {
   });
 
   it('should not include synthesis in route result', async () => {
-    const dir = join(corpusDir, 'solo');
+    const dir = join(contentDir, 'solo');
     mkdirSync(dir, { recursive: true });
 
     db.insertExpert({ slug: 'solo', name: 'Solo', mount_path: dir, status: 'active' });
@@ -610,7 +610,7 @@ describe('routeQuery', () => {
   });
 
   it('should set routingMethod to fts5 when useLlmRouting is false', async () => {
-    const dir = join(corpusDir, 'method-test');
+    const dir = join(contentDir, 'method-test');
     mkdirSync(dir, { recursive: true });
 
     db.insertExpert({ slug: 'method-test', name: 'Method Test', mount_path: dir, status: 'active' });
@@ -630,7 +630,7 @@ describe('routeQuery', () => {
   });
 
   it('should fall back to FTS5 when LLM routing fails', async () => {
-    const dir = join(corpusDir, 'fallback-test');
+    const dir = join(contentDir, 'fallback-test');
     mkdirSync(dir, { recursive: true });
 
     db.insertExpert({ slug: 'fallback-expert', name: 'Fallback Expert', mount_path: dir, status: 'active' });
@@ -655,7 +655,7 @@ describe('routeQuery', () => {
   });
 
   it('should forward onChunk callback to sessionManager.query()', async () => {
-    const expertDir = join(corpusDir, 'chunk-expert');
+    const expertDir = join(contentDir, 'chunk-expert');
     mkdirSync(expertDir, { recursive: true });
 
     db.insertExpert({
@@ -678,7 +678,7 @@ describe('routeQuery', () => {
   });
 
   it('should not pass QueryOptions when onChunk is not provided', async () => {
-    const expertDir = join(corpusDir, 'no-chunk');
+    const expertDir = join(contentDir, 'no-chunk');
     mkdirSync(expertDir, { recursive: true });
 
     db.insertExpert({
@@ -699,8 +699,8 @@ describe('routeQuery', () => {
   });
 
   it('should use LLM-selected expert when LLM routing succeeds', async () => {
-    const dirA = join(corpusDir, 'llm-a');
-    const dirB = join(corpusDir, 'llm-b');
+    const dirA = join(contentDir, 'llm-a');
+    const dirB = join(contentDir, 'llm-b');
     mkdirSync(dirA, { recursive: true });
     mkdirSync(dirB, { recursive: true });
 
@@ -910,3 +910,4 @@ describe('selectExpertWithLlm', () => {
     expect(result.model).toBe('custom-model');
   });
 });
+

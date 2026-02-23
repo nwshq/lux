@@ -31,7 +31,7 @@ export interface RouterOptions {
   maxExperts?: number;
   /** Minimum hit count for an expert to be considered relevant. Defaults to 1. */
   minHits?: number;
-  /** Maximum bytes of context to inject into the augmented query. Defaults to 30720 (~30KB). */
+  /** Maximum bytes of context to inject into the augmented query. Defaults to 153600 (~150KB). */
   maxContextBytes?: number;
   /** Use LLM (Haiku) to select the best expert. Defaults to true. */
   useLlmRouting?: boolean;
@@ -46,6 +46,8 @@ export interface FtsHit {
   rank: number;
   content?: string;
   title?: string;
+  /** Raw metadata JSON string from the database entity. May contain lsp enrichment data. */
+  metadata?: string;
 }
 
 interface ScoreResult {
@@ -92,6 +94,7 @@ export async function routeQuery(
 
   // Get all active experts
   const activeExperts = db.getExpertsByStatus('active');
+
   if (activeExperts.length === 0) {
     return { query, matchedExperts: [], responses: [], routingMethod: 'fts5' };
   }
@@ -401,7 +404,7 @@ function scoreExperts(
     return { scored: [], hitsByExpert };
   }
 
-  // Search all FTS5 indexes and collect (file_path, rank, content, title) tuples
+  // Search all FTS5 indexes and collect (file_path, rank, content, title, metadata) tuples
   const hits = collectFtsHits(ftsQuery, db);
 
   // Map each hit to the owning expert
@@ -433,7 +436,7 @@ function scoreExperts(
 }
 
 /**
- * Collect file_path + rank + content + title from all FTS5 tables.
+ * Collect file_path + rank + content + title + metadata from all FTS5 tables.
  * Silently returns empty on FTS5 errors (e.g., schema not migrated).
  */
 function collectFtsHits(ftsQuery: string, db: LuxDatabase): FtsHit[] {
@@ -447,6 +450,7 @@ function collectFtsHits(ftsQuery: string, db: LuxDatabase): FtsHit[] {
         rank: 0,
         content: entry.content ?? undefined,
         title: entry.title,
+        metadata: entry.metadata ?? undefined,
       });
     }
   } catch {
@@ -461,6 +465,7 @@ function collectFtsHits(ftsQuery: string, db: LuxDatabase): FtsHit[] {
         rank: 0,
         content: client.content ?? undefined,
         title: client.name,
+        metadata: client.metadata ?? undefined,
       });
     }
   } catch {
@@ -475,6 +480,7 @@ function collectFtsHits(ftsQuery: string, db: LuxDatabase): FtsHit[] {
         rank: 0,
         content: project.content ?? undefined,
         title: project.name,
+        metadata: project.metadata ?? undefined,
       });
     }
   } catch {
@@ -489,6 +495,7 @@ function collectFtsHits(ftsQuery: string, db: LuxDatabase): FtsHit[] {
         rank: 0,
         content: comm.content ?? undefined,
         title: comm.subject ?? comm.file_path,
+        metadata: comm.metadata ?? undefined,
       });
     }
   } catch {
@@ -500,31 +507,32 @@ function collectFtsHits(ftsQuery: string, db: LuxDatabase): FtsHit[] {
 
 /**
  * Build an augmented query that injects FTS5-retrieved document content
- * as reference material for the expert to synthesize.
+ * and LSP relationship data as reference material for the expert.
  *
  * @param question - The user's original question
- * @param hits - FTS5 hits with content, already ordered by relevance
- * @param maxContextBytes - Maximum bytes for the reference section (~30KB default)
+ * @param hits - FTS5 hits with content and metadata, already ordered by relevance
+ * @param maxContextBytes - Maximum bytes for the reference section (~150KB default)
  */
 export function buildAugmentedQuery(
   question: string,
   hits: FtsHit[],
   maxContextBytes?: number,
 ): string {
-  const budget = maxContextBytes ?? 30_720;
+  const budget = maxContextBytes ?? 153_600;
 
-  // Filter to hits that actually have content
-  const contentHits = hits.filter((h) => h.content && h.content.trim().length > 0);
+  // Filter to hits that actually have content or LSP data
+  const relevantHits = hits.filter(
+    (h) => (h.content && h.content.trim().length > 0) || h.metadata,
+  );
 
-  if (contentHits.length === 0) {
+  if (relevantHits.length === 0) {
     return question;
   }
 
   const parts: string[] = [];
   let usedBytes = 0;
 
-  for (const hit of contentHits) {
-    const content = hit.content!;
+  for (const hit of relevantHits) {
     const label = hit.title ?? hit.filePath;
     const header = `### ${label}\n`;
     const separator = '\n---\n';
@@ -533,18 +541,33 @@ export function buildAugmentedQuery(
     const remaining = budget - usedBytes - overhead;
     if (remaining <= 0) break;
 
-    let body: string;
-    const contentBytes = Buffer.byteLength(content, 'utf-8');
-    if (contentBytes <= remaining) {
-      body = content;
-    } else {
-      // Truncate to fit within remaining budget (rough byte-to-char approximation)
-      const truncated = content.slice(0, remaining);
-      body = truncated + '\n[...truncated]';
+    const bodyParts: string[] = [];
+
+    // Include LSP relationship summary if available
+    const lspSummary = extractLspRelationships(hit.metadata);
+    if (lspSummary) {
+      bodyParts.push(lspSummary);
+    }
+
+    // Include document content
+    if (hit.content && hit.content.trim().length > 0) {
+      bodyParts.push(hit.content);
+    }
+
+    if (bodyParts.length === 0) continue;
+
+    let body = bodyParts.join('\n\n');
+    const contentBytes = Buffer.byteLength(body, 'utf-8');
+    if (contentBytes > remaining) {
+      body = body.slice(0, remaining) + '\n[...truncated]';
     }
 
     parts.push(header + body + separator);
     usedBytes += Buffer.byteLength(parts[parts.length - 1], 'utf-8');
+  }
+
+  if (parts.length === 0) {
+    return question;
   }
 
   return `Answer the following question using the reference documents provided below.
@@ -555,6 +578,124 @@ ${parts.join('\n')}
 ## Question
 
 ${question}`;
+}
+
+// ---------------------------------------------------------------------------
+// LSP relationship extraction
+// ---------------------------------------------------------------------------
+
+/** Parsed LSP metadata shape from the database metadata JSON. */
+interface LspMetadata {
+  symbols?: Array<{
+    name: string;
+    kindLabel?: string;
+    children?: Array<{ name: string; kindLabel?: string }>;
+  }>;
+  definitions?: Array<{
+    symbolName: string;
+    targetUri: string;
+  }>;
+}
+
+/** Extended LSP metadata with PHP enrichment fields. */
+interface LspMetadataWithRelations extends LspMetadata {
+  typeHierarchy?: Array<{
+    name: string;
+    supertypes?: Array<{ name: string }>;
+    subtypes?: Array<{ name: string }>;
+  }>;
+  references?: Array<{
+    symbolName: string;
+    referenceCount: number;
+    referenceLocations?: Array<{ uri: string }>;
+  }>;
+}
+
+/**
+ * Extract LSP relationship data from a database entity's metadata JSON
+ * and format it as a human-readable summary for the augmented query.
+ *
+ * Extracts four relationship types:
+ * - **extends**: supertype relationships from type hierarchy
+ * - **implements**: interface implementations from type hierarchy
+ * - **dependencies**: definition targets (what this file depends on)
+ * - **referenced_by**: files that reference symbols in this file
+ *
+ * @returns Formatted summary string, or null if no LSP data is present.
+ */
+export function extractLspRelationships(metadataJson: string | undefined): string | null {
+  if (!metadataJson) return null;
+
+  let metadata: Record<string, unknown>;
+  try {
+    metadata = JSON.parse(metadataJson) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+
+  const lsp = metadata.lsp as LspMetadataWithRelations | undefined;
+  if (!lsp) return null;
+
+  const lines: string[] = [];
+
+  // Extract extends/implements from type hierarchy
+  if (lsp.typeHierarchy && lsp.typeHierarchy.length > 0) {
+    for (const entry of lsp.typeHierarchy) {
+      if (entry.supertypes && entry.supertypes.length > 0) {
+        const superNames = entry.supertypes.map((s) => s.name);
+        lines.push(`**extends**: ${entry.name} → ${superNames.join(', ')}`);
+      }
+      if (entry.subtypes && entry.subtypes.length > 0) {
+        const subNames = entry.subtypes.map((s) => s.name);
+        lines.push(`**implements**: ${entry.name} ← ${subNames.join(', ')}`);
+      }
+    }
+  }
+
+  // Extract dependencies from definition targets
+  if (lsp.definitions && lsp.definitions.length > 0) {
+    const depFiles = new Set<string>();
+    for (const def of lsp.definitions) {
+      if (def.targetUri) {
+        const fileName = def.targetUri.split('/').pop() ?? def.targetUri;
+        depFiles.add(fileName);
+      }
+    }
+    if (depFiles.size > 0) {
+      lines.push(`**dependencies**: ${Array.from(depFiles).join(', ')}`);
+    }
+  }
+
+  // Extract referenced_by from reference locations
+  if (lsp.references && lsp.references.length > 0) {
+    const referencingFiles = new Set<string>();
+    for (const ref of lsp.references) {
+      if (ref.referenceLocations) {
+        for (const loc of ref.referenceLocations) {
+          if (loc.uri) {
+            const fileName = loc.uri.split('/').pop() ?? loc.uri;
+            referencingFiles.add(fileName);
+          }
+        }
+      }
+    }
+    if (referencingFiles.size > 0) {
+      lines.push(`**referenced_by**: ${Array.from(referencingFiles).join(', ')}`);
+    }
+  }
+
+  // Include symbol outline if available
+  if (lsp.symbols && lsp.symbols.length > 0) {
+    const symbolList = lsp.symbols
+      .map((s) => `${s.kindLabel ?? 'Symbol'} \`${s.name}\``)
+      .slice(0, 20)
+      .join(', ');
+    lines.push(`**symbols**: ${symbolList}`);
+  }
+
+  if (lines.length === 0) return null;
+
+  return `> **LSP Relationships**\n> ${lines.join('\n> ')}`;
 }
 
 /**

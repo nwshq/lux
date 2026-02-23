@@ -4,7 +4,7 @@ import { Command } from 'commander';
 import { join } from 'path';
 import { homedir } from 'os';
 import { LuxDatabase } from '../db/index.js';
-import { CorpusScanner } from '../scanner/index.js';
+import { GeneralScanner } from '../scanner/index.js';
 import { existsSync } from 'fs';
 import { addCommCommands } from './comm.js';
 import { addSearchCommand } from './search.js';
@@ -26,10 +26,10 @@ const DEFAULT_CORPUS_PATH = join(homedir(), 'CORPUS');
 
 program
   .name('lux')
-  .description('Lux Knowledge Platform - CORPUS semantic search and knowledge retrieval')
+  .description('Lux Knowledge Platform - semantic search and knowledge retrieval')
   .version('0.1.0')
   .option('--db <path>', 'Database path', DEFAULT_DB_PATH)
-  .option('--corpus <path>', 'CORPUS directory path', DEFAULT_CORPUS_PATH);
+  .option('--corpus <path>', 'Content root directory path', DEFAULT_CORPUS_PATH);
 
 // Client commands
 const clientCmd = program.command('client').description('Manage clients');
@@ -43,7 +43,7 @@ clientCmd
     const clients = db.getAllClients();
 
     if (clients.length === 0) {
-      console.log('No clients found. Run "lux index rebuild" to scan CORPUS.');
+      console.log('No clients found. Run "lux index rebuild" to scan your content directory.');
       db.close();
       return;
     }
@@ -248,7 +248,7 @@ const indexCmd = program.command('index').description('Manage index');
 
 indexCmd
   .command('rebuild')
-  .description('Rebuild index from CORPUS')
+  .description('Rebuild index from content directory')
   .option('--quiet', 'Suppress output')
   .action(async (options: { quiet?: boolean }) => {
     const opts = program.opts();
@@ -256,9 +256,9 @@ indexCmd
     let db: LuxDatabase | undefined;
 
     try {
-      // Validate CORPUS directory
+      // Validate content directory
       if (!existsSync(corpusPath)) {
-        console.error(`Error: CORPUS directory not found: ${corpusPath}`);
+        console.error(`Error: Content directory not found: ${corpusPath}`);
         console.error('  Please ensure the directory exists or set --corpus <path>');
         process.exit(1);
       }
@@ -280,18 +280,18 @@ indexCmd
         process.exit(1);
       }
 
-      const scanner = new CorpusScanner(corpusPath);
+      const scanner = new GeneralScanner(corpusPath);
 
       if (!options.quiet) {
-        console.log(`Scanning CORPUS at: ${corpusPath}`);
+        console.log(`Scanning content directory: ${corpusPath}`);
       }
 
-      // Scan CORPUS with error handling
+      // Scan content directory with error handling
       let result;
       try {
         result = await scanner.scan();
       } catch (error) {
-        console.error('Error: Failed to scan CORPUS directory');
+        console.error('Error: Failed to scan content directory');
         console.error(`  ${error instanceof Error ? error.message : String(error)}`);
         db.close();
         process.exit(1);
@@ -331,15 +331,15 @@ indexCmd
       try {
         await scanner.index(db, result);
       } catch (error) {
-        console.error('Error: Failed to index CORPUS content');
+        console.error('Error: Failed to index content');
         if (error instanceof Error) {
           console.error(`  ${error.message}`);
           // Provide helpful context for common errors
           if (error.message.includes('Client not found')) {
-            console.error('  This suggests inconsistent CORPUS structure');
+            console.error('  This suggests inconsistent directory structure');
             console.error('  Verify that all projects reference existing clients');
           } else if (error.message.includes('UNIQUE constraint')) {
-            console.error('  This suggests duplicate entries in your CORPUS');
+            console.error('  This suggests duplicate entries in your content directory');
             console.error('  Check for duplicate client/project slugs');
           } else if (error.message.includes('FOREIGN KEY constraint')) {
             console.error('  This suggests missing parent entities');

@@ -8,7 +8,7 @@ import { LuxDatabase } from '../db/index.js';
  * Returns the resolved absolute path, or an error message string.
  *
  * Validation rules:
- * 1. The resolved path must be inside the CORPUS directory.
+ * 1. The resolved path must be inside the content root directory.
  * 2. The resolved path must exist on disk.
  */
 export function validateMountPath(
@@ -22,7 +22,7 @@ export function validateMountPath(
   if (rel.startsWith('..') || isAbsolute(rel)) {
     return {
       ok: false,
-      error: `Mount path must be inside CORPUS: ${mountPath} is outside ${resolvedCorpus}`,
+      error: `Mount path must be inside content root: ${mountPath} is outside ${resolvedCorpus}`,
     };
   }
 
@@ -148,7 +148,7 @@ export function addExpertCommands(program: Command) {
   expertCmd
     .command('add <slug>')
     .description('Register a new expert')
-    .requiredOption('--mount <path>', 'Mount path (relative to CORPUS or absolute)')
+    .requiredOption('--mount <path>', 'Mount path (relative to content root or absolute)')
     .option('--name <name>', 'Expert name (defaults to slug)')
     .option('--model <model>', 'Model to use', 'claude-sonnet-4-20250514')
     .action((slug: string, options: { mount: string; name?: string; model: string }) => {

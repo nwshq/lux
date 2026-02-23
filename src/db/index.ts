@@ -18,6 +18,7 @@ import type {
   EventInsert,
   ExpertInsert,
   ExpertSessionInsert,
+  DocumentSearchResult,
 } from './types.js';
 
 export class LuxDatabase {
@@ -253,6 +254,8 @@ export class LuxDatabase {
   insertKnowledgeEntry(entry: KnowledgeEntryInsert): number {
     const result = this.getQueries().insertKnowledgeEntry.run({
       ...entry,
+      client_id: entry.client_id ?? null,
+      project_id: entry.project_id ?? null,
       tags: entry.tags ? JSON.stringify(entry.tags) : null,
       metadata: entry.metadata ? JSON.stringify(entry.metadata) : null,
     });
@@ -384,6 +387,70 @@ export class LuxDatabase {
    */
   searchKnowledgeEntriesContent(query: string): KnowledgeEntry[] {
     return this.getQueries().searchKnowledgeEntriesContentFts.all(query) as KnowledgeEntry[];
+  }
+
+  /**
+   * Search across all entity FTS5 tables and return unified results.
+   * Queries clients, projects, communications, and knowledge entries,
+   * normalizing results into a common shape with file_path, title, content, and rank.
+   * Silently skips any FTS5 table that is unavailable.
+   */
+  searchAllDocuments(query: string): DocumentSearchResult[] {
+    const results: DocumentSearchResult[] = [];
+
+    try {
+      for (const entry of this.searchKnowledgeEntries(query)) {
+        results.push({
+          file_path: entry.file_path,
+          title: entry.title,
+          content: entry.content ?? undefined,
+          rank: 0,
+        });
+      }
+    } catch {
+      // FTS5 not available for knowledge entries
+    }
+
+    try {
+      for (const client of this.searchClients(query)) {
+        results.push({
+          file_path: client.file_path,
+          title: client.name,
+          content: client.content ?? undefined,
+          rank: 0,
+        });
+      }
+    } catch {
+      // FTS5 not available for clients
+    }
+
+    try {
+      for (const project of this.searchProjects(query)) {
+        results.push({
+          file_path: project.file_path,
+          title: project.name,
+          content: project.content ?? undefined,
+          rank: 0,
+        });
+      }
+    } catch {
+      // FTS5 not available for projects
+    }
+
+    try {
+      for (const comm of this.searchCommunications(query)) {
+        results.push({
+          file_path: comm.file_path,
+          title: comm.subject ?? comm.file_path,
+          content: comm.content ?? undefined,
+          rank: 0,
+        });
+      }
+    } catch {
+      // FTS5 not available for communications
+    }
+
+    return results;
   }
 
   // Expert operations

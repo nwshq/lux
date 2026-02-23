@@ -1,0 +1,431 @@
+// Generic LSP client wrapper with concurrency limiting and timeout handling.
+//
+// Communicates with language servers over stdio using the JSON-RPC protocol
+// defined by the Language Server Protocol. Manages the full server lifecycle:
+// spawn -> initialize -> requests -> shutdown -> exit.
+
+import { spawn, type ChildProcess } from 'child_process';
+import {
+  InitializeRequest,
+  InitializedNotification,
+  ShutdownRequest,
+  ExitNotification,
+  type InitializeParams,
+  type InitializeResult,
+  type RequestMessage,
+  type ResponseMessage,
+  type NotificationMessage,
+} from 'vscode-languageserver-protocol';
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+/** Options for creating an LspClient. */
+export interface LspClientOptions {
+  /** Command to spawn the language server (e.g. "typescript-language-server"). */
+  serverCommand: string;
+  /** Arguments to pass to the server command. */
+  serverArgs?: string[];
+  /** Working directory for the server process. */
+  cwd?: string;
+  /** Environment variables for the server process. Merged with process.env. */
+  env?: Record<string, string>;
+  /** Maximum number of concurrent in-flight requests (default: 4). */
+  maxConcurrency?: number;
+  /** Timeout in milliseconds for individual requests (default: 30000). */
+  requestTimeoutMs?: number;
+  /** Timeout in milliseconds for server initialization (default: 60000). */
+  initTimeoutMs?: number;
+}
+
+/** Internal representation of a pending JSON-RPC request. */
+interface PendingRequest {
+  resolve: (result: unknown) => void;
+  reject: (error: Error) => void;
+  timer: ReturnType<typeof setTimeout>;
+}
+
+// ---------------------------------------------------------------------------
+// Semaphore for concurrency limiting
+// ---------------------------------------------------------------------------
+
+/**
+ * Simple counting semaphore for limiting concurrent async operations.
+ */
+class Semaphore {
+  private permits: number;
+  private readonly waitQueue: Array<() => void> = [];
+
+  constructor(maxPermits: number) {
+    this.permits = maxPermits;
+  }
+
+  /** Acquire a permit, waiting if none are available. */
+  async acquire(): Promise<void> {
+    if (this.permits > 0) {
+      this.permits--;
+      return;
+    }
+
+    return new Promise<void>((resolve) => {
+      this.waitQueue.push(resolve);
+    });
+  }
+
+  /** Release a permit, unblocking the next waiter if any. */
+  release(): void {
+    const next = this.waitQueue.shift();
+    if (next) {
+      next();
+    } else {
+      this.permits++;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// LspClient
+// ---------------------------------------------------------------------------
+
+/**
+ * Generic LSP client that communicates with a language server over stdio.
+ *
+ * Handles:
+ * - Spawning the server process
+ * - JSON-RPC message framing (Content-Length headers)
+ * - Request/response correlation via message IDs
+ * - Concurrency limiting for outbound requests
+ * - Per-request timeout handling
+ * - Graceful shutdown (shutdown request + exit notification)
+ *
+ * Usage:
+ *   const client = new LspClient({ serverCommand: "ts-ls", serverArgs: ["--stdio"] });
+ *   const caps = await client.initialize({ rootUri: "file:///project", ... });
+ *   const result = await client.request("textDocument/documentSymbol", params);
+ *   await client.shutdown();
+ */
+export class LspClient {
+  private readonly options: Required<
+    Pick<LspClientOptions, 'maxConcurrency' | 'requestTimeoutMs' | 'initTimeoutMs'>
+  > &
+    LspClientOptions;
+  private process: ChildProcess | null = null;
+  private nextId = 1;
+  private readonly pending = new Map<number, PendingRequest>();
+  private readonly semaphore: Semaphore;
+  private inputBuffer = '';
+  private contentLength = -1;
+  private _initialized = false;
+  private _serverCapabilities: InitializeResult | null = null;
+  private _shutdownRequested = false;
+
+  constructor(options: LspClientOptions) {
+    this.options = {
+      maxConcurrency: 4,
+      requestTimeoutMs: 30_000,
+      initTimeoutMs: 60_000,
+      ...options,
+    };
+    this.semaphore = new Semaphore(this.options.maxConcurrency);
+  }
+
+  /** Whether the client has been initialized and is ready for requests. */
+  get initialized(): boolean {
+    return this._initialized;
+  }
+
+  /** The server's capabilities, available after initialization. */
+  get serverCapabilities(): InitializeResult | null {
+    return this._serverCapabilities;
+  }
+
+  // -------------------------------------------------------------------------
+  // Lifecycle
+  // -------------------------------------------------------------------------
+
+  /**
+   * Spawn the language server and perform the LSP initialization handshake.
+   *
+   * @param params - LSP InitializeParams (rootUri, capabilities, etc.).
+   * @returns The server's InitializeResult including its capabilities.
+   * @throws If the server fails to start or initialization times out.
+   */
+  async initialize(params: InitializeParams): Promise<InitializeResult> {
+    if (this._initialized) {
+      throw new Error('Client is already initialized. Call shutdown() first.');
+    }
+
+    this.spawnServer();
+
+    const result = (await this.sendRequest(
+      InitializeRequest.method,
+      params,
+      this.options.initTimeoutMs
+    )) as InitializeResult;
+
+    this._serverCapabilities = result;
+
+    this.sendNotification(InitializedNotification.method, {});
+    this._initialized = true;
+
+    return result;
+  }
+
+  /**
+   * Gracefully shut down the language server.
+   *
+   * Sends a shutdown request followed by an exit notification, then
+   * terminates the server process. Safe to call multiple times.
+   */
+  async shutdown(): Promise<void> {
+    if (!this.process || this._shutdownRequested) {
+      return;
+    }
+
+    this._shutdownRequested = true;
+
+    try {
+      await this.sendRequest(ShutdownRequest.method, null, this.options.requestTimeoutMs);
+    } catch {
+      // Best-effort — server may already be dead
+    }
+
+    this.sendNotification(ExitNotification.method, undefined);
+    this._initialized = false;
+
+    this.cleanup();
+  }
+
+  // -------------------------------------------------------------------------
+  // Messaging
+  // -------------------------------------------------------------------------
+
+  /**
+   * Send a JSON-RPC request and wait for the response.
+   *
+   * Respects the concurrency semaphore — if maxConcurrency requests are
+   * already in flight, this call will wait until a slot opens.
+   *
+   * @param method - The LSP method (e.g. "textDocument/documentSymbol").
+   * @param params - Method parameters.
+   * @param timeoutMs - Override timeout for this request.
+   * @returns The result from the server response.
+   * @throws On timeout, server error, or transport failure.
+   */
+  async request<T = unknown>(method: string, params: unknown, timeoutMs?: number): Promise<T> {
+    this.assertReady();
+    return this.sendRequest(method, params, timeoutMs) as Promise<T>;
+  }
+
+  /**
+   * Send a JSON-RPC notification (no response expected).
+   *
+   * @param method - The LSP method.
+   * @param params - Method parameters.
+   */
+  notify(method: string, params: unknown): void {
+    this.assertReady();
+    this.sendNotification(method, params);
+  }
+
+  // -------------------------------------------------------------------------
+  // Private: process management
+  // -------------------------------------------------------------------------
+
+  private spawnServer(): void {
+    const env = this.options.env
+      ? { ...process.env, ...this.options.env }
+      : process.env;
+
+    this.process = spawn(this.options.serverCommand, this.options.serverArgs ?? [], {
+      cwd: this.options.cwd,
+      env,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+
+    this.process.stdout!.on('data', (data: Buffer) => {
+      this.handleData(data.toString('utf-8'));
+    });
+
+    this.process.on('error', (err) => {
+      this.rejectAll(new Error(`Language server process error: ${err.message}`));
+      this.cleanup();
+    });
+
+    this.process.on('exit', (code) => {
+      if (!this._shutdownRequested) {
+        this.rejectAll(
+          new Error(`Language server exited unexpectedly with code ${code ?? 'null'}`)
+        );
+      }
+      this.cleanup();
+    });
+  }
+
+  private cleanup(): void {
+    if (this.process) {
+      this.process.stdout?.removeAllListeners();
+      this.process.stderr?.removeAllListeners();
+      this.process.removeAllListeners();
+
+      if (!this.process.killed) {
+        this.process.kill();
+      }
+
+      this.process = null;
+    }
+
+    this._initialized = false;
+    this.rejectAll(new Error('Client shut down'));
+  }
+
+  // -------------------------------------------------------------------------
+  // Private: JSON-RPC framing
+  // -------------------------------------------------------------------------
+
+  private handleData(chunk: string): void {
+    this.inputBuffer += chunk;
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      if (this.contentLength === -1) {
+        const headerEnd = this.inputBuffer.indexOf('\r\n\r\n');
+        if (headerEnd === -1) break;
+
+        const header = this.inputBuffer.slice(0, headerEnd);
+        const match = header.match(/Content-Length:\s*(\d+)/i);
+        if (!match) {
+          // Malformed header — skip past it
+          this.inputBuffer = this.inputBuffer.slice(headerEnd + 4);
+          continue;
+        }
+
+        this.contentLength = parseInt(match[1], 10);
+        this.inputBuffer = this.inputBuffer.slice(headerEnd + 4);
+      }
+
+      if (this.inputBuffer.length < this.contentLength) break;
+
+      const body = this.inputBuffer.slice(0, this.contentLength);
+      this.inputBuffer = this.inputBuffer.slice(this.contentLength);
+      this.contentLength = -1;
+
+      try {
+        const message = JSON.parse(body) as ResponseMessage;
+        this.handleMessage(message);
+      } catch {
+        // Malformed JSON — skip
+      }
+    }
+  }
+
+  private handleMessage(message: ResponseMessage): void {
+    // Only handle responses (messages with an id that matches a pending request)
+    if (message.id === undefined || message.id === null) return;
+
+    const id = typeof message.id === 'string' ? parseInt(message.id, 10) : message.id;
+    const pending = this.pending.get(id);
+    if (!pending) return;
+
+    clearTimeout(pending.timer);
+    this.pending.delete(id);
+
+    if (message.error) {
+      pending.reject(
+        new Error(`LSP error ${message.error.code}: ${message.error.message}`)
+      );
+    } else {
+      pending.resolve(message.result);
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Private: request/notification sending
+  // -------------------------------------------------------------------------
+
+  private async sendRequest(
+    method: string,
+    params: unknown,
+    timeoutMs?: number
+  ): Promise<unknown> {
+    await this.semaphore.acquire();
+
+    try {
+      return await this.sendRequestRaw(method, params, timeoutMs);
+    } finally {
+      this.semaphore.release();
+    }
+  }
+
+  private sendRequestRaw(
+    method: string,
+    params: unknown,
+    timeoutMs?: number
+  ): Promise<unknown> {
+    return new Promise<unknown>((resolve, reject) => {
+      if (!this.process?.stdin?.writable) {
+        reject(new Error('Language server stdin is not writable'));
+        return;
+      }
+
+      const id = this.nextId++;
+      const timeout = timeoutMs ?? this.options.requestTimeoutMs;
+
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        reject(new Error(`LSP request "${method}" (id=${id}) timed out after ${timeout}ms`));
+      }, timeout);
+
+      this.pending.set(id, { resolve, reject, timer });
+
+      const message: RequestMessage = {
+        jsonrpc: '2.0',
+        id,
+        method,
+        params: params as Record<string, unknown>,
+      };
+
+      this.writeMessage(message);
+    });
+  }
+
+  private sendNotification(method: string, params: unknown): void {
+    if (!this.process?.stdin?.writable) return;
+
+    const message: NotificationMessage = {
+      jsonrpc: '2.0',
+      method,
+      params: params as Record<string, unknown>,
+    };
+
+    this.writeMessage(message);
+  }
+
+  private writeMessage(message: RequestMessage | NotificationMessage): void {
+    const body = JSON.stringify(message);
+    const header = `Content-Length: ${Buffer.byteLength(body, 'utf-8')}\r\n\r\n`;
+    this.process!.stdin!.write(header + body, 'utf-8');
+  }
+
+  // -------------------------------------------------------------------------
+  // Private: helpers
+  // -------------------------------------------------------------------------
+
+  private assertReady(): void {
+    if (!this._initialized) {
+      throw new Error('Client is not initialized. Call initialize() first.');
+    }
+    if (this._shutdownRequested) {
+      throw new Error('Client is shutting down.');
+    }
+  }
+
+  private rejectAll(error: Error): void {
+    for (const [id, pending] of this.pending) {
+      clearTimeout(pending.timer);
+      pending.reject(error);
+      this.pending.delete(id);
+    }
+  }
+}

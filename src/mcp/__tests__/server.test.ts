@@ -2,14 +2,14 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { join } from 'path';
 import { mkdirSync, writeFileSync, rmSync, existsSync, readFileSync } from 'fs';
 import { LuxDatabase } from '../../db/index.js';
-import { CorpusScanner } from '../../scanner/index.js';
+import { GeneralScanner } from '../../scanner/index.js';
 import { createMarkdownWithFrontmatter } from '../../utils/frontmatter.js';
 
 /**
  * MCP Server Test Suite
  *
  * Tests all MCP tools exposed by the Lux Knowledge Platform:
- * - lux_search: Search across CORPUS entities
+ * - lux_search: Search across all indexed documents
  * - lux_get_client: Get detailed client information
  * - lux_list_projects: List projects for a client
  * - lux_log_comm: Log a new communication
@@ -20,7 +20,7 @@ import { createMarkdownWithFrontmatter } from '../../utils/frontmatter.js';
 
 describe('MCP Server Tools', () => {
   const testDir = join(__dirname, 'fixtures', 'mcp-test');
-  const corpusPath = join(testDir, 'corpus');
+  const contentDir = join(testDir, 'content');
   const dbPath = join(testDir, 'test.db');
   let db: LuxDatabase;
 
@@ -31,20 +31,20 @@ describe('MCP Server Tools', () => {
       rmSync(testDir, { recursive: true, force: true });
     }
 
-    // Create test corpus structure
-    mkdirSync(corpusPath, { recursive: true });
-    mkdirSync(join(corpusPath, 'knowledge', '10_clients', 'test-client'), { recursive: true });
-    mkdirSync(join(corpusPath, 'knowledge', '10_clients', 'test-client', 'test-project'), {
+    // Create test content directory structure
+    mkdirSync(contentDir, { recursive: true });
+    mkdirSync(join(contentDir, 'knowledge', '10_clients', 'test-client'), { recursive: true });
+    mkdirSync(join(contentDir, 'knowledge', '10_clients', 'test-client', 'test-project'), {
       recursive: true,
     });
-    mkdirSync(join(corpusPath, 'knowledge', '10_clients', 'test-client', 'communications'), {
+    mkdirSync(join(contentDir, 'knowledge', '10_clients', 'test-client', 'communications'), {
       recursive: true,
     });
-    mkdirSync(join(corpusPath, 'knowledge', '20_methodology'), { recursive: true });
+    mkdirSync(join(contentDir, 'knowledge', '20_methodology'), { recursive: true });
 
     // Create test client file
     writeFileSync(
-      join(corpusPath, 'knowledge', '10_clients', 'test-client', 'README.md'),
+      join(contentDir, 'knowledge', '10_clients', 'test-client', 'README.md'),
       createMarkdownWithFrontmatter(
         {
           name: 'Test Client',
@@ -57,7 +57,7 @@ describe('MCP Server Tools', () => {
 
     // Create test project file
     writeFileSync(
-      join(corpusPath, 'knowledge', '10_clients', 'test-client', 'test-project', 'README.md'),
+      join(contentDir, 'knowledge', '10_clients', 'test-client', 'test-project', 'README.md'),
       createMarkdownWithFrontmatter(
         {
           name: 'Test Project',
@@ -70,7 +70,7 @@ describe('MCP Server Tools', () => {
     // Create test communication file
     writeFileSync(
       join(
-        corpusPath,
+        contentDir,
         'knowledge',
         '10_clients',
         'test-client',
@@ -90,7 +90,7 @@ describe('MCP Server Tools', () => {
 
     // Create test knowledge entry (manually create frontmatter since createMarkdownWithFrontmatter doesn't handle title)
     writeFileSync(
-      join(corpusPath, 'knowledge', '20_methodology', 'testing.md'),
+      join(contentDir, 'knowledge', '20_methodology', 'testing.md'),
       `---
 title: Testing Methodology
 tags:
@@ -104,9 +104,9 @@ Our approach to testing.
 `
     );
 
-    // Initialize database and scan corpus
+    // Initialize database and scan content directory
     db = new LuxDatabase(dbPath);
-    const scanner = new CorpusScanner(corpusPath);
+    const scanner = new GeneralScanner(contentDir);
     const scanResult = await scanner.scan();
     await scanner.index(db, scanResult);
   });
@@ -166,6 +166,27 @@ Our approach to testing.
       const projects = db.getProjectsByClient(client!.id);
       expect(projects).toHaveLength(1);
       expect(projects[0].slug).toBe('test-project');
+    });
+
+    it('should search all documents with unified search', () => {
+      const results = db.searchAllDocuments('Test');
+      expect(results.length).toBeGreaterThan(0);
+
+      // Should return results from multiple entity types
+      const paths = results.map((r) => r.file_path);
+      expect(paths.some((p) => p.includes('test-client'))).toBe(true);
+
+      // Each result has the required shape
+      for (const doc of results) {
+        expect(doc).toHaveProperty('file_path');
+        expect(doc).toHaveProperty('title');
+        expect(doc).toHaveProperty('rank');
+      }
+    });
+
+    it('should return empty from unified search for non-matching query', () => {
+      const results = db.searchAllDocuments('xyznonexistent');
+      expect(results).toHaveLength(0);
     });
   });
 
@@ -246,7 +267,7 @@ Our approach to testing.
       expect(client).toBeDefined();
 
       const commPath = join(
-        corpusPath,
+        contentDir,
         'knowledge',
         '10_clients',
         'test-client',
@@ -295,7 +316,7 @@ Our approach to testing.
       expect(project).toBeDefined();
 
       const commPath = join(
-        corpusPath,
+        contentDir,
         'knowledge',
         '10_clients',
         'test-client',
@@ -306,7 +327,7 @@ Our approach to testing.
 
       mkdirSync(
         join(
-          corpusPath,
+          contentDir,
           'knowledge',
           '10_clients',
           'test-client',
@@ -493,7 +514,7 @@ Our approach to testing.
   describe('lux_get_file', () => {
     it('should read a file successfully', () => {
       const clientFilePath = join(
-        corpusPath,
+        contentDir,
         'knowledge',
         '10_clients',
         'test-client',
@@ -507,7 +528,7 @@ Our approach to testing.
 
     it('should read communication file', () => {
       const commFilePath = join(
-        corpusPath,
+        contentDir,
         'knowledge',
         '10_clients',
         'test-client',
@@ -522,7 +543,7 @@ Our approach to testing.
     });
 
     it('should read knowledge entry file', () => {
-      const knowledgeFilePath = join(corpusPath, 'knowledge', '20_methodology', 'testing.md');
+      const knowledgeFilePath = join(contentDir, 'knowledge', '20_methodology', 'testing.md');
 
       const content = readFileSync(knowledgeFilePath, 'utf-8');
       expect(content).toContain('Testing Methodology');
@@ -530,7 +551,7 @@ Our approach to testing.
     });
 
     it('should handle non-existent file', () => {
-      const nonExistentPath = join(corpusPath, 'non-existent.md');
+      const nonExistentPath = join(contentDir, 'non-existent.md');
 
       expect(() => {
         readFileSync(nonExistentPath, 'utf-8');
@@ -550,13 +571,13 @@ Our approach to testing.
   });
 
   describe('lux_rebuild_index', () => {
-    it('should rebuild index from corpus', async () => {
+    it('should rebuild index from content directory', async () => {
       // Clear database
       db.clearAll();
       expect(db.getStats().clients).toBe(0);
 
       // Rebuild index
-      const scanner = new CorpusScanner(corpusPath);
+      const scanner = new GeneralScanner(contentDir);
       const scanResult = await scanner.scan();
       await scanner.index(db, scanResult);
 
@@ -572,9 +593,9 @@ Our approach to testing.
       const initialStats = db.getStats();
 
       // Add a new client
-      mkdirSync(join(corpusPath, 'knowledge', '10_clients', 'new-client'), { recursive: true });
+      mkdirSync(join(contentDir, 'knowledge', '10_clients', 'new-client'), { recursive: true });
       writeFileSync(
-        join(corpusPath, 'knowledge', '10_clients', 'new-client', 'README.md'),
+        join(contentDir, 'knowledge', '10_clients', 'new-client', 'README.md'),
         createMarkdownWithFrontmatter(
           {
             name: 'New Client',
@@ -586,7 +607,7 @@ Our approach to testing.
 
       // Clear and rebuild
       db.clearAll();
-      const scanner = new CorpusScanner(corpusPath);
+      const scanner = new GeneralScanner(contentDir);
       const scanResult = await scanner.scan();
       await scanner.index(db, scanResult);
 
@@ -600,7 +621,7 @@ Our approach to testing.
     });
 
     it('should log rebuild event', async () => {
-      const scanner = new CorpusScanner(corpusPath);
+      const scanner = new GeneralScanner(contentDir);
       const scanResult = await scanner.scan();
 
       // Log the rebuild event
@@ -676,7 +697,7 @@ Our approach to testing.
       db.insertExpert({
         slug: 'test-expert',
         name: 'Test Expert',
-        mount_path: corpusPath,
+        mount_path: contentDir,
         model: 'claude-sonnet-4-20250514',
       });
 
@@ -692,7 +713,7 @@ Our approach to testing.
       db.insertExpert({
         slug: 'active-expert',
         name: 'Active Expert',
-        mount_path: corpusPath,
+        mount_path: contentDir,
         model: 'claude-sonnet-4-20250514',
         status: 'active',
       });
@@ -700,7 +721,7 @@ Our approach to testing.
       db.insertExpert({
         slug: 'inactive-expert',
         name: 'Inactive Expert',
-        mount_path: corpusPath,
+        mount_path: contentDir,
         model: 'claude-sonnet-4-20250514',
         status: 'inactive',
       });
@@ -728,7 +749,7 @@ Our approach to testing.
       db.insertExpert({
         slug: 'disabled-expert',
         name: 'Disabled Expert',
-        mount_path: corpusPath,
+        mount_path: contentDir,
         model: 'claude-sonnet-4-20250514',
         status: 'inactive',
       });
@@ -742,13 +763,13 @@ Our approach to testing.
       db.insertExpert({
         slug: 'valid-expert',
         name: 'Valid Expert',
-        mount_path: corpusPath,
+        mount_path: contentDir,
         model: 'claude-sonnet-4-20250514',
       });
 
       const expert = db.getExpert('valid-expert');
       expect(expert).toBeDefined();
-      expect(expert!.mount_path).toBe(corpusPath);
+      expect(expert!.mount_path).toBe(contentDir);
       expect(existsSync(expert!.mount_path)).toBe(true);
     });
 
@@ -774,7 +795,7 @@ Our approach to testing.
       db.insertExpert({
         slug: 'auto-route-expert',
         name: 'Auto Route Expert',
-        mount_path: corpusPath,
+        mount_path: contentDir,
         model: 'claude-sonnet-4-20250514',
         status: 'active',
       });

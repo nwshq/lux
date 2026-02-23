@@ -1,49 +1,49 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { join } from 'path';
 import { mkdirSync, writeFileSync, rmSync, existsSync } from 'fs';
-import { CorpusScanner } from '../index.js';
+import { GeneralScanner } from '../index.js';
 import type { LuxDatabase } from '../../db/index.js';
 import type { ScanResult } from '../types.js';
 
-describe('CorpusScanner', () => {
+describe('GeneralScanner', () => {
   const fixturesPath = join(__dirname, 'fixtures');
 
   describe('constructor', () => {
-    it('should create scanner with corpus path', () => {
-      const scanner = new CorpusScanner('/test/path');
-      expect(scanner).toBeInstanceOf(CorpusScanner);
+    it('should create scanner with root path', () => {
+      const scanner = new GeneralScanner('/test/path');
+      expect(scanner).toBeInstanceOf(GeneralScanner);
     });
 
-    it('should create scanner without corpus path', () => {
-      const scanner = new CorpusScanner();
-      expect(scanner).toBeInstanceOf(CorpusScanner);
+    it('should create scanner without root path', () => {
+      const scanner = new GeneralScanner();
+      expect(scanner).toBeInstanceOf(GeneralScanner);
     });
   });
 
   describe('scan()', () => {
-    it('should throw error if no corpus path provided', async () => {
-      const scanner = new CorpusScanner();
+    it('should throw error if no root path provided', async () => {
+      const scanner = new GeneralScanner();
       await expect(scanner.scan()).rejects.toThrow(
-        'Corpus path must be provided either to constructor or scan()'
+        'Root path must be provided either to constructor or scan()'
       );
     });
 
-    it('should use constructor corpus path if not provided to scan()', async () => {
-      const scanner = new CorpusScanner(fixturesPath);
+    it('should use constructor root path if not provided to scan()', async () => {
+      const scanner = new GeneralScanner(fixturesPath);
       const result = await scanner.scan();
       expect(result).toBeDefined();
       expect(result.clients).toBeInstanceOf(Array);
     });
 
-    it('should use scan() corpus path over constructor path', async () => {
-      const scanner = new CorpusScanner('/wrong/path');
+    it('should use scan() root path over constructor path', async () => {
+      const scanner = new GeneralScanner('/wrong/path');
       const result = await scanner.scan(fixturesPath);
       expect(result).toBeDefined();
       expect(result.clients).toBeInstanceOf(Array);
     });
 
     it('should scan clients correctly', async () => {
-      const scanner = new CorpusScanner(fixturesPath);
+      const scanner = new GeneralScanner(fixturesPath);
       const result = await scanner.scan();
 
       expect(result.clients).toHaveLength(1);
@@ -58,7 +58,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should scan projects correctly', async () => {
-      const scanner = new CorpusScanner(fixturesPath);
+      const scanner = new GeneralScanner(fixturesPath);
       const result = await scanner.scan();
 
       expect(result.projects).toHaveLength(1);
@@ -73,7 +73,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should detect explorations/ and payloads/ subdirs in projects', async () => {
-      const scanner = new CorpusScanner(fixturesPath);
+      const scanner = new GeneralScanner(fixturesPath);
       const result = await scanner.scan();
 
       const project = result.projects[0];
@@ -93,7 +93,7 @@ describe('CorpusScanner', () => {
           '---\nname: Bare Project\n---\n'
         );
 
-        const scanner = new CorpusScanner(tempPath);
+        const scanner = new GeneralScanner(tempPath);
         const result = await scanner.scan();
 
         const project = result.projects[0];
@@ -107,7 +107,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should scan project-scoped explorations as knowledge entries', async () => {
-      const scanner = new CorpusScanner(fixturesPath);
+      const scanner = new GeneralScanner(fixturesPath);
       const result = await scanner.scan();
 
       const projectExploration = result.knowledge.find(
@@ -123,7 +123,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should scan project-scoped payloads as knowledge entries', async () => {
-      const scanner = new CorpusScanner(fixturesPath);
+      const scanner = new GeneralScanner(fixturesPath);
       const result = await scanner.scan();
 
       const projectPayload = result.knowledge.find(
@@ -157,7 +157,7 @@ describe('CorpusScanner', () => {
           '---\nname: Valid Project\n---\n'
         );
 
-        const scanner = new CorpusScanner(tempPath);
+        const scanner = new GeneralScanner(tempPath);
         const result = await scanner.scan();
 
         // Should only find the valid-project, not the special directories
@@ -171,7 +171,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should scan communications correctly', async () => {
-      const scanner = new CorpusScanner(fixturesPath);
+      const scanner = new GeneralScanner(fixturesPath);
       const result = await scanner.scan();
 
       expect(result.communications).toHaveLength(1);
@@ -186,7 +186,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should extract date from filename for communications', async () => {
-      const scanner = new CorpusScanner(fixturesPath);
+      const scanner = new GeneralScanner(fixturesPath);
       const result = await scanner.scan();
 
       const comm = result.communications[0];
@@ -209,7 +209,7 @@ describe('CorpusScanner', () => {
         writeFileSync(join(commsPath, '2024-01-02_slack-conversation.md'), '# Slack');
         writeFileSync(join(commsPath, '2024-01-03_call-notes.md'), '# Call');
 
-        const scanner = new CorpusScanner(tempPath);
+        const scanner = new GeneralScanner(tempPath);
         const result = await scanner.scan();
 
         expect(result.communications).toHaveLength(3);
@@ -224,7 +224,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should scan knowledge entries correctly', async () => {
-      const scanner = new CorpusScanner(fixturesPath);
+      const scanner = new GeneralScanner(fixturesPath);
       const result = await scanner.scan();
 
       expect(result.knowledge.length).toBeGreaterThan(0);
@@ -237,7 +237,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should infer knowledge type from directory path', async () => {
-      const scanner = new CorpusScanner(fixturesPath);
+      const scanner = new GeneralScanner(fixturesPath);
       const result = await scanner.scan();
 
       const methodologyEntry = result.knowledge.find((k) => k.filePath.includes('methodology'));
@@ -252,7 +252,7 @@ describe('CorpusScanner', () => {
         mkdirSync(clientPath, { recursive: true });
         mkdirSync(join(clientPath, 'some-project'), { recursive: true });
 
-        const scanner = new CorpusScanner(tempPath);
+        const scanner = new GeneralScanner(tempPath);
         const result = await scanner.scan();
 
         // Should still create client entry using directory as reference
@@ -277,7 +277,7 @@ describe('CorpusScanner', () => {
         // Create AGENTS.md (second priority)
         writeFileSync(join(clientPath, 'AGENTS.md'), '---\nname: From Agents\n---\n# Agent file');
 
-        const scanner = new CorpusScanner(tempPath);
+        const scanner = new GeneralScanner(tempPath);
         const result = await scanner.scan();
 
         expect(result.clients[0].name).toBe('From Agents');
@@ -289,14 +289,14 @@ describe('CorpusScanner', () => {
       }
     });
 
-    it('should handle empty corpus directory', async () => {
+    it('should handle empty root directory', async () => {
       const tempPath = join(__dirname, 'temp-empty');
 
       try {
         mkdirSync(tempPath, { recursive: true });
         mkdirSync(join(tempPath, 'knowledge/10_clients'), { recursive: true });
 
-        const scanner = new CorpusScanner(tempPath);
+        const scanner = new GeneralScanner(tempPath);
         const result = await scanner.scan();
 
         expect(result.clients).toHaveLength(0);
@@ -370,21 +370,21 @@ describe('CorpusScanner', () => {
     });
 
     it('should throw error if database not provided', async () => {
-      const scanner = new CorpusScanner();
+      const scanner = new GeneralScanner();
       await expect(scanner.index(null as any, scanResult)).rejects.toThrow(
         'Database instance is required for indexing'
       );
     });
 
     it('should throw error if scan result is invalid', async () => {
-      const scanner = new CorpusScanner();
+      const scanner = new GeneralScanner();
       await expect(scanner.index(mockDb, null as any)).rejects.toThrow(
         'Invalid scan result: must be an object'
       );
     });
 
     it('should throw error if clients array is missing', async () => {
-      const scanner = new CorpusScanner();
+      const scanner = new GeneralScanner();
       const invalidResult = { ...scanResult, clients: undefined as any };
       await expect(scanner.index(mockDb, invalidResult)).rejects.toThrow(
         'Invalid scan result: clients must be an array'
@@ -392,7 +392,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should index all entities successfully', async () => {
-      const scanner = new CorpusScanner();
+      const scanner = new GeneralScanner();
       const result = await scanner.index(mockDb, scanResult);
 
       expect(result).toEqual({
@@ -409,7 +409,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should validate client data before indexing', async () => {
-      const scanner = new CorpusScanner();
+      const scanner = new GeneralScanner();
       const invalidResult = {
         ...scanResult,
         clients: [{ slug: '', name: 'Test', filePath: '/test' }],
@@ -421,7 +421,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should validate project data before indexing', async () => {
-      const scanner = new CorpusScanner();
+      const scanner = new GeneralScanner();
       const invalidResult = {
         ...scanResult,
         projects: [
@@ -440,7 +440,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should throw error if client not found for project', async () => {
-      const scanner = new CorpusScanner();
+      const scanner = new GeneralScanner();
       const invalidResult = {
         ...scanResult,
         projects: [
@@ -459,7 +459,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should validate communication data before indexing', async () => {
-      const scanner = new CorpusScanner();
+      const scanner = new GeneralScanner();
       const invalidResult = {
         ...scanResult,
         communications: [
@@ -477,7 +477,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should throw error if client not found for communication', async () => {
-      const scanner = new CorpusScanner();
+      const scanner = new GeneralScanner();
       const invalidResult = {
         ...scanResult,
         communications: [
@@ -496,7 +496,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should validate knowledge data before indexing', async () => {
-      const scanner = new CorpusScanner();
+      const scanner = new GeneralScanner();
       const invalidResult = {
         ...scanResult,
         knowledge: [
@@ -514,7 +514,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should handle database insertion errors gracefully', async () => {
-      const scanner = new CorpusScanner();
+      const scanner = new GeneralScanner();
       const errorDb = {
         ...mockDb,
         insertClient: vi.fn(() => {
@@ -528,7 +528,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should provide partial index information on error', async () => {
-      const scanner = new CorpusScanner();
+      const scanner = new GeneralScanner();
 
       // Mock DB that fails on projects
       const partialDb = {
@@ -549,7 +549,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should handle knowledge entries with clientSlug', async () => {
-      const scanner = new CorpusScanner();
+      const scanner = new GeneralScanner();
       const resultWithClientKnowledge: ScanResult = {
         clients: [
           {
@@ -594,7 +594,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should handle knowledge entries with projectSlug', async () => {
-      const scanner = new CorpusScanner();
+      const scanner = new GeneralScanner();
       const resultWithProjectKnowledge: ScanResult = {
         clients: [
           {
@@ -648,7 +648,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should throw wrapped error for knowledge insertion failures', async () => {
-      const scanner = new CorpusScanner();
+      const scanner = new GeneralScanner();
 
       const errorDb = {
         insertClient: vi.fn(() => 1),
@@ -665,7 +665,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should handle non-Error exceptions during indexing', async () => {
-      const scanner = new CorpusScanner();
+      const scanner = new GeneralScanner();
 
       const errorDb = {
         insertClient: vi.fn(() => 1),
@@ -680,7 +680,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should validate communication type', async () => {
-      const scanner = new CorpusScanner();
+      const scanner = new GeneralScanner();
       const invalidResult = {
         ...scanResult,
         communications: [
@@ -698,7 +698,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should validate knowledge title', async () => {
-      const scanner = new CorpusScanner();
+      const scanner = new GeneralScanner();
       const invalidResult = {
         ...scanResult,
         knowledge: [
@@ -716,7 +716,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should handle communications with projectSlug', async () => {
-      const scanner = new CorpusScanner();
+      const scanner = new GeneralScanner();
       const resultWithProjectComm: ScanResult = {
         clients: [
           {
@@ -766,7 +766,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should handle empty scan result', async () => {
-      const scanner = new CorpusScanner();
+      const scanner = new GeneralScanner();
       const emptyResult: ScanResult = {
         clients: [],
         projects: [],
@@ -785,7 +785,7 @@ describe('CorpusScanner', () => {
     });
 
     it('should pass metadata and content to database', async () => {
-      const scanner = new CorpusScanner();
+      const scanner = new GeneralScanner();
       const resultWithMetadata: ScanResult = {
         clients: [
           {
@@ -826,7 +826,7 @@ describe('CorpusScanner', () => {
         try {
           mkdirSync(clientPath, { recursive: true });
 
-          const scanner = new CorpusScanner(tempPath);
+          const scanner = new GeneralScanner(tempPath);
           const result = await scanner.scan();
 
           expect(result.clients[0].name).toBe('Test Client Name');
@@ -853,7 +853,7 @@ describe('CorpusScanner', () => {
           );
           writeFileSync(join(commsPath, '2024-01-15_project-kickoff.md'), '# Meeting');
 
-          const scanner = new CorpusScanner(tempPath);
+          const scanner = new GeneralScanner(tempPath);
           const result = await scanner.scan();
 
           expect(result.communications[0].subject).toBe('Project Kickoff');
@@ -880,7 +880,7 @@ describe('CorpusScanner', () => {
           );
           writeFileSync(join(commsPath, 'random-notes.md'), '# Notes');
 
-          const scanner = new CorpusScanner(tempPath);
+          const scanner = new GeneralScanner(tempPath);
           const result = await scanner.scan();
 
           expect(result.communications[0].type).toBe('other');
@@ -904,7 +904,7 @@ describe('CorpusScanner', () => {
             '---\ntitle: Custom\ntype: custom-type\n---\n# Custom'
           );
 
-          const scanner = new CorpusScanner(tempPath);
+          const scanner = new GeneralScanner(tempPath);
           const result = await scanner.scan();
 
           expect(result.knowledge[0].type).toBe('custom-type');

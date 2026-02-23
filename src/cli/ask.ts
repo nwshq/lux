@@ -27,7 +27,7 @@ export function addAskCommand(program: Command) {
           if (options.expert) {
             await askSpecificExpert(db, sessionManager, question, options.expert, options);
           } else {
-            await askPanel(db, sessionManager, question, options);
+            await askPanel(db, sessionManager, question, options, opts.corpus as string | undefined);
           }
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
@@ -120,14 +120,11 @@ export async function askPanel(
   db: LuxDatabase,
   sessionManager: ExpertSessionManager,
   question: string,
-  options: { verbose?: boolean; json?: boolean; stream?: boolean }
+  options: { verbose?: boolean; json?: boolean; stream?: boolean },
+  corpusPath?: string,
 ): Promise<void> {
-  const activeExperts = db.getExpertsByStatus('active');
-  if (activeExperts.length === 0) {
-    throw new Error('No active experts registered. Use "lux expert add" to register experts.');
-  }
-
   if (options.verbose && !options.json) {
+    const activeExperts = db.getExpertsByStatus('active');
     console.error(`Active experts: ${activeExperts.length}`);
     console.error(`Routing query: "${question}"`);
     console.error('');
@@ -139,9 +136,10 @@ export async function askPanel(
       ? options.stream
       : process.stdout.isTTY ?? false;
 
-  const routerOpts = shouldStream
-    ? { onChunk: (chunk: string) => process.stdout.write(chunk) }
-    : {};
+  const routerOpts = {
+    ...(shouldStream ? { onChunk: (chunk: string) => process.stdout.write(chunk) } : {}),
+    ...(corpusPath ? { corpusPath } : {}),
+  };
 
   const routeResult = await routeQuery(question, db, sessionManager, routerOpts);
 

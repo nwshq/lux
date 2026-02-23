@@ -6,7 +6,7 @@ import { LintEngine, formatResults } from '../lint/index.js';
 export function addLintCommand(program: Command): void {
   program
     .command('lint [path]')
-    .description('Validate CORPUS against naming and structural conventions')
+    .description('Validate content directory against naming and structural conventions')
     .option('--severity <level>', 'Filter by minimum severity (error, warning, info)')
     .option('--rule <name>', 'Run only the specified rule')
     .option('--format <type>', 'Output format: text (default) or json', 'text')
@@ -25,7 +25,7 @@ export function addLintCommand(program: Command): void {
         const corpusPath = opts.corpus as string;
 
         if (!existsSync(corpusPath)) {
-          console.error(`Error: CORPUS directory not found: ${corpusPath}`);
+          console.error(`Error: Content directory not found: ${corpusPath}`);
           console.error('  Please ensure the directory exists or set --corpus <path>');
           process.exit(2);
         }

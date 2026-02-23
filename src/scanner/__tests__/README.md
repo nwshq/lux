@@ -1,6 +1,6 @@
 # Scanner Tests
 
-Comprehensive test suite for the `CorpusScanner` class.
+Comprehensive test suite for the `GeneralScanner` class.
 
 ## Test Coverage
 
@@ -29,7 +29,7 @@ npm run test:coverage
 ## Test Structure
 
 ### Constructor Tests
-- Scanner initialization with and without corpus path
+- Scanner initialization with and without root path
 
 ### scan() Method Tests
 - **Basic Scanning**: Clients, projects, communications, and knowledge entries
@@ -38,7 +38,7 @@ npm run test:coverage
 - **Special Directories**: Skipping `communications`, `_meta`, `archive`, etc.
 - **Type Inference**: Automatic type detection from filenames and paths
 - **Title Extraction**: Slug-to-title conversion and date prefix removal
-- **Edge Cases**: Empty corpus, missing files, directory-only references
+- **Edge Cases**: Empty content directory, missing files, directory-only references
 
 ### index() Method Tests
 - **Validation**: Input validation for database and scan results
@@ -56,7 +56,7 @@ npm run test:coverage
 
 ## Test Fixtures
 
-Test fixtures are located in `fixtures/` directory and mirror the expected CORPUS structure:
+Test fixtures are located in `fixtures/` directory and mirror the expected content directory structure:
 
 ```
 fixtures/

@@ -15,51 +15,51 @@ import { validateMountPath } from '../expert.js';
  */
 
 describe('Expert CLI Commands', () => {
-  let corpusDir: string;
+  let contentDir: string;
   let dbDir: string;
   let db: LuxDatabase;
 
   beforeEach(() => {
-    corpusDir = mkdtempSync(join(tmpdir(), 'corpus-'));
+    contentDir = mkdtempSync(join(tmpdir(), 'content-'));
     dbDir = mkdtempSync(join(tmpdir(), 'db-'));
     db = new LuxDatabase(join(dbDir, 'test.db'));
   });
 
   afterEach(() => {
     if (db) db.close();
-    rmSync(corpusDir, { recursive: true, force: true });
+    rmSync(contentDir, { recursive: true, force: true });
     rmSync(dbDir, { recursive: true, force: true });
   });
 
   describe('expert add: mount path validation', () => {
-    it('should resolve relative mount path to absolute within CORPUS', () => {
-      mkdirSync(join(corpusDir, 'experts', 'my-agent'), { recursive: true });
+    it('should resolve relative mount path to absolute within content root', () => {
+      mkdirSync(join(contentDir, 'experts', 'my-agent'), { recursive: true });
 
-      const result = validateMountPath('experts/my-agent', corpusDir);
+      const result = validateMountPath('experts/my-agent', contentDir);
       expect(result.ok).toBe(true);
       if (result.ok) {
-        expect(result.path).toBe(join(corpusDir, 'experts', 'my-agent'));
+        expect(result.path).toBe(join(contentDir, 'experts', 'my-agent'));
       }
     });
 
-    it('should accept absolute path inside CORPUS', () => {
-      mkdirSync(join(corpusDir, 'knowledge'), { recursive: true });
-      const absPath = join(corpusDir, 'knowledge');
+    it('should accept absolute path inside content root', () => {
+      mkdirSync(join(contentDir, 'knowledge'), { recursive: true });
+      const absPath = join(contentDir, 'knowledge');
 
-      const result = validateMountPath(absPath, corpusDir);
+      const result = validateMountPath(absPath, contentDir);
       expect(result.ok).toBe(true);
     });
 
-    it('should reject path traversal outside CORPUS', () => {
-      const result = validateMountPath('../../../etc/passwd', corpusDir);
+    it('should reject path traversal outside content root', () => {
+      const result = validateMountPath('../../../etc/passwd', contentDir);
       expect(result.ok).toBe(false);
       if (!result.ok) {
-        expect(result.error).toContain('must be inside CORPUS');
+        expect(result.error).toContain('must be inside content root');
       }
     });
 
     it('should reject non-existent path', () => {
-      const result = validateMountPath('does-not-exist', corpusDir);
+      const result = validateMountPath('does-not-exist', contentDir);
       expect(result.ok).toBe(false);
       if (!result.ok) {
         expect(result.error).toContain('does not exist');
@@ -69,7 +69,7 @@ describe('Expert CLI Commands', () => {
 
   describe('expert add: claude.md auto-detection', () => {
     it('should detect lowercase claude.md at mount path', () => {
-      const mountPath = join(corpusDir, 'agent-lower');
+      const mountPath = join(contentDir, 'agent-lower');
       mkdirSync(mountPath, { recursive: true });
       writeFileSync(join(mountPath, 'claude.md'), '# Agent Instructions');
 
@@ -78,7 +78,7 @@ describe('Expert CLI Commands', () => {
     });
 
     it('should detect uppercase CLAUDE.md at mount path', () => {
-      const mountPath = join(corpusDir, 'agent-upper');
+      const mountPath = join(contentDir, 'agent-upper');
       mkdirSync(mountPath, { recursive: true });
       writeFileSync(join(mountPath, 'CLAUDE.md'), '# Agent Instructions');
 
@@ -86,7 +86,7 @@ describe('Expert CLI Commands', () => {
     });
 
     it('should detect memory.md at mount path', () => {
-      const mountPath = join(corpusDir, 'agent-memory');
+      const mountPath = join(contentDir, 'agent-memory');
       mkdirSync(mountPath, { recursive: true });
       writeFileSync(join(mountPath, 'memory.md'), '# Agent Memory');
 
@@ -94,7 +94,7 @@ describe('Expert CLI Commands', () => {
     });
 
     it('should handle missing claude.md gracefully', () => {
-      const mountPath = join(corpusDir, 'agent-bare');
+      const mountPath = join(contentDir, 'agent-bare');
       mkdirSync(mountPath, { recursive: true });
 
       expect(existsSync(join(mountPath, 'claude.md'))).toBe(false);
@@ -149,7 +149,7 @@ describe('Expert CLI Commands', () => {
     });
 
     it('should register expert with auto-detected claude_md_path', () => {
-      const mountPath = join(corpusDir, 'auto-detect-agent');
+      const mountPath = join(contentDir, 'auto-detect-agent');
       mkdirSync(mountPath, { recursive: true });
       const claudeMdPath = join(mountPath, 'CLAUDE.md');
       writeFileSync(claudeMdPath, '# Auto-detected');
@@ -166,7 +166,7 @@ describe('Expert CLI Commands', () => {
     });
 
     it('should register expert with auto-detected memory_path', () => {
-      const mountPath = join(corpusDir, 'memory-agent');
+      const mountPath = join(contentDir, 'memory-agent');
       mkdirSync(mountPath, { recursive: true });
       const memoryPath = join(mountPath, 'memory.md');
       writeFileSync(memoryPath, '# Memory');

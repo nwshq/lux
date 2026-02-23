@@ -8,7 +8,7 @@ import {
   Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { LuxDatabase } from '../db/index.js';
-import { CorpusScanner } from '../scanner/index.js';
+import { GeneralScanner } from '../scanner/index.js';
 import { SubprocessSessionManager } from '../experts/subprocess-manager.js';
 import { routeQuery } from '../experts/router.js';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
@@ -42,7 +42,7 @@ const TOOLS: Tool[] = [
   {
     name: 'lux_search',
     description:
-      'Search for clients, projects, communications, or knowledge entries in CORPUS by metadata. Returns entity type, title, slug, and file path.',
+      'Search all indexed documents. Returns document title and file path. Optionally filter by entity type.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -174,7 +174,7 @@ const TOOLS: Tool[] = [
   },
   {
     name: 'lux_get_file',
-    description: 'Read and return the content of a CORPUS file by path.',
+    description: 'Read and return the content of an indexed file by path.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -189,7 +189,7 @@ const TOOLS: Tool[] = [
   {
     name: 'lux_rebuild_index',
     description:
-      'Rebuild the entire index by scanning CORPUS directory. This should be run after CORPUS files are updated.',
+      'Rebuild the entire index by scanning the content directory. Run this after content files are updated.',
     inputSchema: {
       type: 'object',
       properties: {},
@@ -270,74 +270,76 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }> = [];
 
         try {
-          // Use FTS5 search by default
-          // Search clients
-          if (type === 'all' || type === 'client') {
-            const clients = db.searchClients(query);
-            for (const c of clients) {
+          if (type === 'all') {
+            // Unified document search across all entity types
+            const docs = db.searchAllDocuments(query);
+            for (const doc of docs) {
               results.push({
-                type: 'client',
-                title: c.name,
-                slug: c.slug,
-                path: c.file_path,
-                context: c.status,
+                type: 'document',
+                title: doc.title,
+                path: doc.file_path,
               });
             }
-          }
-
-          // Search projects
-          if (type === 'all' || type === 'project') {
-            const projects = db.searchProjects(query);
-            for (const p of projects) {
-              // Filter by client if specified
-              if (client && p.client_slug !== client) continue;
-
-              results.push({
-                type: 'project',
-                title: `${p.client_slug}/${p.name}`,
-                slug: p.slug,
-                path: p.file_path,
-                context: p.status,
-              });
-            }
-          }
-
-          // Search communications
-          if (type === 'all' || type === 'comm') {
-            const communications = db.searchCommunications(query);
-            for (const comm of communications) {
-              // Filter by client if specified
-              if (client) {
-                const clientRecord = db.getAllClients().find((c) => c.id === comm.client_id);
-                if (!clientRecord || clientRecord.slug !== client) continue;
+          } else {
+            // Type-specific FTS5 search
+            if (type === 'client') {
+              const clients = db.searchClients(query);
+              for (const c of clients) {
+                results.push({
+                  type: 'client',
+                  title: c.name,
+                  slug: c.slug,
+                  path: c.file_path,
+                  context: c.status,
+                });
               }
-
-              const subject = comm.subject ?? '';
-              results.push({
-                type: 'communication',
-                title: `[${comm.type}] ${subject}`,
-                path: comm.file_path,
-                context: comm.date_range,
-              });
             }
-          }
 
-          // Search knowledge entries
-          if (type === 'all' || type === 'knowledge') {
-            const entries = db.searchKnowledgeEntries(query);
-            for (const entry of entries) {
-              // Filter by client if specified
-              if (client && entry.client_id) {
-                const clientRecord = db.getAllClients().find((c) => c.id === entry.client_id);
-                if (!clientRecord || clientRecord.slug !== client) continue;
+            if (type === 'project') {
+              const projects = db.searchProjects(query);
+              for (const p of projects) {
+                if (client && p.client_slug !== client) continue;
+                results.push({
+                  type: 'project',
+                  title: `${p.client_slug}/${p.name}`,
+                  slug: p.slug,
+                  path: p.file_path,
+                  context: p.status,
+                });
               }
+            }
 
-              results.push({
-                type: 'knowledge',
-                title: entry.title,
-                path: entry.file_path,
-                context: entry.type,
-              });
+            if (type === 'comm') {
+              const communications = db.searchCommunications(query);
+              for (const comm of communications) {
+                if (client) {
+                  const clientRecord = db.getAllClients().find((c) => c.id === comm.client_id);
+                  if (!clientRecord || clientRecord.slug !== client) continue;
+                }
+                const subject = comm.subject ?? '';
+                results.push({
+                  type: 'communication',
+                  title: `[${comm.type}] ${subject}`,
+                  path: comm.file_path,
+                  context: comm.date_range,
+                });
+              }
+            }
+
+            if (type === 'knowledge') {
+              const entries = db.searchKnowledgeEntries(query);
+              for (const entry of entries) {
+                if (client && entry.client_id) {
+                  const clientRecord = db.getAllClients().find((c) => c.id === entry.client_id);
+                  if (!clientRecord || clientRecord.slug !== client) continue;
+                }
+                results.push({
+                  type: 'knowledge',
+                  title: entry.title,
+                  path: entry.file_path,
+                  context: entry.type,
+                });
+              }
             }
           }
         } catch (error) {
@@ -674,7 +676,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'lux_rebuild_index': {
-        const scanner = new CorpusScanner(DEFAULT_CORPUS_PATH);
+        const scanner = new GeneralScanner(DEFAULT_CORPUS_PATH);
         const result = await scanner.scan();
 
         db.clearAll();
@@ -837,19 +839,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
 
         // No expert_hint — auto-route using the query router
-        const activeExperts = db.getExpertsByStatus('active');
-        if (activeExperts.length === 0) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: 'No active experts registered. Use "lux expert add" to register experts.',
-              },
-            ],
-            isError: true,
-          };
-        }
-
         try {
           const routeResult = await routeQuery(fullQuestion, db, sessionManager, {
             maxExperts: 1,

@@ -158,3 +158,11 @@ export interface ExpertSessionInsert {
   session_ref: string;
   status?: string;
 }
+
+/** Unified search result from querying across all FTS5 tables. */
+export interface DocumentSearchResult {
+  file_path: string;
+  title: string;
+  content?: string;
+  rank: number;
+}

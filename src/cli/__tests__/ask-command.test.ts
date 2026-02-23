@@ -83,19 +83,19 @@ function createMockSessionManager(
 
 describe('ask command', () => {
   let dbDir: string;
-  let corpusDir: string;
+  let contentDir: string;
   let db: LuxDatabase;
 
   beforeEach(() => {
     dbDir = mkdtempSync(join(tmpdir(), 'ask-db-'));
-    corpusDir = mkdtempSync(join(tmpdir(), 'ask-corpus-'));
+    contentDir = mkdtempSync(join(tmpdir(), 'ask-content-'));
     db = new LuxDatabase(join(dbDir, 'test.db'));
   });
 
   afterEach(() => {
     if (db) db.close();
     rmSync(dbDir, { recursive: true, force: true });
-    rmSync(corpusDir, { recursive: true, force: true });
+    rmSync(contentDir, { recursive: true, force: true });
   });
 
   describe('askSpecificExpert', () => {
@@ -108,7 +108,7 @@ describe('ask command', () => {
     });
 
     it('should throw when expert is inactive', async () => {
-      const mountDir = join(corpusDir, 'inactive-expert');
+      const mountDir = join(contentDir, 'inactive-expert');
       mkdirSync(mountDir, { recursive: true });
 
       db.insertExpert({
@@ -126,7 +126,7 @@ describe('ask command', () => {
     });
 
     it('should query the specified expert and output response', async () => {
-      const mountDir = join(corpusDir, 'my-expert');
+      const mountDir = join(contentDir, 'my-expert');
       mkdirSync(mountDir, { recursive: true });
 
       db.insertExpert({
@@ -154,7 +154,7 @@ describe('ask command', () => {
     });
 
     it('should output JSON when --json flag is set', async () => {
-      const mountDir = join(corpusDir, 'json-expert');
+      const mountDir = join(contentDir, 'json-expert');
       mkdirSync(mountDir, { recursive: true });
 
       db.insertExpert({
@@ -185,7 +185,7 @@ describe('ask command', () => {
     });
 
     it('should output verbose info to stderr when --verbose is set', async () => {
-      const mountDir = join(corpusDir, 'verbose-expert');
+      const mountDir = join(contentDir, 'verbose-expert');
       mkdirSync(mountDir, { recursive: true });
 
       db.insertExpert({
@@ -220,16 +220,19 @@ describe('ask command', () => {
   });
 
   describe('askPanel', () => {
-    it('should throw when no active experts exist', async () => {
+    it('should handle no active experts gracefully (no throw, prints message)', async () => {
       const sessionManager = createMockSessionManager();
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      await expect(
-        askPanel(db, sessionManager, 'test question', {})
-      ).rejects.toThrow('No active experts registered');
+      // askPanel no longer throws; it falls through to routeQuery which returns empty
+      await askPanel(db, sessionManager, 'test question', {});
+
+      expect(errorSpy).toHaveBeenCalledWith('No experts were able to respond to this query.');
+      errorSpy.mockRestore();
     });
 
     it('should route query to active experts', async () => {
-      const mountDir = join(corpusDir, 'panel-expert');
+      const mountDir = join(contentDir, 'panel-expert');
       mkdirSync(mountDir, { recursive: true });
 
       db.insertExpert({
@@ -253,7 +256,7 @@ describe('ask command', () => {
     });
 
     it('should output verbose routing info to stderr', async () => {
-      const mountDir = join(corpusDir, 'verbose-panel');
+      const mountDir = join(contentDir, 'verbose-panel');
       mkdirSync(mountDir, { recursive: true });
 
       db.insertExpert({
@@ -281,7 +284,7 @@ describe('ask command', () => {
     });
 
     it('should output JSON when --json flag is set', async () => {
-      const mountDir = join(corpusDir, 'json-panel');
+      const mountDir = join(contentDir, 'json-panel');
       mkdirSync(mountDir, { recursive: true });
 
       db.insertExpert({
@@ -311,7 +314,7 @@ describe('ask command', () => {
 
   describe('streaming behavior', () => {
     it('askPanel with stream: true should write chunks via process.stdout.write', async () => {
-      const mountDir = join(corpusDir, 'stream-panel');
+      const mountDir = join(contentDir, 'stream-panel');
       mkdirSync(mountDir, { recursive: true });
 
       db.insertExpert({
@@ -338,7 +341,7 @@ describe('ask command', () => {
     });
 
     it('askPanel with stream: false should use console.log for complete response', async () => {
-      const mountDir = join(corpusDir, 'nostream-panel');
+      const mountDir = join(contentDir, 'nostream-panel');
       mkdirSync(mountDir, { recursive: true });
 
       db.insertExpert({
@@ -362,7 +365,7 @@ describe('ask command', () => {
     });
 
     it('--json always buffers regardless of stream flag', async () => {
-      const mountDir = join(corpusDir, 'json-stream');
+      const mountDir = join(contentDir, 'json-stream');
       mkdirSync(mountDir, { recursive: true });
 
       db.insertExpert({
@@ -392,7 +395,7 @@ describe('ask command', () => {
     });
 
     it('askSpecificExpert with stream: true passes onChunk to session manager', async () => {
-      const mountDir = join(corpusDir, 'stream-specific');
+      const mountDir = join(contentDir, 'stream-specific');
       mkdirSync(mountDir, { recursive: true });
 
       db.insertExpert({

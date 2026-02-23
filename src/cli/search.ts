@@ -4,7 +4,7 @@ import { LuxDatabase } from '../db/index.js';
 export function addSearchCommand(program: Command) {
   program
     .command('search <query>')
-    .description('Search clients, projects, communications, and knowledge using full-text search')
+    .description('Search all indexed documents using full-text search')
     .option('--client <slug>', 'Filter by client')
     .option('--type <type>', 'Filter by entity type (client|project|comm|knowledge)', 'all')
     .option('--limit <n>', 'Limit results', '20')
@@ -36,90 +36,90 @@ export function addSearchCommand(program: Command) {
 
         // Use FTS5 search by default (unless --legacy flag is set)
         if (!options.legacy) {
-          // FTS5 search - much faster and more sophisticated
-          // Supports phrase search, prefix matching, boolean operators
           try {
-            // Determine which search methods to use based on --content flag
-            const searchClients = options.content
-              ? db.searchClientsContent.bind(db)
-              : db.searchClients.bind(db);
-            const searchProjects = options.content
-              ? db.searchProjectsContent.bind(db)
-              : db.searchProjects.bind(db);
-            const searchCommunications = options.content
-              ? db.searchCommunicationsContent.bind(db)
-              : db.searchCommunications.bind(db);
-            const searchKnowledgeEntries = options.content
-              ? db.searchKnowledgeEntriesContent.bind(db)
-              : db.searchKnowledgeEntries.bind(db);
-
-            // Search clients
-            if (options.type === 'all' || options.type === 'client') {
-              const clients = searchClients(query);
-              for (const client of clients) {
+            if (options.type === 'all') {
+              // Unified document search across all entity types
+              const docs = db.searchAllDocuments(query);
+              for (const doc of docs) {
                 results.push({
-                  type: 'client',
-                  title: client.name,
-                  slug: client.slug,
-                  path: client.file_path,
-                  context: client.status,
+                  type: 'document',
+                  title: doc.title,
+                  path: doc.file_path,
                 });
               }
-            }
+            } else {
+              // Type-specific FTS5 search
+              const searchClients = options.content
+                ? db.searchClientsContent.bind(db)
+                : db.searchClients.bind(db);
+              const searchProjects = options.content
+                ? db.searchProjectsContent.bind(db)
+                : db.searchProjects.bind(db);
+              const searchCommunications = options.content
+                ? db.searchCommunicationsContent.bind(db)
+                : db.searchCommunications.bind(db);
+              const searchKnowledgeEntries = options.content
+                ? db.searchKnowledgeEntriesContent.bind(db)
+                : db.searchKnowledgeEntries.bind(db);
 
-            // Search projects
-            if (options.type === 'all' || options.type === 'project') {
-              const projects = searchProjects(query);
-              for (const project of projects) {
-                // Filter by client if specified
-                if (options.client && project.client_slug !== options.client) continue;
-
-                results.push({
-                  type: 'project',
-                  title: `${project.client_slug}/${project.name}`,
-                  slug: project.slug,
-                  path: project.file_path,
-                  context: project.status,
-                });
-              }
-            }
-
-            // Search communications
-            if (options.type === 'all' || options.type === 'comm') {
-              const communications = searchCommunications(query);
-              for (const comm of communications) {
-                // Filter by client if specified
-                if (options.client) {
-                  const client = db.getAllClients().find((c) => c.id === comm.client_id);
-                  if (!client || client.slug !== options.client) continue;
+              if (options.type === 'client') {
+                const clients = searchClients(query);
+                for (const client of clients) {
+                  results.push({
+                    type: 'client',
+                    title: client.name,
+                    slug: client.slug,
+                    path: client.file_path,
+                    context: client.status,
+                  });
                 }
-
-                const subject = comm.subject ?? '';
-                results.push({
-                  type: 'communication',
-                  title: `[${comm.type}] ${subject}`,
-                  path: comm.file_path,
-                  context: comm.date_range,
-                });
               }
-            }
 
-            // Search knowledge entries
-            if (options.type === 'all' || options.type === 'knowledge') {
-              const entries = searchKnowledgeEntries(query);
-              for (const entry of entries) {
-                // Filter by client if specified
-                if (options.client && entry.client_id) {
-                  const client = db.getAllClients().find((c) => c.id === entry.client_id);
-                  if (!client || client.slug !== options.client) continue;
+              if (options.type === 'project') {
+                const projects = searchProjects(query);
+                for (const project of projects) {
+                  if (options.client && project.client_slug !== options.client) continue;
+                  results.push({
+                    type: 'project',
+                    title: `${project.client_slug}/${project.name}`,
+                    slug: project.slug,
+                    path: project.file_path,
+                    context: project.status,
+                  });
                 }
+              }
 
-                results.push({
-                  type: 'knowledge',
-                  title: entry.title,
-                  path: entry.file_path,
-                  context: entry.type,
-                });
+              if (options.type === 'comm') {
+                const communications = searchCommunications(query);
+                for (const comm of communications) {
+                  if (options.client) {
+                    const client = db.getAllClients().find((c) => c.id === comm.client_id);
+                    if (!client || client.slug !== options.client) continue;
+                  }
+                  const subject = comm.subject ?? '';
+                  results.push({
+                    type: 'communication',
+                    title: `[${comm.type}] ${subject}`,
+                    path: comm.file_path,
+                    context: comm.date_range,
+                  });
+                }
+              }
+
+              if (options.type === 'knowledge') {
+                const entries = searchKnowledgeEntries(query);
+                for (const entry of entries) {
+                  if (options.client && entry.client_id) {
+                    const client = db.getAllClients().find((c) => c.id === entry.client_id);
+                    if (!client || client.slug !== options.client) continue;
+                  }
+                  results.push({
+                    type: 'knowledge',
+                    title: entry.title,
+                    path: entry.file_path,
+                    context: entry.type,
+                  });
+                }
               }
             }
           } catch (error) {
