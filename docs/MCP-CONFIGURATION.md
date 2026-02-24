@@ -429,6 +429,6 @@ You can run multiple server instances with different configurations:
 
 - [MCP SDK Documentation](https://github.com/modelcontextprotocol/sdk)
 - [MCP Specification](https://spec.modelcontextprotocol.io/)
-- [Lux Usage Guide](../USAGE.md)
+- [Lux Usage Guide](./USAGE.md)
 - [MCP Tools Documentation](./MCP-TOOLS.md)
 - [JSON-RPC 2.0 Specification](https://www.jsonrpc.org/specification)

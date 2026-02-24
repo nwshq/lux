@@ -363,8 +363,15 @@ lux/
 
 ## Documentation
 
+### Project Reference
+- **[CLAUDE.md](./CLAUDE.md)** - Quick reference for AI agents and developers (architecture, patterns, navigation)
+
+### Architecture
+- **[docs/architecture/OVERVIEW.md](./docs/architecture/OVERVIEW.md)** - System architecture diagram, module table, design principles
+- **[docs/architecture/adr/](./docs/architecture/adr/)** - Architecture Decision Records
+
 ### User Guides
-- **[USAGE.md](./USAGE.md)** - Comprehensive CLI and MCP usage guide
+- **[docs/USAGE.md](./docs/USAGE.md)** - Comprehensive CLI and MCP usage guide
 - **[docs/SEARCH.md](./docs/SEARCH.md)** - Search features and FTS5 query syntax
 - **[docs/GIT-HOOKS.md](./docs/GIT-HOOKS.md)** - Git hooks setup and configuration
 - **[docs/MCP-CONFIGURATION.md](./docs/MCP-CONFIGURATION.md)** - MCP server configuration for clients
@@ -373,6 +380,9 @@ lux/
 - **[docs/MCP-TOOLS.md](./docs/MCP-TOOLS.md)** - Detailed MCP tools documentation
 - **[docs/SCANNER-API.md](./docs/SCANNER-API.md)** - CORPUS scanner API reference
 - **[config/](./config/)** - Configuration examples for MCP clients
+
+### Testing
+- **[docs/testing/integration-tests.md](./docs/testing/integration-tests.md)** - Shell-based integration test scripts
 
 ## Configuration
 

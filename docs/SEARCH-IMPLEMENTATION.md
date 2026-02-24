@@ -246,7 +246,7 @@ Potential improvements for future iterations:
 ## Documentation
 
 - [docs/SEARCH.md](./SEARCH.md) - Comprehensive user documentation
-- [USAGE.md](../USAGE.md) - Quick reference guide
+- [USAGE.md](./USAGE.md) - Quick reference guide
 - [README.md](../README.md) - Project overview
 
 ## Completion Criteria

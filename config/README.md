@@ -95,4 +95,4 @@ You can customize the server behavior using environment variables:
 
 - [MCP Configuration Guide](../docs/MCP-CONFIGURATION.md) - Complete MCP setup documentation
 - [MCP Tools](../docs/MCP-TOOLS.md) - Detailed tool documentation
-- [Usage Guide](../USAGE.md) - CLI and MCP usage examples
+- [Usage Guide](../docs/USAGE.md) - CLI and MCP usage examples

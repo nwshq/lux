@@ -173,7 +173,7 @@ If you move the Lux project or need to update the configuration:
 
 - [MCP Configuration Guide](./MCP-CONFIGURATION.md) - Complete MCP setup documentation
 - [MCP Tools](./MCP-TOOLS.md) - Detailed tool documentation
-- [Usage Guide](../USAGE.md) - CLI and MCP usage examples
+- [Usage Guide](./USAGE.md) - CLI and MCP usage examples
 - [mcporter Documentation](https://mcporter.dev) - Official mcporter documentation
 
 ## Resources
