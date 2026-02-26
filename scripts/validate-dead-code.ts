@@ -40,6 +40,7 @@ const ENTRY_POINTS = new Set(['cli/index.ts', 'mcp/server.ts']);
  * Their exports are transitively entry-point exports.
  */
 const ENTRY_ADJACENT = new Set([
+  'discovery/index.ts',
   'scanner/index.ts',
   'lint/index.ts',
   'lint/rules/location/index.ts',
@@ -300,12 +301,17 @@ function main(): void {
       const refCount = fileUsage?.get(name) ?? 0;
 
       if (refCount === 0) {
+        // Skip type-only exports (interfaces, type aliases) — they have zero
+        // runtime cost and form part of the public API contract for consumers.
+        const kind = getExportKind(declarations);
+        if (kind === 'interface' || kind === 'type') continue;
+
         unused.push({
           file: `src/${rel}`,
           line: getExportLine(declarations),
           exportName: name,
-          kind: getExportKind(declarations),
-          message: `Export "${name}" (${getExportKind(declarations)}) is not imported by any other file`,
+          kind,
+          message: `Export "${name}" (${kind}) is not imported by any other file`,
         });
       }
     }

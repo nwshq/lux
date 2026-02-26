@@ -1,9 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { LuxDatabase } from '../../db/index.js';
-import { validateMountPath } from '../expert.js';
+import { validateMountPath, formatDiscoveryOutput, formatProposalTable } from '../expert.js';
+import { createDefaultStages } from '../../discovery/index.js';
+import type { DiscoveryResult, ProposedExpert } from '../../discovery/index.js';
 
 /**
  * Tests for expert CLI command logic.
@@ -295,6 +297,204 @@ describe('Expert CLI Commands', () => {
 
     it('should return undefined for non-existent expert', () => {
       expect(db.getExpert('does-not-exist')).toBeUndefined();
+    });
+  });
+
+  describe('expert discover: output formatting', () => {
+    function makeProposal(overrides: Partial<ProposedExpert> = {}): ProposedExpert {
+      return {
+        slug: 'invoicing',
+        name: 'Invoicing System',
+        mountPath: 'modules/Invoicing/',
+        description: 'Manages invoice creation.',
+        reasoning: 'Clear domain boundary.',
+        confidence: 0.92,
+        ...overrides,
+      };
+    }
+
+    function makeResult(overrides: Partial<DiscoveryResult> = {}): DiscoveryResult {
+      return {
+        proposed: [makeProposal()],
+        accepted: [],
+        skipped: [makeProposal()],
+        registered: [],
+        rationale: 'Test rationale.',
+        ...overrides,
+      };
+    }
+
+    it('should output "no proposals" message when proposed is empty', () => {
+      const logs: string[] = [];
+      vi.spyOn(console, 'log').mockImplementation((...args) => logs.push(args.join(' ')));
+
+      formatDiscoveryOutput(makeResult({ proposed: [] }));
+
+      expect(logs.some((l) => l.includes('No expert proposals'))).toBe(true);
+      vi.restoreAllMocks();
+    });
+
+    it('should include rationale in empty-proposals message', () => {
+      const logs: string[] = [];
+      vi.spyOn(console, 'log').mockImplementation((...args) => logs.push(args.join(' ')));
+
+      formatDiscoveryOutput(makeResult({ proposed: [], rationale: 'No clear boundaries.' }));
+
+      expect(logs.some((l) => l.includes('No clear boundaries.'))).toBe(true);
+      vi.restoreAllMocks();
+    });
+
+    it('should show dry-run indicator when dryRun is true', () => {
+      const logs: string[] = [];
+      vi.spyOn(console, 'log').mockImplementation((...args) => logs.push(args.join(' ')));
+
+      formatDiscoveryOutput(makeResult(), true);
+
+      expect(logs.some((l) => l.includes('dry run'))).toBe(true);
+      vi.restoreAllMocks();
+    });
+
+    it('should show accepted experts summary', () => {
+      const logs: string[] = [];
+      vi.spyOn(console, 'log').mockImplementation((...args) => logs.push(args.join(' ')));
+
+      formatDiscoveryOutput(
+        makeResult({
+          accepted: [makeProposal()],
+          skipped: [],
+        })
+      );
+
+      expect(logs.some((l) => l.includes('Accepted: 1'))).toBe(true);
+      expect(logs.some((l) => l.includes('invoicing'))).toBe(true);
+      vi.restoreAllMocks();
+    });
+
+    it('should show registered experts with claude.md paths', () => {
+      const logs: string[] = [];
+      vi.spyOn(console, 'log').mockImplementation((...args) => logs.push(args.join(' ')));
+
+      formatDiscoveryOutput(
+        makeResult({
+          registered: [
+            {
+              slug: 'invoicing',
+              mountPath: 'modules/Invoicing/',
+              claudeMdPath: 'modules/Invoicing/claude.md',
+            },
+          ],
+        })
+      );
+
+      expect(logs.some((l) => l.includes('Registered 1 expert(s)'))).toBe(true);
+      expect(logs.some((l) => l.includes('claude.md'))).toBe(true);
+      vi.restoreAllMocks();
+    });
+  });
+
+  describe('expert discover: proposal table formatting', () => {
+    it('should format proposals in a table with headers', () => {
+      const logs: string[] = [];
+      vi.spyOn(console, 'log').mockImplementation((...args) => logs.push(args.join(' ')));
+
+      const proposals: ProposedExpert[] = [
+        {
+          slug: 'auth',
+          name: 'Auth',
+          mountPath: 'modules/Auth/',
+          description: 'Auth module.',
+          reasoning: 'Clear boundary.',
+          confidence: 0.85,
+        },
+        {
+          slug: 'invoicing',
+          name: 'Invoicing',
+          mountPath: 'modules/Invoicing/',
+          description: 'Invoicing module.',
+          reasoning: 'High file count.',
+          confidence: 0.92,
+        },
+      ];
+
+      formatProposalTable(proposals);
+
+      // Header row
+      expect(
+        logs.some((l) => l.includes('#') && l.includes('Slug') && l.includes('Mount Path'))
+      ).toBe(true);
+      // Data rows
+      expect(logs.some((l) => l.includes('auth') && l.includes('modules/Auth/'))).toBe(true);
+      expect(logs.some((l) => l.includes('invoicing') && l.includes('0.92'))).toBe(true);
+
+      vi.restoreAllMocks();
+    });
+  });
+
+  describe('expert discover: default stages', () => {
+    it('should create default stages with all five functions', () => {
+      const stages = createDefaultStages();
+
+      expect(stages.collectTree).toBeTypeOf('function');
+      expect(stages.enrichContext).toBeTypeOf('function');
+      expect(stages.analyze).toBeTypeOf('function');
+      expect(stages.review).toBeTypeOf('function');
+      expect(stages.register).toBeTypeOf('function');
+    });
+
+    it('should collect tree from a real directory', () => {
+      const stages = createDefaultStages();
+      mkdirSync(join(contentDir, 'src'), { recursive: true });
+      mkdirSync(join(contentDir, 'docs'), { recursive: true });
+
+      const tree = stages.collectTree(contentDir);
+
+      expect(tree).toContain('src/');
+      expect(tree).toContain('docs/');
+    });
+
+    it('should enrich context with existing experts from database', () => {
+      const stages = createDefaultStages();
+      db.insertExpert({
+        slug: 'existing-expert',
+        name: 'Existing',
+        mount_path: '/test/existing',
+      });
+
+      const context = stages.enrichContext('tree string', db, { rootPath: contentDir });
+
+      expect(context.tree).toBe('tree string');
+      expect(context.existingExperts).toHaveLength(1);
+      expect(context.existingExperts[0].slug).toBe('existing-expert');
+      expect(context.existingExperts[0].mountPath).toBe('/test/existing');
+    });
+
+    it('should wire the analyze stage from the analyze module', () => {
+      const stages = createDefaultStages();
+      // The analyze stage should be a function (the real implementation from analyze.js)
+      expect(typeof stages.analyze).toBe('function');
+      // It should be async (returns a Promise)
+      const result = stages.analyze(
+        { tree: 'tree', fileCountsByDirectory: {}, existingExperts: [] },
+        { rootPath: contentDir }
+      );
+      expect(result).toBeInstanceOf(Promise);
+      // Clean up the pending promise (it will reject since claude CLI isn't available)
+      result.catch(() => {});
+    });
+
+    it('should wire the review stage from the review module', () => {
+      const stages = createDefaultStages();
+      // The review stage should be a function (the real interactive implementation)
+      expect(typeof stages.review).toBe('function');
+      // It is the real review function, so we just verify it's wired
+      expect(stages.review.name).toBe('review');
+    });
+
+    it('should return empty results from default register stage', async () => {
+      const stages = createDefaultStages();
+      const result = await stages.register([], db, { rootPath: contentDir });
+
+      expect(result).toHaveLength(0);
     });
   });
 });

@@ -10,7 +10,12 @@ import {
   selectExpertWithLlm,
 } from '../router.js';
 import type { FtsHit } from '../router.js';
-import type { ExpertSessionManager, QueryOptions, QueryResult, SessionInfo } from '../session-manager.js';
+import type {
+  ExpertSessionManager,
+  QueryOptions,
+  QueryResult,
+  SessionInfo,
+} from '../session-manager.js';
 import type { Expert, ExpertSession, KnowledgeEntryInsert, ClientInsert } from '../../db/types.js';
 
 // Mock child_process so selectExpertWithLlm doesn't call real claude binary
@@ -62,7 +67,8 @@ function createMockRoutingProcess(stdout: string, code = 0) {
 
 /** Helper to create knowledge entry with all required named params. */
 function makeKnowledgeEntry(
-  overrides: Partial<KnowledgeEntryInsert> & Pick<KnowledgeEntryInsert, 'type' | 'title' | 'file_path'>,
+  overrides: Partial<KnowledgeEntryInsert> &
+    Pick<KnowledgeEntryInsert, 'type' | 'title' | 'file_path'>
 ): KnowledgeEntryInsert {
   return {
     client_id: undefined,
@@ -76,7 +82,7 @@ function makeKnowledgeEntry(
 
 /** Helper to create client insert with all required named params. */
 function makeClientInsert(
-  overrides: Partial<ClientInsert> & Pick<ClientInsert, 'slug' | 'name' | 'file_path'>,
+  overrides: Partial<ClientInsert> & Pick<ClientInsert, 'slug' | 'name' | 'file_path'>
 ): ClientInsert {
   return {
     type: undefined,
@@ -88,9 +94,9 @@ function makeClientInsert(
 }
 
 /** A mock ExpertSessionManager that returns canned responses. */
-function createMockSessionManager(
-  responses: Record<string, string> = {},
-): ExpertSessionManager & { queryCalls: Array<{ slug: string; question: string; options?: QueryOptions }> } {
+function createMockSessionManager(responses: Record<string, string> = {}): ExpertSessionManager & {
+  queryCalls: Array<{ slug: string; question: string; options?: QueryOptions }>;
+} {
   const queryCalls: Array<{ slug: string; question: string; options?: QueryOptions }> = [];
 
   return {
@@ -119,14 +125,14 @@ function createMockSessionManager(
       };
     },
 
-    async query(expertSlug: string, question: string, options?: QueryOptions): Promise<QueryResult> {
+    query(expertSlug: string, question: string, options?: QueryOptions): Promise<QueryResult> {
       queryCalls.push({ slug: expertSlug, question, options });
       const response = responses[expertSlug] ?? `Response from ${expertSlug}`;
-      return {
+      return Promise.resolve({
         response,
         sessionId: 1,
         expertSlug,
-      };
+      });
     },
 
     terminate(_sessionId: number): void {
@@ -192,9 +198,7 @@ describe('buildAugmentedQuery', () => {
   });
 
   it('should use filePath as label when title is missing', () => {
-    const hits: FtsHit[] = [
-      { filePath: '/path/doc.md', rank: 0, content: 'Content' },
-    ];
+    const hits: FtsHit[] = [{ filePath: '/path/doc.md', rank: 0, content: 'Content' }];
     const result = buildAugmentedQuery('Q?', hits);
     expect(result).toContain('### /path/doc.md');
   });
@@ -287,7 +291,9 @@ describe('routeQuery', () => {
       'expert-a': 'Expert A response',
     });
 
-    const result = await routeQuery('completely unrelated query xyz', db, sessionManager, { useLlmRouting: false });
+    const result = await routeQuery('completely unrelated query xyz', db, sessionManager, {
+      useLlmRouting: false,
+    });
 
     expect(result.responses).toHaveLength(1);
     expect(result.responses[0].expertSlug).toBe('expert-a');
@@ -332,7 +338,7 @@ describe('routeQuery', () => {
         file_path: join(expertDir, 'agile-process.md'),
         tags: ['agile', 'process'],
         content: 'This is an agile process methodology guide for software development.',
-      }),
+      })
     );
 
     const sessionManager = createMockSessionManager({
@@ -365,14 +371,16 @@ describe('routeQuery', () => {
         title: 'Auction Platforms',
         file_path: join(expertDir, 'auction-platforms.md'),
         content: 'We manage eBay, Amazon, and Shopify auction platforms.',
-      }),
+      })
     );
 
     const sessionManager = createMockSessionManager({
       'platform-expert': 'eBay, Amazon, and Shopify',
     });
 
-    const result = await routeQuery('What auction platforms?', db, sessionManager, { useLlmRouting: false });
+    const result = await routeQuery('What auction platforms?', db, sessionManager, {
+      useLlmRouting: false,
+    });
 
     expect(result.responses).toHaveLength(1);
     // The query sent to the expert should include the document content
@@ -408,7 +416,7 @@ describe('routeQuery', () => {
           title: `Deployment Guide ${i}`,
           file_path: join(dirA, `deployment-${i}.md`),
           content: `Deployment strategies and patterns for microservices version ${i}.`,
-        }),
+        })
       );
     }
 
@@ -418,7 +426,7 @@ describe('routeQuery', () => {
         title: 'Deployment Basics',
         file_path: join(dirB, 'deployment-basics.md'),
         content: 'Basic deployment information.',
-      }),
+      })
     );
 
     const sessionManager = createMockSessionManager();
@@ -447,7 +455,7 @@ describe('routeQuery', () => {
         title: 'Architecture Overview',
         file_path: join(dirA, 'architecture.md'),
         content: 'Microservices architecture patterns and best practices.',
-      }),
+      })
     );
 
     db.insertKnowledgeEntry(
@@ -456,7 +464,7 @@ describe('routeQuery', () => {
         title: 'Architecture Standards',
         file_path: join(dirB, 'standards.md'),
         content: 'Architecture standards and compliance requirements.',
-      }),
+      })
     );
 
     const sessionManager = createMockSessionManager({
@@ -464,7 +472,10 @@ describe('routeQuery', () => {
       beta: 'Beta perspective on architecture',
     });
 
-    const result = await routeQuery('architecture', db, sessionManager, { maxExperts: 2, useLlmRouting: false });
+    const result = await routeQuery('architecture', db, sessionManager, {
+      maxExperts: 2,
+      useLlmRouting: false,
+    });
 
     expect(result.responses.length).toBe(2);
     // No synthesis field in the result
@@ -487,7 +498,7 @@ describe('routeQuery', () => {
           title: `Testing Doc ${i}`,
           file_path: join(dir, `testing-${i}.md`),
           content: `Testing strategies and approaches for expert ${i}.`,
-        }),
+        })
       );
     }
 
@@ -513,7 +524,7 @@ describe('routeQuery', () => {
         title: 'Shared Topic A',
         file_path: join(dirA, 'shared.md'),
         content: 'Shared topic for routing test.',
-      }),
+      })
     );
 
     const sessionManager = createMockSessionManager({ good: 'Good answer' });
@@ -544,13 +555,16 @@ describe('routeQuery', () => {
         title: 'Sparse Entry',
         file_path: join(dir, 'sparse.md'),
         content: 'Sparse content with unique keywords.',
-      }),
+      })
     );
 
     const sessionManager = createMockSessionManager({ sparse: 'Sparse answer' });
 
     // With minHits=5, single hit shouldn't qualify — falls back to first active expert
-    const result = await routeQuery('sparse', db, sessionManager, { minHits: 5, useLlmRouting: false });
+    const result = await routeQuery('sparse', db, sessionManager, {
+      minHits: 5,
+      useLlmRouting: false,
+    });
 
     expect(result.responses.length).toBeGreaterThanOrEqual(1);
   });
@@ -575,7 +589,7 @@ describe('routeQuery', () => {
         type: 'client',
         status: 'active',
         content: '# Acme Corp',
-      }),
+      })
     );
 
     const sessionManager = createMockSessionManager({
@@ -599,7 +613,7 @@ describe('routeQuery', () => {
         title: 'Solo Topic',
         file_path: join(dir, 'solo-topic.md'),
         content: 'Unique solo topic content for testing.',
-      }),
+      })
     );
 
     const sessionManager = createMockSessionManager({ solo: 'Solo answer' });
@@ -613,14 +627,19 @@ describe('routeQuery', () => {
     const dir = join(contentDir, 'method-test');
     mkdirSync(dir, { recursive: true });
 
-    db.insertExpert({ slug: 'method-test', name: 'Method Test', mount_path: dir, status: 'active' });
+    db.insertExpert({
+      slug: 'method-test',
+      name: 'Method Test',
+      mount_path: dir,
+      status: 'active',
+    });
     db.insertKnowledgeEntry(
       makeKnowledgeEntry({
         type: 'doc',
         title: 'Method Doc',
         file_path: join(dir, 'method.md'),
         content: 'Method test content.',
-      }),
+      })
     );
 
     const sessionManager = createMockSessionManager({ 'method-test': 'answer' });
@@ -633,14 +652,19 @@ describe('routeQuery', () => {
     const dir = join(contentDir, 'fallback-test');
     mkdirSync(dir, { recursive: true });
 
-    db.insertExpert({ slug: 'fallback-expert', name: 'Fallback Expert', mount_path: dir, status: 'active' });
+    db.insertExpert({
+      slug: 'fallback-expert',
+      name: 'Fallback Expert',
+      mount_path: dir,
+      status: 'active',
+    });
     db.insertKnowledgeEntry(
       makeKnowledgeEntry({
         type: 'doc',
         title: 'Fallback Doc',
         file_path: join(dir, 'fallback.md'),
         content: 'Content for fallback routing test.',
-      }),
+      })
     );
 
     // Mock spawn to fail (simulating missing claude binary)
@@ -715,7 +739,7 @@ describe('routeQuery', () => {
           title: `Topic ${i}`,
           file_path: join(dirA, `topic-${i}.md`),
           content: `Information about topics and routing ${i}.`,
-        }),
+        })
       );
     }
     db.insertKnowledgeEntry(
@@ -724,7 +748,7 @@ describe('routeQuery', () => {
         title: 'Topic B',
         file_path: join(dirB, 'topic-b.md'),
         content: 'Information about topics and routing for B.',
-      }),
+      })
     );
 
     // Mock spawn to return "llm-b" — LLM overrides FTS5
@@ -773,7 +797,10 @@ describe('buildExpertRoster', () => {
 
   it('should build a roster with slug, name, and brief for each expert', () => {
     const claudeMdPath = join(testDir, 'expert.md');
-    writeFileSync(claudeMdPath, '# Expert Title\n\nThis expert handles chiropractic practice management and billing.');
+    writeFileSync(
+      claudeMdPath,
+      '# Expert Title\n\nThis expert handles chiropractic practice management and billing.'
+    );
 
     const roster = buildExpertRoster([
       makeExpert({ slug: 'example-app', name: 'example-app Expert', claude_md_path: claudeMdPath }),
@@ -785,9 +812,7 @@ describe('buildExpertRoster', () => {
   });
 
   it('should use "No description available" when claude_md_path is missing', () => {
-    const roster = buildExpertRoster([
-      makeExpert({ slug: 'no-md', name: 'No MD Expert' }),
-    ]);
+    const roster = buildExpertRoster([makeExpert({ slug: 'no-md', name: 'No MD Expert' })]);
 
     expect(roster).toContain('`no-md`');
     expect(roster).toContain('No description available');
@@ -803,7 +828,10 @@ describe('buildExpertRoster', () => {
 
   it('should strip YAML frontmatter from claude_md content', () => {
     const claudeMdPath = join(testDir, 'frontmatter.md');
-    writeFileSync(claudeMdPath, '---\ntitle: Test\nauthor: AI\n---\n\n# Title\n\nActual description content here.');
+    writeFileSync(
+      claudeMdPath,
+      '---\ntitle: Test\nauthor: AI\n---\n\n# Title\n\nActual description content here.'
+    );
 
     const roster = buildExpertRoster([
       makeExpert({ slug: 'fm', name: 'FM Expert', claude_md_path: claudeMdPath }),
@@ -910,4 +938,3 @@ describe('selectExpertWithLlm', () => {
     expect(result.model).toBe('custom-model');
   });
 });
-

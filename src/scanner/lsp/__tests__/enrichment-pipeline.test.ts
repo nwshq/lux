@@ -2,10 +2,19 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdirSync, writeFileSync, rmSync, existsSync } from 'fs';
 import { join } from 'path';
 import { loadLspConfig } from '../../config.js';
-import { EnricherRegistry, toEnrichedSymbol, toEnrichedDiagnostic, toEnrichedDefinition } from '../index.js';
-import type { EnrichmentResult, LspEnricher, LspEnricherConfig } from '../index.js';
-import { generalScan, attachEnrichment, type GeneralScanResult } from '../../general.js';
-import { buildAugmentedQuery, extractLspRelationships, type FtsHit } from '../../../experts/router.js';
+import {
+  EnricherRegistry,
+  toEnrichedSymbol,
+  toEnrichedDiagnostic,
+  toEnrichedDefinition,
+} from '../index.js';
+import type { EnrichmentResult, LspEnricher } from '../index.js';
+import { generalScan, attachEnrichment } from '../../general.js';
+import {
+  buildAugmentedQuery,
+  extractLspRelationships,
+  type FtsHit,
+} from '../../../experts/router.js';
 import type { DocumentSymbol, Diagnostic, Location } from 'vscode-languageserver-protocol';
 
 // ---------------------------------------------------------------------------
@@ -34,7 +43,7 @@ type: client
 status: active
 ---
 # Test Client
-`,
+`
   );
 
   writeFileSync(
@@ -46,7 +55,7 @@ status: active
 # Test Project
 
 A PHP Laravel project.
-`,
+`
   );
 }
 
@@ -86,7 +95,7 @@ describe('LSP config loading', () => {
       request_timeout_ms: 10000
     - language_id: typescript
       enabled: false
-`,
+`
     );
 
     const config = loadLspConfig(corpusDir);
@@ -127,7 +136,7 @@ describe('LSP config loading', () => {
     - enabled: true
       server_command: some-server
     - language_id: php
-`,
+`
     );
 
     const config = loadLspConfig(corpusDir);
@@ -147,10 +156,10 @@ describe('EnricherRegistry', () => {
       fileExtensions: extensions,
       config: { serverCommand: 'mock', serverArgs: [] },
       isReady: false,
-      initialize: async () => {},
-      enrich: async () => null,
-      enrichBatch: async () => [],
-      shutdown: async () => {},
+      initialize: () => Promise.resolve(),
+      enrich: () => Promise.resolve(null),
+      enrichBatch: () => Promise.resolve([]),
+      shutdown: () => Promise.resolve(),
     };
   }
 
@@ -177,7 +186,7 @@ describe('EnricherRegistry', () => {
     const registry = new EnricherRegistry();
     registry.register(createMockEnricher('php', ['.php']));
     expect(() => registry.register(createMockEnricher('php', ['.php']))).toThrow(
-      'already registered',
+      'already registered'
     );
   });
 
@@ -316,9 +325,7 @@ describe('extractLspRelationships', () => {
   it('should extract dependencies from definitions', () => {
     const metadata = JSON.stringify({
       lsp: {
-        definitions: [
-          { symbolName: 'User', targetUri: 'file:///app/Models/User.php' },
-        ],
+        definitions: [{ symbolName: 'User', targetUri: 'file:///app/Models/User.php' }],
       },
     });
     const result = extractLspRelationships(metadata);
@@ -435,7 +442,10 @@ describe('buildAugmentedQuery with LSP metadata', () => {
             definitions: [
               { symbolName: 'User', targetUri: 'file:///app/Models/User.php' },
               { symbolName: 'Invoice', targetUri: 'file:///app/Models/Invoice.php' },
-              { symbolName: 'PaymentGateway', targetUri: 'file:///app/Contracts/PaymentGateway.php' },
+              {
+                symbolName: 'PaymentGateway',
+                targetUri: 'file:///app/Contracts/PaymentGateway.php',
+              },
             ],
           },
         }),
@@ -512,7 +522,8 @@ describe('buildAugmentedQuery with LSP metadata', () => {
       {
         filePath: '/app/Services/PaymentService.php',
         rank: 0,
-        content: '<?php\nclass PaymentService extends BaseService\n{\n    public function charge() {}\n}',
+        content:
+          '<?php\nclass PaymentService extends BaseService\n{\n    public function charge() {}\n}',
         title: 'PaymentService',
         metadata: JSON.stringify({
           lsp: {
@@ -524,7 +535,10 @@ describe('buildAugmentedQuery with LSP metadata', () => {
               },
             ],
             definitions: [
-              { symbolName: 'PaymentGateway', targetUri: 'file:///app/Contracts/PaymentGateway.php' },
+              {
+                symbolName: 'PaymentGateway',
+                targetUri: 'file:///app/Contracts/PaymentGateway.php',
+              },
             ],
             references: [
               {
@@ -664,9 +678,17 @@ describe('attachEnrichment', () => {
     const enrichment: EnrichmentResult = {
       filePath: '/app/Http/Controllers/UserController.php',
       languageId: 'php',
-      symbols: [{ name: 'UserController', kind: 5, kindLabel: 'Class', startLine: 10, endLine: 50 }],
+      symbols: [
+        { name: 'UserController', kind: 5, kindLabel: 'Class', startLine: 10, endLine: 50 },
+      ],
       diagnostics: [],
-      definitions: [{ symbolName: 'Controller', targetUri: 'file:///app/Http/Controller.php', targetStartLine: 5 }],
+      definitions: [
+        {
+          symbolName: 'Controller',
+          targetUri: 'file:///app/Http/Controller.php',
+          targetStartLine: 5,
+        },
+      ],
       enrichedAt: 1700000000,
     };
 
@@ -731,7 +753,10 @@ describe('cross-module dependency tracing', () => {
         metadata: JSON.stringify({
           lsp: {
             definitions: [
-              { symbolName: 'PaymentGateway', targetUri: 'file:///app/Contracts/PaymentGateway.php' },
+              {
+                symbolName: 'PaymentGateway',
+                targetUri: 'file:///app/Contracts/PaymentGateway.php',
+              },
               { symbolName: 'Order', targetUri: 'file:///app/Models/Order.php' },
               { symbolName: 'User', targetUri: 'file:///app/Models/User.php' },
             ],
@@ -783,10 +808,7 @@ describe('cross-module dependency tracing', () => {
       },
     ];
 
-    const result = buildAugmentedQuery(
-      'How does the checkout flow process payments?',
-      hits,
-    );
+    const result = buildAugmentedQuery('How does the checkout flow process payments?', hits);
 
     // Verify the full dependency chain is visible in the augmented query:
     // 1. CheckoutController extends Controller
@@ -827,7 +849,10 @@ describe('cross-module dependency tracing', () => {
               { name: 'User', supertypes: [{ name: 'Authenticatable' }], subtypes: [] },
             ],
             definitions: [
-              { symbolName: 'HasFactory', targetUri: 'file:///vendor/laravel/framework/HasFactory.php' },
+              {
+                symbolName: 'HasFactory',
+                targetUri: 'file:///vendor/laravel/framework/HasFactory.php',
+              },
               { symbolName: 'Order', targetUri: 'file:///app/Models/Order.php' },
             ],
             references: [

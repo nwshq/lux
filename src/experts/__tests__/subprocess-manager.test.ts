@@ -94,7 +94,7 @@ describe('SubprocessSessionManager', () => {
 
   function createExpert(
     slug = 'test-expert',
-    overrides?: { claude_md_path?: string; status?: string },
+    overrides?: { claude_md_path?: string; status?: string }
   ) {
     db.insertExpert({
       slug,
@@ -112,7 +112,9 @@ describe('SubprocessSessionManager', () => {
 
       expect(session).toBeDefined();
       expect(session.status).toBe('warm');
-      expect(session.session_ref).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+      expect(session.session_ref).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+      );
       expect(expert.slug).toBe('test-expert');
     });
 
@@ -168,7 +170,7 @@ describe('SubprocessSessionManager', () => {
         expect.objectContaining({
           cwd: mountPath,
           stdio: ['ignore', 'pipe', 'pipe'],
-        }),
+        })
       );
 
       resolveProcess(mockProc, 'response');
@@ -187,11 +189,8 @@ describe('SubprocessSessionManager', () => {
 
       expect(mockSpawn).toHaveBeenCalledWith(
         'claude',
-        expect.arrayContaining([
-          '--system-prompt',
-          'You are a TypeScript expert.',
-        ]),
-        expect.anything(),
+        expect.arrayContaining(['--system-prompt', 'You are a TypeScript expert.']),
+        expect.anything()
       );
 
       resolveProcess(mockProc, 'response');
@@ -234,7 +233,7 @@ describe('SubprocessSessionManager', () => {
       createExpert('inactive-expert', { status: 'inactive' });
 
       await expect(manager.query('inactive-expert', 'Hello')).rejects.toThrow(
-        'Expert is not active',
+        'Expert is not active'
       );
     });
 
@@ -247,7 +246,7 @@ describe('SubprocessSessionManager', () => {
       });
 
       await expect(manager.query('no-mount', 'Hello')).rejects.toThrow(
-        'Expert mount path does not exist',
+        'Expert mount path does not exist'
       );
     });
 
@@ -262,7 +261,7 @@ describe('SubprocessSessionManager', () => {
 
       // Second query should be rejected because the expert already has an active query
       await expect(manager.query('test-expert', 'Second')).rejects.toThrow(
-        'already has an active query',
+        'already has an active query'
       );
 
       resolveProcess(mockProc, 'done');

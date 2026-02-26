@@ -15,7 +15,7 @@ export interface FrontmatterOptions {
  * @param options - The frontmatter options
  * @returns Array of frontmatter lines (including opening/closing ---)
  */
-export function createFrontmatter(options: FrontmatterOptions): string[] {
+function createFrontmatter(options: FrontmatterOptions): string[] {
   const lines = ['---'];
 
   for (const [key, value] of Object.entries(options)) {
@@ -24,7 +24,11 @@ export function createFrontmatter(options: FrontmatterOptions): string[] {
     if (Array.isArray(value)) {
       lines.push(`${key}:`);
       value.forEach((item) => lines.push(`  - ${item}`));
-    } else {
+    } else if (
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      typeof value === 'boolean'
+    ) {
       lines.push(`${key}: ${value}`);
     }
   }

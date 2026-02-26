@@ -137,8 +137,7 @@ function validateLspConfig(raw: unknown): LspConfig {
 
   return {
     enabled: config.enabled === true,
-    workspaceRoot:
-      typeof config.workspace_root === 'string' ? config.workspace_root : undefined,
+    workspaceRoot: typeof config.workspace_root === 'string' ? config.workspace_root : undefined,
     enrichers: Array.isArray(config.enrichers)
       ? config.enrichers.map(validateEnricherEntry).filter(isValidEntry)
       : [],
@@ -157,8 +156,7 @@ function validateEnricherEntry(raw: unknown): LspEnricherEntry | null {
   return {
     languageId: entry.language_id,
     enabled: entry.enabled !== false,
-    serverCommand:
-      typeof entry.server_command === 'string' ? entry.server_command : undefined,
+    serverCommand: typeof entry.server_command === 'string' ? entry.server_command : undefined,
     serverArgs: Array.isArray(entry.server_args)
       ? entry.server_args.filter((a): a is string => typeof a === 'string')
       : undefined,

@@ -27,6 +27,7 @@ export class PreparedQueries {
   // Knowledge entry queries
   readonly insertKnowledgeEntry: Database.Statement;
   readonly getKnowledgeEntriesByType: Database.Statement;
+  readonly getAllKnowledgeEntries: Database.Statement;
   readonly getKnowledgeEntryByPath: Database.Statement;
   readonly getKnowledgeEntriesByClient: Database.Statement;
   readonly getKnowledgeEntriesByProject: Database.Statement;
@@ -157,6 +158,10 @@ export class PreparedQueries {
 
     this.getKnowledgeEntriesByType = db.prepare(`
       SELECT * FROM knowledge_entries WHERE type = ?
+    `);
+
+    this.getAllKnowledgeEntries = db.prepare(`
+      SELECT * FROM knowledge_entries
     `);
 
     this.getKnowledgeEntryByPath = db.prepare(`

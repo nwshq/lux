@@ -27,7 +27,13 @@ export function addAskCommand(program: Command) {
           if (options.expert) {
             await askSpecificExpert(db, sessionManager, question, options.expert, options);
           } else {
-            await askPanel(db, sessionManager, question, options, opts.corpus as string | undefined);
+            await askPanel(
+              db,
+              sessionManager,
+              question,
+              options,
+              opts.corpus as string | undefined
+            );
           }
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
@@ -72,7 +78,7 @@ export async function askSpecificExpert(
     ? false
     : options.stream !== undefined
       ? options.stream
-      : process.stdout.isTTY ?? false;
+      : (process.stdout.isTTY ?? false);
 
   const queryOpts = shouldStream
     ? { onChunk: (chunk: string) => process.stdout.write(chunk) }
@@ -121,7 +127,7 @@ export async function askPanel(
   sessionManager: ExpertSessionManager,
   question: string,
   options: { verbose?: boolean; json?: boolean; stream?: boolean },
-  corpusPath?: string,
+  corpusPath?: string
 ): Promise<void> {
   if (options.verbose && !options.json) {
     const activeExperts = db.getExpertsByStatus('active');
@@ -134,7 +140,7 @@ export async function askPanel(
     ? false
     : options.stream !== undefined
       ? options.stream
-      : process.stdout.isTTY ?? false;
+      : (process.stdout.isTTY ?? false);
 
   const routerOpts = {
     ...(shouldStream ? { onChunk: (chunk: string) => process.stdout.write(chunk) } : {}),
@@ -181,7 +187,9 @@ function printVerboseRouting(result: RouteResult): void {
     if (result.routingMethod === 'llm') {
       console.error(`LLM-routed to: ${chosen.expert.name} (${chosen.expert.slug})`);
     } else {
-      console.error(`FTS5-routed to: ${chosen.expert.name} (${chosen.expert.slug}), ${chosen.hits} hits`);
+      console.error(
+        `FTS5-routed to: ${chosen.expert.name} (${chosen.expert.slug}), ${chosen.hits} hits`
+      );
     }
     if (result.matchedExperts.length > 1) {
       console.error('Other matches:');

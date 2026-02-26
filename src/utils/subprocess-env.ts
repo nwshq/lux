@@ -7,25 +7,17 @@
  * triggering nested-session guards in spawned `claude --print` processes.
  */
 
-const EXACT_ALLOWLIST = new Set([
-  'PATH',
-  'HOME',
-  'SHELL',
-  'USER',
-  'LOGNAME',
-  'TERM',
-  'TMPDIR',
-]);
+const EXACT_ALLOWLIST = new Set(['PATH', 'HOME', 'SHELL', 'USER', 'LOGNAME', 'TERM', 'TMPDIR']);
 
 const PREFIX_ALLOWLIST = [
-  'LANG',     // LANG, LANGUAGE
-  'LC_',      // LC_ALL, LC_CTYPE, etc.
-  'XDG_',     // XDG_CONFIG_HOME, XDG_DATA_HOME, etc.
+  'LANG', // LANG, LANGUAGE
+  'LC_', // LC_ALL, LC_CTYPE, etc.
+  'XDG_', // XDG_CONFIG_HOME, XDG_DATA_HOME, etc.
   'ANTHROPIC_', // ANTHROPIC_API_KEY, etc.
 ];
 
 export function buildCleanEnv(
-  source: Record<string, string | undefined> = process.env,
+  source: Record<string, string | undefined> = process.env
 ): Record<string, string> {
   const clean: Record<string, string> = {};
 

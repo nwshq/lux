@@ -327,8 +327,7 @@ export class EnricherRegistry {
 
     if (errors.length > 0) {
       const messages = errors.map(
-        (e) =>
-          `${e.languageId}: ${e.error instanceof Error ? e.error.message : String(e.error)}`
+        (e) => `${e.languageId}: ${e.error instanceof Error ? e.error.message : String(e.error)}`
       );
       throw new Error(`Failed to shut down enrichers:\n  ${messages.join('\n  ')}`);
     }

@@ -22,6 +22,12 @@ export default [
         exports: 'writable',
         module: 'writable',
         require: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+        queueMicrotask: 'readonly',
+        URL: 'readonly',
       },
     },
     plugins: {

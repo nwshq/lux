@@ -266,6 +266,10 @@ export class LuxDatabase {
     return this.getQueries().getKnowledgeEntriesByType.all(type) as KnowledgeEntry[];
   }
 
+  getAllKnowledgeEntries(): KnowledgeEntry[] {
+    return this.getQueries().getAllKnowledgeEntries.all() as KnowledgeEntry[];
+  }
+
   getKnowledgeEntryByPath(filePath: string): KnowledgeEntry | undefined {
     return this.getQueries().getKnowledgeEntryByPath.get(filePath) as KnowledgeEntry | undefined;
   }

@@ -112,9 +112,9 @@ describe.skipIf(!pathExists)('auctic-core integration', () => {
     });
 
     it('should refuse to overwrite existing config without force', async () => {
-      await expect(
-        initCorpus({ rootPath: AUCTIC_CORE_PATH, skipAi: true })
-      ).rejects.toThrow('Config already exists');
+      await expect(initCorpus({ rootPath: AUCTIC_CORE_PATH, skipAi: true })).rejects.toThrow(
+        'Config already exists'
+      );
     });
   });
 
@@ -214,7 +214,7 @@ describe.skipIf(!pathExists)('auctic-core integration', () => {
   });
 
   describe('full pipeline with manual document insertion', () => {
-    it('should support manual document indexing for non-CORPUS content', async () => {
+    it('should support manual document indexing for non-CORPUS content', () => {
       // Simulate what a config-driven scanner would do:
       // read markdown files from auctic-core and insert them as knowledge entries
       const readmePath = join(AUCTIC_CORE_PATH, 'README.md');
@@ -235,7 +235,7 @@ describe.skipIf(!pathExists)('auctic-core integration', () => {
       expect(results[0].title).toBe('acme Core README');
     });
 
-    it('should support indexing module documentation', async () => {
+    it('should support indexing module documentation', () => {
       // Index a module README
       const paymentsReadme = join(AUCTIC_CORE_PATH, 'src/Module/Payments/README.md');
       if (!existsSync(paymentsReadme)) return;
@@ -253,7 +253,7 @@ describe.skipIf(!pathExists)('auctic-core integration', () => {
       expect(results.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('should handle batch indexing of module docs with search', async () => {
+    it('should handle batch indexing of module docs with search', () => {
       // Index multiple module readmes to simulate config-driven scanning
       const moduleReadmes = [
         { path: 'src/Module/Payments/README.md', title: 'Payments Module' },

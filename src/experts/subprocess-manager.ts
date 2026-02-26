@@ -2,7 +2,12 @@ import { spawn, type ChildProcess } from 'child_process';
 import { randomUUID } from 'crypto';
 import { existsSync, readFileSync } from 'fs';
 import type { LuxDatabase } from '../db/index.js';
-import type { ExpertSessionManager, QueryOptions, QueryResult, SessionInfo } from './session-manager.js';
+import type {
+  ExpertSessionManager,
+  QueryOptions,
+  QueryResult,
+  SessionInfo,
+} from './session-manager.js';
 import { buildCleanEnv } from '../utils/subprocess-env.js';
 
 /** Tracks a running Claude CLI subprocess. */
@@ -31,7 +36,7 @@ export class SubprocessSessionManager implements ExpertSessionManager {
     options?: {
       queryTimeoutMs?: number;
       maxOutputBytes?: number;
-    },
+    }
   ) {
     this.queryTimeoutMs = options?.queryTimeoutMs ?? 300_000;
     this.maxOutputBytes = options?.maxOutputBytes ?? 10 * 1024 * 1024;
@@ -70,15 +75,22 @@ export class SubprocessSessionManager implements ExpertSessionManager {
     }
 
     if (this.hasActiveQuery(expertSlug)) {
-      throw new Error(
-        `Expert "${expertSlug}" already has an active query`,
-      );
+      throw new Error(`Expert "${expertSlug}" already has an active query`);
     }
 
     this.db.updateExpertSessionStatus(session.id, 'active');
 
     try {
-      const response = await this.spawnQuery(session.id, expert.mount_path, expert.model, expert.claude_md_path, isExisting ? session.session_ref : undefined, question, expertSlug, options?.onChunk);
+      const response = await this.spawnQuery(
+        session.id,
+        expert.mount_path,
+        expert.model,
+        expert.claude_md_path,
+        isExisting ? session.session_ref : undefined,
+        question,
+        expertSlug,
+        options?.onChunk
+      );
 
       this.db.updateExpertSessionStatus(session.id, 'warm');
       this.db.touchExpertSession(session.id);
@@ -180,7 +192,7 @@ export class SubprocessSessionManager implements ExpertSessionManager {
     sessionRef: string | undefined,
     question: string,
     expertSlug: string,
-    onChunk?: (chunk: string) => void,
+    onChunk?: (chunk: string) => void
   ): Promise<string> {
     return new Promise((resolve, reject) => {
       const args = ['--print', '--model', model];
@@ -218,7 +230,7 @@ export class SubprocessSessionManager implements ExpertSessionManager {
         reject(new Error(`Query timed out after ${this.queryTimeoutMs}ms`));
       }, this.queryTimeoutMs);
 
-      child.stdout!.on('data', (chunk: Buffer) => {
+      child.stdout?.on('data', (chunk: Buffer) => {
         totalBytes += chunk.length;
         if (totalBytes <= this.maxOutputBytes) {
           stdoutChunks.push(chunk);
@@ -228,7 +240,7 @@ export class SubprocessSessionManager implements ExpertSessionManager {
         }
       });
 
-      child.stderr!.on('data', (chunk: Buffer) => {
+      child.stderr?.on('data', (chunk: Buffer) => {
         stderrChunks.push(chunk);
       });
 
@@ -254,8 +266,8 @@ export class SubprocessSessionManager implements ExpertSessionManager {
         if (totalBytes > this.maxOutputBytes) {
           reject(
             new Error(
-              `Output exceeded maximum size (${totalBytes} bytes > ${this.maxOutputBytes} bytes)`,
-            ),
+              `Output exceeded maximum size (${totalBytes} bytes > ${this.maxOutputBytes} bytes)`
+            )
           );
           return;
         }

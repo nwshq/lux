@@ -224,8 +224,7 @@ const TOOLS: Tool[] = [
         },
         expert_hint: {
           type: 'string',
-          description:
-            'Optional expert slug to route to a specific expert instead of auto-routing',
+          description: 'Optional expert slug to route to a specific expert instead of auto-routing',
         },
         context: {
           type: 'string',
@@ -846,9 +845,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
           if (routeResult.responses.length === 0) {
             return {
-              content: [
-                { type: 'text', text: 'No experts were able to respond to this query.' },
-              ],
+              content: [{ type: 'text', text: 'No experts were able to respond to this query.' }],
               isError: true,
             };
           }

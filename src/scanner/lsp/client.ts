@@ -234,9 +234,7 @@ export class LspClient {
   // -------------------------------------------------------------------------
 
   private spawnServer(): void {
-    const env = this.options.env
-      ? { ...process.env, ...this.options.env }
-      : process.env;
+    const env = this.options.env ? { ...process.env, ...this.options.env } : process.env;
 
     this.process = spawn(this.options.serverCommand, this.options.serverArgs ?? [], {
       cwd: this.options.cwd,
@@ -332,9 +330,7 @@ export class LspClient {
     this.pending.delete(id);
 
     if (message.error) {
-      pending.reject(
-        new Error(`LSP error ${message.error.code}: ${message.error.message}`)
-      );
+      pending.reject(new Error(`LSP error ${message.error.code}: ${message.error.message}`));
     } else {
       pending.resolve(message.result);
     }
@@ -344,11 +340,7 @@ export class LspClient {
   // Private: request/notification sending
   // -------------------------------------------------------------------------
 
-  private async sendRequest(
-    method: string,
-    params: unknown,
-    timeoutMs?: number
-  ): Promise<unknown> {
+  private async sendRequest(method: string, params: unknown, timeoutMs?: number): Promise<unknown> {
     await this.semaphore.acquire();
 
     try {
@@ -358,11 +350,7 @@ export class LspClient {
     }
   }
 
-  private sendRequestRaw(
-    method: string,
-    params: unknown,
-    timeoutMs?: number
-  ): Promise<unknown> {
+  private sendRequestRaw(method: string, params: unknown, timeoutMs?: number): Promise<unknown> {
     return new Promise<unknown>((resolve, reject) => {
       if (!this.process?.stdin?.writable) {
         reject(new Error('Language server stdin is not writable'));

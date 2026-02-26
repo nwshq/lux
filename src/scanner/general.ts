@@ -704,10 +704,7 @@ export async function generalScan(
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         errors.push({ filePath, error: message });
-        options?.onEnrichmentError?.(
-          filePath,
-          error instanceof Error ? error : new Error(message)
-        );
+        options?.onEnrichmentError?.(filePath, error instanceof Error ? error : new Error(message));
       }
     }
   }
@@ -718,15 +715,11 @@ export async function generalScan(
     await registry.shutdownAll();
   } catch (error) {
     report(
-      `Warning: enricher shutdown errors: ${
-        error instanceof Error ? error.message : String(error)
-      }`
+      `Warning: enricher shutdown errors: ${error instanceof Error ? error.message : String(error)}`
     );
   }
 
-  report(
-    `Enrichment complete: ${enrichments.size} files enriched, ${errors.length} errors.`
-  );
+  report(`Enrichment complete: ${enrichments.size} files enriched, ${errors.length} errors.`);
 
   return {
     scan,
@@ -743,7 +736,7 @@ export async function generalScan(
  * Build an EnricherRegistry from lux.yaml enricher entries.
  * Only creates enrichers for known language IDs with enabled=true.
  */
-export function buildRegistry(entries: LspEnricherEntry[]): EnricherRegistry {
+function buildRegistry(entries: LspEnricherEntry[]): EnricherRegistry {
   const registry = new EnricherRegistry();
 
   for (const entry of entries) {
@@ -767,7 +760,7 @@ export function buildRegistry(entries: LspEnricherEntry[]): EnricherRegistry {
  * Collect files from scan results that match registered enrichers.
  * Groups file paths by language ID for batch processing.
  */
-export function collectEnrichableFiles(
+function collectEnrichableFiles(
   scan: ScanResult,
   registry: EnricherRegistry
 ): Map<string, string[]> {

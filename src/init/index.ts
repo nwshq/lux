@@ -14,14 +14,9 @@ const TypeRuleSchema = z.object({
 
 const ScannerConfigSchema = z.object({
   include: z.array(z.string()).default(['**/*.md']),
-  exclude: z.array(z.string()).default([
-    'node_modules/**',
-    '.git/**',
-    'dist/**',
-    'build/**',
-    '.next/**',
-    'vendor/**',
-  ]),
+  exclude: z
+    .array(z.string())
+    .default(['node_modules/**', '.git/**', 'dist/**', 'build/**', '.next/**', 'vendor/**']),
   type_rules: z.array(TypeRuleSchema).default([
     { pattern: '**/communications/**', doc_type: 'communication' },
     { pattern: '**/explorations/**', doc_type: 'exploration' },
@@ -100,9 +95,7 @@ export async function initCorpus(options: InitOptions): Promise<InitResult> {
   const configPath = join(rootPath, CONFIG_FILENAME);
 
   if (existsSync(configPath) && !force) {
-    throw new Error(
-      `Config already exists: ${configPath}\n  Use --force to overwrite.`,
-    );
+    throw new Error(`Config already exists: ${configPath}\n  Use --force to overwrite.`);
   }
 
   let config: LuxConfig;
@@ -116,7 +109,7 @@ export async function initCorpus(options: InitOptions): Promise<InitResult> {
     try {
       config = await generateConfigWithAi(tree, model);
       aiGenerated = true;
-    } catch (error) {
+    } catch {
       // Fall back to defaults if AI fails
       config = LuxConfigSchema.parse({});
     }
@@ -223,17 +216,11 @@ Directory tree:
 /**
  * Spawn Claude CLI to generate config based on directory structure analysis.
  */
-async function generateConfigWithAi(
-  directoryTree: string,
-  model?: string,
-): Promise<LuxConfig> {
+async function generateConfigWithAi(directoryTree: string, model?: string): Promise<LuxConfig> {
   const prompt = AI_PROMPT + directoryTree;
   const effectiveModel = model ?? DEFAULT_MODEL;
 
-  const raw = await spawnClaude(
-    ['--print', '--model', effectiveModel, prompt],
-    INIT_TIMEOUT_MS,
-  );
+  const raw = await spawnClaude(['--print', '--model', effectiveModel, prompt], INIT_TIMEOUT_MS);
 
   return parseAndValidateYaml(raw);
 }
@@ -256,7 +243,7 @@ export function parseAndValidateYaml(raw: string): LuxConfig {
     parsed = parseYaml(cleaned);
   } catch (error) {
     throw new Error(
-      `Failed to parse YAML: ${error instanceof Error ? error.message : String(error)}`,
+      `Failed to parse YAML: ${error instanceof Error ? error.message : String(error)}`
     );
   }
 
@@ -302,11 +289,11 @@ function spawnClaude(args: string[], timeoutMs: number): Promise<string> {
       reject(new Error(`Claude CLI timed out after ${timeoutMs}ms`));
     }, timeoutMs);
 
-    child.stdout!.on('data', (chunk: Buffer) => {
+    child.stdout?.on('data', (chunk: Buffer) => {
       stdoutChunks.push(chunk);
     });
 
-    child.stderr!.on('data', (chunk: Buffer) => {
+    child.stderr?.on('data', (chunk: Buffer) => {
       stderrChunks.push(chunk);
     });
 
@@ -342,11 +329,7 @@ function spawnClaude(args: string[], timeoutMs: number): Promise<string> {
 /**
  * Render a LuxConfig to a human-readable YAML string with a descriptive header.
  */
-function renderConfigYaml(
-  config: LuxConfig,
-  rootPath: string,
-  aiGenerated: boolean,
-): string {
+function renderConfigYaml(config: LuxConfig, rootPath: string, aiGenerated: boolean): string {
   const dirName = basename(rootPath);
   const method = aiGenerated ? 'AI-generated' : 'default template';
 

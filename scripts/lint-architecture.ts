@@ -39,6 +39,7 @@ type Layer = (typeof LAYERS)[number];
 const MODULE_LAYER: Record<string, Layer> = {
   cli: 'interface',
   mcp: 'interface',
+  discovery: 'business',
   experts: 'business',
   scanner: 'business',
   lint: 'business',
@@ -63,12 +64,13 @@ function layerRank(layer: Layer): number {
 const FORBIDDEN_IMPORTS: Record<string, Set<string>> = {
   // Business logic modules should not cross-import each other
   // (except scanner/lsp → experts which is an existing legacy edge)
-  lint: new Set(['experts', 'scanner', 'init']),
-  init: new Set(['experts', 'scanner', 'lint']),
+  discovery: new Set(['experts', 'scanner', 'lint', 'init']),
+  lint: new Set(['experts', 'scanner', 'init', 'discovery']),
+  init: new Set(['experts', 'scanner', 'lint', 'discovery']),
   // Data layer must not import from any higher layer
-  db: new Set(['cli', 'mcp', 'experts', 'scanner', 'lint', 'init']),
+  db: new Set(['cli', 'mcp', 'experts', 'scanner', 'lint', 'init', 'discovery']),
   // Utils must be leaf — imports nothing from src/
-  utils: new Set(['cli', 'mcp', 'experts', 'scanner', 'lint', 'init', 'db']),
+  utils: new Set(['cli', 'mcp', 'experts', 'scanner', 'lint', 'init', 'discovery', 'db']),
 };
 
 // ---------------------------------------------------------------------------

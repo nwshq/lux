@@ -85,12 +85,14 @@ export async function routeQuery(
   query: string,
   db: LuxDatabase,
   sessionManager: ExpertSessionManager,
-  options: RouterOptions = {},
+  options: RouterOptions = {}
 ): Promise<RouteResult> {
   const maxExperts = options.maxExperts ?? 1;
   const minHits = options.minHits ?? 1;
   const useLlmRouting = options.useLlmRouting ?? true;
-  const queryOpts: QueryOptions | undefined = options.onChunk ? { onChunk: options.onChunk } : undefined;
+  const queryOpts: QueryOptions | undefined = options.onChunk
+    ? { onChunk: options.onChunk }
+    : undefined;
 
   // Get all active experts
   const activeExperts = db.getExpertsByStatus('active');
@@ -151,9 +153,7 @@ export async function routeQuery(
 
   // FTS5 fallback if LLM routing was disabled or failed
   if (!chosenExpert) {
-    const qualified = scored
-      .filter((s) => s.hits >= minHits)
-      .slice(0, maxExperts);
+    const qualified = scored.filter((s) => s.hits >= minHits).slice(0, maxExperts);
 
     if (qualified.length === 0) {
       // No FTS5 matches — fall back to first active expert
@@ -180,7 +180,12 @@ export async function routeQuery(
           }
         }
       }
-      const result: RouteResult = { query, matchedExperts: qualified, responses, routingMethod: 'fts5' };
+      const result: RouteResult = {
+        query,
+        matchedExperts: qualified,
+        responses,
+        routingMethod: 'fts5',
+      };
       logRouteEvent(db, query, result, ftsTopN, llmResult);
       return result;
     }
@@ -189,10 +194,8 @@ export async function routeQuery(
   }
 
   // Build matched expert entry with FTS5 stats (if any)
-  const ftsEntry = scored.find((s) => s.expert.slug === chosenExpert!.slug);
-  const matchedExperts: ScoredExpert[] = [
-    ftsEntry ?? { expert: chosenExpert, hits: 0, score: 0 },
-  ];
+  const ftsEntry = scored.find((s) => s.expert.slug === chosenExpert.slug);
+  const matchedExperts: ScoredExpert[] = [ftsEntry ?? { expert: chosenExpert, hits: 0, score: 0 }];
 
   // Collect FTS5 hits under chosen expert's mount_path for context enrichment
   const expertHits = hitsByExpert.get(chosenExpert.slug) ?? [];
@@ -224,7 +227,7 @@ function logRouteEvent(
   question: string,
   result: RouteResult,
   ftsTopN: Array<{ slug: string; hits: number; score: number }>,
-  llmResult: LlmRoutingResult | null,
+  llmResult: LlmRoutingResult | null
 ): void {
   try {
     const chosenSlug = result.matchedExperts[0]?.expert.slug ?? null;
@@ -302,7 +305,7 @@ export function buildExpertRoster(experts: Expert[]): string {
 export async function selectExpertWithLlm(
   question: string,
   experts: Expert[],
-  model?: string,
+  model?: string
 ): Promise<LlmRoutingResult> {
   const roster = buildExpertRoster(experts);
   const validSlugs = new Set(experts.map((e) => e.slug));
@@ -323,7 +326,7 @@ ${question}`;
   try {
     const stdout = await spawnClaude(
       ['--print', '--model', resolvedModel, prompt],
-      ROUTING_TIMEOUT_MS,
+      ROUTING_TIMEOUT_MS
     );
     const durationMs = Date.now() - startTime;
 
@@ -333,7 +336,14 @@ ${question}`;
     }
 
     // LLM returned something we don't recognize
-    return { slug: null, prompt, rawResponse: stdout, model: resolvedModel, durationMs, error: `invalid slug: ${slug}` };
+    return {
+      slug: null,
+      prompt,
+      rawResponse: stdout,
+      model: resolvedModel,
+      durationMs,
+      error: `invalid slug: ${slug}`,
+    };
   } catch (err) {
     const durationMs = Date.now() - startTime;
     const error = err instanceof Error ? err.message : String(err);
@@ -360,8 +370,8 @@ function spawnClaude(args: string[], timeoutMs: number): Promise<string> {
       reject(new Error(`Routing timed out after ${timeoutMs}ms`));
     }, timeoutMs);
 
-    child.stdout!.on('data', (chunk: Buffer) => stdoutChunks.push(chunk));
-    child.stderr!.on('data', (chunk: Buffer) => stderrChunks.push(chunk));
+    child.stdout?.on('data', (chunk: Buffer) => stdoutChunks.push(chunk));
+    child.stderr?.on('data', (chunk: Buffer) => stderrChunks.push(chunk));
 
     child.on('error', (err) => {
       clearTimeout(timer);
@@ -385,11 +395,7 @@ function spawnClaude(args: string[], timeoutMs: number): Promise<string> {
  * file_path hits to expert mount_paths. Also collects hits per expert
  * for later context enrichment.
  */
-function scoreExperts(
-  query: string,
-  db: LuxDatabase,
-  experts: Expert[],
-): ScoreResult {
+function scoreExperts(query: string, db: LuxDatabase, experts: Expert[]): ScoreResult {
   const scores = new Map<string, { expert: Expert; hits: number; score: number }>();
   const hitsByExpert = new Map<string, FtsHit[]>();
 
@@ -516,14 +522,12 @@ function collectFtsHits(ftsQuery: string, db: LuxDatabase): FtsHit[] {
 export function buildAugmentedQuery(
   question: string,
   hits: FtsHit[],
-  maxContextBytes?: number,
+  maxContextBytes?: number
 ): string {
   const budget = maxContextBytes ?? 153_600;
 
   // Filter to hits that actually have content or LSP data
-  const relevantHits = hits.filter(
-    (h) => (h.content && h.content.trim().length > 0) || h.metadata,
-  );
+  const relevantHits = hits.filter((h) => (h.content && h.content.trim().length > 0) || h.metadata);
 
   if (relevantHits.length === 0) {
     return question;
@@ -738,10 +742,10 @@ async function queryExperts(
   experts: Expert[],
   question: string,
   sessionManager: ExpertSessionManager,
-  queryOpts?: QueryOptions,
+  queryOpts?: QueryOptions
 ): Promise<QueryResult[]> {
   const settled = await Promise.allSettled(
-    experts.map((expert) => sessionManager.query(expert.slug, question, queryOpts)),
+    experts.map((expert) => sessionManager.query(expert.slug, question, queryOpts))
   );
 
   const results: QueryResult[] = [];

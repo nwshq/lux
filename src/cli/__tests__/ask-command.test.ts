@@ -4,7 +4,12 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import { LuxDatabase } from '../../db/index.js';
 import { askSpecificExpert, askPanel, formatRouteResultJson } from '../ask.js';
-import type { ExpertSessionManager, QueryOptions, QueryResult, SessionInfo } from '../../experts/session-manager.js';
+import type {
+  ExpertSessionManager,
+  QueryOptions,
+  QueryResult,
+  SessionInfo,
+} from '../../experts/session-manager.js';
 import type { Expert, ExpertSession } from '../../db/types.js';
 import type { RouteResult } from '../../experts/router.js';
 
@@ -20,11 +25,21 @@ vi.mock('child_process', async () => {
       const stdout = new EventEmitter();
       const stderr = new EventEmitter();
       Object.assign(proc, {
-        stdout, stderr, stdin: null,
+        stdout,
+        stderr,
+        stdin: null,
         stdio: [null, stdout, stderr],
-        pid: 1, exitCode: null, signalCode: null, killed: false,
-        connected: false, kill: () => true, ref: () => {}, unref: () => {},
-        disconnect: () => {}, send: () => false, [Symbol.dispose]: () => {},
+        pid: 1,
+        exitCode: null,
+        signalCode: null,
+        killed: false,
+        connected: false,
+        kill: () => true,
+        ref: () => {},
+        unref: () => {},
+        disconnect: () => {},
+        send: () => false,
+        [Symbol.dispose]: () => {},
       });
       queueMicrotask(() => proc.emit('error', new Error('spawn claude ENOENT')));
       return proc;
@@ -33,9 +48,9 @@ vi.mock('child_process', async () => {
 });
 
 /** A mock ExpertSessionManager that returns canned responses. */
-function createMockSessionManager(
-  responses: Record<string, string> = {}
-): ExpertSessionManager & { queryCalls: Array<{ slug: string; question: string; options?: QueryOptions }> } {
+function createMockSessionManager(responses: Record<string, string> = {}): ExpertSessionManager & {
+  queryCalls: Array<{ slug: string; question: string; options?: QueryOptions }>;
+} {
   const queryCalls: Array<{ slug: string; question: string; options?: QueryOptions }> = [];
 
   return {
@@ -64,14 +79,14 @@ function createMockSessionManager(
       };
     },
 
-    async query(expertSlug: string, question: string, options?: QueryOptions): Promise<QueryResult> {
+    query(expertSlug: string, question: string, options?: QueryOptions): Promise<QueryResult> {
       queryCalls.push({ slug: expertSlug, question, options });
       const response = responses[expertSlug] ?? `Response from ${expertSlug}`;
-      return {
+      return Promise.resolve({
         response,
         sessionId: 1,
         expertSlug,
-      };
+      });
     },
 
     terminate(): void {},
@@ -206,7 +221,7 @@ describe('ask command', () => {
       await askSpecificExpert(db, sessionManager, 'test', 'verbose-expert', { verbose: true });
 
       // Verbose info goes to stderr
-      const stderrOutput = errorSpy.mock.calls.map((c) => c[0]).join('\n');
+      const stderrOutput = errorSpy.mock.calls.map((c) => String(c[0])).join('\n');
       expect(stderrOutput).toContain('Routing to expert: Verbose Expert');
       expect(stderrOutput).toContain('Model: claude-sonnet-4-20250514');
       expect(stderrOutput).toContain('Session ID: 1');
@@ -275,7 +290,7 @@ describe('ask command', () => {
 
       await askPanel(db, sessionManager, 'test', { verbose: true });
 
-      const stderrOutput = errorSpy.mock.calls.map((c) => c[0]).join('\n');
+      const stderrOutput = errorSpy.mock.calls.map((c) => String(c[0])).join('\n');
       expect(stderrOutput).toContain('Active experts: 1');
       expect(stderrOutput).toContain('Routing query: "test"');
 

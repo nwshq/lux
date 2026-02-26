@@ -6,11 +6,7 @@
 
 import { readFileSync } from 'fs';
 import { pathToFileURL } from 'url';
-import type {
-  DocumentSymbol,
-  Location,
-  TypeHierarchyItem,
-} from 'vscode-languageserver-protocol';
+import type { DocumentSymbol, Location, TypeHierarchyItem } from 'vscode-languageserver-protocol';
 import { LspClient } from './client.js';
 import type {
   LspEnricher,
@@ -296,14 +292,11 @@ export class PhpLspEnricher implements LspEnricher {
       try {
         const position = symbol.selectionRange.start;
 
-        const locations = await this.client!.request<Location[] | null>(
-          'textDocument/references',
-          {
-            textDocument: { uri },
-            position: { line: position.line, character: position.character },
-            context: { includeDeclaration: false },
-          }
-        );
+        const locations = await this.client!.request<Location[] | null>('textDocument/references', {
+          textDocument: { uri },
+          position: { line: position.line, character: position.character },
+          context: { includeDeclaration: false },
+        });
 
         if (locations && locations.length > 0) {
           results.push({

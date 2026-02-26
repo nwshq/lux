@@ -30,6 +30,7 @@ const SRC = resolve(ROOT, 'src');
 const ALLOWED_MODULES = new Set([
   'cli',
   'db',
+  'discovery',
   'experts',
   'init',
   'integration',

@@ -2,6 +2,13 @@ import { Command } from 'commander';
 import { existsSync } from 'fs';
 import { join, resolve, isAbsolute, relative } from 'path';
 import { LuxDatabase } from '../db/index.js';
+import { runDiscoveryPipeline, createDefaultStages } from '../discovery/index.js';
+import type {
+  DiscoveryOptions,
+  DiscoveryResult,
+  ProposedExpert,
+  DiffResult,
+} from '../discovery/index.js';
 
 /**
  * Resolve and validate a mount path for expert registration.
@@ -231,4 +238,197 @@ export function addExpertCommands(program: Command) {
       console.log(`Expert removed: ${expert.name} (${expert.slug})`);
       db.close();
     });
+
+  expertCmd
+    .command('discover')
+    .description('Discover and propose expert boundaries from directory structure')
+    .option('--model <model>', 'AI model for analysis', 'claude-sonnet-4-20250514')
+    .option('--dry-run', 'Show proposals without registering')
+    .option('--diff', 'Only show proposals that differ from current experts')
+    .option('--json', 'Output proposals as JSON (skip interactive review)')
+    .option('--max-experts <n>', 'Maximum number of experts to propose', '20')
+    .option('--min-confidence <f>', 'Minimum confidence threshold (0.0-1.0)', '0.5')
+    .action(
+      async (options: {
+        model: string;
+        dryRun?: boolean;
+        diff?: boolean;
+        json?: boolean;
+        maxExperts: string;
+        minConfidence: string;
+      }) => {
+        const opts = program.opts();
+        const corpusPath = opts.corpus as string;
+
+        if (!existsSync(corpusPath)) {
+          console.error(`Content root not found: ${corpusPath}`);
+          console.error('  Set --corpus <path> or ensure the directory exists.');
+          process.exit(1);
+        }
+
+        const db = new LuxDatabase(opts.db as string);
+
+        const discoveryOptions: DiscoveryOptions = {
+          rootPath: corpusPath,
+          model: options.model,
+          dryRun: options.dryRun,
+          diff: options.diff,
+          json: options.json,
+          maxExperts: parseInt(options.maxExperts, 10),
+          minConfidence: parseFloat(options.minConfidence),
+        };
+
+        // Validate parsed numbers
+        if (isNaN(discoveryOptions.maxExperts!)) {
+          console.error('--max-experts must be a number');
+          db.close();
+          process.exit(1);
+        }
+        if (
+          isNaN(discoveryOptions.minConfidence!) ||
+          discoveryOptions.minConfidence! < 0 ||
+          discoveryOptions.minConfidence! > 1
+        ) {
+          console.error('--min-confidence must be a number between 0.0 and 1.0');
+          db.close();
+          process.exit(1);
+        }
+
+        const stages = createDefaultStages();
+
+        try {
+          const result = await runDiscoveryPipeline(db, discoveryOptions, stages);
+
+          if (options.diff && result.diffResult) {
+            if (options.json) {
+              console.log(JSON.stringify(result.diffResult, null, 2));
+            } else {
+              formatDiffOutput(result.diffResult);
+            }
+          } else if (options.json) {
+            console.log(JSON.stringify(result, null, 2));
+          } else {
+            formatDiscoveryOutput(result, options.dryRun);
+          }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          if (options.json) {
+            console.log(JSON.stringify({ error: message }, null, 2));
+          } else {
+            console.error(`Discovery failed: ${message}`);
+          }
+          db.close();
+          process.exit(1);
+        }
+
+        db.close();
+      }
+    );
+}
+
+// ── Discovery Output Formatting ────────────────────────────
+
+export function formatDiscoveryOutput(result: DiscoveryResult, dryRun?: boolean): void {
+  if (result.proposed.length === 0) {
+    console.log(`\nNo expert proposals generated.`);
+    if (result.rationale) {
+      console.log(`  Reason: ${result.rationale}`);
+    }
+    return;
+  }
+
+  const mode = dryRun ? ' (dry run)' : '';
+  console.log(`\nExpert Discovery Results${mode}\n`);
+
+  if (result.rationale) {
+    console.log(`Rationale: ${result.rationale}\n`);
+  }
+
+  // Proposals table
+  formatProposalTable(result.proposed);
+
+  // Summary
+  if (result.accepted.length > 0) {
+    console.log(`\nAccepted: ${result.accepted.length}`);
+    for (const expert of result.accepted) {
+      console.log(`  + ${expert.slug} (${expert.mountPath})`);
+    }
+  }
+
+  if (result.skipped.length > 0) {
+    console.log(`Skipped: ${result.skipped.length}`);
+  }
+
+  if (result.registered.length > 0) {
+    console.log(`\nRegistered ${result.registered.length} expert(s):`);
+    for (const reg of result.registered) {
+      console.log(`  ${reg.slug} -> ${reg.mountPath}`);
+      if (reg.claudeMdPath) {
+        console.log(`    claude.md: ${reg.claudeMdPath}`);
+      }
+    }
+  }
+}
+
+export function formatProposalTable(proposals: ProposedExpert[]): void {
+  // Header
+  const slugWidth = Math.max(4, ...proposals.map((p) => p.slug.length));
+  const mountWidth = Math.max(10, ...proposals.map((p) => p.mountPath.length));
+
+  console.log(
+    `  ${'#'.padStart(3)}  ${'Slug'.padEnd(slugWidth)}  ${'Mount Path'.padEnd(mountWidth)}  Confidence`
+  );
+  console.log(
+    `  ${'─'.repeat(3)}  ${'─'.repeat(slugWidth)}  ${'─'.repeat(mountWidth)}  ${'─'.repeat(10)}`
+  );
+
+  for (let i = 0; i < proposals.length; i++) {
+    const p = proposals[i];
+    const num = String(i + 1).padStart(3);
+    const conf = p.confidence.toFixed(2);
+    console.log(
+      `  ${num}  ${p.slug.padEnd(slugWidth)}  ${p.mountPath.padEnd(mountWidth)}  ${conf}`
+    );
+  }
+}
+
+function formatDiffOutput(diff: DiffResult): void {
+  console.log(`\n${diff.summary}\n`);
+
+  if (diff.staleExperts.length > 0) {
+    console.log('Stale Experts:\n');
+    for (const stale of diff.staleExperts) {
+      console.log(`  ! ${stale.expert.slug} — ${stale.reason}`);
+    }
+    console.log();
+  }
+
+  if (diff.newProposals.length > 0) {
+    console.log('New Expert Proposals:\n');
+    formatProposalTable(diff.newProposals.map((c) => c.proposal));
+    console.log();
+  }
+
+  if (diff.updatedProposals.length > 0) {
+    console.log('Boundary Changes:\n');
+    for (const classified of diff.updatedProposals) {
+      const p = classified.proposal;
+      console.log(`  ~ ${p.slug} (${p.confidence.toFixed(2)})`);
+      console.log(`    ${classified.reason}`);
+      console.log(`    Proposed mount: ${p.mountPath}`);
+    }
+    console.log();
+  }
+
+  if (diff.duplicates.length > 0) {
+    console.log(`(${diff.duplicates.length} duplicate(s) filtered — already registered)\n`);
+  }
+
+  if (
+    diff.newProposals.length === 0 &&
+    diff.updatedProposals.length === 0 &&
+    diff.staleExperts.length === 0
+  ) {
+    console.log('Expert panel is up to date. No action needed.');
+  }
 }
