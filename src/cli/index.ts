@@ -383,6 +383,8 @@ indexCmd
       if (sourceFilesToEnrich.length > 0) {
         try {
           const { loadLspConfig } = await import('../scanner/config.js');
+          const { EnricherRegistry } = await import('../scanner/lsp/index.js');
+          const { PhpLspEnricher } = await import('../scanner/lsp/php.js');
           const config = loadLspConfig(corpusPath);
 
           if (config.lsp.enabled) {
@@ -390,18 +392,58 @@ indexCmd
               console.log(`Enriching ${sourceFilesToEnrich.length} source files via LSP...`);
             }
 
-            // Run enrichment on just the changed files by doing a targeted scan
-            const targetedResult = await generalScan(corpusPath, {
-              onProgress: options.quiet ? undefined : (msg) => console.log(`  ${msg}`),
-            });
+            // Build enricher registry from config (same as generalScan but targeted)
+            const registry = new EnricherRegistry();
+            const ENRICHER_FACTORIES: Record<string, (entry: typeof config.lsp.enrichers[0]) => InstanceType<typeof PhpLspEnricher>> = {
+              php: (entry) => new PhpLspEnricher({
+                serverCommand: entry.serverCommand,
+                serverArgs: entry.serverArgs,
+                maxConcurrency: entry.maxConcurrency,
+                requestTimeoutMs: entry.requestTimeoutMs,
+                initTimeoutMs: entry.initTimeoutMs,
+              }),
+            };
 
-            // Apply enrichments only to our changed files
+            for (const entry of config.lsp.enrichers) {
+              if (entry.enabled === false) continue;
+              const factory = ENRICHER_FACTORIES[entry.languageId];
+              if (!factory) continue;
+              try { registry.register(factory(entry)); } catch { /* skip */ }
+            }
+
+            // Initialize enrichers
+            const workspaceRoot = config.lsp.workspaceRoot ?? corpusPath;
+            for (const enricher of registry.getAll()) {
+              try { await enricher.initialize(workspaceRoot); } catch { /* skip */ }
+            }
+
+            // Enrich ONLY the changed files
+            const { extname } = await import('path');
+            const enrichmentMap = new Map<string, import('../scanner/lsp/index.js').EnrichmentResult>();
+
+            for (const filePath of sourceFilesToEnrich) {
+              const ext = extname(filePath);
+              const enricher = registry.getByExtension(ext);
+              if (!enricher?.isReady) continue;
+              try {
+                const result = await enricher.enrich(filePath);
+                if (result) enrichmentMap.set(filePath, result);
+              } catch { /* skip individual file errors */ }
+            }
+
+            // Shut down enrichers
+            try { await registry.shutdownAll(); } catch { /* ignore */ }
+
+            // Apply enrichments to changed files
             for (let i = 0; i < plan.toIndex.length; i++) {
               const entry = plan.toIndex[i];
-              const enrichment = targetedResult.enrichments.get(entry.filePath);
-              if (enrichment) {
-                plan.toIndex[i] = attachEnrichment(entry, targetedResult.enrichments);
+              if (enrichmentMap.has(entry.filePath)) {
+                plan.toIndex[i] = attachEnrichment(entry, enrichmentMap);
               }
+            }
+
+            if (!options.quiet && enrichmentMap.size > 0) {
+              console.log(`  Enriched ${enrichmentMap.size} files via LSP`);
             }
           }
         } catch {
