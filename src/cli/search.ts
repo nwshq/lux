@@ -5,8 +5,7 @@ export function addSearchCommand(program: Command) {
   program
     .command('search <query>')
     .description('Search all indexed documents using full-text search')
-    .option('--client <slug>', 'Filter by client')
-    .option('--type <type>', 'Filter by entity type (client|project|comm|knowledge)', 'all')
+    .option('--type <type>', 'Filter by entity type (all|knowledge)', 'all')
     .option('--limit <n>', 'Limit results', '20')
     .option('--content', 'Search only file content (not metadata)')
     .option('--legacy', 'Use legacy substring search instead of FTS5')
@@ -14,7 +13,6 @@ export function addSearchCommand(program: Command) {
       (
         query: string,
         options: {
-          client?: string;
           type: string;
           limit: string;
           content?: boolean;
@@ -28,10 +26,8 @@ export function addSearchCommand(program: Command) {
         const results: Array<{
           type: string;
           title: string;
-          slug?: string;
           path: string;
           context?: string;
-          rank?: number;
         }> = [];
 
         // Use FTS5 search by default (unless --legacy flag is set)
@@ -47,79 +43,19 @@ export function addSearchCommand(program: Command) {
                   path: doc.file_path,
                 });
               }
-            } else {
-              // Type-specific FTS5 search
-              const searchClients = options.content
-                ? db.searchClientsContent.bind(db)
-                : db.searchClients.bind(db);
-              const searchProjects = options.content
-                ? db.searchProjectsContent.bind(db)
-                : db.searchProjects.bind(db);
-              const searchCommunications = options.content
-                ? db.searchCommunicationsContent.bind(db)
-                : db.searchCommunications.bind(db);
+            } else if (options.type === 'knowledge') {
               const searchKnowledgeEntries = options.content
                 ? db.searchKnowledgeEntriesContent.bind(db)
                 : db.searchKnowledgeEntries.bind(db);
 
-              if (options.type === 'client') {
-                const clients = searchClients(query);
-                for (const client of clients) {
-                  results.push({
-                    type: 'client',
-                    title: client.name,
-                    slug: client.slug,
-                    path: client.file_path,
-                    context: client.status,
-                  });
-                }
-              }
-
-              if (options.type === 'project') {
-                const projects = searchProjects(query);
-                for (const project of projects) {
-                  if (options.client && project.client_slug !== options.client) continue;
-                  results.push({
-                    type: 'project',
-                    title: `${project.client_slug}/${project.name}`,
-                    slug: project.slug,
-                    path: project.file_path,
-                    context: project.status,
-                  });
-                }
-              }
-
-              if (options.type === 'comm') {
-                const communications = searchCommunications(query);
-                for (const comm of communications) {
-                  if (options.client) {
-                    const client = db.getAllClients().find((c) => c.id === comm.client_id);
-                    if (!client || client.slug !== options.client) continue;
-                  }
-                  const subject = comm.subject ?? '';
-                  results.push({
-                    type: 'communication',
-                    title: `[${comm.type}] ${subject}`,
-                    path: comm.file_path,
-                    context: comm.date_range,
-                  });
-                }
-              }
-
-              if (options.type === 'knowledge') {
-                const entries = searchKnowledgeEntries(query);
-                for (const entry of entries) {
-                  if (options.client && entry.client_id) {
-                    const client = db.getAllClients().find((c) => c.id === entry.client_id);
-                    if (!client || client.slug !== options.client) continue;
-                  }
-                  results.push({
-                    type: 'knowledge',
-                    title: entry.title,
-                    path: entry.file_path,
-                    context: entry.type,
-                  });
-                }
+              const entries = searchKnowledgeEntries(query);
+              for (const entry of entries) {
+                results.push({
+                  type: 'knowledge',
+                  title: entry.title,
+                  path: entry.file_path,
+                  context: entry.type,
+                });
               }
             }
           } catch (error) {
@@ -146,7 +82,6 @@ export function addSearchCommand(program: Command) {
           payload: {
             query,
             type: options.type,
-            client: options.client,
             limit: limit,
             content_only: options.content ?? false,
             results_count: limitedResults.length,
@@ -167,7 +102,6 @@ export function addSearchCommand(program: Command) {
         );
         for (const result of limitedResults) {
           console.log(`[${result.type}] ${result.title}`);
-          if (result.slug) console.log(`  Slug: ${result.slug}`);
           if (result.context) console.log(`  Context: ${result.context}`);
           console.log(`  Path: ${result.path}`);
           console.log();
@@ -185,11 +119,10 @@ export function addSearchCommand(program: Command) {
 function performLegacySearch(
   db: LuxDatabase,
   query: string,
-  options: { client?: string; type: string },
+  options: { type: string },
   results: Array<{
     type: string;
     title: string;
-    slug?: string;
     path: string;
     context?: string;
   }>
@@ -208,95 +141,9 @@ function performLegacySearch(
     }
   };
 
-  // Search clients
-  if (options.type === 'all' || options.type === 'client') {
-    const clients = db.getAllClients();
-    for (const client of clients) {
-      if (
-        client.slug.toLowerCase().includes(searchQuery) ||
-        client.name.toLowerCase().includes(searchQuery) ||
-        client.type?.toLowerCase().includes(searchQuery) ||
-        client.status?.toLowerCase().includes(searchQuery) ||
-        searchMetadata(client.metadata)
-      ) {
-        results.push({
-          type: 'client',
-          title: client.name,
-          slug: client.slug,
-          path: client.file_path,
-          context: client.status,
-        });
-      }
-    }
-  }
-
-  // Search projects
-  if (options.type === 'all' || options.type === 'project') {
-    const clients = options.client
-      ? [db.getClient(options.client)].filter((c) => c !== undefined)
-      : db.getAllClients();
-
-    for (const client of clients) {
-      if (!client) continue;
-      const projects = db.getProjectsByClient(client.id);
-      for (const project of projects) {
-        if (
-          project.slug.toLowerCase().includes(searchQuery) ||
-          project.name.toLowerCase().includes(searchQuery) ||
-          project.status?.toLowerCase().includes(searchQuery) ||
-          searchMetadata(project.metadata)
-        ) {
-          results.push({
-            type: 'project',
-            title: `${client.slug}/${project.name}`,
-            slug: project.slug,
-            path: project.file_path,
-            context: project.status,
-          });
-        }
-      }
-    }
-  }
-
-  // Search communications
-  if (options.type === 'all' || options.type === 'comm') {
-    const clients = options.client
-      ? [db.getClient(options.client)].filter((c) => c !== undefined)
-      : db.getAllClients();
-
-    for (const client of clients) {
-      if (!client) continue;
-      const comms = db.getCommunicationsByClient(client.id);
-      for (const comm of comms) {
-        const subject = comm.subject ?? '';
-        const participants = comm.participants ?? '';
-        if (
-          subject.toLowerCase().includes(searchQuery) ||
-          comm.type.toLowerCase().includes(searchQuery) ||
-          comm.date_range?.toLowerCase().includes(searchQuery) ||
-          participants.toLowerCase().includes(searchQuery) ||
-          searchMetadata(comm.metadata)
-        ) {
-          results.push({
-            type: 'communication',
-            title: `[${comm.type}] ${subject}`,
-            path: comm.file_path,
-            context: comm.date_range,
-          });
-        }
-      }
-    }
-  }
-
   // Search knowledge entries
   if (options.type === 'all' || options.type === 'knowledge') {
-    const allKnowledge = db
-      .getKnowledgeEntriesByType('methodology')
-      .concat(db.getKnowledgeEntriesByType('spec'))
-      .concat(db.getKnowledgeEntriesByType('architecture'))
-      .concat(db.getKnowledgeEntriesByType('exploration'))
-      .concat(db.getKnowledgeEntriesByType('implementation-payload'))
-      .concat(db.getKnowledgeEntriesByType('general'));
+    const allKnowledge = db.getAllKnowledgeEntries();
 
     for (const entry of allKnowledge) {
       const tags = entry.tags ?? '';

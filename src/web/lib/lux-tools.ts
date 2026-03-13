@@ -1,7 +1,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
-import { getLuxDatabase, getSessionManager } from './lux-singleton';
-import { routeQuery } from '../../../dist/experts/router.js';
+import { getLuxDatabase, getSessionManager } from './lux-singleton.js';
+import { routeQuery } from '../../experts/router.js';
 
 export const luxSearch = tool({
   description:

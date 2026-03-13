@@ -16,7 +16,7 @@ import type {
   QueryResult,
   SessionInfo,
 } from '../session-manager.js';
-import type { Expert, ExpertSession, KnowledgeEntryInsert, ClientInsert } from '../../db/types.js';
+import type { Expert, ExpertSession, KnowledgeEntryInsert } from '../../db/types.js';
 
 // Mock child_process so selectExpertWithLlm doesn't call real claude binary
 vi.mock('child_process', async () => {
@@ -71,22 +71,7 @@ function makeKnowledgeEntry(
     Pick<KnowledgeEntryInsert, 'type' | 'title' | 'file_path'>
 ): KnowledgeEntryInsert {
   return {
-    client_id: undefined,
-    project_id: undefined,
     tags: undefined,
-    metadata: undefined,
-    content: undefined,
-    ...overrides,
-  };
-}
-
-/** Helper to create client insert with all required named params. */
-function makeClientInsert(
-  overrides: Partial<ClientInsert> & Pick<ClientInsert, 'slug' | 'name' | 'file_path'>
-): ClientInsert {
-  return {
-    type: undefined,
-    status: undefined,
     metadata: undefined,
     content: undefined,
     ...overrides,
@@ -569,37 +554,35 @@ describe('routeQuery', () => {
     expect(result.responses.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('should match client records to expert mount paths', async () => {
-    const clientDir = join(contentDir, 'clients', 'acme');
-    mkdirSync(clientDir, { recursive: true });
-    writeFileSync(join(clientDir, 'README.md'), '# Acme Corp');
+  it('should match knowledge records to expert mount paths', async () => {
+    const docsDir = join(contentDir, 'docs', 'acme');
+    mkdirSync(docsDir, { recursive: true });
+    writeFileSync(join(docsDir, 'README.md'), '# Acme Corp');
 
     db.insertExpert({
-      slug: 'client-expert',
-      name: 'Client Expert',
-      mount_path: join(contentDir, 'clients'),
+      slug: 'docs-expert',
+      name: 'Docs Expert',
+      mount_path: join(contentDir, 'docs'),
       status: 'active',
     });
 
-    db.insertClient(
-      makeClientInsert({
-        slug: 'acme',
-        name: 'Acme Corporation',
-        file_path: join(clientDir, 'README.md'),
-        type: 'client',
-        status: 'active',
+    db.insertKnowledgeEntry(
+      makeKnowledgeEntry({
+        type: 'general',
+        title: 'Acme Corporation',
+        file_path: join(docsDir, 'README.md'),
         content: '# Acme Corp',
       })
     );
 
     const sessionManager = createMockSessionManager({
-      'client-expert': 'Acme details',
+      'docs-expert': 'Acme details',
     });
 
     const result = await routeQuery('acme', db, sessionManager, { useLlmRouting: false });
 
     expect(result.matchedExperts.length).toBeGreaterThanOrEqual(1);
-    expect(result.matchedExperts[0].expert.slug).toBe('client-expert');
+    expect(result.matchedExperts[0].expert.slug).toBe('docs-expert');
   });
 
   it('should not include synthesis in route result', async () => {

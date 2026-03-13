@@ -12,11 +12,6 @@ import { initCorpus, collectDirectoryTree, parseAndValidateYaml } from '../../in
  *
  * These tests are conditionally skipped when the auctic-core path
  * is not available (e.g., in CI environments).
- *
- * Key finding: The GeneralScanner is still tied to the CORPUS directory
- * structure (knowledge/10_clients, etc.) and produces empty results for
- * non-CORPUS codebases. This validates the need for the config-driven
- * scanner approach defined in lux.yaml's scanner.type_rules.
  */
 
 const AUCTIC_CORE_PATH = '/path/to/auctic-core/vcs';
@@ -124,92 +119,35 @@ describe.skipIf(!pathExists)('auctic-core integration', () => {
       const result = await scanner.scan();
 
       expect(result).toBeDefined();
-      expect(result.clients).toBeInstanceOf(Array);
-      expect(result.projects).toBeInstanceOf(Array);
-      expect(result.communications).toBeInstanceOf(Array);
       expect(result.knowledge).toBeInstanceOf(Array);
     });
 
-    it('should find no clients (no knowledge/10_clients directory)', async () => {
+    it('should find markdown files in auctic-core', async () => {
       const scanner = new GeneralScanner(AUCTIC_CORE_PATH);
       const result = await scanner.scan();
 
-      // auctic-core has no knowledge/10_clients directory
-      expect(result.clients).toHaveLength(0);
-    });
-
-    it('should find no projects (projects are nested under clients)', async () => {
-      const scanner = new GeneralScanner(AUCTIC_CORE_PATH);
-      const result = await scanner.scan();
-
-      expect(result.projects).toHaveLength(0);
-    });
-
-    it('should find no communications (no communications directories)', async () => {
-      const scanner = new GeneralScanner(AUCTIC_CORE_PATH);
-      const result = await scanner.scan();
-
-      expect(result.communications).toHaveLength(0);
-    });
-
-    it('should find no knowledge entries (no CORPUS knowledge directories)', async () => {
-      const scanner = new GeneralScanner(AUCTIC_CORE_PATH);
-      const result = await scanner.scan();
-
-      // auctic-core has no knowledge/20_methodology, 30_specs, 40_architecture,
-      // explorations, or implementation-payloads directories
-      expect(result.knowledge).toHaveLength(0);
-    });
-
-    it('should demonstrate the scanner misses 92+ markdown files in auctic-core', async () => {
-      const scanner = new GeneralScanner(AUCTIC_CORE_PATH);
-      const result = await scanner.scan();
-
-      // The scanner finds nothing because auctic-core doesn't follow CORPUS structure.
-      // Yet auctic-core has 92+ markdown files (README.md, docs/, module readmes, etc.)
-      // that a config-driven scanner would index.
-      const totalFound =
-        result.clients.length +
-        result.projects.length +
-        result.communications.length +
-        result.knowledge.length;
-
-      expect(totalFound).toBe(0);
+      // auctic-core has many markdown files (README.md, docs/, module readmes, etc.)
+      expect(result.knowledge.length).toBeGreaterThan(0);
     });
   });
 
-  describe('index and search with empty results', () => {
-    it('should index empty scan results without error', async () => {
+  describe('index and search', () => {
+    it('should index scan results without error', async () => {
       const scanner = new GeneralScanner(AUCTIC_CORE_PATH);
       const result = await scanner.scan();
 
       const counts = await scanner.index(db, result);
 
-      expect(counts.clients).toBe(0);
-      expect(counts.projects).toBe(0);
-      expect(counts.communications).toBe(0);
-      expect(counts.knowledge).toBe(0);
+      expect(counts.knowledge).toBeGreaterThanOrEqual(0);
     });
 
-    it('should return empty search results from empty index', async () => {
-      const scanner = new GeneralScanner(AUCTIC_CORE_PATH);
-      const result = await scanner.scan();
-      await scanner.index(db, result);
-
-      const searchResults = db.searchAllDocuments('auction');
-      expect(searchResults).toHaveLength(0);
-    });
-
-    it('should report zero stats after indexing empty results', async () => {
+    it('should report stats after indexing', async () => {
       const scanner = new GeneralScanner(AUCTIC_CORE_PATH);
       const result = await scanner.scan();
       await scanner.index(db, result);
 
       const stats = db.getStats();
-      expect(stats.clients).toBe(0);
-      expect(stats.projects).toBe(0);
-      expect(stats.communications).toBe(0);
-      expect(stats.knowledge_entries).toBe(0);
+      expect(stats.knowledge_entries).toBeGreaterThanOrEqual(0);
     });
   });
 

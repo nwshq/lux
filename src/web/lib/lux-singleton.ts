@@ -1,5 +1,5 @@
-import { LuxDatabase } from '../../../dist/db/index.js';
-import { SubprocessSessionManager } from '../../../dist/experts/subprocess-manager.js';
+import { LuxDatabase } from '../../db/index.js';
+import { SubprocessSessionManager } from '../../experts/subprocess-manager.js';
 import { join, dirname } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 

@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "tsc && npm run copy-assets",
-    "copy-assets": "cp src/db/schema.sql dist/db/ && cp -r src/db/migrations dist/db/",
+    "copy-assets": "cp -r src/db/migrations dist/db/",
     "dev": "tsc --watch",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",

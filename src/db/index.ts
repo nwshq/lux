@@ -4,16 +4,10 @@ import { dirname } from 'path';
 import { PreparedQueries } from './queries.js';
 import { MigrationRunner } from './migrations.js';
 import type {
-  Client,
-  Project,
-  Communication,
   KnowledgeEntry,
   Event,
   Expert,
   ExpertSession,
-  ClientInsert,
-  ProjectInsert,
-  CommunicationInsert,
   KnowledgeEntryInsert,
   EventInsert,
   ExpertInsert,
@@ -132,132 +126,15 @@ export class LuxDatabase {
     return this.migrations.isUpToDate();
   }
 
-  // Client operations
-  insertClient(client: ClientInsert): number {
-    try {
-      const result = this.getQueries().insertClient.run({
-        ...client,
-        metadata: client.metadata ? JSON.stringify(client.metadata) : null,
-      });
-      return result.lastInsertRowid as number;
-    } catch (error) {
-      throw this.wrapDbError(error, 'insertClient', `Client slug: ${client.slug}`);
-    }
-  }
-
-  getClient(slug: string): Client | undefined {
-    return this.getQueries().getClient.get(slug) as Client | undefined;
-  }
-
-  getAllClients(): Client[] {
-    return this.getQueries().getAllClients.all() as Client[];
-  }
-
-  updateClient(slug: string, updates: Partial<ClientInsert>) {
-    const fields: string[] = [];
-    const values: Record<string, unknown> = { slug };
-
-    if (updates.name !== undefined) {
-      fields.push('name = @name');
-      values.name = updates.name;
-    }
-    if (updates.type !== undefined) {
-      fields.push('type = @type');
-      values.type = updates.type;
-    }
-    if (updates.status !== undefined) {
-      fields.push('status = @status');
-      values.status = updates.status;
-    }
-    if (updates.file_path !== undefined) {
-      fields.push('file_path = @file_path');
-      values.file_path = updates.file_path;
-    }
-    if (updates.metadata !== undefined) {
-      fields.push('metadata = @metadata');
-      values.metadata = JSON.stringify(updates.metadata);
-    }
-
-    if (fields.length === 0) return;
-
-    fields.push('updated_at = unixepoch()');
-    const stmt = this.db.prepare(`
-      UPDATE clients SET ${fields.join(', ')} WHERE slug = @slug
-    `);
-    stmt.run(values);
-  }
-
-  deleteClient(slug: string) {
-    this.getQueries().deleteClient.run(slug);
-  }
-
-  // Project operations
-  insertProject(project: ProjectInsert): number {
-    try {
-      const result = this.getQueries().insertProject.run({
-        ...project,
-        metadata: project.metadata ? JSON.stringify(project.metadata) : null,
-      });
-      return result.lastInsertRowid as number;
-    } catch (error) {
-      throw this.wrapDbError(
-        error,
-        'insertProject',
-        `Project slug: ${project.slug}, Client ID: ${project.client_id}`
-      );
-    }
-  }
-
-  getProject(clientSlug: string, projectSlug: string): Project | undefined {
-    return this.getQueries().getProject.get(clientSlug, projectSlug) as Project | undefined;
-  }
-
-  getProjectBySlug(
-    projectSlug: string
-  ): (Project & { client_slug: string; client_name: string }) | undefined {
-    return this.getQueries().getProjectBySlug.get(projectSlug) as
-      | (Project & { client_slug: string; client_name: string })
-      | undefined;
-  }
-
-  getProjectsByClient(clientId: number): Project[] {
-    return this.getQueries().getProjectsByClient.all(clientId) as Project[];
-  }
-
-  // Communication operations
-  insertCommunication(comm: CommunicationInsert): number {
-    try {
-      const result = this.getQueries().insertCommunication.run({
-        ...comm,
-        participants: comm.participants ? JSON.stringify(comm.participants) : null,
-        metadata: comm.metadata ? JSON.stringify(comm.metadata) : null,
-      });
-      return result.lastInsertRowid as number;
-    } catch (error) {
-      throw this.wrapDbError(
-        error,
-        'insertCommunication',
-        `Client ID: ${comm.client_id}, Type: ${comm.type}`
-      );
-    }
-  }
-
-  getCommunicationsByClient(clientId: number): Communication[] {
-    return this.getQueries().getCommunicationsByClient.all(clientId) as Communication[];
-  }
-
-  getCommunicationsByProject(projectId: number): Communication[] {
-    return this.getQueries().getCommunicationsByProject.all(projectId) as Communication[];
-  }
-
   // Knowledge entry operations
   insertKnowledgeEntry(entry: KnowledgeEntryInsert): number {
     const result = this.getQueries().insertKnowledgeEntry.run({
-      ...entry,
-      client_id: entry.client_id ?? null,
-      project_id: entry.project_id ?? null,
+      type: entry.type,
+      title: entry.title,
+      file_path: entry.file_path,
       tags: entry.tags ? JSON.stringify(entry.tags) : null,
       metadata: entry.metadata ? JSON.stringify(entry.metadata) : null,
+      content: entry.content ?? null,
     });
     return result.lastInsertRowid as number;
   }
@@ -274,21 +151,11 @@ export class LuxDatabase {
     return this.getQueries().getKnowledgeEntryByPath.get(filePath) as KnowledgeEntry | undefined;
   }
 
-  getKnowledgeEntriesByClient(clientId: number): KnowledgeEntry[] {
-    return this.getQueries().getKnowledgeEntriesByClient.all(clientId) as KnowledgeEntry[];
-  }
-
-  getKnowledgeEntriesByProject(projectId: number): KnowledgeEntry[] {
-    return this.getQueries().getKnowledgeEntriesByProject.all(projectId) as KnowledgeEntry[];
-  }
-
   // Event operations
   insertEvent(event: EventInsert): number {
     const result = this.getQueries().insertEvent.run({
       source: event.source,
       source_id: event.source_id ?? null,
-      client_id: event.client_id ?? null,
-      project_id: event.project_id ?? null,
       event_type: event.event_type,
       summary: event.summary ?? null,
       payload: event.payload ? JSON.stringify(event.payload) : null,
@@ -302,86 +169,12 @@ export class LuxDatabase {
 
   // FTS5 Search operations
   /**
-   * Search clients using FTS5 full-text search.
-   * @param query - FTS5 query (supports phrase search, AND/OR/NOT operators, prefix matching with *)
-   * @returns Array of matching clients ordered by relevance
-   *
-   * @example
-   * // Simple search
-   * db.searchClients('acme');
-   *
-   * // Phrase search
-   * db.searchClients('"sinai chicago"');
-   *
-   * // Prefix matching
-   * db.searchClients('prov*');
-   *
-   * // Boolean operators
-   * db.searchClients('active AND client');
-   */
-  searchClients(query: string): Client[] {
-    return this.getQueries().searchClientsFts.all(query) as Client[];
-  }
-
-  /**
-   * Search projects using FTS5 full-text search.
-   * @param query - FTS5 query
-   * @returns Array of matching projects with client info, ordered by relevance
-   */
-  searchProjects(query: string): (Project & { client_slug: string; client_name: string })[] {
-    return this.getQueries().searchProjectsFts.all(query) as (Project & {
-      client_slug: string;
-      client_name: string;
-    })[];
-  }
-
-  /**
-   * Search communications using FTS5 full-text search.
-   * @param query - FTS5 query
-   * @returns Array of matching communications ordered by relevance
-   */
-  searchCommunications(query: string): Communication[] {
-    return this.getQueries().searchCommunicationsFts.all(query) as Communication[];
-  }
-
-  /**
    * Search knowledge entries using FTS5 full-text search.
    * @param query - FTS5 query
    * @returns Array of matching knowledge entries ordered by relevance
    */
   searchKnowledgeEntries(query: string): KnowledgeEntry[] {
     return this.getQueries().searchKnowledgeEntriesFts.all(query) as KnowledgeEntry[];
-  }
-
-  // Content-only search operations
-  /**
-   * Search clients' content field only using FTS5 full-text search.
-   * @param query - FTS5 query (supports phrase search, AND/OR/NOT operators, prefix matching with *)
-   * @returns Array of matching clients ordered by relevance
-   */
-  searchClientsContent(query: string): Client[] {
-    return this.getQueries().searchClientsContentFts.all(query) as Client[];
-  }
-
-  /**
-   * Search projects' content field only using FTS5 full-text search.
-   * @param query - FTS5 query
-   * @returns Array of matching projects with client info, ordered by relevance
-   */
-  searchProjectsContent(query: string): (Project & { client_slug: string; client_name: string })[] {
-    return this.getQueries().searchProjectsContentFts.all(query) as (Project & {
-      client_slug: string;
-      client_name: string;
-    })[];
-  }
-
-  /**
-   * Search communications' content field only using FTS5 full-text search.
-   * @param query - FTS5 query
-   * @returns Array of matching communications ordered by relevance
-   */
-  searchCommunicationsContent(query: string): Communication[] {
-    return this.getQueries().searchCommunicationsContentFts.all(query) as Communication[];
   }
 
   /**
@@ -394,9 +187,8 @@ export class LuxDatabase {
   }
 
   /**
-   * Search across all entity FTS5 tables and return unified results.
-   * Queries clients, projects, communications, and knowledge entries,
-   * normalizing results into a common shape with file_path, title, content, and rank.
+   * Search across all FTS5 tables and return unified results.
+   * Queries knowledge entries and normalizes results into a common shape.
    * Silently skips any FTS5 table that is unavailable.
    */
   searchAllDocuments(query: string): DocumentSearchResult[] {
@@ -413,45 +205,6 @@ export class LuxDatabase {
       }
     } catch {
       // FTS5 not available for knowledge entries
-    }
-
-    try {
-      for (const client of this.searchClients(query)) {
-        results.push({
-          file_path: client.file_path,
-          title: client.name,
-          content: client.content ?? undefined,
-          rank: 0,
-        });
-      }
-    } catch {
-      // FTS5 not available for clients
-    }
-
-    try {
-      for (const project of this.searchProjects(query)) {
-        results.push({
-          file_path: project.file_path,
-          title: project.name,
-          content: project.content ?? undefined,
-          rank: 0,
-        });
-      }
-    } catch {
-      // FTS5 not available for projects
-    }
-
-    try {
-      for (const comm of this.searchCommunications(query)) {
-        results.push({
-          file_path: comm.file_path,
-          title: comm.subject ?? comm.file_path,
-          content: comm.content ?? undefined,
-          rank: 0,
-        });
-      }
-    } catch {
-      // FTS5 not available for communications
     }
 
     return results;
@@ -561,24 +314,15 @@ export class LuxDatabase {
     queries.clearExperts.run();
     queries.clearEvents.run();
     queries.clearKnowledgeEntries.run();
-    queries.clearCommunications.run();
-    queries.clearProjects.run();
-    queries.clearClients.run();
   }
 
   getStats() {
     const queries = this.getQueries();
-    const clients = queries.countClients.get() as { count: number };
-    const projects = queries.countProjects.get() as { count: number };
-    const communications = queries.countCommunications.get() as { count: number };
     const knowledge = queries.countKnowledgeEntries.get() as { count: number };
     const events = queries.countEvents.get() as { count: number };
     const experts = queries.countExperts.get() as { count: number };
 
     return {
-      clients: clients.count,
-      projects: projects.count,
-      communications: communications.count,
       knowledge_entries: knowledge.count,
       events: events.count,
       experts: experts.count,

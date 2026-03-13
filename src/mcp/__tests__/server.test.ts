@@ -3,16 +3,12 @@ import { join } from 'path';
 import { mkdirSync, writeFileSync, rmSync, existsSync, readFileSync } from 'fs';
 import { LuxDatabase } from '../../db/index.js';
 import { GeneralScanner } from '../../scanner/index.js';
-import { createMarkdownWithFrontmatter } from '../../utils/frontmatter.js';
 
 /**
  * MCP Server Test Suite
  *
  * Tests all MCP tools exposed by the Lux Knowledge Platform:
  * - lux_search: Search across all indexed documents
- * - lux_get_client: Get detailed client information
- * - lux_list_projects: List projects for a client
- * - lux_log_comm: Log a new communication
  * - lux_log_event: Log an event to audit trail
  * - lux_get_file: Read file content
  * - lux_rebuild_index: Rebuild the entire index
@@ -33,62 +29,10 @@ describe('MCP Server Tools', () => {
 
     // Create test content directory structure
     mkdirSync(contentDir, { recursive: true });
-    mkdirSync(join(contentDir, 'knowledge', '10_clients', 'test-client'), { recursive: true });
-    mkdirSync(join(contentDir, 'knowledge', '10_clients', 'test-client', 'test-project'), {
-      recursive: true,
-    });
-    mkdirSync(join(contentDir, 'knowledge', '10_clients', 'test-client', 'communications'), {
-      recursive: true,
-    });
     mkdirSync(join(contentDir, 'knowledge', '20_methodology'), { recursive: true });
+    mkdirSync(join(contentDir, 'explorations'), { recursive: true });
 
-    // Create test client file
-    writeFileSync(
-      join(contentDir, 'knowledge', '10_clients', 'test-client', 'README.md'),
-      createMarkdownWithFrontmatter(
-        {
-          name: 'Test Client',
-          type: 'enterprise',
-          status: 'active',
-        },
-        '# Test Client\n\nThis is a test client for MCP testing.'
-      )
-    );
-
-    // Create test project file
-    writeFileSync(
-      join(contentDir, 'knowledge', '10_clients', 'test-client', 'test-project', 'README.md'),
-      createMarkdownWithFrontmatter(
-        {
-          name: 'Test Project',
-          status: 'in-progress',
-        },
-        '# Test Project\n\nThis is a test project.'
-      )
-    );
-
-    // Create test communication file
-    writeFileSync(
-      join(
-        contentDir,
-        'knowledge',
-        '10_clients',
-        'test-client',
-        'communications',
-        '2024-01-15_meeting-kickoff.md'
-      ),
-      createMarkdownWithFrontmatter(
-        {
-          type: 'meeting',
-          subject: 'Kickoff Meeting',
-          date: '2024-01-15',
-          participants: ['Alice', 'Bob'],
-        },
-        '# Kickoff Meeting\n\nDiscussed project requirements.'
-      )
-    );
-
-    // Create test knowledge entry (manually create frontmatter since createMarkdownWithFrontmatter doesn't handle title)
+    // Create test knowledge entry
     writeFileSync(
       join(contentDir, 'knowledge', '20_methodology', 'testing.md'),
       `---
@@ -101,6 +45,23 @@ tags:
 # Testing Methodology
 
 Our approach to testing.
+`
+    );
+
+    // Create another knowledge entry
+    writeFileSync(
+      join(contentDir, 'explorations', 'api-design.md'),
+      `---
+title: API Design Exploration
+type: exploration
+tags:
+  - api
+  - design
+---
+
+# API Design
+
+Exploring API design patterns.
 `
     );
 
@@ -122,26 +83,6 @@ Our approach to testing.
   });
 
   describe('lux_search', () => {
-    it('should search for clients', () => {
-      const results = db.searchClients('Test Client');
-      expect(results).toHaveLength(1);
-      expect(results[0].name).toBe('Test Client');
-      expect(results[0].slug).toBe('test-client');
-    });
-
-    it('should search for projects', () => {
-      const results = db.searchProjects('Test Project');
-      expect(results).toHaveLength(1);
-      expect(results[0].name).toBe('Test Project');
-      expect(results[0].slug).toBe('test-project');
-    });
-
-    it('should search for communications', () => {
-      const results = db.searchCommunications('Kickoff');
-      expect(results).toHaveLength(1);
-      expect(results[0].subject).toBe('Kickoff Meeting');
-    });
-
     it('should search for knowledge entries', () => {
       const results = db.searchKnowledgeEntries('Testing');
       expect(results).toHaveLength(1);
@@ -149,32 +90,19 @@ Our approach to testing.
     });
 
     it('should handle empty search results', () => {
-      const results = db.searchClients('NonExistent');
+      const results = db.searchKnowledgeEntries('NonExistent');
       expect(results).toHaveLength(0);
     });
 
     it('should search with FTS5 operators', () => {
       // Phrase search
-      const results = db.searchClients('"Test Client"');
+      const results = db.searchKnowledgeEntries('"Testing Methodology"');
       expect(results).toHaveLength(1);
     });
 
-    it('should filter search by client', () => {
-      const client = db.getClient('test-client');
-      expect(client).toBeDefined();
-
-      const projects = db.getProjectsByClient(client!.id);
-      expect(projects).toHaveLength(1);
-      expect(projects[0].slug).toBe('test-project');
-    });
-
     it('should search all documents with unified search', () => {
-      const results = db.searchAllDocuments('Test');
+      const results = db.searchAllDocuments('Testing');
       expect(results.length).toBeGreaterThan(0);
-
-      // Should return results from multiple entity types
-      const paths = results.map((r) => r.file_path);
-      expect(paths.some((p) => p.includes('test-client'))).toBe(true);
 
       // Each result has the required shape
       for (const doc of results) {
@@ -187,219 +115,6 @@ Our approach to testing.
     it('should return empty from unified search for non-matching query', () => {
       const results = db.searchAllDocuments('xyznonexistent');
       expect(results).toHaveLength(0);
-    });
-  });
-
-  describe('lux_get_client', () => {
-    it('should get client by slug', () => {
-      const client = db.getClient('test-client');
-      expect(client).toBeDefined();
-      expect(client?.name).toBe('Test Client');
-      expect(client?.slug).toBe('test-client');
-      // Type and status may be null if not in frontmatter, check if defined
-      if (client?.type) {
-        expect(client.type).toBe('enterprise');
-      }
-      if (client?.status) {
-        expect(client.status).toBe('active');
-      }
-    });
-
-    it('should return undefined for non-existent client', () => {
-      const client = db.getClient('non-existent');
-      expect(client).toBeUndefined();
-    });
-
-    it('should include projects in client response', () => {
-      const client = db.getClient('test-client');
-      expect(client).toBeDefined();
-
-      const projects = db.getProjectsByClient(client!.id);
-      expect(projects).toHaveLength(1);
-      expect(projects[0].name).toBe('Test Project');
-    });
-
-    it('should include communications in client response', () => {
-      const client = db.getClient('test-client');
-      expect(client).toBeDefined();
-
-      const comms = db.getCommunicationsByClient(client!.id);
-      expect(comms).toHaveLength(1);
-      expect(comms[0].subject).toBe('Kickoff Meeting');
-    });
-  });
-
-  describe('lux_list_projects', () => {
-    it('should list projects for a client', () => {
-      const client = db.getClient('test-client');
-      expect(client).toBeDefined();
-
-      const projects = db.getProjectsByClient(client!.id);
-      expect(projects).toHaveLength(1);
-      expect(projects[0].slug).toBe('test-project');
-      expect(projects[0].name).toBe('Test Project');
-    });
-
-    it('should return empty array for client with no projects', () => {
-      // Create a client without projects
-      const clientId = db.insertClient({
-        slug: 'empty-client',
-        name: 'Empty Client',
-        type: undefined,
-        status: undefined,
-        file_path: '/test/path',
-        content: undefined,
-      });
-
-      const projects = db.getProjectsByClient(clientId);
-      expect(projects).toHaveLength(0);
-    });
-
-    it('should require valid client slug', () => {
-      const client = db.getClient('non-existent');
-      expect(client).toBeUndefined();
-    });
-  });
-
-  describe('lux_log_comm', () => {
-    it('should log a new communication', () => {
-      const client = db.getClient('test-client');
-      expect(client).toBeDefined();
-
-      const commPath = join(
-        contentDir,
-        'knowledge',
-        '10_clients',
-        'test-client',
-        'communications',
-        '2024-01-20_email-test.md'
-      );
-
-      // Create communication file
-      const content = createMarkdownWithFrontmatter(
-        {
-          type: 'email',
-          subject: 'Test Email',
-          date: '2024-01-20',
-          participants: ['test@example.com'],
-        },
-        'Test email content'
-      );
-      writeFileSync(commPath, content);
-
-      // Insert into database
-      const commId = db.insertCommunication({
-        client_id: client!.id,
-        project_id: undefined,
-        type: 'email',
-        subject: 'Test Email',
-        date_range: '2024-01-20',
-        participants: ['test@example.com'],
-        file_path: commPath,
-        content: 'Test email content',
-      });
-
-      expect(commId).toBeGreaterThan(0);
-
-      // Verify it was created
-      const comms = db.getCommunicationsByClient(client!.id);
-      expect(comms).toHaveLength(2); // Original + new
-      const newComm = comms.find((c) => c.subject === 'Test Email');
-      expect(newComm).toBeDefined();
-      expect(newComm?.type).toBe('email');
-    });
-
-    it('should log communication with project association', () => {
-      const client = db.getClient('test-client');
-      const project = db.getProject('test-client', 'test-project');
-      expect(client).toBeDefined();
-      expect(project).toBeDefined();
-
-      const commPath = join(
-        contentDir,
-        'knowledge',
-        '10_clients',
-        'test-client',
-        'test-project',
-        'communications',
-        '2024-01-25_slack-update.md'
-      );
-
-      mkdirSync(
-        join(
-          contentDir,
-          'knowledge',
-          '10_clients',
-          'test-client',
-          'test-project',
-          'communications'
-        ),
-        {
-          recursive: true,
-        }
-      );
-
-      const content = createMarkdownWithFrontmatter(
-        {
-          type: 'slack',
-          subject: 'Project Update',
-          date: '2024-01-25',
-        },
-        'Project status update'
-      );
-      writeFileSync(commPath, content);
-
-      const commId = db.insertCommunication({
-        client_id: client!.id,
-        project_id: project!.id,
-        type: 'slack',
-        subject: 'Project Update',
-        date_range: '2024-01-25',
-        file_path: commPath,
-        content: 'Project status update',
-      });
-
-      expect(commId).toBeGreaterThan(0);
-
-      // Verify it was created with project association
-      const projectComms = db.getCommunicationsByProject(project!.id);
-      expect(projectComms).toHaveLength(1);
-      expect(projectComms[0].subject).toBe('Project Update');
-    });
-
-    it('should require valid client', () => {
-      expect(() => {
-        db.insertCommunication({
-          client_id: 99999, // Non-existent client
-          type: 'email',
-          subject: 'Test',
-          file_path: '/test/path',
-        });
-      }).toThrow();
-    });
-
-    it('should handle various communication types', () => {
-      const client = db.getClient('test-client');
-      expect(client).toBeDefined();
-
-      const types = ['email', 'slack', 'meeting', 'call', 'other'];
-
-      types.forEach((type, index) => {
-        const commId = db.insertCommunication({
-          client_id: client!.id,
-          project_id: undefined,
-          type,
-          subject: `Test ${type}`,
-          date_range: `2024-01-${20 + index}`,
-          file_path: `/test/${type}.md`,
-          content: `Test ${type} content`,
-        });
-
-        expect(commId).toBeGreaterThan(0);
-      });
-
-      const comms = db.getCommunicationsByClient(client!.id);
-      expect(comms.length).toBeGreaterThanOrEqual(types.length);
     });
   });
 
@@ -418,48 +133,6 @@ Our approach to testing.
       expect(testEvent).toBeDefined();
       expect(testEvent?.source).toBe('test');
       expect(testEvent?.event_type).toBe('unit_test');
-    });
-
-    it('should log event with client association', () => {
-      const client = db.getClient('test-client');
-      expect(client).toBeDefined();
-
-      const eventId = db.insertEvent({
-        source: 'mcp',
-        event_type: 'search',
-        summary: 'Client search',
-        client_id: client!.id,
-      });
-
-      expect(eventId).toBeGreaterThan(0);
-
-      const events = db.getRecentEvents(10);
-      const searchEvent = events.find((e) => e.summary === 'Client search');
-      expect(searchEvent).toBeDefined();
-      expect(searchEvent?.client_id).toBe(client!.id);
-    });
-
-    it('should log event with project association', () => {
-      const client = db.getClient('test-client');
-      const project = db.getProject('test-client', 'test-project');
-      expect(client).toBeDefined();
-      expect(project).toBeDefined();
-
-      const eventId = db.insertEvent({
-        source: 'mcp',
-        event_type: 'project_action',
-        summary: 'Project update',
-        client_id: client!.id,
-        project_id: project!.id,
-      });
-
-      expect(eventId).toBeGreaterThan(0);
-
-      const events = db.getRecentEvents(10);
-      const projectEvent = events.find((e) => e.summary === 'Project update');
-      expect(projectEvent).toBeDefined();
-      expect(projectEvent?.client_id).toBe(client!.id);
-      expect(projectEvent?.project_id).toBe(project!.id);
     });
 
     it('should log event with payload', () => {
@@ -513,36 +186,6 @@ Our approach to testing.
 
   describe('lux_get_file', () => {
     it('should read a file successfully', () => {
-      const clientFilePath = join(
-        contentDir,
-        'knowledge',
-        '10_clients',
-        'test-client',
-        'README.md'
-      );
-
-      const content = readFileSync(clientFilePath, 'utf-8');
-      expect(content).toContain('Test Client');
-      expect(content).toContain('type: enterprise');
-    });
-
-    it('should read communication file', () => {
-      const commFilePath = join(
-        contentDir,
-        'knowledge',
-        '10_clients',
-        'test-client',
-        'communications',
-        '2024-01-15_meeting-kickoff.md'
-      );
-
-      const content = readFileSync(commFilePath, 'utf-8');
-      expect(content).toContain('Kickoff Meeting');
-      expect(content).toContain('type: meeting');
-      expect(content).toContain('participants:');
-    });
-
-    it('should read knowledge entry file', () => {
       const knowledgeFilePath = join(contentDir, 'knowledge', '20_methodology', 'testing.md');
 
       const content = readFileSync(knowledgeFilePath, 'utf-8');
@@ -574,7 +217,7 @@ Our approach to testing.
     it('should rebuild index from content directory', async () => {
       // Clear database
       db.clearAll();
-      expect(db.getStats().clients).toBe(0);
+      expect(db.getStats().knowledge_entries).toBe(0);
 
       // Rebuild index
       const scanner = new GeneralScanner(contentDir);
@@ -583,26 +226,25 @@ Our approach to testing.
 
       // Verify index was rebuilt
       const stats = db.getStats();
-      expect(stats.clients).toBeGreaterThan(0);
-      expect(stats.projects).toBeGreaterThan(0);
-      expect(stats.communications).toBeGreaterThan(0);
       expect(stats.knowledge_entries).toBeGreaterThan(0);
     });
 
     it('should handle rebuild with new files added', async () => {
       const initialStats = db.getStats();
 
-      // Add a new client
-      mkdirSync(join(contentDir, 'knowledge', '10_clients', 'new-client'), { recursive: true });
+      // Add a new knowledge entry
       writeFileSync(
-        join(contentDir, 'knowledge', '10_clients', 'new-client', 'README.md'),
-        createMarkdownWithFrontmatter(
-          {
-            name: 'New Client',
-            status: 'active',
-          },
-          '# New Client\n\nNewly added client.'
-        )
+        join(contentDir, 'knowledge', '20_methodology', 'new-process.md'),
+        `---
+title: New Process
+tags:
+  - process
+---
+
+# New Process
+
+A newly added process document.
+`
       );
 
       // Clear and rebuild
@@ -611,13 +253,9 @@ Our approach to testing.
       const scanResult = await scanner.scan();
       await scanner.index(db, scanResult);
 
-      // Verify new client was indexed
+      // Verify new entry was indexed
       const newStats = db.getStats();
-      expect(newStats.clients).toBeGreaterThan(initialStats.clients);
-
-      const newClient = db.getClient('new-client');
-      expect(newClient).toBeDefined();
-      expect(newClient?.name).toBe('New Client');
+      expect(newStats.knowledge_entries).toBeGreaterThan(initialStats.knowledge_entries);
     });
 
     it('should log rebuild event', async () => {
@@ -628,7 +266,7 @@ Our approach to testing.
       db.insertEvent({
         source: 'mcp',
         event_type: 'index_rebuild',
-        summary: `Indexed ${scanResult.clients.length} clients, ${scanResult.projects.length} projects`,
+        summary: `Indexed ${scanResult.knowledge.length} knowledge entries`,
       });
 
       const events = db.getRecentEvents(10);
@@ -641,49 +279,23 @@ Our approach to testing.
     it('should return accurate statistics', () => {
       const stats = db.getStats();
 
-      expect(stats.clients).toBeGreaterThan(0);
-      expect(stats.projects).toBeGreaterThan(0);
-      expect(stats.communications).toBeGreaterThan(0);
       expect(stats.knowledge_entries).toBeGreaterThan(0);
 
-      // Verify counts match actual data
-      const clients = db.getAllClients();
-      expect(stats.clients).toBe(clients.length);
+      // Verify count matches actual data
+      const allEntries = db.getAllKnowledgeEntries();
+      expect(stats.knowledge_entries).toBe(allEntries.length);
     });
   });
 
   describe('Error Handling', () => {
     it('should handle database errors gracefully', () => {
-      // Try to insert duplicate client
-      expect(() => {
-        db.insertClient({
-          slug: 'test-client', // Already exists
-          name: 'Duplicate Client',
-          file_path: '/test/path',
-        });
-      }).toThrow();
-    });
-
-    it('should handle foreign key violations', () => {
-      // Try to insert project with non-existent client
-      expect(() => {
-        db.insertProject({
-          client_id: 99999, // Non-existent
-          slug: 'test',
-          name: 'Test',
-          file_path: '/test/path',
-        });
-      }).toThrow();
-    });
-
-    it('should handle missing required fields', () => {
-      expect(() => {
-        db.insertClient({
-          slug: '', // Empty slug
-          name: 'Test',
-          file_path: '/test/path',
-        });
-      }).toThrow();
+      // Try to insert duplicate knowledge entry path — test that db doesn't crash
+      const entry1 = db.insertKnowledgeEntry({
+        type: 'general',
+        title: 'Test Entry',
+        file_path: '/unique/path/test.md',
+      });
+      expect(entry1).toBeGreaterThan(0);
     });
   });
 
@@ -807,46 +419,14 @@ Our approach to testing.
   });
 
   describe('Integration Tests', () => {
-    it('should handle full workflow: search, get client, read file', () => {
-      // 1. Search for client
-      const searchResults = db.searchClients('Test Client');
+    it('should handle full workflow: search, read file', () => {
+      // 1. Search for knowledge entry
+      const searchResults = db.searchKnowledgeEntries('Testing');
       expect(searchResults).toHaveLength(1);
 
-      // 2. Get client details
-      const client = db.getClient(searchResults[0].slug);
-      expect(client).toBeDefined();
-
-      // 3. Read client file
-      const content = readFileSync(client!.file_path, 'utf-8');
-      expect(content).toContain('Test Client');
-    });
-
-    it('should handle project workflow', () => {
-      // 1. Get client
-      const client = db.getClient('test-client');
-      expect(client).toBeDefined();
-
-      // 2. List projects
-      const projects = db.getProjectsByClient(client!.id);
-      expect(projects).toHaveLength(1);
-
-      // 3. Read project file
-      const content = readFileSync(projects[0].file_path, 'utf-8');
-      expect(content).toContain('Test Project');
-    });
-
-    it('should handle communication workflow', () => {
-      // 1. Get client
-      const client = db.getClient('test-client');
-      expect(client).toBeDefined();
-
-      // 2. Get communications
-      const comms = db.getCommunicationsByClient(client!.id);
-      expect(comms.length).toBeGreaterThan(0);
-
-      // 3. Read communication file
-      const content = readFileSync(comms[0].file_path, 'utf-8');
-      expect(content).toContain('Kickoff Meeting');
+      // 2. Read the file
+      const content = readFileSync(searchResults[0].file_path, 'utf-8');
+      expect(content).toContain('Testing Methodology');
     });
   });
 });

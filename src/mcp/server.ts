@@ -11,13 +11,13 @@ import { LuxDatabase } from '../db/index.js';
 import { GeneralScanner } from '../scanner/index.js';
 import { SubprocessSessionManager } from '../experts/subprocess-manager.js';
 import { routeQuery } from '../experts/router.js';
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { homedir } from 'os';
-import { createMarkdownWithFrontmatter } from '../utils/frontmatter.js';
+import { mkdirSync } from 'fs';
 
-const DEFAULT_DB_PATH = join(homedir(), '.lux', 'lux.db');
-const DEFAULT_CORPUS_PATH = join(homedir(), 'CORPUS');
+const DEFAULT_DB_PATH = process.env.LUX_DB_PATH || join(homedir(), '.lux', 'lux.db');
+const DEFAULT_CORPUS_PATH = process.env.LUX_CORPUS_PATH || join(homedir(), 'CORPUS');
 
 // Ensure .lux directory exists
 mkdirSync(dirname(DEFAULT_DB_PATH), { recursive: true });
@@ -52,13 +52,9 @@ const TOOLS: Tool[] = [
         },
         type: {
           type: 'string',
-          enum: ['all', 'client', 'project', 'comm', 'knowledge'],
+          enum: ['all', 'knowledge'],
           description: 'Filter by entity type',
           default: 'all',
-        },
-        client: {
-          type: 'string',
-          description: 'Filter by client slug (optional)',
         },
         limit: {
           type: 'number',
@@ -67,75 +63,6 @@ const TOOLS: Tool[] = [
         },
       },
       required: ['query'],
-    },
-  },
-  {
-    name: 'lux_get_client',
-    description:
-      'Get detailed information about a specific client including file path and metadata.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        slug: {
-          type: 'string',
-          description: 'Client slug',
-        },
-      },
-      required: ['slug'],
-    },
-  },
-  {
-    name: 'lux_list_projects',
-    description: 'List all projects for a given client.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        client_slug: {
-          type: 'string',
-          description: 'Client slug',
-        },
-      },
-      required: ['client_slug'],
-    },
-  },
-  {
-    name: 'lux_log_comm',
-    description:
-      'Log a new communication (email, slack, meeting, call, etc.). Creates a markdown file with frontmatter and indexes it.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        client_slug: {
-          type: 'string',
-          description: 'Client slug',
-        },
-        project_slug: {
-          type: 'string',
-          description: 'Project slug (optional)',
-        },
-        type: {
-          type: 'string',
-          description: 'Communication type (email, slack, meeting, call, etc.)',
-        },
-        subject: {
-          type: 'string',
-          description: 'Communication subject or title',
-        },
-        date: {
-          type: 'string',
-          description: 'Date in YYYY-MM-DD format',
-        },
-        participants: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'List of participants',
-        },
-        content: {
-          type: 'string',
-          description: 'Communication content (markdown)',
-        },
-      },
-      required: ['client_slug', 'type', 'subject', 'date'],
     },
   },
   {
@@ -155,14 +82,6 @@ const TOOLS: Tool[] = [
         summary: {
           type: 'string',
           description: 'Event summary',
-        },
-        client_slug: {
-          type: 'string',
-          description: 'Related client slug (optional)',
-        },
-        project_slug: {
-          type: 'string',
-          description: 'Related project slug (optional)',
         },
         payload: {
           type: 'object',
@@ -251,19 +170,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const {
           query,
           type = 'all',
-          client,
           limit = 20,
         } = args as {
           query: string;
           type?: string;
-          client?: string;
           limit?: number;
         };
 
         const results: Array<{
           type: string;
           title: string;
-          slug?: string;
           path: string;
           context?: string;
         }> = [];
@@ -279,66 +195,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 path: doc.file_path,
               });
             }
-          } else {
-            // Type-specific FTS5 search
-            if (type === 'client') {
-              const clients = db.searchClients(query);
-              for (const c of clients) {
-                results.push({
-                  type: 'client',
-                  title: c.name,
-                  slug: c.slug,
-                  path: c.file_path,
-                  context: c.status,
-                });
-              }
-            }
-
-            if (type === 'project') {
-              const projects = db.searchProjects(query);
-              for (const p of projects) {
-                if (client && p.client_slug !== client) continue;
-                results.push({
-                  type: 'project',
-                  title: `${p.client_slug}/${p.name}`,
-                  slug: p.slug,
-                  path: p.file_path,
-                  context: p.status,
-                });
-              }
-            }
-
-            if (type === 'comm') {
-              const communications = db.searchCommunications(query);
-              for (const comm of communications) {
-                if (client) {
-                  const clientRecord = db.getAllClients().find((c) => c.id === comm.client_id);
-                  if (!clientRecord || clientRecord.slug !== client) continue;
-                }
-                const subject = comm.subject ?? '';
-                results.push({
-                  type: 'communication',
-                  title: `[${comm.type}] ${subject}`,
-                  path: comm.file_path,
-                  context: comm.date_range,
-                });
-              }
-            }
-
-            if (type === 'knowledge') {
-              const entries = db.searchKnowledgeEntries(query);
-              for (const entry of entries) {
-                if (client && entry.client_id) {
-                  const clientRecord = db.getAllClients().find((c) => c.id === entry.client_id);
-                  if (!clientRecord || clientRecord.slug !== client) continue;
-                }
-                results.push({
-                  type: 'knowledge',
-                  title: entry.title,
-                  path: entry.file_path,
-                  context: entry.type,
-                });
-              }
+          } else if (type === 'knowledge') {
+            const entries = db.searchKnowledgeEntries(query);
+            for (const entry of entries) {
+              results.push({
+                type: 'knowledge',
+                title: entry.title,
+                path: entry.file_path,
+                context: entry.type,
+              });
             }
           }
         } catch (error) {
@@ -349,75 +214,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           );
 
           const searchQuery = query.toLowerCase();
-
-          // Legacy search - clients
-          if (type === 'all' || type === 'client') {
-            const clients = db.getAllClients();
-            for (const c of clients) {
-              if (
-                c.slug.toLowerCase().includes(searchQuery) ||
-                c.name.toLowerCase().includes(searchQuery)
-              ) {
-                results.push({
-                  type: 'client',
-                  title: c.name,
-                  slug: c.slug,
-                  path: c.file_path,
-                  context: c.status,
-                });
-              }
-            }
-          }
-
-          // Legacy search - projects
-          if (type === 'all' || type === 'project') {
-            const clients = client
-              ? [db.getClient(client)].filter((c) => c !== undefined)
-              : db.getAllClients();
-            for (const c of clients) {
-              if (!c) continue;
-              const projects = db.getProjectsByClient(c.id);
-              for (const p of projects) {
-                if (
-                  p.slug.toLowerCase().includes(searchQuery) ||
-                  p.name.toLowerCase().includes(searchQuery)
-                ) {
-                  results.push({
-                    type: 'project',
-                    title: `${c.slug}/${p.name}`,
-                    slug: p.slug,
-                    path: p.file_path,
-                    context: p.status,
-                  });
-                }
-              }
-            }
-          }
-
-          // Legacy search - communications
-          if (type === 'all' || type === 'comm') {
-            const clients = client
-              ? [db.getClient(client)].filter((c) => c !== undefined)
-              : db.getAllClients();
-            for (const c of clients) {
-              if (!c) continue;
-              const comms = db.getCommunicationsByClient(c.id);
-              for (const comm of comms) {
-                const subject = comm.subject ?? '';
-                if (
-                  subject.toLowerCase().includes(searchQuery) ||
-                  comm.type.toLowerCase().includes(searchQuery)
-                ) {
-                  results.push({
-                    type: 'communication',
-                    title: `[${comm.type}] ${subject}`,
-                    path: comm.file_path,
-                    context: comm.date_range,
-                  });
-                }
-              }
-            }
-          }
 
           // Legacy search - knowledge
           if (type === 'all' || type === 'knowledge') {
@@ -454,7 +250,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           payload: {
             query,
             type,
-            client,
             limit,
             results_count: results.length,
           },
@@ -470,186 +265,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
-      case 'lux_get_client': {
-        const { slug } = args as { slug: string };
-        const client = db.getClient(slug);
-
-        if (!client) {
-          return {
-            content: [{ type: 'text', text: `Client not found: ${slug}` }],
-            isError: true,
-          };
-        }
-
-        const projects = db.getProjectsByClient(client.id);
-        const comms = db.getCommunicationsByClient(client.id);
-
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(
-                {
-                  client,
-                  projects,
-                  recent_communications: comms.slice(0, 10),
-                },
-                null,
-                2
-              ),
-            },
-          ],
-        };
-      }
-
-      case 'lux_list_projects': {
-        const { client_slug } = args as { client_slug: string };
-        const client = db.getClient(client_slug);
-
-        if (!client) {
-          return {
-            content: [{ type: 'text', text: `Client not found: ${client_slug}` }],
-            isError: true,
-          };
-        }
-
-        const projects = db.getProjectsByClient(client.id);
-
-        return {
-          content: [{ type: 'text', text: JSON.stringify(projects, null, 2) }],
-        };
-      }
-
-      case 'lux_log_comm': {
-        const {
-          client_slug,
-          project_slug,
-          type,
-          subject,
-          date,
-          participants = [],
-          content = '',
-        } = args as {
-          client_slug: string;
-          project_slug?: string;
-          type: string;
-          subject: string;
-          date: string;
-          participants?: string[];
-          content?: string;
-        };
-
-        const client = db.getClient(client_slug);
-        if (!client) {
-          return {
-            content: [{ type: 'text', text: `Client not found: ${client_slug}` }],
-            isError: true,
-          };
-        }
-
-        let project;
-        if (project_slug) {
-          project = db.getProject(client_slug, project_slug);
-          if (!project) {
-            return {
-              content: [
-                { type: 'text', text: `Project not found: ${client_slug}/${project_slug}` },
-              ],
-              isError: true,
-            };
-          }
-        }
-
-        // Generate filename
-        const subjectSlug = subject
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/^-+|-+$/g, '');
-        const filename = `${date}_${type}_${subjectSlug}.md`;
-
-        // Determine file path
-        const commsDir = join(dirname(client.file_path), project_slug ?? '', 'communications');
-        mkdirSync(commsDir, { recursive: true });
-        const filePath = join(commsDir, filename);
-
-        // Generate file content with frontmatter
-        const fileContent = createMarkdownWithFrontmatter(
-          {
-            type,
-            subject,
-            date,
-            participants: participants.length > 0 ? participants : undefined,
-          },
-          content
-        );
-
-        // Write file
-        writeFileSync(filePath, fileContent, 'utf-8');
-
-        // Add to database
-        db.insertCommunication({
-          client_id: client.id,
-          project_id: project?.id,
-          type,
-          subject,
-          date_range: date,
-          participants,
-          file_path: filePath,
-          metadata: {},
-          content,
-        });
-
-        // Log event
-        db.insertEvent({
-          source: 'mcp',
-          event_type: 'comm_logged',
-          client_id: client.id,
-          project_id: project?.id,
-          summary: `Logged ${type}: ${subject}`,
-          payload: { file_path: filePath },
-        });
-
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({ success: true, file_path: filePath }, null, 2),
-            },
-          ],
-        };
-      }
-
       case 'lux_log_event': {
-        const { source, event_type, summary, client_slug, project_slug, payload } = args as {
+        const { source, event_type, summary, payload } = args as {
           source: string;
           event_type: string;
           summary: string;
-          client_slug?: string;
-          project_slug?: string;
           payload?: Record<string, unknown>;
         };
-
-        let clientId;
-        let projectId;
-
-        if (client_slug) {
-          const client = db.getClient(client_slug);
-          if (client) {
-            clientId = client.id;
-
-            if (project_slug) {
-              const project = db.getProject(client_slug, project_slug);
-              if (project) projectId = project.id;
-            }
-          }
-        }
 
         db.insertEvent({
           source,
           event_type,
           summary,
-          client_id: clientId,
-          project_id: projectId,
           payload,
         });
 
@@ -686,7 +313,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         db.insertEvent({
           source: 'mcp',
           event_type: 'index_rebuild',
-          summary: `Indexed ${result.clients.length} clients, ${result.projects.length} projects, ${result.communications.length} communications, ${result.knowledge.length} knowledge entries`,
+          summary: `Indexed ${result.knowledge.length} knowledge entries`,
         });
 
         return {
@@ -697,9 +324,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 {
                   success: true,
                   indexed: {
-                    clients: result.clients.length,
-                    projects: result.projects.length,
-                    communications: result.communications.length,
                     knowledge: result.knowledge.length,
                   },
                 },

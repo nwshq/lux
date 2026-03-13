@@ -636,10 +636,7 @@ describe('generalScan pipeline', () => {
   it('should scan CORPUS without enrichment when LSP is disabled', async () => {
     const result = await generalScan(corpusDir);
 
-    expect(result.scan.clients).toHaveLength(1);
-    expect(result.scan.clients[0].slug).toBe('test-client');
-    expect(result.scan.projects).toHaveLength(1);
-    expect(result.scan.projects[0].slug).toBe('test-project');
+    expect(result.scan.knowledge.length).toBeGreaterThan(0);
     expect(result.enrichments.size).toBe(0);
     expect(result.stats.activeEnrichers).toBe(0);
     expect(result.stats.enrichedFiles).toBe(0);

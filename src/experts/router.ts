@@ -463,51 +463,6 @@ function collectFtsHits(ftsQuery: string, db: LuxDatabase): FtsHit[] {
     // FTS5 not available for knowledge entries
   }
 
-  try {
-    const clients = db.searchClients(ftsQuery);
-    for (const client of clients) {
-      hits.push({
-        filePath: client.file_path,
-        rank: 0,
-        content: client.content ?? undefined,
-        title: client.name,
-        metadata: client.metadata ?? undefined,
-      });
-    }
-  } catch {
-    // FTS5 not available for clients
-  }
-
-  try {
-    const projects = db.searchProjects(ftsQuery);
-    for (const project of projects) {
-      hits.push({
-        filePath: project.file_path,
-        rank: 0,
-        content: project.content ?? undefined,
-        title: project.name,
-        metadata: project.metadata ?? undefined,
-      });
-    }
-  } catch {
-    // FTS5 not available for projects
-  }
-
-  try {
-    const communications = db.searchCommunications(ftsQuery);
-    for (const comm of communications) {
-      hits.push({
-        filePath: comm.file_path,
-        rank: 0,
-        content: comm.content ?? undefined,
-        title: comm.subject ?? comm.file_path,
-        metadata: comm.metadata ?? undefined,
-      });
-    }
-  } catch {
-    // FTS5 not available for communications
-  }
-
   return hits;
 }
 
