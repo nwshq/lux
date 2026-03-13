@@ -244,6 +244,7 @@ export function addExpertCommands(program: Command) {
     .description('Discover and propose expert boundaries from directory structure')
     .option('--model <model>', 'AI model for analysis', 'claude-sonnet-4-20250514')
     .option('--dry-run', 'Show proposals without registering')
+    .option('--accept-all', 'Accept all proposals without interactive review')
     .option('--diff', 'Only show proposals that differ from current experts')
     .option('--json', 'Output proposals as JSON (skip interactive review)')
     .option('--max-experts <n>', 'Maximum number of experts to propose', '20')
@@ -252,6 +253,7 @@ export function addExpertCommands(program: Command) {
       async (options: {
         model: string;
         dryRun?: boolean;
+        acceptAll?: boolean;
         diff?: boolean;
         json?: boolean;
         maxExperts: string;
@@ -272,6 +274,7 @@ export function addExpertCommands(program: Command) {
           rootPath: corpusPath,
           model: options.model,
           dryRun: options.dryRun,
+          acceptAll: options.acceptAll,
           diff: options.diff,
           json: options.json,
           maxExperts: parseInt(options.maxExperts, 10),

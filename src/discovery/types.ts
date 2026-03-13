@@ -15,6 +15,8 @@ export interface DiscoveryOptions {
   maxExperts?: number;
   /** Minimum confidence threshold 0.0–1.0 (default: 0.5). */
   minConfidence?: number;
+  /** Accept all proposals without interactive review. */
+  acceptAll?: boolean;
   /** Only show proposals that differ from current experts. */
   diff?: boolean;
 }

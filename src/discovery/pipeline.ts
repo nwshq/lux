@@ -94,8 +94,14 @@ export async function runDiscoveryPipeline(
       };
     }
 
-    // Stage 4: Interactive review (only actionable proposals)
-    const reviewed = await stages.review(actionable);
+    // Accept-all mode: skip interactive review, accept all actionable proposals
+    let reviewed;
+    if (options.acceptAll) {
+      reviewed = { accepted: actionable, skipped: [] as ProposedExpert[] };
+    } else {
+      // Stage 4: Interactive review (only actionable proposals)
+      reviewed = await stages.review(actionable);
+    }
 
     if (reviewed.accepted.length === 0) {
       return {
@@ -132,8 +138,14 @@ export async function runDiscoveryPipeline(
     };
   }
 
-  // Stage 4: Interactive review
-  const reviewed = await stages.review(candidates);
+  // Accept-all mode: skip interactive review, accept all candidates
+  let reviewed;
+  if (options.acceptAll) {
+    reviewed = { accepted: candidates, skipped: [] as ProposedExpert[] };
+  } else {
+    // Stage 4: Interactive review
+    reviewed = await stages.review(candidates);
+  }
 
   if (reviewed.accepted.length === 0) {
     return {

@@ -432,6 +432,94 @@ describe('runDiscoveryPipeline', () => {
     );
   });
 
+  // ── Accept-All Mode ─────────────────────────────────────
+
+  it('skips review and accepts all candidates when acceptAll is set', async () => {
+    const stages = makeStages();
+
+    const result = await runDiscoveryPipeline(db, { ...baseOptions, acceptAll: true }, stages);
+
+    expect(stages.review).not.toHaveBeenCalled();
+    expect(stages.register).toHaveBeenCalled();
+
+    // All 3 proposals above default 0.5 threshold should be accepted
+    expect(result.accepted).toHaveLength(3);
+    expect(result.accepted.map((p) => p.slug)).toEqual(['invoicing', 'reporting', 'auth']);
+    expect(result.skipped).toHaveLength(0);
+    expect(result.registered).toHaveLength(1); // mock register returns 1
+  });
+
+  it('dry-run takes precedence over acceptAll', async () => {
+    const stages = makeStages();
+
+    const result = await runDiscoveryPipeline(
+      db,
+      { ...baseOptions, dryRun: true, acceptAll: true },
+      stages
+    );
+
+    expect(stages.review).not.toHaveBeenCalled();
+    expect(stages.register).not.toHaveBeenCalled();
+
+    expect(result.proposed).toHaveLength(3);
+    expect(result.accepted).toHaveLength(0);
+    expect(result.skipped).toHaveLength(3);
+    expect(result.registered).toHaveLength(0);
+  });
+
+  it('acceptAll respects confidence threshold', async () => {
+    const stages = makeStages({
+      analyze: vi.fn().mockResolvedValue({
+        experts: [
+          makeProposal({ slug: 'high', confidence: 0.9 }),
+          makeProposal({ slug: 'low', confidence: 0.3 }),
+        ],
+        rationale: 'Mixed.',
+      }),
+      register: vi.fn().mockResolvedValue([{ slug: 'high', mountPath: 'modules/High/' }]),
+    });
+
+    const result = await runDiscoveryPipeline(
+      db,
+      { ...baseOptions, acceptAll: true, minConfidence: 0.5 },
+      stages
+    );
+
+    expect(stages.review).not.toHaveBeenCalled();
+    // Only the high-confidence proposal passes the filter
+    expect(result.proposed).toHaveLength(1);
+    expect(result.accepted).toHaveLength(1);
+    expect(result.accepted[0].slug).toBe('high');
+  });
+
+  it('acceptAll works with diff mode', async () => {
+    // Register an existing expert so diff has something to compare
+    db.insertExpert({
+      slug: 'existing',
+      name: 'Existing',
+      mount_path: '/fake/root/existing',
+    });
+
+    const stages = makeStages({
+      analyze: vi.fn().mockResolvedValue({
+        experts: [
+          makeProposal({ slug: 'new-expert', confidence: 0.9, mountPath: 'modules/New/' }),
+        ],
+        rationale: 'New boundary found.',
+      }),
+      register: vi.fn().mockResolvedValue([{ slug: 'new-expert', mountPath: 'modules/New/' }]),
+    });
+
+    const result = await runDiscoveryPipeline(
+      db,
+      { ...baseOptions, acceptAll: true, diff: true },
+      stages
+    );
+
+    expect(stages.review).not.toHaveBeenCalled();
+    expect(result.diffResult).toBeDefined();
+  });
+
   // ── Options Passthrough ────────────────────────────────
 
   it('passes options through to enrichContext and analyze', async () => {

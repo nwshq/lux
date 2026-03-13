@@ -5,6 +5,7 @@ import { join } from 'path';
 import { homedir } from 'os';
 import { LuxDatabase } from '../db/index.js';
 import { GeneralScanner } from '../scanner/index.js';
+import { generalScan, attachEnrichment } from '../scanner/general.js';
 import { existsSync } from 'fs';
 import { addSearchCommand } from './search.js';
 import { addHooksCommand } from './hooks.js';
@@ -69,16 +70,26 @@ indexCmd
         console.log(`Scanning content directory: ${corpusPath}`);
       }
 
-      // Scan content directory with error handling
-      let result;
+      // Scan content directory with LSP enrichment pipeline
+      let generalResult;
       try {
-        result = await scanner.scan();
+        generalResult = await generalScan(corpusPath, {
+          onProgress: options.quiet ? undefined : (msg) => console.log(`  ${msg}`),
+        });
       } catch (error) {
         console.error('Error: Failed to scan content directory');
         console.error(`  ${error instanceof Error ? error.message : String(error)}`);
         db.close();
         process.exit(1);
       }
+
+      // Attach enrichment data to each knowledge entry
+      const result = {
+        ...generalResult.scan,
+        knowledge: generalResult.scan.knowledge.map((entry) =>
+          attachEnrichment(entry, generalResult.enrichments)
+        ),
+      };
 
       // Validate scan results
       if (!result || typeof result !== 'object') {
@@ -93,6 +104,9 @@ indexCmd
         console.log(`Found:`);
         console.log(`  - ${knowledgeCount} knowledge entries`);
         console.log(`  - ${sourceCodeCount} source code files`);
+        if (generalResult.stats.enrichedFiles > 0) {
+          console.log(`  Enriched ${generalResult.stats.enrichedFiles} files via LSP`);
+        }
         console.log(`\nClearing existing index...`);
       }
 
