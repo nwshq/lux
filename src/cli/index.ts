@@ -6,6 +6,8 @@ import { homedir } from 'os';
 import { LuxDatabase } from '../db/index.js';
 import { GeneralScanner } from '../scanner/index.js';
 import { generalScan, attachEnrichment } from '../scanner/general.js';
+import { isGitRepository, getHeadCommit, getGitDiff, commitExists } from '../scanner/git.js';
+import { buildIncrementalPlan } from '../scanner/incremental.js';
 import { existsSync } from 'fs';
 import { addSearchCommand } from './search.js';
 import { addHooksCommand } from './hooks.js';
@@ -155,6 +157,21 @@ indexCmd
         }
       }
 
+      // Store HEAD commit hash if this is a git repo
+      if (isGitRepository(corpusPath)) {
+        try {
+          const headCommit = getHeadCommit(corpusPath);
+          db.setIndexMetadata('last_indexed_commit', headCommit);
+          if (!options.quiet) {
+            console.log(`Stored commit hash: ${headCommit.slice(0, 8)}`);
+          }
+        } catch {
+          if (!options.quiet) {
+            console.warn('Warning: Failed to store git commit hash');
+          }
+        }
+      }
+
       if (!options.quiet) {
         console.log('✓ Index rebuilt successfully');
       }
@@ -170,6 +187,266 @@ indexCmd
         } catch {
           // Ignore close errors
         }
+      }
+      process.exit(1);
+    }
+  });
+
+indexCmd
+  .command('sync')
+  .description('Incrementally update index based on git changes')
+  .option('--quiet', 'Suppress output')
+  .option('--force', 'Ignore stored commit, do full rebuild')
+  .action(async (options: { quiet?: boolean; force?: boolean }) => {
+    const opts = program.opts();
+    const corpusPath = opts.corpus as string;
+    let db: LuxDatabase | undefined;
+
+    try {
+      // Validate content directory
+      if (!existsSync(corpusPath)) {
+        console.error(`Error: Content directory not found: ${corpusPath}`);
+        process.exit(1);
+      }
+
+      // Check if this is a git repo
+      if (!isGitRepository(corpusPath)) {
+        console.error('Error: Content directory is not a git repository');
+        console.error('  Use "lux index rebuild" for non-git directories');
+        process.exit(1);
+      }
+
+      // Initialize database
+      try {
+        db = new LuxDatabase(opts.db as string);
+      } catch (error) {
+        console.error(`Error: Failed to initialize database: ${opts.db}`);
+        console.error(`  ${error instanceof Error ? error.message : String(error)}`);
+        process.exit(1);
+      }
+
+      if (!db.isSchemaUpToDate()) {
+        console.error('Error: Database schema is not up to date');
+        console.error('  Run "lux migrate" to update the schema');
+        db.close();
+        process.exit(1);
+      }
+
+      const lastCommit = db.getIndexMetadata('last_indexed_commit');
+
+      // If --force or no stored commit, fall back to full rebuild
+      if (options.force || !lastCommit) {
+        if (!options.quiet) {
+          if (options.force) {
+            console.log('Force flag set, running full rebuild...');
+          } else {
+            console.log('No previous index commit found, running full rebuild...');
+          }
+        }
+        // Delegate to the rebuild logic by re-executing it programmatically
+        // We replicate the rebuild flow here for simplicity
+        const scanner = new GeneralScanner(corpusPath);
+        let generalResult;
+        try {
+          generalResult = await generalScan(corpusPath, {
+            onProgress: options.quiet ? undefined : (msg) => console.log(`  ${msg}`),
+          });
+        } catch (error) {
+          console.error('Error: Failed to scan content directory');
+          console.error(`  ${error instanceof Error ? error.message : String(error)}`);
+          db.close();
+          process.exit(1);
+        }
+
+        const result = {
+          ...generalResult.scan,
+          knowledge: generalResult.scan.knowledge.map((entry) =>
+            attachEnrichment(entry, generalResult.enrichments)
+          ),
+        };
+
+        db.clearAll();
+        await scanner.index(db, result);
+
+        const headCommit = getHeadCommit(corpusPath);
+        db.setIndexMetadata('last_indexed_commit', headCommit);
+
+        if (!options.quiet) {
+          console.log(`✓ Full rebuild complete (${result.knowledge.length} entries, commit ${headCommit.slice(0, 8)})`);
+        }
+
+        db.close();
+        return;
+      }
+
+      // Verify stored commit still exists
+      if (!commitExists(corpusPath, lastCommit)) {
+        if (!options.quiet) {
+          console.warn('Warning: Stored commit no longer exists (possible force push), running full rebuild...');
+        }
+        const scanner = new GeneralScanner(corpusPath);
+        let generalResult;
+        try {
+          generalResult = await generalScan(corpusPath, {
+            onProgress: options.quiet ? undefined : (msg) => console.log(`  ${msg}`),
+          });
+        } catch (error) {
+          console.error('Error: Failed to scan content directory');
+          console.error(`  ${error instanceof Error ? error.message : String(error)}`);
+          db.close();
+          process.exit(1);
+        }
+
+        const result = {
+          ...generalResult.scan,
+          knowledge: generalResult.scan.knowledge.map((entry) =>
+            attachEnrichment(entry, generalResult.enrichments)
+          ),
+        };
+
+        db.clearAll();
+        await scanner.index(db, result);
+
+        const headCommit = getHeadCommit(corpusPath);
+        db.setIndexMetadata('last_indexed_commit', headCommit);
+
+        if (!options.quiet) {
+          console.log(`✓ Full rebuild complete (${result.knowledge.length} entries, commit ${headCommit.slice(0, 8)})`);
+        }
+
+        db.close();
+        return;
+      }
+
+      // Get HEAD commit
+      const headCommit = getHeadCommit(corpusPath);
+
+      // Check if already up to date
+      if (headCommit === lastCommit) {
+        if (!options.quiet) {
+          console.log('Index is up to date');
+        }
+        db.close();
+        return;
+      }
+
+      if (!options.quiet) {
+        console.log(`Syncing index: ${lastCommit.slice(0, 8)}..${headCommit.slice(0, 8)}`);
+      }
+
+      // Get git diff
+      let diff;
+      try {
+        diff = getGitDiff(corpusPath, lastCommit, headCommit);
+      } catch {
+        if (!options.quiet) {
+          console.warn('Warning: git diff failed, running full rebuild...');
+        }
+        const scanner = new GeneralScanner(corpusPath);
+        const generalResult = await generalScan(corpusPath, {
+          onProgress: options.quiet ? undefined : (msg) => console.log(`  ${msg}`),
+        });
+        const result = {
+          ...generalResult.scan,
+          knowledge: generalResult.scan.knowledge.map((entry) =>
+            attachEnrichment(entry, generalResult.enrichments)
+          ),
+        };
+        db.clearAll();
+        await scanner.index(db, result);
+        db.setIndexMetadata('last_indexed_commit', headCommit);
+        if (!options.quiet) {
+          console.log(`✓ Full rebuild complete (${result.knowledge.length} entries)`);
+        }
+        db.close();
+        return;
+      }
+
+      // Build incremental plan
+      const plan = buildIncrementalPlan(corpusPath, diff);
+
+      if (!options.quiet) {
+        console.log(`Changes: +${diff.added.length} added, ~${diff.modified.length} modified, -${diff.deleted.length} deleted`);
+        console.log(`Indexable: ${plan.toIndex.length} to index, ${plan.toDelete.length} to delete`);
+      }
+
+      // Delete removed entries from DB
+      for (const filePath of plan.toDelete) {
+        db.deleteKnowledgeEntryByPath(filePath);
+      }
+
+      // LSP enrichment for changed source files only
+      const sourceFilesToEnrich = plan.toIndex
+        .filter((entry) => entry.type === 'source-code')
+        .map((entry) => entry.filePath);
+
+      if (sourceFilesToEnrich.length > 0) {
+        try {
+          const { loadLspConfig } = await import('../scanner/config.js');
+          const config = loadLspConfig(corpusPath);
+
+          if (config.lsp.enabled) {
+            if (!options.quiet) {
+              console.log(`Enriching ${sourceFilesToEnrich.length} source files via LSP...`);
+            }
+
+            // Run enrichment on just the changed files by doing a targeted scan
+            const targetedResult = await generalScan(corpusPath, {
+              onProgress: options.quiet ? undefined : (msg) => console.log(`  ${msg}`),
+            });
+
+            // Apply enrichments only to our changed files
+            for (let i = 0; i < plan.toIndex.length; i++) {
+              const entry = plan.toIndex[i];
+              const enrichment = targetedResult.enrichments.get(entry.filePath);
+              if (enrichment) {
+                plan.toIndex[i] = attachEnrichment(entry, targetedResult.enrichments);
+              }
+            }
+          }
+        } catch {
+          if (!options.quiet) {
+            console.warn('Warning: LSP enrichment failed, continuing without enrichment');
+          }
+        }
+      }
+
+      // Index new/modified entries
+      for (const entry of plan.toIndex) {
+        db.insertKnowledgeEntry({
+          type: entry.type,
+          title: entry.title,
+          file_path: entry.filePath,
+          tags: entry.tags,
+          metadata: entry.frontmatter,
+          content: entry.content,
+        });
+      }
+
+      // Store new commit hash
+      db.setIndexMetadata('last_indexed_commit', headCommit);
+
+      // Log event
+      try {
+        db.insertEvent({
+          source: 'cli',
+          event_type: 'index_sync',
+          summary: `Synced index: +${plan.toIndex.length} indexed, -${plan.toDelete.length} deleted`,
+        });
+      } catch {
+        // Non-fatal
+      }
+
+      if (!options.quiet) {
+        console.log(`✓ Synced: +${plan.toIndex.length} indexed, -${plan.toDelete.length} deleted (commit ${headCommit.slice(0, 8)})`);
+      }
+
+      db.close();
+    } catch (error) {
+      console.error('Error: Unexpected error during index sync');
+      console.error(`  ${error instanceof Error ? error.message : String(error)}`);
+      if (db) {
+        try { db.close(); } catch { /* ignore */ }
       }
       process.exit(1);
     }

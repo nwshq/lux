@@ -13,7 +13,7 @@ import { PhpLspEnricher } from './lsp/php.js';
 // ---------------------------------------------------------------------------
 
 /** File extensions to scan as source code, grouped by language. */
-const SOURCE_CODE_EXTENSIONS: string[] = [
+export const SOURCE_CODE_EXTENSIONS: string[] = [
   '.php',
   '.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs',
   '.py',
@@ -27,7 +27,7 @@ const SOURCE_CODE_EXTENSIONS: string[] = [
 ];
 
 /** Map file extension to language identifier. */
-const EXTENSION_TO_LANGUAGE: Record<string, string> = {
+export const EXTENSION_TO_LANGUAGE: Record<string, string> = {
   '.php': 'php',
   '.ts': 'typescript',
   '.tsx': 'typescript',
@@ -54,7 +54,7 @@ const EXTENSION_TO_LANGUAGE: Record<string, string> = {
 };
 
 /** Directory patterns to always exclude from source code scanning. */
-const SOURCE_CODE_IGNORE_PATTERNS: string[] = [
+export const SOURCE_CODE_IGNORE_PATTERNS: string[] = [
   'node_modules/**',
   'vendor/**',
   '.git/**',
@@ -85,6 +85,31 @@ const SOURCE_CODE_MANIFEST_FILES: string[] = [
   'setup.py',
   'requirements.txt',
 ];
+
+/**
+ * Detect the language identifier for a file based on its extension.
+ */
+export function detectLanguage(ext: string): string {
+  return EXTENSION_TO_LANGUAGE[ext] ?? 'unknown';
+}
+
+/**
+ * Infer tags from a source code file path by extracting meaningful
+ * directory and filename segments.
+ */
+export function inferTagsFromPath(filePath: string): string[] {
+  const parts = filePath.split('/');
+  const tags: string[] = [];
+
+  for (const part of parts) {
+    const name = part.includes('.') ? basename(part, extname(part)) : part;
+    if (name && name !== 'src' && name !== 'lib' && name !== 'index') {
+      tags.push(name);
+    }
+  }
+
+  return tags;
+}
 
 export class GeneralScanner {
   private rootPath?: string;

@@ -52,6 +52,13 @@ export class PreparedQueries {
   readonly deleteSessionsByExpert: Database.Statement;
   readonly clearExpertSessions: Database.Statement;
 
+  // Index metadata queries
+  readonly getIndexMetadata: Database.Statement;
+  readonly setIndexMetadata: Database.Statement;
+
+  // Delete knowledge entry by path
+  readonly deleteKnowledgeEntryByPath: Database.Statement;
+
   constructor(db: Database.Database) {
     // Knowledge entry queries
     this.insertKnowledgeEntry = db.prepare(`
@@ -201,5 +208,21 @@ export class PreparedQueries {
     `);
 
     this.clearExpertSessions = db.prepare(`DELETE FROM expert_sessions`);
+
+    // Index metadata queries
+    this.getIndexMetadata = db.prepare(`
+      SELECT value FROM index_metadata WHERE key = ?
+    `);
+
+    this.setIndexMetadata = db.prepare(`
+      INSERT INTO index_metadata (key, value, updated_at)
+      VALUES (@key, @value, unixepoch())
+      ON CONFLICT(key) DO UPDATE SET value = @value, updated_at = unixepoch()
+    `);
+
+    // Delete knowledge entry by file path
+    this.deleteKnowledgeEntryByPath = db.prepare(`
+      DELETE FROM knowledge_entries WHERE file_path = ?
+    `);
   }
 }

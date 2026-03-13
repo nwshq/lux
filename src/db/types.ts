@@ -78,6 +78,13 @@ export interface ExpertSessionInsert {
   status?: string;
 }
 
+/** Index metadata key-value pair for tracking index state. */
+export interface IndexMetadata {
+  key: string;
+  value: string;
+  updated_at: number;
+}
+
 /** Unified search result from querying across all FTS5 tables. */
 export interface DocumentSearchResult {
   file_path: string;

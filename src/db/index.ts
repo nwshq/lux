@@ -307,6 +307,25 @@ export class LuxDatabase {
     this.getQueries().deleteSessionsByExpert.run(expertId);
   }
 
+  // Knowledge entry deletion by path
+  deleteKnowledgeEntryByPath(filePath: string): void {
+    this.getQueries().deleteKnowledgeEntryByPath.run(filePath);
+  }
+
+  deleteKnowledgeEntry(id: number): void {
+    this.getQueries().deleteKnowledgeEntry.run(id);
+  }
+
+  // Index metadata operations
+  getIndexMetadata(key: string): string | undefined {
+    const result = this.getQueries().getIndexMetadata.get(key) as { value: string } | undefined;
+    return result?.value;
+  }
+
+  setIndexMetadata(key: string, value: string): void {
+    this.getQueries().setIndexMetadata.run({ key, value });
+  }
+
   // Utility operations
   clearAll() {
     const queries = this.getQueries();
