@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/nwshq/lux/compare/v1.0.0...v1.0.1) (2026-03-14)
+
+
+### Bug Fixes
+
+* resolve symlinks in bin/lux wrapper script ([bc16655](https://github.com/nwshq/lux/commit/bc1665551c7f9fa455e6aa665a45dff5d2e371b3))
+
 # 1.0.0 (2026-03-14)
 
 
