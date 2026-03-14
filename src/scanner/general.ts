@@ -40,7 +40,7 @@ export const SOURCE_CODE_EXTENSIONS: string[] = [
 ];
 
 /** Map file extension to language identifier. */
-export const EXTENSION_TO_LANGUAGE: Record<string, string> = {
+const EXTENSION_TO_LANGUAGE: Record<string, string> = {
   '.php': 'php',
   '.ts': 'typescript',
   '.tsx': 'typescript',
