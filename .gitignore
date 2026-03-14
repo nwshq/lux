@@ -8,8 +8,6 @@ dist/
 coverage/
 .vscode/
 .idea/
-.next/
-.env.local
 
 # Test temporary files
 src/**/__tests__/temp-*
