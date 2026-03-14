@@ -502,9 +502,7 @@ describe('runDiscoveryPipeline', () => {
 
     const stages = makeStages({
       analyze: vi.fn().mockResolvedValue({
-        experts: [
-          makeProposal({ slug: 'new-expert', confidence: 0.9, mountPath: 'modules/New/' }),
-        ],
+        experts: [makeProposal({ slug: 'new-expert', confidence: 0.9, mountPath: 'modules/New/' })],
         rationale: 'New boundary found.',
       }),
       register: vi.fn().mockResolvedValue([{ slug: 'new-expert', mountPath: 'modules/New/' }]),

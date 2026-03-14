@@ -3,9 +3,9 @@ import { existsSync } from 'fs';
 import { join } from 'path';
 
 export interface GitDiffResult {
-  added: string[];      // New files
-  modified: string[];   // Changed files
-  deleted: string[];    // Removed files
+  added: string[]; // New files
+  modified: string[]; // Changed files
+  deleted: string[]; // Removed files
 }
 
 /**
@@ -30,16 +30,20 @@ export function getHeadCommit(rootPath: string): string {
  *
  * Returns categorized file paths (relative to rootPath).
  */
-export function getGitDiff(rootPath: string, fromCommit: string, toCommit: string = 'HEAD'): GitDiffResult {
+export function getGitDiff(
+  rootPath: string,
+  fromCommit: string,
+  toCommit: string = 'HEAD'
+): GitDiffResult {
   const added: string[] = [];
   const modified: string[] = [];
   const deleted: string[] = [];
 
   // Get added files
-  const addedOutput = execSync(
-    `git diff --name-only --diff-filter=A ${fromCommit} ${toCommit}`,
-    { cwd: rootPath, encoding: 'utf-8' }
-  ).trim();
+  const addedOutput = execSync(`git diff --name-only --diff-filter=A ${fromCommit} ${toCommit}`, {
+    cwd: rootPath,
+    encoding: 'utf-8',
+  }).trim();
   if (addedOutput) added.push(...addedOutput.split('\n'));
 
   // Get modified files (includes copied and renamed)
@@ -50,10 +54,10 @@ export function getGitDiff(rootPath: string, fromCommit: string, toCommit: strin
   if (modifiedOutput) modified.push(...modifiedOutput.split('\n'));
 
   // Get deleted files
-  const deletedOutput = execSync(
-    `git diff --name-only --diff-filter=D ${fromCommit} ${toCommit}`,
-    { cwd: rootPath, encoding: 'utf-8' }
-  ).trim();
+  const deletedOutput = execSync(`git diff --name-only --diff-filter=D ${fromCommit} ${toCommit}`, {
+    cwd: rootPath,
+    encoding: 'utf-8',
+  }).trim();
   if (deletedOutput) deleted.push(...deletedOutput.split('\n'));
 
   return { added, modified, deleted };

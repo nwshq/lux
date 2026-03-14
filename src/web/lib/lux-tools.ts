@@ -8,11 +8,7 @@ export const luxSearch = tool({
     'Search the Lux knowledge base for documents matching a query. Returns titles, file paths, and content snippets.',
   parameters: z.object({
     query: z.string().describe('Search query string'),
-    limit: z
-      .number()
-      .optional()
-      .default(10)
-      .describe('Maximum number of results to return'),
+    limit: z.number().optional().default(10).describe('Maximum number of results to return'),
   }),
   execute: async ({ query, limit }) => {
     const db = getLuxDatabase();

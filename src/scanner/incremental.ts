@@ -11,9 +11,9 @@ import {
 } from './general.js';
 
 export interface IncrementalPlan {
-  toDelete: string[];          // Absolute file paths to remove from index
+  toDelete: string[]; // Absolute file paths to remove from index
   toIndex: ScannedKnowledge[]; // New/modified entries to add
-  unchanged: number;           // Count of files not affected
+  unchanged: number; // Count of files not affected
 }
 
 /** Set of indexable extensions (markdown + source code). */
@@ -136,10 +136,7 @@ function extractTitleFromFilename(filename: string): string {
  * Modified files appear in both toDelete (remove old) and toIndex (add new)
  * to keep FTS5 consistent.
  */
-export function buildIncrementalPlan(
-  rootPath: string,
-  diff: GitDiffResult
-): IncrementalPlan {
+export function buildIncrementalPlan(rootPath: string, diff: GitDiffResult): IncrementalPlan {
   const toDelete: string[] = [];
   const toIndex: ScannedKnowledge[] = [];
   let excluded = 0;

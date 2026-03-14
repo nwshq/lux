@@ -15,15 +15,28 @@ import { PhpLspEnricher } from './lsp/php.js';
 /** File extensions to scan as source code, grouped by language. */
 export const SOURCE_CODE_EXTENSIONS: string[] = [
   '.php',
-  '.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs',
+  '.ts',
+  '.tsx',
+  '.js',
+  '.jsx',
+  '.mjs',
+  '.cjs',
   '.py',
   '.go',
   '.rb',
   '.rs',
-  '.java', '.kt',
-  '.c', '.h', '.cpp', '.hpp',
-  '.vue', '.svelte',
-  '.json', '.yaml', '.yml', '.toml',
+  '.java',
+  '.kt',
+  '.c',
+  '.h',
+  '.cpp',
+  '.hpp',
+  '.vue',
+  '.svelte',
+  '.json',
+  '.yaml',
+  '.yml',
+  '.toml',
 ];
 
 /** Map file extension to language identifier. */
@@ -135,7 +148,10 @@ export class GeneralScanner {
 
       knowledge.push({
         type: this.inferKnowledgeType(mdFile, fileData.frontmatter),
-        title: fileData.frontmatter?.title ?? fileData.frontmatter?.name ?? this.extractTitleFromFilename(mdFile),
+        title:
+          fileData.frontmatter?.title ??
+          fileData.frontmatter?.name ??
+          this.extractTitleFromFilename(mdFile),
         filePath,
         tags: fileData.frontmatter?.tags,
         frontmatter: fileData.frontmatter,
@@ -178,9 +194,7 @@ export class GeneralScanner {
    * for common manifest/build files.
    */
   private isSourceCodeRepository(rootPath: string): boolean {
-    return SOURCE_CODE_MANIFEST_FILES.some((manifest) =>
-      existsSync(join(rootPath, manifest))
-    );
+    return SOURCE_CODE_MANIFEST_FILES.some((manifest) => existsSync(join(rootPath, manifest)));
   }
 
   /**

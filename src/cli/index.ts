@@ -272,7 +272,9 @@ indexCmd
         db.setIndexMetadata('last_indexed_commit', headCommit);
 
         if (!options.quiet) {
-          console.log(`✓ Full rebuild complete (${result.knowledge.length} entries, commit ${headCommit.slice(0, 8)})`);
+          console.log(
+            `✓ Full rebuild complete (${result.knowledge.length} entries, commit ${headCommit.slice(0, 8)})`
+          );
         }
 
         db.close();
@@ -282,7 +284,9 @@ indexCmd
       // Verify stored commit still exists
       if (!commitExists(corpusPath, lastCommit)) {
         if (!options.quiet) {
-          console.warn('Warning: Stored commit no longer exists (possible force push), running full rebuild...');
+          console.warn(
+            'Warning: Stored commit no longer exists (possible force push), running full rebuild...'
+          );
         }
         const scanner = new GeneralScanner(corpusPath);
         let generalResult;
@@ -311,7 +315,9 @@ indexCmd
         db.setIndexMetadata('last_indexed_commit', headCommit);
 
         if (!options.quiet) {
-          console.log(`✓ Full rebuild complete (${result.knowledge.length} entries, commit ${headCommit.slice(0, 8)})`);
+          console.log(
+            `✓ Full rebuild complete (${result.knowledge.length} entries, commit ${headCommit.slice(0, 8)})`
+          );
         }
 
         db.close();
@@ -366,8 +372,12 @@ indexCmd
       const plan = buildIncrementalPlan(corpusPath, diff);
 
       if (!options.quiet) {
-        console.log(`Changes: +${diff.added.length} added, ~${diff.modified.length} modified, -${diff.deleted.length} deleted`);
-        console.log(`Indexable: ${plan.toIndex.length} to index, ${plan.toDelete.length} to delete`);
+        console.log(
+          `Changes: +${diff.added.length} added, ~${diff.modified.length} modified, -${diff.deleted.length} deleted`
+        );
+        console.log(
+          `Indexable: ${plan.toIndex.length} to index, ${plan.toDelete.length} to delete`
+        );
       }
 
       // Delete removed entries from DB
@@ -394,32 +404,47 @@ indexCmd
 
             // Build enricher registry from config (same as generalScan but targeted)
             const registry = new EnricherRegistry();
-            const ENRICHER_FACTORIES: Record<string, (entry: typeof config.lsp.enrichers[0]) => InstanceType<typeof PhpLspEnricher>> = {
-              php: (entry) => new PhpLspEnricher({
-                serverCommand: entry.serverCommand,
-                serverArgs: entry.serverArgs,
-                maxConcurrency: entry.maxConcurrency,
-                requestTimeoutMs: entry.requestTimeoutMs,
-                initTimeoutMs: entry.initTimeoutMs,
-              }),
+            const ENRICHER_FACTORIES: Record<
+              string,
+              (entry: (typeof config.lsp.enrichers)[0]) => InstanceType<typeof PhpLspEnricher>
+            > = {
+              php: (entry) =>
+                new PhpLspEnricher({
+                  serverCommand: entry.serverCommand,
+                  serverArgs: entry.serverArgs,
+                  maxConcurrency: entry.maxConcurrency,
+                  requestTimeoutMs: entry.requestTimeoutMs,
+                  initTimeoutMs: entry.initTimeoutMs,
+                }),
             };
 
             for (const entry of config.lsp.enrichers) {
               if (entry.enabled === false) continue;
               const factory = ENRICHER_FACTORIES[entry.languageId];
               if (!factory) continue;
-              try { registry.register(factory(entry)); } catch { /* skip */ }
+              try {
+                registry.register(factory(entry));
+              } catch {
+                /* skip */
+              }
             }
 
             // Initialize enrichers
             const workspaceRoot = config.lsp.workspaceRoot ?? corpusPath;
             for (const enricher of registry.getAll()) {
-              try { await enricher.initialize(workspaceRoot); } catch { /* skip */ }
+              try {
+                await enricher.initialize(workspaceRoot);
+              } catch {
+                /* skip */
+              }
             }
 
             // Enrich ONLY the changed files
             const path = await import('path');
-            const enrichmentMap = new Map<string, import('../scanner/lsp/index.js').EnrichmentResult>();
+            const enrichmentMap = new Map<
+              string,
+              import('../scanner/lsp/index.js').EnrichmentResult
+            >();
 
             for (const filePath of sourceFilesToEnrich) {
               const ext = path.extname(filePath);
@@ -428,11 +453,17 @@ indexCmd
               try {
                 const result = await enricher.enrich(filePath);
                 if (result) enrichmentMap.set(filePath, result);
-              } catch { /* skip individual file errors */ }
+              } catch {
+                /* skip individual file errors */
+              }
             }
 
             // Shut down enrichers
-            try { await registry.shutdownAll(); } catch { /* ignore */ }
+            try {
+              await registry.shutdownAll();
+            } catch {
+              /* ignore */
+            }
 
             // Apply enrichments to changed files
             for (let i = 0; i < plan.toIndex.length; i++) {
@@ -480,7 +511,9 @@ indexCmd
       }
 
       if (!options.quiet) {
-        console.log(`✓ Synced: +${plan.toIndex.length} indexed, -${plan.toDelete.length} deleted (commit ${headCommit.slice(0, 8)})`);
+        console.log(
+          `✓ Synced: +${plan.toIndex.length} indexed, -${plan.toDelete.length} deleted (commit ${headCommit.slice(0, 8)})`
+        );
       }
 
       db.close();
@@ -488,7 +521,11 @@ indexCmd
       console.error('Error: Unexpected error during index sync');
       console.error(`  ${error instanceof Error ? error.message : String(error)}`);
       if (db) {
-        try { db.close(); } catch { /* ignore */ }
+        try {
+          db.close();
+        } catch {
+          /* ignore */
+        }
       }
       process.exit(1);
     }

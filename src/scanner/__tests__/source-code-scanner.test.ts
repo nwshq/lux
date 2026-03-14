@@ -269,10 +269,7 @@ describe('GeneralScanner - Source Code Scanning', () => {
         'mixed',
         (root) => {
           writeFileSync(join(root, 'package.json'), '{}');
-          writeFileSync(
-            join(root, 'README.md'),
-            '---\ntitle: Readme\n---\n# Hello'
-          );
+          writeFileSync(join(root, 'README.md'), '---\ntitle: Readme\n---\n# Hello');
           mkdirSync(join(root, 'src'), { recursive: true });
           writeFileSync(join(root, 'src', 'app.ts'), 'export const x = 1;');
         },
@@ -422,9 +419,7 @@ export default router;`
           const scanner = new GeneralScanner(root);
           const result = await scanner.scan();
 
-          const phpEntry = result.knowledge.find((k) =>
-            k.filePath.endsWith('.php')
-          );
+          const phpEntry = result.knowledge.find((k) => k.filePath.endsWith('.php'));
           expect(phpEntry).toBeDefined();
           expect(phpEntry?.type).toBe('source-code');
           // filePath should be absolute for LSP enrichment

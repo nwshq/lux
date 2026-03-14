@@ -23,7 +23,7 @@ function resolveDbPath(): string {
   const root = process.env.LUX_ROOT ?? findProjectRoot(process.cwd());
   if (!root) {
     throw new Error(
-      'Could not find a Lux project. Run `lux init` in your project root, or set LUX_ROOT.',
+      'Could not find a Lux project. Run `lux init` in your project root, or set LUX_ROOT.'
     );
   }
   const dbDir = join(root, '.lux');
