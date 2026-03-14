@@ -1,0 +1,93 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
+      - name: Architecture lint
+        run: npm run lint:architecture
+
+      - name: Architecture tests
+        run: npm run test:architecture
+
+      - name: Dead code check
+        run: npm run validate:dead-code
+
+  release:
+    needs: ci
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Package release tarball
+        run: |
+          # Install production dependencies into a clean directory
+          mkdir -p release-staging
+          cp package.json package-lock.json release-staging/
+          cd release-staging
+          npm ci --omit=dev
+          cd ..
+
+          # Assemble tarball contents
+          mkdir -p lux-release
+          cp -r dist lux-release/
+          cp -r release-staging/node_modules lux-release/
+          cp package.json lux-release/
+          mkdir -p lux-release/bin
+          cp bin/lux lux-release/bin/
+          chmod +x lux-release/bin/lux
+
+          # Create tarball
+          tar -czf lux-linux-x64.tar.gz -C lux-release .
+
+          # Cleanup
+          rm -rf release-staging lux-release
+
+      - name: Release
+        run: npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

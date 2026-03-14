@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Wrapper script for running lux CLI from an extracted release tarball.
+# Requires Node.js >= 20 on PATH.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+exec node "$ROOT_DIR/dist/cli/index.js" "$@"
