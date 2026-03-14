@@ -162,7 +162,6 @@ export async function review(proposals: ProposedExpert[], io?: ReviewIO): Promis
       io.write('\n' + formatProposalDetail(proposals[i], i) + '\n');
 
       let action: string;
-      // eslint-disable-next-line no-constant-condition
       while (true) {
         const raw = await io.prompt('\n  Action [a/e/s/q]: ');
         action = raw.toLowerCase();

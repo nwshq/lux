@@ -418,11 +418,11 @@ indexCmd
             }
 
             // Enrich ONLY the changed files
-            const { extname } = await import('path');
+            const path = await import('path');
             const enrichmentMap = new Map<string, import('../scanner/lsp/index.js').EnrichmentResult>();
 
             for (const filePath of sourceFilesToEnrich) {
-              const ext = extname(filePath);
+              const ext = path.extname(filePath);
               const enricher = registry.getByExtension(ext);
               if (!enricher?.isReady) continue;
               try {

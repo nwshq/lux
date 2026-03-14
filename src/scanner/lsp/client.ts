@@ -285,7 +285,6 @@ export class LspClient {
   private handleData(chunk: string): void {
     this.inputBuffer += chunk;
 
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       if (this.contentLength === -1) {
         const headerEnd = this.inputBuffer.indexOf('\r\n\r\n');
