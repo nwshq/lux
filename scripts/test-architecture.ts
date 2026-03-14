@@ -40,8 +40,7 @@ const ALLOWED_MODULES = new Set([
   'utils',
 ]);
 
-/** Directories excluded from architecture checks (e.g. experimental PoCs). */
-const EXCLUDED_MODULES = new Set(['web']);
+
 
 /** Modules that are test-only (contain only __tests__/, no source files expected at root). */
 const TEST_ONLY_MODULES = new Set(['integration']);
@@ -108,7 +107,6 @@ function checkModuleBoundaries(): CheckResult {
   const entries = readdirSync(SRC, { withFileTypes: true });
   for (const entry of entries) {
     if (entry.isDirectory()) {
-      if (EXCLUDED_MODULES.has(entry.name)) continue;
       if (!ALLOWED_MODULES.has(entry.name)) {
         violations.push({
           file: `src/${entry.name}/`,
