@@ -67,27 +67,19 @@ jobs:
 
       - name: Package release tarball
         run: |
-          # Install production dependencies into a clean directory
-          mkdir -p release-staging
-          cp package.json package-lock.json release-staging/
-          cd release-staging
-          npm ci --omit=dev
-          cd ..
-
-          # Assemble tarball contents
-          mkdir -p lux-release
-          cp -r dist lux-release/
-          cp -r release-staging/node_modules lux-release/
-          cp package.json lux-release/
+          # Assemble tarball: dist + package files + bin wrapper
+          # NO node_modules — consumer runs npm ci --omit=dev to compile
+          # native modules (e.g. better-sqlite3) for their Node version
           mkdir -p lux-release/bin
+
+          cp -r dist lux-release/
+          cp package.json package-lock.json lux-release/
           cp bin/lux lux-release/bin/
           chmod +x lux-release/bin/lux
 
-          # Create tarball
           tar -czf lux-linux-x64.tar.gz -C lux-release .
 
-          # Cleanup
-          rm -rf release-staging lux-release
+          rm -rf lux-release
 
       - name: Release
         run: npx semantic-release
