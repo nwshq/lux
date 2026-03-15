@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/nwshq/lux/compare/v1.0.1...v1.0.2) (2026-03-15)
+
+
+### Bug Fixes
+
+* exclude node_modules from release tarball ([acb5820](https://github.com/nwshq/lux/commit/acb5820d1baa0ffb4b701da677b9ffd384b30b8b))
+
 ## [1.0.1](https://github.com/nwshq/lux/compare/v1.0.0...v1.0.1) (2026-03-14)
 
 
