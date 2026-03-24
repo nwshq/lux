@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/nwshq/lux/compare/v1.0.2...v1.1.0) (2026-03-24)
+
+
+### Features
+
+* publish to GitHub Packages as @nwshq/lux ([db43c3b](https://github.com/nwshq/lux/commit/db43c3ba773efa90fd5fc7354022ac64d63fc076))
+
 ## [1.0.2](https://github.com/nwshq/lux/compare/v1.0.1...v1.0.2) (2026-03-15)
 
 
