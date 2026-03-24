@@ -1,6 +1,6 @@
 {
-  "name": "lux-knowledge-platform",
-  "version": "1.0.2",
+  "name": "@nwshq/lux",
+  "version": "1.0.1",
   "description": "TypeScript MCP server for CORPUS semantic search and knowledge retrieval",
   "type": "module",
   "main": "./dist/index.js",
@@ -48,6 +48,7 @@
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
+    "@semantic-release/npm": "^13.1.5",
     "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.10.5",
     "@typescript-eslint/eslint-plugin": "^8.20.0",
@@ -61,6 +62,13 @@
     "tsx": "^4.21.0",
     "typescript": "^5.7.2",
     "vitest": "^4.0.18"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nwshq/lux.git"
   },
   "engines": {
     "node": ">=20.0.0"
