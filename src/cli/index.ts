@@ -1,14 +1,15 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { join } from 'path';
+import { dirname, join } from 'path';
 import { homedir } from 'os';
+import { existsSync, readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
 import { LuxDatabase } from '../db/index.js';
 import { GeneralScanner } from '../scanner/index.js';
 import { generalScan, attachEnrichment } from '../scanner/general.js';
 import { isGitRepository, getHeadCommit, getGitDiff, commitExists } from '../scanner/git.js';
 import { buildIncrementalPlan } from '../scanner/incremental.js';
-import { existsSync } from 'fs';
 import { addSearchCommand } from './search.js';
 import { addHooksCommand } from './hooks.js';
 import { addMigrateCommands } from './migrate.js';
@@ -16,6 +17,13 @@ import { addLintCommand } from './lint.js';
 import { addExpertCommands } from './expert.js';
 import { addAskCommand } from './ask.js';
 import { addDepsCommand } from './deps.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const version: string = (
+  JSON.parse(readFileSync(join(__dirname, '..', '..', 'package.json'), 'utf-8')) as {
+    version: string;
+  }
+).version;
 
 const program = new Command();
 
@@ -26,7 +34,7 @@ const DEFAULT_CORPUS_PATH = join(homedir(), 'CORPUS');
 program
   .name('lux')
   .description('Lux Knowledge Platform - semantic search and knowledge retrieval')
-  .version('0.1.0')
+  .version(version)
   .option('--db <path>', 'Database path', DEFAULT_DB_PATH)
   .option('--corpus <path>', 'Content root directory path', DEFAULT_CORPUS_PATH);
 
