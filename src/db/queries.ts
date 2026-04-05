@@ -59,6 +59,15 @@ export class PreparedQueries {
   // Delete knowledge entry by path
   readonly deleteKnowledgeEntryByPath: Database.Statement;
 
+  // Module dependency queries
+  readonly insertModuleDependency: Database.Statement;
+  readonly getModuleDependenciesBySource: Database.Statement;
+  readonly getModuleDependenciesByTarget: Database.Statement;
+  readonly getAllModuleDependencies: Database.Statement;
+  readonly getModuleDependency: Database.Statement;
+  readonly clearModuleDependencies: Database.Statement;
+  readonly getDistinctModules: Database.Statement;
+
   constructor(db: Database.Database) {
     // Knowledge entry queries
     this.insertKnowledgeEntry = db.prepare(`
@@ -223,6 +232,38 @@ export class PreparedQueries {
     // Delete knowledge entry by file path
     this.deleteKnowledgeEntryByPath = db.prepare(`
       DELETE FROM knowledge_entries WHERE file_path = ?
+    `);
+
+    // Module dependency queries
+    this.insertModuleDependency = db.prepare(`
+      INSERT OR REPLACE INTO module_dependencies (source_module, target_module, reference_count, sample_files)
+      VALUES (@source_module, @target_module, @reference_count, @sample_files)
+    `);
+
+    this.getModuleDependenciesBySource = db.prepare(`
+      SELECT * FROM module_dependencies WHERE source_module = ? ORDER BY reference_count DESC
+    `);
+
+    this.getModuleDependenciesByTarget = db.prepare(`
+      SELECT * FROM module_dependencies WHERE target_module = ? ORDER BY reference_count DESC
+    `);
+
+    this.getAllModuleDependencies = db.prepare(`
+      SELECT * FROM module_dependencies ORDER BY reference_count DESC
+    `);
+
+    this.getModuleDependency = db.prepare(`
+      SELECT * FROM module_dependencies WHERE source_module = ? AND target_module = ?
+    `);
+
+    this.clearModuleDependencies = db.prepare(`DELETE FROM module_dependencies`);
+
+    this.getDistinctModules = db.prepare(`
+      SELECT DISTINCT module FROM (
+        SELECT source_module AS module FROM module_dependencies
+        UNION
+        SELECT target_module AS module FROM module_dependencies
+      ) ORDER BY module
     `);
   }
 }

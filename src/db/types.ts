@@ -85,6 +85,15 @@ export interface IndexMetadata {
   updated_at: number;
 }
 
+export interface ModuleDependency {
+  id: number;
+  source_module: string;
+  target_module: string;
+  reference_count: number;
+  sample_files: string | null;
+  created_at: number;
+}
+
 /** Unified search result from querying across all FTS5 tables. */
 export interface DocumentSearchResult {
   file_path: string;

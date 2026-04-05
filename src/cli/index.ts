@@ -15,6 +15,7 @@ import { addMigrateCommands } from './migrate.js';
 import { addLintCommand } from './lint.js';
 import { addExpertCommands } from './expert.js';
 import { addAskCommand } from './ask.js';
+import { addDepsCommand } from './deps.js';
 
 const program = new Command();
 
@@ -109,6 +110,9 @@ indexCmd
         if (generalResult.stats.enrichedFiles > 0) {
           console.log(`  Enriched ${generalResult.stats.enrichedFiles} files via LSP`);
         }
+        if (generalResult.dependencies.length > 0) {
+          console.log(`  Detected ${generalResult.dependencies.length} module dependencies`);
+        }
         console.log(`\nClearing existing index...`);
       }
 
@@ -141,6 +145,27 @@ indexCmd
         }
         db.close();
         process.exit(1);
+      }
+
+      // Write module dependencies
+      if (generalResult.dependencies.length > 0) {
+        try {
+          db.clearModuleDependencies();
+          for (const dep of generalResult.dependencies) {
+            db.insertModuleDependency({
+              source_module: dep.source_module,
+              target_module: dep.target_module,
+              reference_count: dep.reference_count,
+              sample_files: JSON.stringify(dep.sample_files),
+            });
+          }
+        } catch (error) {
+          if (!options.quiet) {
+            console.warn(
+              `Warning: Failed to write module dependencies: ${error instanceof Error ? error.message : String(error)}`
+            );
+          }
+        }
       }
 
       // Log event with error handling
@@ -564,5 +589,8 @@ addExpertCommands(program);
 
 // Add ask command
 addAskCommand(program);
+
+// Add deps command
+addDepsCommand(program);
 
 program.parse();

@@ -4,6 +4,7 @@ import type { LuxDatabase } from '../db/index.js';
 import type { Expert } from '../db/types.js';
 import type { ExpertSessionManager, QueryOptions, QueryResult } from './session-manager.js';
 import { buildCleanEnv } from '../utils/subprocess-env.js';
+import { computeClusters } from '../scanner/imports/clustering.js';
 
 /** An expert matched by FTS5 search with a relevance score. */
 export interface ScoredExpert {
@@ -199,7 +200,8 @@ export async function routeQuery(
 
   // Collect FTS5 hits under chosen expert's mount_path for context enrichment
   const expertHits = hitsByExpert.get(chosenExpert.slug) ?? [];
-  const augmented = buildAugmentedQuery(query, expertHits, options.maxContextBytes);
+  const moduleContext = buildModuleContext(db, expertHits);
+  const augmented = buildAugmentedQuery(query, expertHits, options.maxContextBytes, moduleContext);
 
   // Stage 3: Query the chosen expert
   const responses: QueryResult[] = [];
@@ -477,7 +479,8 @@ function collectFtsHits(ftsQuery: string, db: LuxDatabase): FtsHit[] {
 export function buildAugmentedQuery(
   question: string,
   hits: FtsHit[],
-  maxContextBytes?: number
+  maxContextBytes?: number,
+  moduleContext?: string
 ): string {
   const budget = maxContextBytes ?? 153_600;
 
@@ -529,14 +532,74 @@ export function buildAugmentedQuery(
     return question;
   }
 
+  const moduleSection = moduleContext ? `\n## Module Context\n\n${moduleContext}\n` : '';
+
   return `Answer the following question using the reference documents provided below.
 
 ## Reference Documents
 
-${parts.join('\n')}
+${parts.join('\n')}${moduleSection}
 ## Question
 
 ${question}`;
+}
+
+// ---------------------------------------------------------------------------
+// Module dependency context
+// ---------------------------------------------------------------------------
+
+/**
+ * Build module context string from dependency data for the augmented query.
+ * Adds module name, coupling partners, and cluster membership.
+ */
+function buildModuleContext(db: LuxDatabase, hits: FtsHit[]): string | undefined {
+  if (hits.length === 0) return undefined;
+
+  try {
+    const allDeps = db.getAllModuleDependencies();
+    if (allDeps.length === 0) return undefined;
+
+    // Find distinct modules from hits by checking file paths
+    const hitModules = new Set<string>();
+    for (const hit of hits) {
+      // Extract module from file path metadata if available
+      const metadata = hit.metadata ? (JSON.parse(hit.metadata) as Record<string, unknown>) : null;
+      const tags = metadata?.tags;
+      if (Array.isArray(tags) && tags.length > 0) {
+        hitModules.add(String(tags[0]));
+      }
+    }
+
+    if (hitModules.size === 0) return undefined;
+
+    const lines: string[] = [];
+    const clusters = computeClusters(allDeps);
+
+    for (const mod of hitModules) {
+      const deps = allDeps.filter((d) => d.source_module === mod || d.target_module === mod);
+      if (deps.length === 0) continue;
+
+      lines.push(`module: ${mod}`);
+
+      const coupling = deps
+        .sort((a, b) => b.reference_count - a.reference_count)
+        .slice(0, 5)
+        .map((d) => {
+          const partner = d.source_module === mod ? d.target_module : d.source_module;
+          return `${partner} (${d.reference_count} refs)`;
+        });
+      lines.push(`module_coupling: ${coupling.join(', ')}`);
+
+      const cluster = clusters.find((c) => c.members.includes(mod));
+      if (cluster) {
+        lines.push(`cluster: ${cluster.name} (${cluster.members.join(', ')})`);
+      }
+    }
+
+    return lines.length > 0 ? lines.join('\n') : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 // ---------------------------------------------------------------------------

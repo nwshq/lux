@@ -1,4 +1,6 @@
 import type { LuxDatabase } from '../db/index.js';
+import type { ModuleDependency } from '../db/types.js';
+import type { ModuleCluster } from '../db/clustering.js';
 
 // ── Discovery Options ──────────────────────────────────────
 
@@ -43,6 +45,10 @@ export interface DiscoveryContext {
   crossReferences?: CrossReference[];
   /** Already-registered experts to avoid duplicates. */
   existingExperts: ExistingExpert[];
+  /** Cross-module dependency data from import parsing. */
+  moduleCoupling?: ModuleDependency[];
+  /** Module clusters computed from dependency graph. */
+  clusters?: ModuleCluster[];
 }
 
 export interface CrossReference {

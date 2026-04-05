@@ -650,6 +650,7 @@ describe('generalScan pipeline', () => {
           enabled: true,
           enrichers: [{ languageId: 'unknown-lang', enabled: true }],
         },
+        deps: { enabled: true },
       },
       onProgress: (msg) => progress.push(msg),
     });

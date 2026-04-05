@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import { LuxDatabase } from '../db/index.js';
+import { detectModuleBoundaries, resolveModule } from '../scanner/imports/module-boundary.js';
 
 export function addSearchCommand(program: Command) {
   program
@@ -97,6 +98,18 @@ export function addSearchCommand(program: Command) {
           return;
         }
 
+        // Detect module boundaries once for all results
+        const corpusPath = opts.corpus as string;
+        const patterns = detectModuleBoundaries(corpusPath);
+        const moduleCache = new Map<string, string | null>();
+
+        const resolveFileModule = (filePath: string): string | null => {
+          if (moduleCache.has(filePath)) return moduleCache.get(filePath)!;
+          const mod = patterns.length > 0 ? resolveModule(filePath, corpusPath, patterns) : null;
+          moduleCache.set(filePath, mod);
+          return mod;
+        };
+
         console.log(
           `\nSearch results for "${query}" (${limitedResults.length})${options.content ? ' - content-only search' : ''}:\n`
         );
@@ -104,6 +117,23 @@ export function addSearchCommand(program: Command) {
           console.log(`[${result.type}] ${result.title}`);
           if (result.context) console.log(`  Context: ${result.context}`);
           console.log(`  Path: ${result.path}`);
+
+          // Module annotation for source-code results
+          if (result.context === 'source-code') {
+            const mod = resolveFileModule(result.path);
+            if (mod) {
+              console.log(`  Module: ${mod}`);
+              const dependents = db.getModuleDependencies(mod, 'target');
+              if (dependents.length > 0) {
+                const depSummary = dependents
+                  .slice(0, 5)
+                  .map((d) => `${d.source_module} (${d.reference_count} refs)`)
+                  .join(', ');
+                console.log(`  Depended on by: ${depSummary}`);
+              }
+            }
+          }
+
           console.log();
         }
 

@@ -13,6 +13,7 @@ import type {
   ExpertInsert,
   ExpertSessionInsert,
   DocumentSearchResult,
+  ModuleDependency,
 } from './types.js';
 
 export class LuxDatabase {
@@ -324,6 +325,54 @@ export class LuxDatabase {
 
   setIndexMetadata(key: string, value: string): void {
     this.getQueries().setIndexMetadata.run({ key, value });
+  }
+
+  // Module dependency operations
+  insertModuleDependency(dep: Omit<ModuleDependency, 'id' | 'created_at'>): void {
+    this.getQueries().insertModuleDependency.run({
+      source_module: dep.source_module,
+      target_module: dep.target_module,
+      reference_count: dep.reference_count,
+      sample_files: dep.sample_files,
+    });
+  }
+
+  getModuleDependencies(
+    module: string,
+    direction: 'source' | 'target' | 'both'
+  ): ModuleDependency[] {
+    const q = this.getQueries();
+    if (direction === 'source') {
+      return q.getModuleDependenciesBySource.all(module) as ModuleDependency[];
+    }
+    if (direction === 'target') {
+      return q.getModuleDependenciesByTarget.all(module) as ModuleDependency[];
+    }
+    // 'both' — union of source and target, deduplicated by id
+    const fromSource = q.getModuleDependenciesBySource.all(module) as ModuleDependency[];
+    const fromTarget = q.getModuleDependenciesByTarget.all(module) as ModuleDependency[];
+    const seen = new Set<number>();
+    const result: ModuleDependency[] = [];
+    for (const dep of [...fromSource, ...fromTarget]) {
+      if (!seen.has(dep.id)) {
+        seen.add(dep.id);
+        result.push(dep);
+      }
+    }
+    return result;
+  }
+
+  getAllModuleDependencies(): ModuleDependency[] {
+    return this.getQueries().getAllModuleDependencies.all() as ModuleDependency[];
+  }
+
+  clearModuleDependencies(): void {
+    this.getQueries().clearModuleDependencies.run();
+  }
+
+  getDistinctModules(): string[] {
+    const rows = this.getQueries().getDistinctModules.all() as { module: string }[];
+    return rows.map((r) => r.module);
   }
 
   // Utility operations

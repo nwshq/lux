@@ -39,10 +39,20 @@ export interface LspConfig {
   enrichers: LspEnricherEntry[];
 }
 
+/** Dependency analysis configuration. */
+export interface DepsConfig {
+  /** Whether dependency analysis is enabled (default: true when boundaries detected). */
+  enabled: boolean;
+  /** Module boundary pattern, e.g. "src/Module/{name}". */
+  moduleBoundary?: string;
+}
+
 /** Top-level lux.yaml configuration (LSP-specific fields). */
 export interface LuxLspConfig {
   /** LSP enrichment configuration. */
   lsp: LspConfig;
+  /** Dependency analysis configuration. */
+  deps: DepsConfig;
 }
 
 // ---------------------------------------------------------------------------
@@ -54,8 +64,13 @@ const DEFAULT_LSP_CONFIG: LspConfig = {
   enrichers: [],
 };
 
+const DEFAULT_DEPS_CONFIG: DepsConfig = {
+  enabled: true,
+};
+
 const DEFAULT_CONFIG: LuxLspConfig = {
   lsp: DEFAULT_LSP_CONFIG,
+  deps: DEFAULT_DEPS_CONFIG,
 };
 
 // ---------------------------------------------------------------------------
@@ -78,8 +93,14 @@ interface RawLspConfig {
   enrichers?: unknown;
 }
 
+interface RawDepsConfig {
+  enabled?: unknown;
+  module_boundary?: unknown;
+}
+
 interface RawLuxConfig {
   lsp?: unknown;
+  deps?: unknown;
 }
 
 // ---------------------------------------------------------------------------
@@ -125,6 +146,20 @@ export function loadLspConfig(rootPath: string): LuxLspConfig {
 function validateConfig(raw: RawLuxConfig): LuxLspConfig {
   return {
     lsp: raw.lsp ? validateLspConfig(raw.lsp) : DEFAULT_LSP_CONFIG,
+    deps: raw.deps ? validateDepsConfig(raw.deps) : DEFAULT_DEPS_CONFIG,
+  };
+}
+
+function validateDepsConfig(raw: unknown): DepsConfig {
+  if (typeof raw !== 'object' || raw === null) {
+    return DEFAULT_DEPS_CONFIG;
+  }
+
+  const config = raw as RawDepsConfig;
+
+  return {
+    enabled: config.enabled !== false,
+    moduleBoundary: typeof config.module_boundary === 'string' ? config.module_boundary : undefined,
   };
 }
 

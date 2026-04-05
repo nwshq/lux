@@ -7,6 +7,8 @@ import type { LuxDatabase } from '../db/index.js';
 import { loadLspConfig, type LuxLspConfig, type LspEnricherEntry } from './config.js';
 import { EnricherRegistry, type EnrichmentResult } from './lsp/index.js';
 import { PhpLspEnricher } from './lsp/php.js';
+import { parseImports } from './imports/index.js';
+import { detectModuleBoundaries, resolveModule } from './imports/module-boundary.js';
 
 // ---------------------------------------------------------------------------
 // Source Code Scanning Constants
@@ -350,12 +352,22 @@ export class GeneralScanner {
 /** Enrichment results indexed by file path. */
 export type EnrichmentMap = Map<string, EnrichmentResult>;
 
+/** Aggregated module dependency ready for DB insertion. */
+export interface AggregatedDependency {
+  source_module: string;
+  target_module: string;
+  reference_count: number;
+  sample_files: string[];
+}
+
 /** Result of a full scan+enrich pipeline run. */
 export interface GeneralScanResult {
   /** The base scan result from GeneralScanner. */
   scan: ScanResult;
   /** LSP enrichment results keyed by file path. */
   enrichments: EnrichmentMap;
+  /** Aggregated module dependencies from import parsing. */
+  dependencies: AggregatedDependency[];
   /** Summary statistics. */
   stats: {
     /** Number of files that were enriched. */
@@ -419,11 +431,15 @@ export async function generalScan(
   const scanner = new GeneralScanner(rootPath);
   const scan = await scanner.scan();
 
-  // 2. If LSP is disabled, return scan-only result
+  // 2. Parse imports and compute module dependencies (independent of LSP)
+  const dependencies = parseDependencies(scan, rootPath, config, report);
+
+  // 3. If LSP is disabled, return scan-only result
   if (!config.lsp.enabled) {
     return {
       scan,
       enrichments: new Map(),
+      dependencies,
       stats: { enrichedFiles: 0, activeEnrichers: 0, enrichmentErrors: [] },
     };
   }
@@ -437,6 +453,7 @@ export async function generalScan(
     return {
       scan,
       enrichments: new Map(),
+      dependencies,
       stats: { enrichedFiles: 0, activeEnrichers: 0, enrichmentErrors: [] },
     };
   }
@@ -502,6 +519,7 @@ export async function generalScan(
   return {
     scan,
     enrichments,
+    dependencies,
     stats: {
       enrichedFiles: enrichments.size,
       activeEnrichers: activeCount,
@@ -569,6 +587,187 @@ function collectEnrichableFiles(
   }
 
   return filesByLanguage;
+}
+
+/**
+ * Parse imports from scanned source files and aggregate into module-level dependencies.
+ *
+ * This runs independently of LSP enrichment — it only needs file content (already in memory).
+ */
+function parseDependencies(
+  scan: ScanResult,
+  rootPath: string,
+  config: LuxLspConfig,
+  report: (msg: string) => void
+): AggregatedDependency[] {
+  if (!config.deps?.enabled) {
+    return [];
+  }
+
+  // Detect module boundaries
+  const boundaryConfig = config.deps.moduleBoundary
+    ? { patterns: [config.deps.moduleBoundary] }
+    : undefined;
+  const patterns = detectModuleBoundaries(rootPath, boundaryConfig);
+
+  if (patterns.length === 0) {
+    return [];
+  }
+
+  report(`Detected module boundaries: ${patterns.join(', ')}`);
+
+  // Aggregate: (sourceModule, targetModule) → { count, sampleFiles }
+  const depMap = new Map<string, { count: number; sampleFiles: Set<string> }>();
+
+  const sourceEntries = scan.knowledge.filter((k) => k.type === 'source-code');
+  let parsedCount = 0;
+
+  for (const entry of sourceEntries) {
+    if (!entry.content) continue;
+
+    const lang = (entry.frontmatter as Record<string, unknown>)?.language as string | undefined;
+    if (!lang) continue;
+
+    const sourceModule = resolveModule(entry.filePath, rootPath, patterns);
+    if (!sourceModule) continue;
+
+    const imports = parseImports(entry.content, lang);
+    if (imports.length === 0) continue;
+
+    parsedCount++;
+
+    for (const imp of imports) {
+      // Try to resolve the import to a target module
+      // For PHP: map namespace segments to file path heuristic
+      // For TS/JS: resolve relative paths against source file
+      const targetModule = resolveImportToModule(
+        imp.rawImport,
+        entry.filePath,
+        rootPath,
+        patterns,
+        lang
+      );
+      if (!targetModule || targetModule === sourceModule) continue;
+
+      const key = `${sourceModule}\0${targetModule}`;
+      const existing = depMap.get(key);
+      if (existing) {
+        existing.count++;
+        if (existing.sampleFiles.size < 5) {
+          existing.sampleFiles.add(entry.filePath);
+        }
+      } else {
+        depMap.set(key, { count: 1, sampleFiles: new Set([entry.filePath]) });
+      }
+    }
+  }
+
+  if (parsedCount > 0) {
+    report(
+      `Parsed imports from ${parsedCount} source files, found ${depMap.size} module dependencies`
+    );
+  }
+
+  return Array.from(depMap.entries()).map(([key, val]) => {
+    const [source_module, target_module] = key.split('\0');
+    return {
+      source_module,
+      target_module,
+      reference_count: val.count,
+      sample_files: Array.from(val.sampleFiles),
+    };
+  });
+}
+
+/**
+ * Attempt to resolve an import path to a target module name.
+ *
+ * For PHP: maps namespace segments (e.g. App\Module\Users\Service) to directory
+ * patterns by matching namespace prefixes against module boundary patterns.
+ *
+ * For JS/TS: resolves relative paths against the source file's location and
+ * then applies module boundary resolution.
+ */
+function resolveImportToModule(
+  rawImport: string,
+  sourceFilePath: string,
+  rootPath: string,
+  patterns: string[],
+  language: string
+): string | null {
+  if (language === 'php') {
+    return resolvePhpNamespaceToModule(rawImport, rootPath, patterns);
+  }
+
+  if (language === 'typescript' || language === 'javascript') {
+    return resolveTsPathToModule(rawImport, sourceFilePath, rootPath, patterns);
+  }
+
+  return null;
+}
+
+/**
+ * Map a PHP namespace to a module by trying multiple resolution strategies:
+ * 1. Direct namespace-to-path mapping
+ * 2. Extract module name from namespace segments that match pattern structure
+ */
+function resolvePhpNamespaceToModule(
+  namespace: string,
+  rootPath: string,
+  patterns: string[]
+): string | null {
+  const segments = namespace.replace(/\\/g, '/').split('/');
+
+  // Strategy 1: Direct path mapping
+  const asPath = segments.join('/');
+  const fakePath = join(rootPath, asPath + '.php');
+  const direct = resolveModule(fakePath, rootPath, patterns);
+  if (direct) return direct;
+
+  // Strategy 2: For each pattern, try to match namespace segments
+  // e.g. pattern "src/Module/{name}" has depth 2 before {name}
+  // namespace "App\Module\Users\Service" — try matching from each offset
+  for (const pattern of patterns) {
+    const nameIndex = pattern.indexOf('{name}');
+    if (nameIndex === -1) continue;
+
+    const patternPrefix = pattern.slice(0, nameIndex);
+    const patternParts = patternPrefix.split('/').filter((p) => p.length > 0);
+    const patternDepth = patternParts.length;
+
+    // The module name is the segment at the same depth in the namespace
+    if (segments.length > patternDepth) {
+      const moduleName = segments[patternDepth];
+      // Verify this forms a valid path under the pattern
+      const constructedPath = join(rootPath, patternPrefix, moduleName, 'dummy.php');
+      const resolved = resolveModule(constructedPath, rootPath, patterns);
+      if (resolved) return resolved;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Resolve a relative TS/JS import path to a module by combining it with
+ * the source file's directory and applying module boundary resolution.
+ */
+function resolveTsPathToModule(
+  importPath: string,
+  sourceFilePath: string,
+  rootPath: string,
+  patterns: string[]
+): string | null {
+  if (!importPath.startsWith('.')) {
+    // Absolute or bare — try direct module resolution
+    const fakePath = join(rootPath, importPath);
+    return resolveModule(fakePath, rootPath, patterns);
+  }
+
+  // Resolve relative to source file
+  const sourceDir = sourceFilePath.substring(0, sourceFilePath.lastIndexOf('/'));
+  const resolved = join(sourceDir, importPath);
+  return resolveModule(resolved, rootPath, patterns);
 }
 
 /**

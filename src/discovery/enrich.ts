@@ -13,6 +13,7 @@ import type {
   CrossReference,
   EnrichContextFn,
 } from './types.js';
+import { computeClusters } from '../db/clustering.js';
 
 // ---------------------------------------------------------------------------
 // Types (internal)
@@ -78,12 +79,27 @@ export const enrichContext: EnrichContextFn = (
   const symbolSummaries = extractSymbolSummaries(entries, contentRoot);
   const crossReferences = extractCrossReferences(entries, contentRoot);
 
+  // Add module dependency data if available
+  let moduleCoupling;
+  let clusters;
+  try {
+    const allDeps = db.getAllModuleDependencies();
+    if (allDeps.length > 0) {
+      moduleCoupling = allDeps;
+      clusters = computeClusters(allDeps);
+    }
+  } catch {
+    // Module dependencies not available — skip
+  }
+
   return {
     tree,
     fileCountsByDirectory: aggregateFileCountsByDirectory(entries, contentRoot),
     ...(Object.keys(symbolSummaries).length > 0 && { symbolSummaries }),
     ...(crossReferences.length > 0 && { crossReferences }),
     existingExperts,
+    ...(moduleCoupling && moduleCoupling.length > 0 && { moduleCoupling }),
+    ...(clusters && clusters.length > 0 && { clusters }),
   };
 };
 

@@ -109,6 +109,38 @@ lux client show acme-corp
 lux project list --client acme-corp
 ```
 
+### Module Dependency Analysis
+
+```bash
+# Show full module dependency graph
+lux deps graph
+
+# Show dependencies for a specific module
+lux deps graph --module Users
+
+# Compute and display module clusters
+lux deps clusters
+
+# Analyze blast radius of changes to a file
+lux deps impact src/Module/Users/UserService.php
+
+# Check documentation coverage by cluster
+lux deps coverage
+
+# JSON output for any subcommand
+lux deps graph --json
+lux deps clusters --json
+lux deps impact src/Module/Users/UserService.php --json
+```
+
+Module dependencies are automatically detected during `lux index rebuild` by parsing PHP `use` statements and JavaScript/TypeScript `import`/`require` statements. Module boundaries are auto-detected from common project structures (`src/Module/{name}`, `packages/{name}`, etc.) or configured via `lux.yaml`:
+
+```yaml
+deps:
+  enabled: true
+  module_boundary: "src/Module/{name}"
+```
+
 ## Common Workflows
 
 ### Log a Communication
