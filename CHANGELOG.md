@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/nwshq/lux/compare/v1.2.0...v1.2.1) (2026-04-05)
+
+
+### Bug Fixes
+
+* read CLI version from package.json instead of hardcoded string ([e87c207](https://github.com/nwshq/lux/commit/e87c2070d0015f2c7bc00d9b0d4e65772128fc9b))
+
 # [1.2.0](https://github.com/nwshq/lux/compare/v1.1.0...v1.2.0) (2026-04-05)
 
 
