@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/nwshq/lux/compare/v1.1.0...v1.2.0) (2026-04-05)
+
+
+### Features
+
+* cross-module dependency graph and domain cluster discovery (IV-95) ([#5](https://github.com/nwshq/lux/issues/5)) ([30a7cd7](https://github.com/nwshq/lux/commit/30a7cd777483a8206a7f88dc5169f3d4d8eeb9dd))
+
 # [1.1.0](https://github.com/nwshq/lux/compare/v1.0.2...v1.1.0) (2026-03-24)
 
 
