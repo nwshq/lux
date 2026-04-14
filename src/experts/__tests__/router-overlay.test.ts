@@ -8,7 +8,7 @@ import { join } from 'path';
 import { LuxDatabase } from '../../db/index.js';
 import { getStructuralContextForFile, enrichHitsWithOverlay, buildAugmentedQuery } from '../router.js';
 import type { FtsHit } from '../router.js';
-import type { StructuralNode, StructuralEdge } from '../../db/types.js';
+import type { StructuralNode, StructuralEdge, EdgeType } from '../../db/types.js';
 
 const testDir = join(import.meta.dirname, 'fixtures', 'router-overlay-test');
 const ROOT = '/project';
@@ -32,7 +32,7 @@ function edge(
   id: string,
   source: string,
   target: string,
-  edgeType = 'calls_endpoint'
+  edgeType: EdgeType = 'calls_endpoint'
 ): StructuralEdge {
   return {
     id,
@@ -89,7 +89,7 @@ describe('getStructuralContextForFile', () => {
         'e2',
         'file:app/Services/InvoiceService.ts',
         'file:app/Http/Controllers/InvoiceController.ts',
-        'implements_interface'
+        'implements_contract'
       )
     );
 
@@ -99,7 +99,7 @@ describe('getStructuralContextForFile', () => {
       ROOT
     );
     expect(result).not.toBeNull();
-    expect(result).toContain('implements_interface');
+    expect(result).toContain('implements_contract');
   });
 
   it('should return null on file paths not under rootPath', () => {
