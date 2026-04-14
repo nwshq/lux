@@ -766,21 +766,24 @@ describe('propagateSurfaces() — artifact propagation', () => {
     expect(edgeTypes).toContain('derived_from');
   });
 
-  it('emits derived_from for a .client.ts file referencing surface path', async () => {
+  // Phase 4: .client.ts in /api/ without a generation header is 'handwritten-wrapper'
+  // — it should NOT receive a derived_from edge; consumer propagation handles it instead.
+  it('does NOT emit derived_from for .client.ts in /api/ without generation header', async () => {
     const surfaceId = 'surface:http:GET:/api/users';
     const artifactNodeId = 'file:src/api/users.client.ts';
 
     upsertSurface(db, surfaceId, '/api/users');
     upsertNode(db, artifactNodeId, 'file', 'src/api/users.client.ts');
 
-    const artifactContent = "export const usersClientGet = () => fetch('/api/users');";
+    // No generation header — classified as handwritten-wrapper
+    const content = "export const usersClientGet = () => fetch('/api/users');";
 
     const ctx = makeContext([
-      { filePath: 'src/api/users.client.ts', languageId: 'typescript', content: artifactContent },
+      { filePath: 'src/api/users.client.ts', languageId: 'typescript', content },
     ]);
 
     const result = await propagateSurfaces(db, ctx);
-    expect(result.artifactEdgesAdded).toBe(1);
+    expect(result.artifactEdgesAdded).toBe(0);
   });
 
   it('does NOT emit derived_from for a regular TS file (non-artifact)', async () => {
@@ -838,6 +841,83 @@ describe('propagateSurfaces() — artifact propagation', () => {
     const ctx2 = db.getSurfaceCenteredContext(surfaceId);
     const derivedEdges = ctx2!.edges.filter((e) => e.edge.edge_type === 'derived_from');
     expect(derivedEdges).toHaveLength(1);
+  });
+
+  // Phase 4 — artifact role classification
+
+  it('emits derived_from for a .client.ts file WITH a generation header', async () => {
+    const surfaceId = 'surface:http:GET:/api/users';
+    // Even though it is in /api/, the generation header makes it a generated-client
+    const artifactNodeId = 'file:src/api/users.client.ts';
+
+    upsertSurface(db, surfaceId, '/api/users');
+    upsertNode(db, artifactNodeId, 'file', 'src/api/users.client.ts');
+
+    const content = [
+      '// Auto-generated. Do not edit.',
+      "export const usersClientGet = () => fetch('/api/users');",
+    ].join('\n');
+
+    const ctx = makeContext([
+      { filePath: 'src/api/users.client.ts', languageId: 'typescript', content },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.artifactEdgesAdded).toBe(1);
+  });
+
+  it('does NOT emit derived_from for a file in /services/ without generation evidence', async () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const fileNodeId = 'file:src/services/invoice-service.ts';
+
+    upsertSurface(db, surfaceId, '/api/invoices');
+    upsertNode(db, fileNodeId, 'file', 'src/services/invoice-service.ts');
+
+    const content = "export class InvoiceService { async getAll() { return fetch('/api/invoices'); } }";
+
+    const ctx = makeContext([
+      { filePath: 'src/services/invoice-service.ts', languageId: 'typescript', content },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.artifactEdgesAdded).toBe(0);
+  });
+
+  it('classifies @generated marker in file header as generated-client', async () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const artifactNodeId = 'file:src/client/invoices.ts';
+
+    upsertSurface(db, surfaceId, '/api/invoices');
+    upsertNode(db, artifactNodeId, 'file', 'src/client/invoices.ts');
+
+    const content = [
+      '/* @generated */',
+      "export function getInvoices() { return fetch('/api/invoices'); }",
+    ].join('\n');
+
+    const ctx = makeContext([
+      { filePath: 'src/client/invoices.ts', languageId: 'typescript', content },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.artifactEdgesAdded).toBe(1);
+  });
+
+  it('classifies openapi-named file outside /api/ as schema-derived and emits derived_from', async () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const artifactNodeId = 'file:src/openapi-types.ts';
+
+    upsertSurface(db, surfaceId, '/api/invoices');
+    upsertNode(db, artifactNodeId, 'file', 'src/openapi-types.ts');
+
+    const content = "export type GetInvoicesPath = '/api/invoices';";
+
+    const ctx = makeContext([
+      { filePath: 'src/openapi-types.ts', languageId: 'typescript', content },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.artifactEdgesAdded).toBe(1);
   });
 });
 
