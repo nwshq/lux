@@ -323,3 +323,183 @@ describe('runDetectors()', () => {
     expect(detectors.some((d) => d.name === 'laravel-http-surfaces')).toBe(true);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Route-group-aware surface normalization
+// ---------------------------------------------------------------------------
+
+describe('LaravelHttpSurfaceDetector — route groups', () => {
+  const detector = new LaravelHttpSurfaceDetector();
+
+  it('composes canonical path from Route::prefix chain group', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: [
+          "Route::prefix('api')->group(function () {",
+          "    Route::get('/invoices', [InvoiceController::class, 'index']);",
+          '});',
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/api/invoices');
+    expect(batch.surfaces[0].metadata.path).toBe('/api/invoices');
+    expect(batch.surfaces[0].metadata.localFragment).toBe('/invoices');
+    expect(batch.surfaces[0].metadata.declarationLineage).toEqual(['api']);
+  });
+
+  it('composes canonical path from Route::group array syntax', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: [
+          "Route::group(['prefix' => 'admin'], function () {",
+          "    Route::get('/users', [UserController::class, 'index']);",
+          '});',
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/admin/users');
+    expect(batch.surfaces[0].metadata.declarationLineage).toEqual(['admin']);
+  });
+
+  it('handles nested prefix groups composing full path', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: [
+          "Route::prefix('api')->group(function () {",
+          "    Route::prefix('v1')->group(function () {",
+          "        Route::get('/invoices', [InvoiceController::class, 'index']);",
+          '    });',
+          '});',
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/api/v1/invoices');
+    expect(batch.surfaces[0].metadata.localFragment).toBe('/invoices');
+    expect(batch.surfaces[0].metadata.declarationLineage).toEqual(['api', 'v1']);
+  });
+
+  it('handles sibling groups at the same nesting level', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: [
+          "Route::prefix('api')->group(function () {",
+          "    Route::get('/invoices', [InvoiceController::class, 'index']);",
+          '});',
+          "Route::prefix('admin')->group(function () {",
+          "    Route::get('/users', [UserController::class, 'index']);",
+          '});',
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(2);
+    const ids = batch.surfaces.map((s) => s.id).sort();
+    expect(ids).toContain('surface:http:GET:/api/invoices');
+    expect(ids).toContain('surface:http:GET:/admin/users');
+  });
+
+  it('preserves routes outside groups at top level', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: [
+          "Route::get('/health', function () { return 'ok'; });",
+          "Route::prefix('api')->group(function () {",
+          "    Route::get('/invoices', [InvoiceController::class, 'index']);",
+          '});',
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(2);
+    const ids = batch.surfaces.map((s) => s.id).sort();
+    expect(ids).toContain('surface:http:GET:/health');
+    expect(ids).toContain('surface:http:GET:/api/invoices');
+
+    // Top-level route has no lineage
+    const healthSurface = batch.surfaces.find((s) => s.id === 'surface:http:GET:/health')!;
+    expect(healthSurface.metadata.declarationLineage).toBeUndefined();
+  });
+
+  it('composes paths that previously collapsed to coarse handles like GET /', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: [
+          "Route::prefix('chirps')->group(function () {",
+          "    Route::get('/', [ChirpController::class, 'index']);",
+          "    Route::post('/', [ChirpController::class, 'store']);",
+          "    Route::get('create', [ChirpController::class, 'create']);",
+          '});',
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(3);
+    const ids = batch.surfaces.map((s) => s.id).sort();
+    expect(ids).toContain('surface:http:GET:/chirps');
+    expect(ids).toContain('surface:http:POST:/chirps');
+    expect(ids).toContain('surface:http:GET:/chirps/create');
+  });
+
+  it('Route::group with middleware but no prefix produces no extra prefix', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: [
+          "Route::group(['middleware' => ['auth']], function () {",
+          "    Route::get('/dashboard', [DashboardController::class, 'index']);",
+          '});',
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    // No prefix, so path stays as-is
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/dashboard');
+  });
+
+  it('preserves handled_by edge with correct controller within a group', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: [
+          "Route::prefix('api')->group(function () {",
+          "    Route::post('/invoices', [InvoiceController::class, 'store']);",
+          '});',
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    const handledEdge = batch.edges.find((e) => e.edgeType === 'handled_by');
+    expect(handledEdge).toBeDefined();
+    expect(handledEdge!.sourceNodeId).toBe('surface:http:POST:/api/invoices');
+    expect(handledEdge!.targetNodeId).toBe('symbol:php:InvoiceController@store');
+  });
+});

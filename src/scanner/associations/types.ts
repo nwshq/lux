@@ -111,14 +111,18 @@ export interface CapabilitySurfaceMetadata {
   transport: string;
   /** HTTP method (for HTTP surfaces). */
   method?: string;
-  /** Canonical path (for HTTP surfaces). */
+  /** Canonical external path (fully composed including group prefixes). */
   path?: string;
+  /** Local path fragment as written in the route declaration. */
+  localFragment?: string;
   /** Optional explicit route name assigned in the declaration. */
   routeName?: string;
   /** Optional aliases (e.g. parameterized variants, named routes). */
   aliases?: string[];
   /** Explicit provider reference if named in the declaration. */
   explicitProvider?: string;
+  /** Group prefixes that contribute to the canonical path, outermost first. */
+  declarationLineage?: string[];
 }
 
 /**
