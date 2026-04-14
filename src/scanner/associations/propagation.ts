@@ -91,7 +91,14 @@ function runProviderPropagation(
     const controllerFilePath = controllerNode.file_path;
     if (!controllerFilePath) continue;
 
-    const candidates = findSymbolsLinkedToController(controllerFilePath, context);
+    // Pass the controller method from surface metadata so PHP content
+    // analysis can focus on the correct method body.
+    const surfaceMeta = parseSurfaceMeta(surface);
+    const candidates = findSymbolsLinkedToController(
+      controllerFilePath,
+      context,
+      surfaceMeta.controllerMethod
+    );
 
     for (const candidate of candidates) {
       // Resolve DB node: try qualified name first, then short name
@@ -285,6 +292,8 @@ interface SurfaceMeta {
   method?: string;
   path?: string;
   routeName?: string;
+  explicitProvider?: string;
+  controllerMethod?: string;
 }
 
 function parseSurfaceMeta(surface: StructuralNode): SurfaceMeta {
@@ -308,10 +317,13 @@ interface SymbolWithRole {
  * LSP path: reads `typeHierarchy` from enrichment metadata.
  * PHP path: extracts typed parameters from method signatures and resource
  *           classes from return expressions; resolves short names via `use` imports.
+ *           When `controllerMethod` is provided the regex pass focuses on the
+ *           named method body to reduce false positives from sibling methods.
  */
 function findSymbolsLinkedToController(
   controllerFilePath: string,
-  context: AssociationContext
+  context: AssociationContext,
+  controllerMethod?: string
 ): SymbolWithRole[] {
   const results: SymbolWithRole[] = [];
 
@@ -337,7 +349,13 @@ function findSymbolsLinkedToController(
   // ── Path 2: PHP content analysis ────────────────────────────────────────────
   const content = (entry.metadata?.content as string | undefined) ?? '';
   if (content) {
-    for (const candidate of findSymbolsViaPhpContent(content)) {
+    // Scope analysis to the named method body when known, to avoid picking up
+    // typed parameters or return expressions from unrelated sibling methods.
+    const scope = controllerMethod
+      ? extractMethodBody(content, controllerMethod)
+      : content;
+
+    for (const candidate of findSymbolsViaPhpContent(scope)) {
       if (!results.some((r) => r.qualifiedName === candidate.qualifiedName)) {
         results.push(candidate);
       }
@@ -345,6 +363,50 @@ function findSymbolsLinkedToController(
   }
 
   return results;
+}
+
+/**
+ * Extract the body text of a named PHP method from a class definition.
+ *
+ * Returns the content of the method (from the opening `{` to the matching
+ * closing `}`) plus the `use` import block at the top of the file so that
+ * import resolution still works.
+ *
+ * Falls back to the full content if the method cannot be found.
+ */
+function extractMethodBody(content: string, methodName: string): string {
+  // Capture import block (lines before the class declaration)
+  const classStart = content.search(/^\s*(?:abstract\s+)?class\s+/m);
+  const importBlock = classStart > 0 ? content.slice(0, classStart) : '';
+
+  // Find the method declaration
+  const methodRe = new RegExp(
+    `(?:public|protected|private)\\s+(?:static\\s+)?(?:async\\s+)?function\\s+${methodName}\\s*\\(`,
+    'i'
+  );
+  const methodMatch = methodRe.exec(content);
+  if (!methodMatch) return content; // fallback
+
+  // Find the opening brace of the method body (after the signature/params)
+  let openBrace = content.indexOf('{', methodMatch.index + methodMatch[0].length - 1);
+  if (openBrace < 0) return content;
+
+  // Walk to the matching closing brace
+  let depth = 0;
+  let i = openBrace;
+  while (i < content.length) {
+    if (content[i] === '{') depth++;
+    else if (content[i] === '}') {
+      depth--;
+      if (depth === 0) break;
+    }
+    i++;
+  }
+
+  // Include the full method text (signature + body) so typed parameter
+  // extraction works correctly — params are in the signature, not the body.
+  const methodText = content.slice(methodMatch.index, i + 1);
+  return importBlock + methodText;
 }
 
 /** PHP name segments → short name. */

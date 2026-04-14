@@ -104,6 +104,7 @@ export class LaravelHttpSurfaceDetector implements CapabilitySurfaceDetector {
             routeName: route.routeName,
             aliases: route.routeName ? [route.routeName] : undefined,
             explicitProvider: route.controllerQualifiedName,
+            controllerMethod: route.controllerMethod,
             declarationLineage: route.declarationLineage.length > 0
               ? route.declarationLineage
               : undefined,
@@ -558,12 +559,14 @@ function normalizePathFragment(fragment: string): string {
 // ---------------------------------------------------------------------------
 
 /**
- * Build a PHP symbol node ID for a controller + optional method.
+ * Build a PHP symbol node ID for a controller.
+ *
+ * Always targets the class-level node (e.g. `symbol:php:CalendarController`)
+ * so `handled_by` edges resolve to nodes that the materializer actually
+ * persists.  The specific method is preserved in surface metadata
+ * (`controllerMethod`) and edge provenance for propagation use.
  */
-function buildProviderSymbolId(qualifiedName: string, method?: string): string {
-  if (method) {
-    return phpSymbolNodeId(`${qualifiedName}@${method}`);
-  }
+function buildProviderSymbolId(qualifiedName: string, _method?: string): string {
   return phpSymbolNodeId(qualifiedName);
 }
 

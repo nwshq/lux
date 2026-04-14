@@ -176,7 +176,9 @@ describe('LaravelHttpSurfaceDetector.detect() — boundary edges', () => {
     expect(declEdge!.confidenceClass).toBe('framework-inferred');
   });
 
-  it('emits handled_by from surface to controller symbol when explicit', async () => {
+  it('emits handled_by from surface to class-level controller symbol (not method-level)', async () => {
+    // handled_by must target the class-level node that the materializer actually
+    // persists — method identity is preserved in surface metadata instead.
     const ctx = makeContext([
       {
         filePath: 'routes/api.php',
@@ -189,8 +191,13 @@ describe('LaravelHttpSurfaceDetector.detect() — boundary edges', () => {
     const handledEdge = batch.edges.find((e) => e.edgeType === 'handled_by');
     expect(handledEdge).toBeDefined();
     expect(handledEdge!.sourceNodeId).toBe('surface:http:GET:/api/invoices');
-    expect(handledEdge!.targetNodeId).toBe('symbol:php:InvoiceController@index');
+    // Class-level node — no @method suffix
+    expect(handledEdge!.targetNodeId).toBe('symbol:php:InvoiceController');
     expect(handledEdge!.confidenceClass).toBe('framework-inferred');
+
+    // Method is preserved in surface metadata
+    const surface = batch.surfaces.find((s) => s.id === 'surface:http:GET:/api/invoices');
+    expect(surface!.metadata.controllerMethod).toBe('index');
   });
 
   it('does NOT emit handled_by for closure routes (no explicit provider)', async () => {
@@ -483,7 +490,7 @@ describe('LaravelHttpSurfaceDetector — route groups', () => {
     expect(batch.surfaces[0].id).toBe('surface:http:GET:/dashboard');
   });
 
-  it('preserves handled_by edge with correct controller within a group', async () => {
+  it('preserves handled_by edge with class-level controller within a group', async () => {
     const ctx = makeContext([
       {
         filePath: 'routes/api.php',
@@ -500,6 +507,11 @@ describe('LaravelHttpSurfaceDetector — route groups', () => {
     const handledEdge = batch.edges.find((e) => e.edgeType === 'handled_by');
     expect(handledEdge).toBeDefined();
     expect(handledEdge!.sourceNodeId).toBe('surface:http:POST:/api/invoices');
-    expect(handledEdge!.targetNodeId).toBe('symbol:php:InvoiceController@store');
+    // Class-level node — no @method suffix
+    expect(handledEdge!.targetNodeId).toBe('symbol:php:InvoiceController');
+
+    // Method preserved in surface metadata
+    const surface = batch.surfaces.find((s) => s.id === 'surface:http:POST:/api/invoices');
+    expect(surface!.metadata.controllerMethod).toBe('store');
   });
 });

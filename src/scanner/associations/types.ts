@@ -121,6 +121,13 @@ export interface CapabilitySurfaceMetadata {
   aliases?: string[];
   /** Explicit provider reference if named in the declaration. */
   explicitProvider?: string;
+  /**
+   * Controller method name (e.g. 'index') when the route declaration uses
+   * the [Controller::class, 'method'] array form.  Stored separately so
+   * provider propagation can reconstruct which method was targeted even when
+   * the `handled_by` edge points to the class-level node.
+   */
+  controllerMethod?: string;
   /** Group prefixes that contribute to the canonical path, outermost first. */
   declarationLineage?: string[];
 }

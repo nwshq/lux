@@ -263,6 +263,55 @@ describe('propagateSurfaces() — provider propagation', () => {
     expect(result.providerEdgesAdded).toBe(0);
   });
 
+  // Patch A — class-level provider node resolution
+
+  it('resolves class-level handled_by target (Patch A: materializer compatibility)', async () => {
+    // The detector now emits handled_by to symbol:php:InvoiceController (class-level),
+    // not symbol:php:InvoiceController@index. This test verifies that provider
+    // propagation correctly resolves and expands from the class-level node.
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const controllerNodeId = 'symbol:php:InvoiceController'; // class-level
+    const requestNodeId = 'symbol:php:ListInvoicesRequest';
+
+    // Surface with controllerMethod in metadata (as detector now emits)
+    db.upsertStructuralNode({
+      id: surfaceId,
+      node_type: 'capability-surface',
+      symbol_name: 'GET /api/invoices',
+      language_id: 'http',
+      file_path: 'routes/api.php',
+      metadata: JSON.stringify({
+        transport: 'http', method: 'GET', path: '/api/invoices',
+        explicitProvider: 'InvoiceController', controllerMethod: 'index',
+      }),
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+    upsertNode(db, controllerNodeId, 'symbol', 'app/Http/Controllers/InvoiceController.php');
+    upsertNode(db, requestNodeId, 'symbol', 'app/Http/Requests/ListInvoicesRequest.php');
+
+    const phpContent = [
+      '<?php',
+      'class InvoiceController extends Controller',
+      '{',
+      '    public function index(ListInvoicesRequest $request)',
+      '    {',
+      "        return response()->json(Invoice::all());",
+      '    }',
+      '}',
+    ].join('\n');
+
+    const ctx = makeContext([
+      { filePath: 'app/Http/Controllers/InvoiceController.php', languageId: 'php', content: phpContent },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.providerEdgesAdded).toBeGreaterThanOrEqual(1);
+
+    const edges = db.getRelatedEdgesWithEvidence(controllerNodeId);
+    expect(edges.some((e) => e.edge.edge_type === 'validates_with')).toBe(true);
+  });
+
   it('is idempotent — re-running does not duplicate provider edges', async () => {
     const surfaceId = 'surface:http:GET:/api/invoices';
     const controllerNodeId = 'symbol:php:InvoiceController@index';
