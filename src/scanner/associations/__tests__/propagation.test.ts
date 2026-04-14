@@ -1019,3 +1019,175 @@ describe('propagateSurfaces() — result aggregation', () => {
     expect(result.artifactEdgesAdded).toBe(1);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Blade / inline-JS consumer propagation (Patch B)
+// ---------------------------------------------------------------------------
+
+describe('propagateSurfaces() — blade consumer propagation', () => {
+  let db: LuxDatabase;
+
+  beforeEach(() => { db = makeDb(); });
+  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+
+  function upsertBladeFileNode(db: LuxDatabase, relPath: string): void {
+    db.upsertStructuralNode({
+      id: `file:${relPath}`,
+      node_type: 'file',
+      symbol_name: relPath,
+      language_id: 'php',
+      file_path: relPath,
+      metadata: '{}',
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+  }
+
+  function upsertSurfaceWithRoute(
+    db: LuxDatabase,
+    surfaceId: string,
+    path: string,
+    routeName?: string
+  ): void {
+    db.upsertStructuralNode({
+      id: surfaceId,
+      node_type: 'capability-surface',
+      symbol_name: `GET ${path}`,
+      language_id: 'http',
+      file_path: 'routes/web.php',
+      metadata: JSON.stringify({ transport: 'http', method: 'GET', path, routeName }),
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+  }
+
+  it('emits calls_surface when Blade file has $.get() with literal path', async () => {
+    const surfaceId = 'surface:http:GET:/patients/list';
+    upsertSurfaceWithRoute(db, surfaceId, '/patients/list');
+    upsertBladeFileNode(db, 'resources/views/patients/index.blade.php');
+
+    const ctx = makeContext([
+      {
+        filePath: 'resources/views/patients/index.blade.php',
+        languageId: 'php',
+        content: `<script>
+  $(function() {
+    $.get('/patients/list', function(data) { /* ... */ });
+  });
+</script>`,
+      },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.consumerEdgesAdded).toBeGreaterThanOrEqual(1);
+
+    const edges = db.getStructuralEdgesForNode(surfaceId);
+    const blade = edges.find((e) => e.source_node_id === 'file:resources/views/patients/index.blade.php');
+    expect(blade).toBeDefined();
+    expect(blade!.edge_type).toBe('calls_surface');
+    expect(blade!.confidence).toBe(0.65);
+  });
+
+  it('emits calls_surface when Blade file has $.post() with literal path', async () => {
+    const surfaceId = 'surface:http:POST:/patients';
+    db.upsertStructuralNode({
+      id: surfaceId,
+      node_type: 'capability-surface',
+      symbol_name: 'POST /patients',
+      language_id: 'http',
+      file_path: 'routes/web.php',
+      metadata: JSON.stringify({ transport: 'http', method: 'POST', path: '/patients' }),
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+    upsertBladeFileNode(db, 'resources/views/patients/create.blade.php');
+
+    const ctx = makeContext([
+      {
+        filePath: 'resources/views/patients/create.blade.php',
+        languageId: 'php',
+        content: `<script>
+  function submitForm(data) {
+    $.post('/patients', data, function(res) { console.log(res); });
+  }
+</script>`,
+      },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.consumerEdgesAdded).toBeGreaterThanOrEqual(1);
+
+    const edges = db.getStructuralEdgesForNode(surfaceId);
+    const blade = edges.find((e) => e.source_node_id === 'file:resources/views/patients/create.blade.php');
+    expect(blade).toBeDefined();
+    expect(blade!.edge_type).toBe('calls_surface');
+  });
+
+  it('emits calls_surface when Blade file uses $.ajax({ url: path }) object form', async () => {
+    const surfaceId = 'surface:http:GET:/api/appointments';
+    upsertSurfaceWithRoute(db, surfaceId, '/api/appointments');
+    upsertBladeFileNode(db, 'resources/views/appointments/show.blade.php');
+
+    const ctx = makeContext([
+      {
+        filePath: 'resources/views/appointments/show.blade.php',
+        languageId: 'php',
+        content: `<script>
+  $.ajax({
+    url: '/api/appointments',
+    method: 'GET',
+    success: function(r) { render(r); }
+  });
+</script>`,
+      },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.consumerEdgesAdded).toBeGreaterThanOrEqual(1);
+
+    const edges = db.getStructuralEdgesForNode(surfaceId);
+    const blade = edges.find((e) => e.source_node_id === 'file:resources/views/appointments/show.blade.php');
+    expect(blade).toBeDefined();
+  });
+
+  it('does NOT emit calls_surface when path appears in Blade without a transport call', async () => {
+    const surfaceId = 'surface:http:GET:/patients/list';
+    upsertSurfaceWithRoute(db, surfaceId, '/patients/list');
+    upsertBladeFileNode(db, 'resources/views/patients/help.blade.php');
+
+    const ctx = makeContext([
+      {
+        filePath: 'resources/views/patients/help.blade.php',
+        languageId: 'php',
+        content: `<!-- Navigate to /patients/list to view all patients -->
+<p>See the <a href="/patients/list">patient list</a> page.</p>`,
+      },
+    ]);
+
+    await propagateSurfaces(db, ctx);
+    const edges = db.getStructuralEdgesForNode(surfaceId);
+    const blade = edges.find((e) => e.source_node_id === 'file:resources/views/patients/help.blade.php');
+    expect(blade).toBeUndefined();
+  });
+
+  it('emits calls_surface when Blade file uses route() helper name in $.get()', async () => {
+    const surfaceId = 'surface:http:GET:/reports/summary';
+    upsertSurfaceWithRoute(db, surfaceId, '/reports/summary', 'reports.summary');
+    upsertBladeFileNode(db, 'resources/views/dashboard.blade.php');
+
+    const ctx = makeContext([
+      {
+        filePath: 'resources/views/dashboard.blade.php',
+        languageId: 'php',
+        content: `<script>
+  $.get(route('reports.summary'), function(data) { renderChart(data); });
+</script>`,
+      },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.consumerEdgesAdded).toBeGreaterThanOrEqual(1);
+
+    const edges = db.getStructuralEdgesForNode(surfaceId);
+    const blade = edges.find((e) => e.source_node_id === 'file:resources/views/dashboard.blade.php');
+    expect(blade).toBeDefined();
+    expect(blade!.edge_type).toBe('calls_surface');
+  });
+});

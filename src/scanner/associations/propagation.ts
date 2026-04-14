@@ -50,6 +50,7 @@ export async function propagateSurfaces(
   for (const surface of surfaces) {
     providerEdgesAdded += runProviderPropagation(db, surface, context);
     consumerEdgesAdded += runConsumerPropagation(db, surface, context);
+    consumerEdgesAdded += runBladeConsumerPropagation(db, surface, context);
     artifactEdgesAdded += runArtifactPropagation(db, surface, context);
   }
 
@@ -216,6 +217,155 @@ function runConsumerPropagation(
   }
 
   return added;
+}
+
+// ---------------------------------------------------------------------------
+// Blade / inline-JS consumer propagation
+// ---------------------------------------------------------------------------
+
+/**
+ * Scan PHP Blade templates and PHP view files for inline transport calls that
+ * reference the surface's path or route name.
+ *
+ * Supported forms:
+ *   $.get('/path', ...)        $.post('/path', ...)
+ *   $.ajax('/path', ...)       $.ajax({ url: '/path' })
+ *   fetch('/path', ...)
+ *   url('/path')  and  route('name')  inside any of the above
+ *
+ * Emits `calls_surface` from the file node (not a symbol node) because Blade
+ * templates do not have exported function symbols.
+ *
+ * Confidence is lower than TS-wrapper proof (0.65) because Blade transport
+ * calls are inline rather than explicitly exported wrappers.
+ */
+function runBladeConsumerPropagation(
+  db: LuxDatabase,
+  surface: StructuralNode,
+  context: AssociationContext
+): number {
+  const meta = parseSurfaceMeta(surface);
+  if (!meta.path) return 0;
+
+  // Skip very short paths — too likely to produce coincidental matches in view files
+  const staticSkeleton = meta.path.replace(/\{[^}]+\}/g, '').replace(/\/+/g, '/');
+  if (staticSkeleton.replace(/^\//, '').length < 4) return 0;
+
+  let added = 0;
+  const now = Math.floor(Date.now() / 1000);
+  const surfaceId = surface.id;
+
+  const bladeEntries = context.entries.filter((e) => isBladeOrPhpViewFile(e.filePath));
+
+  for (const entry of bladeEntries) {
+    const content = (entry.metadata?.content as string | undefined) ?? '';
+    if (!content) continue;
+    if (!hasBladeTransportForPath(content, staticSkeleton, meta.routeName)) continue;
+
+    const consumerNodeId = `file:${entry.filePath}`;
+    const existingNode = db.getStructuralNode(consumerNodeId);
+    if (!existingNode) continue;
+
+    const edgeId = `${consumerNodeId}→${surfaceId}:calls_surface:blade`;
+    const propEdge = {
+      id: edgeId,
+      edgeType: 'calls_surface' as const,
+      sourceNodeId: consumerNodeId,
+      targetNodeId: surfaceId,
+      sourceLanguage: 'php',
+      confidence: 0.65,
+      confidenceClass: 'framework-inferred' as const,
+      provenance: {
+        resolver: 'propagation:consumer:blade',
+        evidenceKind: 'blade-transport-path-reference',
+        evidenceLocations: [
+          { filePath: entry.filePath, note: `Blade transport references ${meta.path}` },
+        ],
+        extractedAt: now,
+      },
+    };
+
+    AssociationEngine.persistEdges(db, [propEdge]);
+    added++;
+  }
+
+  return added;
+}
+
+/**
+ * Return true when the content of a Blade / PHP view file contains an inline
+ * transport call that references `path` or `routeName`.
+ *
+ * Matching is intentionally conservative: the transport call and the path
+ * must appear in close proximity rather than anywhere in the file.
+ */
+function hasBladeTransportForPath(
+  content: string,
+  path: string,
+  routeName?: string
+): boolean {
+  // Pattern 1: direct-arg form — $.get('/path', $.post('/path', fetch('/path'
+  const DIRECT_TRANSPORT_RE =
+    /\$\s*\.\s*(?:get|post|ajax)\s*\(\s*['"`]([^'"`\s]+)['"`]|\bfetch\s*\(\s*['"`]([^'"`\s]+)['"`]/g;
+  let m: RegExpExecArray | null;
+  DIRECT_TRANSPORT_RE.lastIndex = 0;
+  while ((m = DIRECT_TRANSPORT_RE.exec(content)) !== null) {
+    const url = m[1] ?? m[2] ?? '';
+    if (url === path || url.startsWith(path)) return true;
+  }
+
+  // Pattern 2: url() helper inside transport — $.get(url('/path'  fetch(url('/path'
+  const URL_HELPER_RE =
+    /\$\s*\.\s*(?:get|post|ajax)\s*\(\s*url\s*\(\s*['"`]([^'"`\s]+)['"`]\)|\bfetch\s*\(\s*url\s*\(\s*['"`]([^'"`\s]+)['"`]\)/g;
+  URL_HELPER_RE.lastIndex = 0;
+  while ((m = URL_HELPER_RE.exec(content)) !== null) {
+    const url = m[1] ?? m[2] ?? '';
+    if (url === path || url.startsWith(path)) return true;
+  }
+
+  // Pattern 3: $.ajax({ url: '/path' }) object form (up to 400 chars lookahead)
+  const AJAX_OBJ_RE = /\$\s*\.\s*ajax\s*\(\s*\{([^}]{0,400})\}/gs;
+  AJAX_OBJ_RE.lastIndex = 0;
+  while ((m = AJAX_OBJ_RE.exec(content)) !== null) {
+    const objBody = m[1];
+    const urlMatch = /url\s*:\s*['"`]([^'"`\s]+)['"`]/.exec(objBody);
+    if (urlMatch) {
+      const url = urlMatch[1];
+      if (url === path || url.startsWith(path)) return true;
+    }
+    // url: url('/path') inside $.ajax object
+    const urlHelperMatch = /url\s*:\s*url\s*\(\s*['"`]([^'"`\s]+)['"`]\)/.exec(objBody);
+    if (urlHelperMatch) {
+      const url = urlHelperMatch[1];
+      if (url === path || url.startsWith(path)) return true;
+    }
+  }
+
+  // Pattern 4: route('name') inside a transport call, matched against the surface route name
+  if (routeName) {
+    const escaped = routeName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const ROUTE_TRANSPORT_RE = new RegExp(
+      `\\$\\s*\\.\\s*(?:get|post|ajax)\\s*\\(\\s*route\\s*\\(\\s*['"\`]${escaped}['"\`]` +
+      `|\\bfetch\\s*\\(\\s*route\\s*\\(\\s*['"\`]${escaped}['"\`]`,
+      'g'
+    );
+    if (ROUTE_TRANSPORT_RE.test(content)) return true;
+
+    // route('name') inside $.ajax object
+    const ROUTE_AJAX_OBJ_RE = new RegExp(
+      `\\$\\s*\\.\\s*ajax\\s*\\(\\s*\\{[^}]{0,400}url\\s*:\\s*route\\s*\\(\\s*['"\`]${escaped}['"\`]`,
+      'gs'
+    );
+    if (ROUTE_AJAX_OBJ_RE.test(content)) return true;
+  }
+
+  return false;
+}
+
+/** True for Blade templates and PHP files under view directories. */
+function isBladeOrPhpViewFile(filePath: string): boolean {
+  const lower = filePath.toLowerCase();
+  return lower.endsWith('.blade.php') || /\/views?\//.test(lower);
 }
 
 // ---------------------------------------------------------------------------
