@@ -138,8 +138,14 @@ function runProviderPropagation(
  * Expand from a surface to TypeScript/JavaScript wrapper symbols and hooks
  * that reference the surface's path or route name.
  *
- * Matches by looking for TS/JS entries whose content contains the surface's
- * canonical path, and whose symbols export functions that wrap the call.
+ * Two-stage approach:
+ *   Stage A: candidate generation — find exported functions enclosing the path string.
+ *   Stage B: transport proof — require at least one transport-shaped callsite (fetch,
+ *            axios, HTTP method, React Query) in the function body window before emitting.
+ *
+ * Paths shorter than 4 non-slash characters are too generic to match reliably and
+ * are skipped. Dynamic segments like {id} are stripped before searching so that
+ * the static skeleton of the path drives matching.
  */
 function runConsumerPropagation(
   db: LuxDatabase,
@@ -148,6 +154,13 @@ function runConsumerPropagation(
 ): number {
   const meta = parseSurfaceMeta(surface);
   if (!meta.path) return 0;
+
+  // Guard: skip paths whose static skeleton is too short to be meaningful
+  const staticSkeleton = meta.path.replace(/\{[^}]+\}/g, '').replace(/\/+/g, '/');
+  if (staticSkeleton.replace(/^\//, '').length < 4) return 0;
+
+  // Use stripped path for content matching to avoid dynamic-segment false-positives
+  const searchPath = staticSkeleton;
 
   let added = 0;
   const now = Math.floor(Date.now() / 1000);
@@ -159,13 +172,18 @@ function runConsumerPropagation(
 
   for (const entry of tsEntries) {
     const content = (entry.metadata?.content as string | undefined) ?? '';
-    if (!content || !content.includes(meta.path)) continue;
+    if (!content || !content.includes(searchPath)) continue;
 
-    // Look for exported wrapper symbols mentioning the path or route name
-    const wrapperSymbols = extractWrapperSymbols(content, entry.filePath, meta.path, meta.routeName);
+    const lines = content.split('\n');
 
-    for (const wrapper of wrapperSymbols) {
-      const wrapperNodeId = `symbol:ts:${entry.filePath}#${wrapper.name}`;
+    // Stage A: find exported functions enclosing the path string
+    const candidates = extractConsumerCandidates(lines, searchPath);
+
+    for (const candidate of candidates) {
+      // Stage B: require a transport-shaped callsite in the function body
+      if (!hasTransportCallsite(lines, candidate.startLine)) continue;
+
+      const wrapperNodeId = `symbol:ts:${entry.filePath}#${candidate.name}`;
       const existingNode = db.getStructuralNode(wrapperNodeId);
       if (!existingNode) continue;
 
@@ -176,13 +194,13 @@ function runConsumerPropagation(
         sourceNodeId: wrapperNodeId,
         targetNodeId: surfaceId,
         sourceLanguage: 'typescript',
-        confidence: 0.7,
+        confidence: 0.75,
         confidenceClass: 'framework-inferred' as const,
         provenance: {
           resolver: 'propagation:consumer',
-          evidenceKind: 'wrapper-symbol-path-reference',
+          evidenceKind: 'transport-proven-wrapper-path-reference',
           evidenceLocations: [
-            { filePath: entry.filePath, line: wrapper.line, note: `references ${meta.path}` },
+            { filePath: entry.filePath, line: candidate.startLine, note: `references ${meta.path}` },
           ],
           extractedAt: now,
         },
@@ -314,39 +332,32 @@ function findSymbolsLinkedToController(
   return results;
 }
 
-interface WrapperSymbol {
+interface ConsumerCandidate {
   name: string;
-  line: number;
+  /** Line index (0-based) of the function declaration. */
+  startLine: number;
 }
 
 /**
- * Extract exported function names from a TS/JS file that reference the given path.
- * Looks for functions named get*, fetch*, use* that contain the path literal.
+ * Stage A — find exported function declarations that enclose a line containing
+ * the given path string.  Returns one candidate per distinct function name.
  */
-function extractWrapperSymbols(
-  content: string,
-  _filePath: string,
-  path: string,
-  _routeName?: string
-): WrapperSymbol[] {
-  const results: WrapperSymbol[] = [];
-  const lines = content.split('\n');
+function extractConsumerCandidates(lines: string[], path: string): ConsumerCandidate[] {
+  const results: ConsumerCandidate[] = [];
 
-  // Find lines containing the path, then walk up to find the enclosing function
   for (let i = 0; i < lines.length; i++) {
     if (!lines[i].includes(path)) continue;
 
-    // Walk back up to find the containing function declaration
+    // Walk back up to find the containing exported function declaration
     for (let j = i; j >= Math.max(0, i - 15); j--) {
-      const fnMatch = /export\s+(?:async\s+)?function\s+([A-Za-z_$][A-Za-z0-9_$]*)/
-        .exec(lines[j]);
-      const arrowMatch = /export\s+const\s+([A-Za-z_$][A-Za-z0-9_$]*)\s*=\s*(?:async\s*)?\(/.exec(lines[j]);
+      const fnMatch = /export\s+(?:async\s+)?function\s+([A-Za-z_$][A-Za-z0-9_$]*)/.exec(lines[j]);
+      const arrowMatch = /export\s+const\s+([A-Za-z_$][A-Za-z0-9_$]*)\s*=\s*(?:async\s*)?[(<]/.exec(lines[j]);
 
       const match = fnMatch ?? arrowMatch;
       if (match) {
         const name = match[1];
         if (!results.some((r) => r.name === name)) {
-          results.push({ name, line: j });
+          results.push({ name, startLine: j });
         }
         break;
       }
@@ -354,6 +365,33 @@ function extractWrapperSymbols(
   }
 
   return results;
+}
+
+/** Transport-shaped callsite patterns — must appear inside the function body. */
+const TRANSPORT_PATTERNS: RegExp[] = [
+  /\bfetch\s*\(/,
+  /\baxios\s*[.(]/,
+  /\.(?:get|post|put|patch|delete)\s*\(\s*['"`]/,
+  /\buseQuery\b/,
+  /\buseMutation\b/,
+  /\buseFetch\b/,
+  /\buseInfiniteQuery\b/,
+  /\$(?:get|post|put|patch|delete)\s*\(/,
+  /\brequest\s*\.\s*(?:get|post|put|patch|delete)\s*\(/,
+  /\bhttpClient\s*[.(]/,
+  /\bapiClient\s*[.(]/,
+];
+
+/**
+ * Stage B — scan the function body window (next 50 lines from the declaration)
+ * for at least one transport-shaped callsite.  Returns true if any pattern matches.
+ */
+function hasTransportCallsite(lines: string[], fnStartLine: number): boolean {
+  const windowEnd = Math.min(lines.length, fnStartLine + 50);
+  for (let k = fnStartLine; k < windowEnd; k++) {
+    if (TRANSPORT_PATTERNS.some((re) => re.test(lines[k]))) return true;
+  }
+  return false;
 }
 
 /**

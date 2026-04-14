@@ -409,6 +409,101 @@ describe('propagateSurfaces() — consumer propagation', () => {
     const callsEdges = ctx2!.edges.filter((e) => e.edge.edge_type === 'calls_surface');
     expect(callsEdges).toHaveLength(1);
   });
+
+  // Phase 2 — two-stage consumer propagation hardening
+
+  it('does NOT emit calls_surface when function references path but has no transport callsite', async () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const wrapperNodeId = 'symbol:ts:src/utils/paths.ts#invoicesPath';
+
+    upsertSurface(db, surfaceId, '/api/invoices');
+    upsertNode(db, wrapperNodeId, 'symbol', 'src/utils/paths.ts');
+
+    // Function mentions the path but never calls fetch / axios / HTTP method
+    const tsContent = [
+      "export function invoicesPath() {",
+      "  return '/api/invoices';",
+      '}',
+    ].join('\n');
+
+    const ctx = makeContext([
+      { filePath: 'src/utils/paths.ts', languageId: 'typescript', content: tsContent },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.consumerEdgesAdded).toBe(0);
+  });
+
+  it('does NOT emit calls_surface when path static skeleton is shorter than 4 characters', async () => {
+    // Skeleton of '/ab' is 'ab' (2 chars) — too short to be a meaningful discriminator
+    db.upsertStructuralNode({
+      id: 'surface:http:GET:/ab',
+      node_type: 'capability-surface',
+      symbol_name: 'GET /ab',
+      language_id: 'http',
+      file_path: 'routes/api.php',
+      metadata: JSON.stringify({ transport: 'http', method: 'GET', path: '/ab' }),
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+    const wrapperNodeId = 'symbol:ts:src/api/ab.ts#getAb';
+    upsertNode(db, wrapperNodeId, 'symbol', 'src/api/ab.ts');
+
+    const tsContent = "export const getAb = () => fetch('/ab');";
+    const ctx = makeContext([
+      { filePath: 'src/api/ab.ts', languageId: 'typescript', content: tsContent },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.consumerEdgesAdded).toBe(0);
+  });
+
+  it('matches static path skeleton after stripping dynamic segments', async () => {
+    // Surface path '/api/invoices/{id}' should match a wrapper referencing '/api/invoices/'
+    db.upsertStructuralNode({
+      id: 'surface:http:GET:/api/invoices/{id}',
+      node_type: 'capability-surface',
+      symbol_name: 'GET /api/invoices/{id}',
+      language_id: 'http',
+      file_path: 'routes/api.php',
+      metadata: JSON.stringify({ transport: 'http', method: 'GET', path: '/api/invoices/{id}' }),
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+    const wrapperNodeId = 'symbol:ts:src/api/invoices.ts#fetchInvoice';
+    upsertNode(db, wrapperNodeId, 'symbol', 'src/api/invoices.ts');
+
+    const tsContent = [
+      "export async function fetchInvoice(id: number) {",
+      "  return fetch('/api/invoices/' + id);",
+      '}',
+    ].join('\n');
+
+    const ctx = makeContext([
+      { filePath: 'src/api/invoices.ts', languageId: 'typescript', content: tsContent },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.consumerEdgesAdded).toBe(1);
+  });
+
+  it('emits calls_surface with confidence 0.75 for a transport-proven wrapper', async () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const wrapperNodeId = 'symbol:ts:src/api/invoices.ts#fetchInvoices';
+
+    upsertSurface(db, surfaceId, '/api/invoices');
+    upsertNode(db, wrapperNodeId, 'symbol', 'src/api/invoices.ts');
+
+    const tsContent = "export async function fetchInvoices() { return fetch('/api/invoices'); }";
+    const ctx = makeContext([
+      { filePath: 'src/api/invoices.ts', languageId: 'typescript', content: tsContent },
+    ]);
+
+    await propagateSurfaces(db, ctx);
+
+    const surfaceCtx = db.getSurfaceCenteredContext(surfaceId);
+    const callsEdge = surfaceCtx!.edges.find((e) => e.edge.edge_type === 'calls_surface');
+    expect(callsEdge).toBeDefined();
+    expect(callsEdge!.edge.confidence).toBeCloseTo(0.75);
+  });
 });
 
 // ---------------------------------------------------------------------------
