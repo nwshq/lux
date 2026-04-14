@@ -968,6 +968,85 @@ describe('propagateSurfaces() — artifact propagation', () => {
     const result = await propagateSurfaces(db, ctx);
     expect(result.artifactEdgesAdded).toBe(1);
   });
+
+  // Patch C — vendored/public asset denoising
+
+  it('does NOT emit derived_from for a file in public/vendor/', async () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const vendorNodeId = 'file:public/vendor/axios.min.js';
+
+    upsertSurface(db, surfaceId, '/api/invoices');
+    upsertNode(db, vendorNodeId, 'file', 'public/vendor/axios.min.js');
+
+    // Would normally trigger generation header path; vendored asset must be excluded
+    const content = [
+      '// Do not edit. Auto-generated.',
+      "axios.get('/api/invoices').then(function(r) { return r.data; });",
+    ].join('\n');
+
+    const ctx = makeContext([
+      { filePath: 'public/vendor/axios.min.js', languageId: 'javascript', content },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.artifactEdgesAdded).toBe(0);
+  });
+
+  it('does NOT emit derived_from for a file in public/swagger-ui/', async () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const swaggerNodeId = 'file:public/swagger-ui/swagger-ui-bundle.js';
+
+    upsertSurface(db, surfaceId, '/api/invoices');
+    upsertNode(db, swaggerNodeId, 'file', 'public/swagger-ui/swagger-ui-bundle.js');
+
+    // Swagger UI bundle contains API paths as part of its distribution content
+    const content = "/* swagger-ui bundle */ var path='/api/invoices';";
+
+    const ctx = makeContext([
+      { filePath: 'public/swagger-ui/swagger-ui-bundle.js', languageId: 'javascript', content },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.artifactEdgesAdded).toBe(0);
+  });
+
+  it('still emits derived_from for a project-local generated client (not in public/vendor/)', async () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const artifactNodeId = 'file:src/generated/invoices-client.ts';
+
+    upsertSurface(db, surfaceId, '/api/invoices');
+    upsertNode(db, artifactNodeId, 'file', 'src/generated/invoices-client.ts');
+
+    const content = [
+      '// Auto-generated. Do not edit.',
+      "export function getInvoices() { return fetch('/api/invoices'); }",
+    ].join('\n');
+
+    const ctx = makeContext([
+      { filePath: 'src/generated/invoices-client.ts', languageId: 'typescript', content },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.artifactEdgesAdded).toBe(1);
+  });
+
+  it('handwritten service wrapper still does not migrate into artifact propagation (Patch C regression)', async () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const wrapperNodeId = 'file:src/services/invoice-api.ts';
+
+    upsertSurface(db, surfaceId, '/api/invoices');
+    upsertNode(db, wrapperNodeId, 'file', 'src/services/invoice-api.ts');
+
+    // No generation header — a handwritten wrapper in /services/
+    const content = "export const getInvoices = () => fetch('/api/invoices');";
+
+    const ctx = makeContext([
+      { filePath: 'src/services/invoice-api.ts', languageId: 'typescript', content },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.artifactEdgesAdded).toBe(0);
+  });
 });
 
 // ---------------------------------------------------------------------------
