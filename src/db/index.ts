@@ -499,6 +499,44 @@ export class LuxDatabase {
     }));
   }
 
+  // ---------------------------------------------------------------------------
+  // Capability-surface queries
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Return all capability-surface nodes, most recently updated first.
+   */
+  getCapabilitySurfaces(): StructuralNode[] {
+    return this.getQueries().getCapabilitySurfaces.all() as StructuralNode[];
+  }
+
+  /**
+   * Search capability-surface nodes whose canonical handle (symbol_name)
+   * matches the given prefix pattern. Use `%` suffix for prefix search or
+   * exact string for exact match.
+   *
+   * @param handlePattern - SQLite LIKE pattern (e.g. `"GET %"` or `"GET /api/invoices"`).
+   */
+  searchSurfacesByHandle(handlePattern: string): StructuralNode[] {
+    return this.getQueries().searchSurfacesByHandle.all(handlePattern) as StructuralNode[];
+  }
+
+  /**
+   * Retrieve a surface node plus all edges and evidence connected to it.
+   * Returns null if the surface node does not exist.
+   */
+  getSurfaceCenteredContext(surfaceNodeId: string): {
+    surface: StructuralNode;
+    edges: Array<{ edge: StructuralEdge; evidence: EdgeEvidence[] }>;
+  } | null {
+    const surface = this.getStructuralNode(surfaceNodeId);
+    if (!surface) return null;
+    return {
+      surface,
+      edges: this.getRelatedEdgesWithEvidence(surfaceNodeId),
+    };
+  }
+
   // Utility operations
   clearAll() {
     const queries = this.getQueries();

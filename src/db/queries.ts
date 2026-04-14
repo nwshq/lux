@@ -90,6 +90,10 @@ export class PreparedQueries {
   readonly getEdgeEvidence: Database.Statement;
   readonly getEdgeEvidenceByResolver: Database.Statement;
 
+  // Capability-surface queries
+  readonly getCapabilitySurfaces: Database.Statement;
+  readonly searchSurfacesByHandle: Database.Statement;
+
   constructor(db: Database.Database) {
     // Knowledge entry queries
     this.insertKnowledgeEntry = db.prepare(`
@@ -392,6 +396,19 @@ export class PreparedQueries {
 
     this.getEdgeEvidenceByResolver = db.prepare(`
       SELECT * FROM edge_evidence WHERE edge_id = ? AND resolver = ? ORDER BY recorded_at ASC
+    `);
+
+    // Capability-surface queries
+    this.getCapabilitySurfaces = db.prepare(`
+      SELECT * FROM structural_nodes WHERE node_type = 'capability-surface' ORDER BY updated_at DESC
+    `);
+
+    // Search surfaces by symbol_name (canonical handle) prefix or exact match
+    this.searchSurfacesByHandle = db.prepare(`
+      SELECT * FROM structural_nodes
+      WHERE node_type = 'capability-surface'
+        AND symbol_name LIKE ?
+      ORDER BY updated_at DESC
     `);
   }
 }

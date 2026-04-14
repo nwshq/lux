@@ -99,6 +99,46 @@ export interface AssociationResolver {
 }
 
 // ---------------------------------------------------------------------------
+// Capability surface node
+// ---------------------------------------------------------------------------
+
+/**
+ * Metadata stored inside a capability-surface StructuralNode.
+ * Serialized as JSON in structural_nodes.metadata.
+ */
+export interface CapabilitySurfaceMetadata {
+  /** Transport type (e.g. "http", "event", "cli"). */
+  transport: string;
+  /** HTTP method (for HTTP surfaces). */
+  method?: string;
+  /** Canonical path (for HTTP surfaces). */
+  path?: string;
+  /** Optional explicit route name assigned in the declaration. */
+  routeName?: string;
+  /** Optional aliases (e.g. parameterized variants, named routes). */
+  aliases?: string[];
+  /** Explicit provider reference if named in the declaration. */
+  explicitProvider?: string;
+}
+
+/**
+ * A normalized capability surface node ready for DB persistence.
+ * Extends StructuralNode with well-typed surface metadata.
+ */
+export interface CapabilitySurfaceNode {
+  id: string;
+  /** Canonical handle (e.g. "GET /api/invoices"). Stored as symbol_name. */
+  handle: string;
+  /** Transport label (e.g. "http"). Stored as language_id. */
+  transport: string;
+  /** File where the surface is declared (relative path). */
+  file_path?: string;
+  /** Extra metadata needed for propagation. */
+  metadata: CapabilitySurfaceMetadata;
+  updated_at: number;
+}
+
+// ---------------------------------------------------------------------------
 // Node ID builders
 // ---------------------------------------------------------------------------
 
@@ -132,4 +172,25 @@ export function contractNodeId(schemaName?: string, routeKey?: string): string {
 /** Build an artifact node ID from a descriptor (e.g. type bundle path). */
 export function artifactNodeId(descriptor: string): string {
   return `artifact:${descriptor}`;
+}
+
+/**
+ * Build a stable HTTP capability-surface node ID.
+ *
+ * Format: `surface:http:METHOD:/canonical/path`
+ *
+ * @param method - HTTP verb in any case (will be uppercased).
+ * @param path - The canonical route path (e.g. "/api/invoices").
+ */
+export function httpSurfaceNodeId(method: string, path: string): string {
+  return `surface:http:${method.toUpperCase()}:${path}`;
+}
+
+/**
+ * Build a generic capability-surface node ID for non-HTTP transports.
+ *
+ * Format: `surface:{transport}:{handle}`
+ */
+export function surfaceNodeId(transport: string, handle: string): string {
+  return `surface:${transport}:${handle}`;
 }

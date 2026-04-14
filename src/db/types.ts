@@ -113,9 +113,11 @@ export type StructuralNodeType =
   | 'template'
   | 'contract'
   | 'event'
-  | 'artifact';
+  | 'artifact'
+  | 'capability-surface';
 
 export type EdgeType =
+  // Legacy overlay edges (kept for backwards compatibility)
   | 'calls_endpoint'
   | 'maps_route_to_consumer'
   | 'renders_template'
@@ -124,7 +126,17 @@ export type EdgeType =
   | 'implements_contract'
   | 'emits_event'
   | 'subscribes_event'
-  | 'shares_config_key';
+  | 'shares_config_key'
+  // Capability-surface edges
+  | 'declares_surface'
+  | 'handled_by'
+  | 'calls_surface'
+  | 'uses_contract'
+  | 'returns_contract'
+  | 'validates_with'
+  | 'derived_from'
+  | 'calls'
+  | 'references';
 
 export type ConfidenceClass = 'proven' | 'artifact-backed' | 'framework-inferred' | 'heuristic';
 
