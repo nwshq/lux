@@ -300,6 +300,83 @@ describe('formatFeaturePath()', () => {
     const formatted = formatFeaturePath(path);
     expect(formatted).toContain('+1 more');
   });
+
+  // Phase 5 — prefer proven consumers over candidate noise
+
+  it('prefers provenConsumers (confidence >= 0.75) over low-confidence consumers in compact path', () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const provenId = 'symbol:ts:src/api/invoices.ts#fetchInvoices';
+    const candidateId = 'symbol:ts:src/utils/links.ts#invoiceLink';
+
+    upsertSurface(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php');
+    upsertNode(db, provenId, 'symbol', 'fetchInvoices');
+    upsertNode(db, candidateId, 'symbol', 'invoiceLink');
+
+    // proven consumer: high confidence
+    db.upsertStructuralEdge({
+      id: `${provenId}→${surfaceId}:calls_surface`,
+      source_node_id: provenId,
+      target_node_id: surfaceId,
+      edge_type: 'calls_surface',
+      confidence: 0.75,
+      confidence_class: 'framework-inferred',
+      freshness_status: 'fresh',
+      dirty_dependency_count: 0,
+      provenance_summary: 'transport-proven',
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+    // candidate consumer: low confidence
+    db.upsertStructuralEdge({
+      id: `${candidateId}→${surfaceId}:calls_surface`,
+      source_node_id: candidateId,
+      target_node_id: surfaceId,
+      edge_type: 'calls_surface',
+      confidence: 0.4,
+      confidence_class: 'framework-inferred',
+      freshness_status: 'fresh',
+      dirty_dependency_count: 0,
+      provenance_summary: 'candidate-only',
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+
+    const path = getSurfaceFeaturePath(db, surfaceId)!;
+    expect(path.consumers).toHaveLength(2);
+    expect(path.provenConsumers).toHaveLength(1);
+    expect(path.provenConsumers[0].id).toBe(provenId);
+
+    // Compact path should show proven consumer, not the candidate
+    const formatted = formatFeaturePath(path);
+    expect(formatted).toContain('fetchInvoices');
+    expect(formatted).not.toContain('invoiceLink');
+  });
+
+  it('falls back to all consumers when no proven consumers exist', () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const candidateId = 'symbol:ts:src/utils/links.ts#invoiceLink';
+
+    upsertSurface(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php');
+    upsertNode(db, candidateId, 'symbol', 'invoiceLink');
+
+    db.upsertStructuralEdge({
+      id: `${candidateId}→${surfaceId}:calls_surface`,
+      source_node_id: candidateId,
+      target_node_id: surfaceId,
+      edge_type: 'calls_surface',
+      confidence: 0.4,
+      confidence_class: 'framework-inferred',
+      freshness_status: 'fresh',
+      dirty_dependency_count: 0,
+      provenance_summary: 'candidate-only',
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+
+    const path = getSurfaceFeaturePath(db, surfaceId)!;
+    expect(path.provenConsumers).toHaveLength(0);
+
+    // Falls back to showing candidate when no proven ones exist
+    const formatted = formatFeaturePath(path);
+    expect(formatted).toContain('invoiceLink');
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -339,6 +416,51 @@ describe('formatFeaturePathBlock()', () => {
     expect(block).toContain('InvoiceResource');
     expect(block).toContain('routes/api.php');
     expect(block).toContain('Path:');
+  });
+
+  // Phase 5 — auditability: block formatter labels low-confidence consumers as "(candidate)"
+
+  it('labels low-confidence consumers as "(candidate)" in block output', () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const provenId = 'symbol:ts:src/api/invoices.ts#fetchInvoices';
+    const candidateId = 'symbol:ts:src/utils/links.ts#invoiceLink';
+
+    upsertSurface(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php');
+    upsertNode(db, provenId, 'symbol', 'fetchInvoices');
+    upsertNode(db, candidateId, 'symbol', 'invoiceLink');
+
+    db.upsertStructuralEdge({
+      id: `${provenId}→${surfaceId}:calls_surface`,
+      source_node_id: provenId,
+      target_node_id: surfaceId,
+      edge_type: 'calls_surface',
+      confidence: 0.75,
+      confidence_class: 'framework-inferred',
+      freshness_status: 'fresh',
+      dirty_dependency_count: 0,
+      provenance_summary: 'transport-proven',
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+    db.upsertStructuralEdge({
+      id: `${candidateId}→${surfaceId}:calls_surface`,
+      source_node_id: candidateId,
+      target_node_id: surfaceId,
+      edge_type: 'calls_surface',
+      confidence: 0.4,
+      confidence_class: 'framework-inferred',
+      freshness_status: 'fresh',
+      dirty_dependency_count: 0,
+      provenance_summary: 'candidate-only',
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+
+    const path = getSurfaceFeaturePath(db, surfaceId)!;
+    const block = formatFeaturePathBlock(path);
+
+    // Proven consumer appears without annotation
+    expect(block).toContain('fetchInvoices');
+    // Candidate consumer is labeled
+    expect(block).toContain('invoiceLink (candidate)');
   });
 });
 

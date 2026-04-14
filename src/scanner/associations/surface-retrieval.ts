@@ -18,6 +18,13 @@ import type { StructuralNode } from '../../db/types.js';
 // ---------------------------------------------------------------------------
 
 /**
+ * Minimum confidence for a consumer edge to be considered transport-proven.
+ * Edges below this threshold are gathered for auditability but not surfaced
+ * as primary chain members in compact output.
+ */
+export const PROVEN_CONFIDENCE_THRESHOLD = 0.75;
+
+/**
  * A surface-centered feature path assembled from overlay edges.
  *
  * All arrays may be empty — partial paths are valid and useful.
@@ -25,8 +32,16 @@ import type { StructuralNode } from '../../db/types.js';
 export interface FeaturePath {
   /** The capability-surface node at the center. */
   surface: StructuralNode;
-  /** Nodes that call this surface (calls_surface source side). */
+  /**
+   * All consumer nodes (calls_surface source side), regardless of confidence.
+   * Kept for auditability.
+   */
   consumers: StructuralNode[];
+  /**
+   * Subset of consumers whose edge confidence meets PROVEN_CONFIDENCE_THRESHOLD.
+   * Compact path output prefers this set over the full consumers list.
+   */
+  provenConsumers: StructuralNode[];
   /** Nodes that handle this surface (handled_by target side). */
   providers: StructuralNode[];
   /** Request validator nodes linked to the primary provider (validates_with). */
@@ -56,6 +71,7 @@ export function getSurfaceFeaturePath(db: LuxDatabase, surfaceId: string): Featu
   const path: FeaturePath = {
     surface,
     consumers: [],
+    provenConsumers: [],
     providers: [],
     validators: [],
     responseContracts: [],
@@ -69,7 +85,12 @@ export function getSurfaceFeaturePath(db: LuxDatabase, surfaceId: string): Featu
       if (node) path.providers.push(node);
     } else if (edge.edge_type === 'calls_surface' && edge.target_node_id === surfaceId) {
       const node = db.getStructuralNode(edge.source_node_id);
-      if (node) path.consumers.push(node);
+      if (node) {
+        path.consumers.push(node);
+        if (edge.confidence >= PROVEN_CONFIDENCE_THRESHOLD) {
+          path.provenConsumers.push(node);
+        }
+      }
     } else if (edge.edge_type === 'derived_from' && edge.target_node_id === surfaceId) {
       const node = db.getStructuralNode(edge.source_node_id);
       if (node) path.artifacts.push(node);
@@ -134,12 +155,14 @@ export function getFeaturePathsForFile(db: LuxDatabase, filePath: string): Featu
 export function formatFeaturePath(path: FeaturePath): string {
   const parts: string[] = [];
 
-  // Left side: consumers (at most 2 shown)
-  for (const c of path.consumers.slice(0, 2)) {
+  // Left side: prefer transport-proven consumers; fall back to all consumers for
+  // auditability only when nothing proven exists.
+  const displayConsumers = path.provenConsumers.length > 0 ? path.provenConsumers : path.consumers;
+  for (const c of displayConsumers.slice(0, 2)) {
     parts.push(shortLabel(c));
   }
-  if (path.consumers.length > 2) {
-    parts.push(`+${path.consumers.length - 2} more`);
+  if (displayConsumers.length > 2) {
+    parts.push(`+${displayConsumers.length - 2} more`);
   }
 
   // Center: surface
@@ -201,7 +224,13 @@ export function formatFeaturePathBlock(path: FeaturePath): string {
   }
 
   if (path.consumers.length > 0) {
-    lines.push(`  Consumer(s): ${path.consumers.map(shortLabel).join(', ')}`);
+    // Annotate consumers that are below the proven threshold as "(candidate)"
+    // so the block provides an auditable trail of all evidence.
+    const labels = path.consumers.map((c) => {
+      const label = shortLabel(c);
+      return path.provenConsumers.includes(c) ? label : `${label} (candidate)`;
+    });
+    lines.push(`  Consumer(s): ${labels.join(', ')}`);
   }
 
   if (path.artifacts.length > 0) {
