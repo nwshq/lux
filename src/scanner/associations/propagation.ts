@@ -62,11 +62,12 @@ export async function propagateSurfaces(
 
 /**
  * Expand from a surface's explicit provider (via handled_by) to:
- *   - request validator symbols (classes passed to $request->validated() or FormRequest subtypes)
- *   - response resource symbols (classes used in JsonResource::collection or new XResource())
+ *   - request validator symbols (FormRequest subtypes in method signatures)
+ *   - response resource symbols (JsonResource / DTO in return expressions)
  *
- * Only emits edges when the controller symbol exists in the DB and LSP
- * enrichment data is available to confirm symbol relationships.
+ * Uses two evidence paths — LSP type hierarchy when available, PHP content
+ * regex analysis otherwise — then resolves DB nodes by qualified name with
+ * a short-name fallback to handle both indexed formats.
  */
 function runProviderPropagation(
   db: LuxDatabase,
@@ -87,36 +88,32 @@ function runProviderPropagation(
     const controllerNode = db.getStructuralNode(controllerNodeId);
     if (!controllerNode) continue;
 
-    // Look for request and response symbols in the same file as the controller
     const controllerFilePath = controllerNode.file_path;
     if (!controllerFilePath) continue;
 
-    const siblingsInFile = findSymbolsLinkedToController(
-      controllerFilePath,
-      context
-    );
+    const candidates = findSymbolsLinkedToController(controllerFilePath, context);
 
-    for (const sibling of siblingsInFile) {
-      const siblingNodeId = `symbol:php:${sibling.qualifiedName}`;
-      const existingNode = db.getStructuralNode(siblingNodeId);
-      if (!existingNode) continue;
+    for (const candidate of candidates) {
+      // Resolve DB node: try qualified name first, then short name
+      const resolved = resolvePhpSymbolNode(db, candidate.qualifiedName);
+      if (!resolved) continue;
 
-      const edgeType = sibling.role === 'request' ? 'validates_with' : 'returns_contract';
-      const edgeId = `${controllerNodeId}→${siblingNodeId}:${edgeType}:propagated`;
+      const edgeType = candidate.role === 'request' ? 'validates_with' : 'returns_contract';
+      const edgeId = `${controllerNodeId}→${resolved.nodeId}:${edgeType}:propagated`;
       const propEdge = {
         id: edgeId,
         edgeType: edgeType as 'validates_with' | 'returns_contract',
         sourceNodeId: controllerNodeId,
-        targetNodeId: siblingNodeId,
+        targetNodeId: resolved.nodeId,
         sourceLanguage: 'php',
         targetLanguage: 'php',
         confidence: 0.75,
         confidenceClass: 'framework-inferred' as const,
         provenance: {
           resolver: 'propagation:provider',
-          evidenceKind: 'symbol-sibling-in-controller-file',
+          evidenceKind: candidate.evidenceKind,
           evidenceLocations: [
-            { filePath: controllerFilePath, note: `${sibling.role}: ${sibling.qualifiedName}` },
+            { filePath: controllerFilePath, note: `${candidate.role}: ${candidate.qualifiedName}` },
           ],
           extractedAt: now,
         },
@@ -298,11 +295,16 @@ function parseSurfaceMeta(surface: StructuralNode): SurfaceMeta {
 interface SymbolWithRole {
   qualifiedName: string;
   role: 'request' | 'response';
+  evidenceKind: string;
 }
 
 /**
- * Look for FormRequest or JsonResource subtype symbols in a controller's file
- * using LSP enrichment data.
+ * Combine LSP type-hierarchy evidence with PHP content regex analysis to find
+ * request-validator and response-resource symbols linked to a controller.
+ *
+ * LSP path: reads `typeHierarchy` from enrichment metadata.
+ * PHP path: extracts typed parameters from method signatures and resource
+ *           classes from return expressions; resolves short names via `use` imports.
  */
 function findSymbolsLinkedToController(
   controllerFilePath: string,
@@ -313,20 +315,112 @@ function findSymbolsLinkedToController(
   const entry = context.entries.find((e) => e.filePath === controllerFilePath);
   if (!entry) return results;
 
+  // ── Path 1: LSP type hierarchy ──────────────────────────────────────────────
   const lsp = (entry.metadata?.lsp as Record<string, unknown> | undefined);
-  if (!lsp) return results;
-
-  // Look for symbols in LSP type hierarchy that extend FormRequest or JsonResource
-  const typeHierarchy = (lsp.typeHierarchy as Array<{ name: string; supertypes?: Array<{ name: string }> }> | undefined);
-  if (!typeHierarchy) return results;
-
-  for (const entry of typeHierarchy) {
-    const supers = entry.supertypes?.map((s) => s.name) ?? [];
-    if (supers.some((s) => s.includes('FormRequest'))) {
-      results.push({ qualifiedName: entry.name, role: 'request' });
-    } else if (supers.some((s) => s.includes('JsonResource') || s.includes('Resource'))) {
-      results.push({ qualifiedName: entry.name, role: 'response' });
+  if (lsp) {
+    const typeHierarchy = (lsp.typeHierarchy as Array<{ name: string; supertypes?: Array<{ name: string }> }> | undefined);
+    if (typeHierarchy) {
+      for (const sym of typeHierarchy) {
+        const supers = sym.supertypes?.map((s) => s.name) ?? [];
+        if (supers.some((s) => s.includes('FormRequest'))) {
+          results.push({ qualifiedName: sym.name, role: 'request', evidenceKind: 'lsp-type-hierarchy' });
+        } else if (supers.some((s) => s.includes('JsonResource') || s.includes('Resource'))) {
+          results.push({ qualifiedName: sym.name, role: 'response', evidenceKind: 'lsp-type-hierarchy' });
+        }
+      }
     }
+  }
+
+  // ── Path 2: PHP content analysis ────────────────────────────────────────────
+  const content = (entry.metadata?.content as string | undefined) ?? '';
+  if (content) {
+    for (const candidate of findSymbolsViaPhpContent(content)) {
+      if (!results.some((r) => r.qualifiedName === candidate.qualifiedName)) {
+        results.push(candidate);
+      }
+    }
+  }
+
+  return results;
+}
+
+/** PHP name segments → short name. */
+function phpShortName(name: string): string {
+  return name.split('\\').pop()!;
+}
+
+/**
+ * Resolve a PHP symbol name to a DB node, trying the full qualified name first
+ * then the trailing short-name segment (handles both indexed formats).
+ */
+function resolvePhpSymbolNode(
+  db: LuxDatabase,
+  qualifiedName: string
+): { nodeId: string; node: StructuralNode } | null {
+  const qualified = `symbol:php:${qualifiedName}`;
+  const qNode = db.getStructuralNode(qualified);
+  if (qNode) return { nodeId: qualified, node: qNode };
+
+  const short = phpShortName(qualifiedName);
+  if (short !== qualifiedName) {
+    const shortId = `symbol:php:${short}`;
+    const sNode = db.getStructuralNode(shortId);
+    if (sNode) return { nodeId: shortId, node: sNode };
+  }
+
+  return null;
+}
+
+/**
+ * Regex-based PHP content analysis.
+ *
+ * Finds request-validator and response-resource class references from:
+ *  1. Method parameter type-hints (e.g. `StoreInvoiceRequest $request`)
+ *  2. Return expressions with `new XResource(` or `XResource::collection(`
+ *  3. `use` import statements to resolve short names to qualified names.
+ *
+ * Excludes bare base classes (Request, FormRequest) that are too generic.
+ */
+function findSymbolsViaPhpContent(content: string): SymbolWithRole[] {
+  const results: SymbolWithRole[] = [];
+
+  // Build import map: shortName → qualifiedName
+  const importMap = new Map<string, string>();
+  const useRe = /^use\s+((?:[A-Za-z][A-Za-z0-9_]*\\)*[A-Za-z][A-Za-z0-9_]*)(?:\s+as\s+(\w+))?;/gm;
+  let m: RegExpExecArray | null;
+  while ((m = useRe.exec(content)) !== null) {
+    const qualified = m[1];
+    const alias = m[2];
+    const short = alias ?? phpShortName(qualified);
+    importMap.set(short, qualified);
+  }
+
+  const addCandidate = (shortName: string, role: SymbolWithRole['role'], evidenceKind: string): void => {
+    const qualifiedName = importMap.get(shortName) ?? shortName;
+    if (!results.some((r) => r.qualifiedName === qualifiedName)) {
+      results.push({ qualifiedName, role, evidenceKind });
+    }
+  };
+
+  // Typed parameters in method signatures ending in Request, Validator, or FormRequest
+  // Excludes bare base-class names.
+  const paramRe = /([A-Z][A-Za-z0-9_]*(?:Request|Validator|FormRequest))\s+\$\w+/g;
+  while ((m = paramRe.exec(content)) !== null) {
+    const name = m[1];
+    if (name === 'Request' || name === 'FormRequest') continue;
+    addCandidate(name, 'request', 'php-typed-parameter');
+  }
+
+  // `new XResource(` / `new XResponse(` / `new XDto(` in any expression
+  const newInstanceRe = /\bnew\s+([A-Z][A-Za-z0-9_]*(?:Resource|Response|DTO|Dto|Contract))\s*\(/g;
+  while ((m = newInstanceRe.exec(content)) !== null) {
+    addCandidate(m[1], 'response', 'php-return-constructor');
+  }
+
+  // Static factory calls: XResource::collection(...) / XResource::make(...) / XResource::from(...)
+  const staticFactoryRe = /([A-Z][A-Za-z0-9_]*(?:Resource|Response|DTO|Dto|Contract))::(?:collection|make|from)\s*\(/g;
+  while ((m = staticFactoryRe.exec(content)) !== null) {
+    addCandidate(m[1], 'response', 'php-static-factory');
   }
 
   return results;

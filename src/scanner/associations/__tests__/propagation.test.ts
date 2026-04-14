@@ -292,6 +292,226 @@ describe('propagateSurfaces() — provider propagation', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Provider propagation — Phase 3 handler-centered expansion (PHP content path)
+// ---------------------------------------------------------------------------
+
+describe('propagateSurfaces() — provider propagation (PHP content analysis)', () => {
+  let db: LuxDatabase;
+
+  beforeEach(() => { db = makeDb(); });
+  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+
+  it('emits validates_with via typed method parameter when no LSP data present', async () => {
+    const surfaceId = 'surface:http:POST:/api/invoices';
+    const controllerNodeId = 'symbol:php:InvoiceController@store';
+    const requestNodeId = 'symbol:php:StoreInvoiceRequest';
+
+    upsertSurface(db, surfaceId, '/api/invoices', controllerNodeId);
+    upsertNode(db, controllerNodeId, 'symbol', 'app/Http/Controllers/InvoiceController.php');
+    upsertNode(db, requestNodeId, 'symbol', 'app/Http/Requests/StoreInvoiceRequest.php');
+
+    const phpContent = [
+      '<?php',
+      'namespace App\\Http\\Controllers;',
+      '',
+      'class InvoiceController extends Controller',
+      '{',
+      '    public function store(StoreInvoiceRequest $request): JsonResponse',
+      '    {',
+      '        $invoice = Invoice::create($request->validated());',
+      "        return response()->json(['id' => $invoice->id], 201);",
+      '    }',
+      '}',
+    ].join('\n');
+
+    const ctx = makeContext([
+      {
+        filePath: 'app/Http/Controllers/InvoiceController.php',
+        languageId: 'php',
+        content: phpContent,
+        // no lsp data
+      },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.providerEdgesAdded).toBe(1);
+
+    const controllerEdges = db.getRelatedEdgesWithEvidence(controllerNodeId);
+    expect(controllerEdges.some((e) => e.edge.edge_type === 'validates_with')).toBe(true);
+  });
+
+  it('emits returns_contract via new XResource() in method body', async () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const controllerNodeId = 'symbol:php:InvoiceController@index';
+    const resourceNodeId = 'symbol:php:InvoiceResource';
+
+    upsertSurface(db, surfaceId, '/api/invoices', controllerNodeId);
+    upsertNode(db, controllerNodeId, 'symbol', 'app/Http/Controllers/InvoiceController.php');
+    upsertNode(db, resourceNodeId, 'symbol', 'app/Http/Resources/InvoiceResource.php');
+
+    const phpContent = [
+      '<?php',
+      'class InvoiceController extends Controller',
+      '{',
+      '    public function index(): JsonResponse',
+      '    {',
+      '        $invoice = Invoice::findOrFail(1);',
+      '        return new InvoiceResource($invoice);',
+      '    }',
+      '}',
+    ].join('\n');
+
+    const ctx = makeContext([
+      { filePath: 'app/Http/Controllers/InvoiceController.php', languageId: 'php', content: phpContent },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.providerEdgesAdded).toBe(1);
+
+    const controllerEdges = db.getRelatedEdgesWithEvidence(controllerNodeId);
+    expect(controllerEdges.some((e) => e.edge.edge_type === 'returns_contract')).toBe(true);
+  });
+
+  it('emits returns_contract via XResource::collection() static factory', async () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const controllerNodeId = 'symbol:php:InvoiceController@index';
+    const resourceNodeId = 'symbol:php:InvoiceResource';
+
+    upsertSurface(db, surfaceId, '/api/invoices', controllerNodeId);
+    upsertNode(db, controllerNodeId, 'symbol', 'app/Http/Controllers/InvoiceController.php');
+    upsertNode(db, resourceNodeId, 'symbol', 'app/Http/Resources/InvoiceResource.php');
+
+    const phpContent = [
+      '<?php',
+      'class InvoiceController extends Controller',
+      '{',
+      '    public function index(): JsonResponse',
+      '    {',
+      '        return InvoiceResource::collection(Invoice::paginate());',
+      '    }',
+      '}',
+    ].join('\n');
+
+    const ctx = makeContext([
+      { filePath: 'app/Http/Controllers/InvoiceController.php', languageId: 'php', content: phpContent },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.providerEdgesAdded).toBe(1);
+
+    const edges = db.getRelatedEdgesWithEvidence(controllerNodeId);
+    expect(edges.some((e) => e.edge.edge_type === 'returns_contract')).toBe(true);
+  });
+
+  it('resolves qualified name via use import and falls back to short name for DB lookup', async () => {
+    const surfaceId = 'surface:http:POST:/api/invoices';
+    const controllerNodeId = 'symbol:php:InvoiceController@store';
+    // Node stored with short name (as many indexers produce)
+    const requestNodeId = 'symbol:php:StoreInvoiceRequest';
+
+    upsertSurface(db, surfaceId, '/api/invoices', controllerNodeId);
+    upsertNode(db, controllerNodeId, 'symbol', 'app/Http/Controllers/InvoiceController.php');
+    upsertNode(db, requestNodeId, 'symbol', 'app/Http/Requests/StoreInvoiceRequest.php');
+
+    const phpContent = [
+      '<?php',
+      'use App\\Http\\Requests\\StoreInvoiceRequest;',
+      '',
+      'class InvoiceController extends Controller',
+      '{',
+      '    public function store(StoreInvoiceRequest $request): JsonResponse',
+      '    {',
+      '        Invoice::create($request->validated());',
+      '    }',
+      '}',
+    ].join('\n');
+
+    const ctx = makeContext([
+      { filePath: 'app/Http/Controllers/InvoiceController.php', languageId: 'php', content: phpContent },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.providerEdgesAdded).toBe(1);
+  });
+
+  it('does NOT emit validates_with for bare Request base class', async () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const controllerNodeId = 'symbol:php:InvoiceController@index';
+
+    upsertSurface(db, surfaceId, '/api/invoices', controllerNodeId);
+    upsertNode(db, controllerNodeId, 'symbol', 'app/Http/Controllers/InvoiceController.php');
+
+    // No FormRequest node, only uses base Request
+    const phpContent = [
+      '<?php',
+      'use Illuminate\\Http\\Request;',
+      '',
+      'class InvoiceController extends Controller',
+      '{',
+      '    public function index(Request $request): JsonResponse',
+      '    {',
+      "        return response()->json(['data' => []]);",
+      '    }',
+      '}',
+    ].join('\n');
+
+    const ctx = makeContext([
+      { filePath: 'app/Http/Controllers/InvoiceController.php', languageId: 'php', content: phpContent },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.providerEdgesAdded).toBe(0);
+  });
+
+  it('combines LSP and PHP content analysis — emits both edges when each source finds a different symbol', async () => {
+    const surfaceId = 'surface:http:POST:/api/invoices';
+    const controllerNodeId = 'symbol:php:InvoiceController@store';
+    const requestNodeId = 'symbol:php:StoreInvoiceRequest';
+    const resourceNodeId = 'symbol:php:InvoiceResource';
+
+    upsertSurface(db, surfaceId, '/api/invoices', controllerNodeId);
+    upsertNode(db, controllerNodeId, 'symbol', 'app/Http/Controllers/InvoiceController.php');
+    upsertNode(db, requestNodeId, 'symbol');
+    upsertNode(db, resourceNodeId, 'symbol');
+
+    // PHP content finds the request param; LSP finds the resource type
+    const phpContent = [
+      '<?php',
+      'class InvoiceController extends Controller',
+      '{',
+      '    public function store(StoreInvoiceRequest $request): JsonResponse',
+      '    {',
+      '        $invoice = Invoice::create($request->validated());',
+      '        return new InvoiceResource($invoice);',
+      '    }',
+      '}',
+    ].join('\n');
+
+    const lspData = {
+      typeHierarchy: [
+        { name: 'InvoiceResource', supertypes: [{ name: 'JsonResource' }] },
+      ],
+    };
+
+    const ctx = makeContext([
+      {
+        filePath: 'app/Http/Controllers/InvoiceController.php',
+        languageId: 'php',
+        content: phpContent,
+        lsp: lspData,
+      },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.providerEdgesAdded).toBe(2);
+
+    const edges = db.getRelatedEdgesWithEvidence(controllerNodeId);
+    expect(edges.some((e) => e.edge.edge_type === 'validates_with')).toBe(true);
+    expect(edges.some((e) => e.edge.edge_type === 'returns_contract')).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Consumer propagation
 // ---------------------------------------------------------------------------
 
