@@ -7,6 +7,7 @@
 //   4. Assemble AssociationContext from scan entries and enrichments
 //   5. Run AssociationEngine with the enabled resolver pack
 //   6. Run CapabilitySurfaceDetectors to persist surface nodes and boundary edges
+//   7. Run symbolic propagation to expand surfaces to provider/consumer/artifact symbols
 //
 // Designed to be called after generalScan() completes, or from a dedicated
 // CLI or MCP command.
@@ -21,6 +22,7 @@ import { createDefaultResolvers } from './framework/index.js';
 import type { AssociationContext, AssociationResolver } from './types.js';
 import type { CapabilitySurfaceDetector } from './detectors/types.js';
 import { runDetectors } from './detectors/index.js';
+import { propagateSurfaces } from './propagation.js';
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -47,6 +49,7 @@ export interface OverlayRebuildResult {
   dirtyFileCount: number;
   surfacesDetected: number;
   surfaceEdgesStored: number;
+  propagationEdgesAdded: number;
 }
 
 /**
@@ -135,6 +138,21 @@ export async function rebuildStructuralOverlay(
       `${detectorResult.surfaceEdgesStored} edge(s) stored.`
   );
 
+  // 7. Run symbolic propagation from detected surfaces outward
+  report('Running symbolic propagation...');
+  const propagationResult = await propagateSurfaces(db, context);
+  const propagationEdgesAdded =
+    propagationResult.providerEdgesAdded +
+    propagationResult.consumerEdgesAdded +
+    propagationResult.artifactEdgesAdded;
+  if (propagationEdgesAdded > 0) {
+    report(
+      `Propagation complete: ${propagationResult.providerEdgesAdded} provider edge(s), ` +
+        `${propagationResult.consumerEdgesAdded} consumer edge(s), ` +
+        `${propagationResult.artifactEdgesAdded} artifact edge(s).`
+    );
+  }
+
   return {
     fileNodes,
     symbolNodes,
@@ -145,6 +163,7 @@ export async function rebuildStructuralOverlay(
     dirtyFileCount: dirtyFiles.length,
     surfacesDetected: detectorResult.surfacesDetected,
     surfaceEdgesStored: detectorResult.surfaceEdgesStored,
+    propagationEdgesAdded,
   };
 }
 
