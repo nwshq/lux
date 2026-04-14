@@ -128,6 +128,51 @@ export class AssociationEngine {
   }
 
   // -------------------------------------------------------------------------
+  // Static helpers (used by the detector runner)
+  // -------------------------------------------------------------------------
+
+  /**
+   * Persist a set of pre-built StructuralRelationEdges without heuristic
+   * filtering or dirty-dependent tracking. Intended for detector output,
+   * which only emits explicit high-confidence boundary edges.
+   *
+   * @returns Number of edges persisted.
+   */
+  static persistEdges(db: LuxDatabase, edges: StructuralRelationEdge[]): number {
+    const ts = Math.floor(Date.now() / 1000);
+
+    for (const rel of edges) {
+      const dbEdge: StructuralEdge = {
+        id: rel.id,
+        source_node_id: rel.sourceNodeId,
+        target_node_id: rel.targetNodeId,
+        edge_type: rel.edgeType,
+        confidence: rel.confidence,
+        confidence_class: rel.confidenceClass,
+        freshness_status: 'fresh',
+        dirty_dependency_count: 0,
+        provenance_summary: `${rel.provenance.resolver} [${rel.provenance.evidenceKind}]`,
+        updated_at: ts,
+      };
+      db.upsertStructuralEdge(dbEdge);
+
+      const evidence: EdgeEvidence[] = rel.provenance.evidenceLocations.map((loc, i) => ({
+        id: `${rel.id}:ev:${i}`,
+        edge_id: rel.id,
+        resolver: rel.provenance.resolver,
+        evidence_kind: rel.provenance.evidenceKind,
+        file_path: loc.filePath,
+        line: loc.line,
+        note: loc.note,
+        recorded_at: ts,
+      }));
+      db.replaceEdgeEvidence(rel.id, evidence);
+    }
+
+    return edges.length;
+  }
+
+  // -------------------------------------------------------------------------
   // Private helpers
   // -------------------------------------------------------------------------
 

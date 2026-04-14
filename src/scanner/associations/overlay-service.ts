@@ -6,6 +6,7 @@
 //   3. Materialize structural nodes from the scan result
 //   4. Assemble AssociationContext from scan entries and enrichments
 //   5. Run AssociationEngine with the enabled resolver pack
+//   6. Run CapabilitySurfaceDetectors to persist surface nodes and boundary edges
 //
 // Designed to be called after generalScan() completes, or from a dedicated
 // CLI or MCP command.
@@ -18,6 +19,8 @@ import { materializeNodes } from './materializer.js';
 import { AssociationEngine } from './engine.js';
 import { createDefaultResolvers } from './framework/index.js';
 import type { AssociationContext, AssociationResolver } from './types.js';
+import type { CapabilitySurfaceDetector } from './detectors/types.js';
+import { runDetectors } from './detectors/index.js';
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -28,6 +31,8 @@ export interface OverlayRebuildOptions {
   includeHeuristics?: boolean;
   /** Override resolver pack (default: createDefaultResolvers()). */
   resolvers?: AssociationResolver[];
+  /** Override detector pack (default: createDefaultDetectors()). */
+  detectors?: CapabilitySurfaceDetector[];
   /** Progress callback. */
   onProgress?: (message: string) => void;
 }
@@ -40,6 +45,8 @@ export interface OverlayRebuildResult {
   staleMarked: number;
   currentCommit: string | undefined;
   dirtyFileCount: number;
+  surfacesDetected: number;
+  surfaceEdgesStored: number;
 }
 
 /**
@@ -119,6 +126,15 @@ export async function rebuildStructuralOverlay(
       `${engineResult.heuristicsFiltered} heuristic(s) filtered.`
   );
 
+  // 6. Run capability surface detectors
+  report('Running capability surface detectors...');
+  const detectors = options.detectors ?? undefined; // undefined → runDetectors picks defaults
+  const detectorResult = await runDetectors(db, context, detectors, report);
+  report(
+    `Detectors complete: ${detectorResult.surfacesDetected} surface(s) detected, ` +
+      `${detectorResult.surfaceEdgesStored} edge(s) stored.`
+  );
+
   return {
     fileNodes,
     symbolNodes,
@@ -127,6 +143,8 @@ export async function rebuildStructuralOverlay(
     staleMarked,
     currentCommit,
     dirtyFileCount: dirtyFiles.length,
+    surfacesDetected: detectorResult.surfacesDetected,
+    surfaceEdgesStored: detectorResult.surfaceEdgesStored,
   };
 }
 
