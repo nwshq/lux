@@ -1,0 +1,369 @@
+// Tests for surface-centered retrieval helpers and feature-path formatting.
+
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { mkdirSync, rmSync } from 'fs';
+import { join } from 'path';
+import { LuxDatabase } from '../../../db/index.js';
+import {
+  getSurfaceFeaturePath,
+  getFeaturePathsForFile,
+  formatFeaturePath,
+  formatFeaturePathBlock,
+  formatFileFeaturePathBlock,
+} from '../surface-retrieval.js';
+import type { StructuralNode, StructuralEdge } from '../../../db/types.js';
+
+const testDir = join(import.meta.dirname, 'fixtures', 'surface-retrieval-test');
+
+function makeDb(): LuxDatabase {
+  mkdirSync(testDir, { recursive: true });
+  return new LuxDatabase(join(testDir, 'test.db'));
+}
+
+function upsertNode(
+  db: LuxDatabase,
+  id: string,
+  nodeType: StructuralNode['node_type'],
+  symbolName: string,
+  filePath?: string
+): void {
+  db.upsertStructuralNode({
+    id,
+    node_type: nodeType,
+    symbol_name: symbolName,
+    language_id: 'php',
+    file_path: filePath,
+    metadata: '{}',
+    updated_at: Math.floor(Date.now() / 1000),
+  });
+}
+
+function upsertSurface(
+  db: LuxDatabase,
+  id: string,
+  handle: string,
+  path: string,
+  filePath: string,
+  routeName?: string
+): void {
+  db.upsertStructuralNode({
+    id,
+    node_type: 'capability-surface',
+    symbol_name: handle,
+    language_id: 'http',
+    file_path: filePath,
+    metadata: JSON.stringify({ transport: 'http', method: 'GET', path, routeName }),
+    updated_at: Math.floor(Date.now() / 1000),
+  });
+}
+
+function upsertEdge(
+  db: LuxDatabase,
+  id: string,
+  edgeType: StructuralEdge['edge_type'],
+  sourceNodeId: string,
+  targetNodeId: string
+): void {
+  db.upsertStructuralEdge({
+    id,
+    source_node_id: sourceNodeId,
+    target_node_id: targetNodeId,
+    edge_type: edgeType,
+    confidence: 0.9,
+    confidence_class: 'framework-inferred',
+    freshness_status: 'fresh',
+    dirty_dependency_count: 0,
+    provenance_summary: 'test',
+    updated_at: Math.floor(Date.now() / 1000),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// getSurfaceFeaturePath — basic assembly
+// ---------------------------------------------------------------------------
+
+describe('getSurfaceFeaturePath()', () => {
+  let db: LuxDatabase;
+
+  beforeEach(() => { db = makeDb(); });
+  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+
+  it('returns null for a surface that does not exist', () => {
+    const result = getSurfaceFeaturePath(db, 'surface:http:GET:/api/unknown');
+    expect(result).toBeNull();
+  });
+
+  it('returns a FeaturePath with all empty arrays when no edges exist', () => {
+    upsertSurface(db, 'surface:http:GET:/api/invoices', 'GET /api/invoices', '/api/invoices', 'routes/api.php');
+
+    const path = getSurfaceFeaturePath(db, 'surface:http:GET:/api/invoices');
+    expect(path).not.toBeNull();
+    expect(path!.surface.id).toBe('surface:http:GET:/api/invoices');
+    expect(path!.providers).toHaveLength(0);
+    expect(path!.consumers).toHaveLength(0);
+    expect(path!.validators).toHaveLength(0);
+    expect(path!.responseContracts).toHaveLength(0);
+    expect(path!.artifacts).toHaveLength(0);
+    expect(path!.declaringFile).toBeNull();
+  });
+
+  it('populates providers from handled_by edges', () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const controllerNodeId = 'symbol:php:InvoiceController@index';
+
+    upsertSurface(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php');
+    upsertNode(db, controllerNodeId, 'symbol', 'InvoiceController@index', 'app/Http/Controllers/InvoiceController.php');
+    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+
+    const path = getSurfaceFeaturePath(db, surfaceId);
+    expect(path!.providers).toHaveLength(1);
+    expect(path!.providers[0].id).toBe(controllerNodeId);
+  });
+
+  it('populates consumers from calls_surface edges', () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const wrapperNodeId = 'symbol:ts:src/api/invoices.ts#fetchInvoices';
+
+    upsertSurface(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php');
+    upsertNode(db, wrapperNodeId, 'symbol', 'fetchInvoices', 'src/api/invoices.ts');
+    upsertEdge(db, `${wrapperNodeId}→${surfaceId}:calls_surface`, 'calls_surface', wrapperNodeId, surfaceId);
+
+    const path = getSurfaceFeaturePath(db, surfaceId);
+    expect(path!.consumers).toHaveLength(1);
+    expect(path!.consumers[0].id).toBe(wrapperNodeId);
+  });
+
+  it('populates artifacts from derived_from edges', () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const artifactNodeId = 'file:src/generated/openapi-client.ts';
+
+    upsertSurface(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php');
+    upsertNode(db, artifactNodeId, 'file', 'src/generated/openapi-client.ts', 'src/generated/openapi-client.ts');
+    upsertEdge(db, `${artifactNodeId}→${surfaceId}:derived_from`, 'derived_from', artifactNodeId, surfaceId);
+
+    const path = getSurfaceFeaturePath(db, surfaceId);
+    expect(path!.artifacts).toHaveLength(1);
+    expect(path!.artifacts[0].id).toBe(artifactNodeId);
+  });
+
+  it('populates declaringFile from declares_surface edge', () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const fileNodeId = 'file:routes/api.php';
+
+    upsertSurface(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php');
+    upsertNode(db, fileNodeId, 'file', 'routes/api.php', 'routes/api.php');
+    upsertEdge(db, `${fileNodeId}→${surfaceId}:declares_surface`, 'declares_surface', fileNodeId, surfaceId);
+
+    const path = getSurfaceFeaturePath(db, surfaceId);
+    expect(path!.declaringFile).not.toBeNull();
+    expect(path!.declaringFile!.id).toBe(fileNodeId);
+  });
+
+  it('expands validators and responseContracts from the primary provider', () => {
+    const surfaceId = 'surface:http:POST:/api/invoices';
+    const controllerNodeId = 'symbol:php:InvoiceController@store';
+    const requestNodeId = 'symbol:php:StoreInvoiceRequest';
+    const resourceNodeId = 'symbol:php:InvoiceResource';
+
+    upsertSurface(db, surfaceId, 'POST /api/invoices', '/api/invoices', 'routes/api.php');
+    upsertNode(db, controllerNodeId, 'symbol', 'InvoiceController@store');
+    upsertNode(db, requestNodeId, 'symbol', 'StoreInvoiceRequest');
+    upsertNode(db, resourceNodeId, 'symbol', 'InvoiceResource');
+    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+    upsertEdge(db, `${controllerNodeId}→${requestNodeId}:validates_with`, 'validates_with', controllerNodeId, requestNodeId);
+    upsertEdge(db, `${controllerNodeId}→${resourceNodeId}:returns_contract`, 'returns_contract', controllerNodeId, resourceNodeId);
+
+    const path = getSurfaceFeaturePath(db, surfaceId);
+    expect(path!.validators).toHaveLength(1);
+    expect(path!.validators[0].id).toBe(requestNodeId);
+    expect(path!.responseContracts).toHaveLength(1);
+    expect(path!.responseContracts[0].id).toBe(resourceNodeId);
+  });
+
+  it('builds a full feature path with all roles populated', () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const controllerNodeId = 'symbol:php:InvoiceController@index';
+    const requestNodeId = 'symbol:php:ListInvoicesRequest';
+    const resourceNodeId = 'symbol:php:InvoiceResource';
+    const wrapperNodeId = 'symbol:ts:src/api/invoices.ts#fetchInvoices';
+    const artifactNodeId = 'file:src/generated/openapi-client.ts';
+    const fileNode = 'file:routes/api.php';
+
+    upsertSurface(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php');
+    upsertNode(db, controllerNodeId, 'symbol', 'InvoiceController@index');
+    upsertNode(db, requestNodeId, 'symbol', 'ListInvoicesRequest');
+    upsertNode(db, resourceNodeId, 'symbol', 'InvoiceResource');
+    upsertNode(db, wrapperNodeId, 'symbol', 'fetchInvoices');
+    upsertNode(db, artifactNodeId, 'file', 'src/generated/openapi-client.ts');
+    upsertNode(db, fileNode, 'file', 'routes/api.php', 'routes/api.php');
+
+    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+    upsertEdge(db, `${controllerNodeId}→${requestNodeId}:validates_with`, 'validates_with', controllerNodeId, requestNodeId);
+    upsertEdge(db, `${controllerNodeId}→${resourceNodeId}:returns_contract`, 'returns_contract', controllerNodeId, resourceNodeId);
+    upsertEdge(db, `${wrapperNodeId}→${surfaceId}:calls_surface`, 'calls_surface', wrapperNodeId, surfaceId);
+    upsertEdge(db, `${artifactNodeId}→${surfaceId}:derived_from`, 'derived_from', artifactNodeId, surfaceId);
+    upsertEdge(db, `${fileNode}→${surfaceId}:declares_surface`, 'declares_surface', fileNode, surfaceId);
+
+    const path = getSurfaceFeaturePath(db, surfaceId);
+    expect(path!.providers).toHaveLength(1);
+    expect(path!.consumers).toHaveLength(1);
+    expect(path!.validators).toHaveLength(1);
+    expect(path!.responseContracts).toHaveLength(1);
+    expect(path!.artifacts).toHaveLength(1);
+    expect(path!.declaringFile).not.toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getFeaturePathsForFile()
+// ---------------------------------------------------------------------------
+
+describe('getFeaturePathsForFile()', () => {
+  let db: LuxDatabase;
+
+  beforeEach(() => { db = makeDb(); });
+  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+
+  it('returns paths for all surfaces with matching file_path', () => {
+    upsertSurface(db, 'surface:http:GET:/api/invoices', 'GET /api/invoices', '/api/invoices', 'routes/api.php');
+    upsertSurface(db, 'surface:http:POST:/api/invoices', 'POST /api/invoices', '/api/invoices', 'routes/api.php');
+    upsertSurface(db, 'surface:http:GET:/api/users', 'GET /api/users', '/api/users', 'routes/web.php');
+
+    const paths = getFeaturePathsForFile(db, 'routes/api.php');
+    expect(paths).toHaveLength(2);
+    const ids = paths.map((p) => p.surface.id);
+    expect(ids).toContain('surface:http:GET:/api/invoices');
+    expect(ids).toContain('surface:http:POST:/api/invoices');
+  });
+
+  it('returns empty array when no surfaces match the file', () => {
+    const paths = getFeaturePathsForFile(db, 'routes/nonexistent.php');
+    expect(paths).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// formatFeaturePath()
+// ---------------------------------------------------------------------------
+
+describe('formatFeaturePath()', () => {
+  let db: LuxDatabase;
+
+  beforeEach(() => { db = makeDb(); });
+  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+
+  it('produces a compact path with consumer → surface → provider → contract tokens', () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const controllerNodeId = 'symbol:php:InvoiceController@index';
+    const resourceNodeId = 'symbol:php:InvoiceResource';
+    const wrapperNodeId = 'symbol:ts:src/api/invoices.ts#fetchInvoices';
+
+    upsertSurface(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php');
+    upsertNode(db, controllerNodeId, 'symbol', 'InvoiceController@index');
+    upsertNode(db, resourceNodeId, 'symbol', 'InvoiceResource');
+    upsertNode(db, wrapperNodeId, 'symbol', 'fetchInvoices');
+    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+    upsertEdge(db, `${controllerNodeId}→${resourceNodeId}:returns_contract`, 'returns_contract', controllerNodeId, resourceNodeId);
+    upsertEdge(db, `${wrapperNodeId}→${surfaceId}:calls_surface`, 'calls_surface', wrapperNodeId, surfaceId);
+
+    const path = getSurfaceFeaturePath(db, surfaceId)!;
+    const formatted = formatFeaturePath(path);
+
+    expect(formatted).toContain('fetchInvoices');
+    expect(formatted).toContain('GET /api/invoices');
+    expect(formatted).toContain('InvoiceController@index');
+    expect(formatted).toContain('InvoiceResource');
+    expect(formatted).toContain('→');
+  });
+
+  it('handles surface-only path (no edges) gracefully', () => {
+    upsertSurface(db, 'surface:http:GET:/api/health', 'GET /api/health', '/api/health', 'routes/api.php');
+
+    const path = getSurfaceFeaturePath(db, 'surface:http:GET:/api/health')!;
+    const formatted = formatFeaturePath(path);
+
+    expect(formatted).toContain('GET /api/health');
+    expect(formatted).not.toContain('→');
+  });
+
+  it('limits consumers to 2 with overflow token', () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    upsertSurface(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php');
+
+    for (let i = 0; i < 3; i++) {
+      const wid = `symbol:ts:src/api/${i}.ts#fn${i}`;
+      upsertNode(db, wid, 'symbol', `fn${i}`);
+      upsertEdge(db, `${wid}→${surfaceId}:calls_surface:${i}`, 'calls_surface', wid, surfaceId);
+    }
+
+    const path = getSurfaceFeaturePath(db, surfaceId)!;
+    const formatted = formatFeaturePath(path);
+    expect(formatted).toContain('+1 more');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// formatFeaturePathBlock()
+// ---------------------------------------------------------------------------
+
+describe('formatFeaturePathBlock()', () => {
+  let db: LuxDatabase;
+
+  beforeEach(() => { db = makeDb(); });
+  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+
+  it('includes surface handle, provider, validator, and contract in block output', () => {
+    const surfaceId = 'surface:http:POST:/api/invoices';
+    const controllerNodeId = 'symbol:php:InvoiceController@store';
+    const requestNodeId = 'symbol:php:StoreInvoiceRequest';
+    const resourceNodeId = 'symbol:php:InvoiceResource';
+    const fileNodeId = 'file:routes/api.php';
+
+    upsertSurface(db, surfaceId, 'POST /api/invoices', '/api/invoices', 'routes/api.php', 'invoices.store');
+    upsertNode(db, controllerNodeId, 'symbol', 'InvoiceController@store');
+    upsertNode(db, requestNodeId, 'symbol', 'StoreInvoiceRequest');
+    upsertNode(db, resourceNodeId, 'symbol', 'InvoiceResource');
+    upsertNode(db, fileNodeId, 'file', 'routes/api.php', 'routes/api.php');
+    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+    upsertEdge(db, `${controllerNodeId}→${requestNodeId}:validates_with`, 'validates_with', controllerNodeId, requestNodeId);
+    upsertEdge(db, `${controllerNodeId}→${resourceNodeId}:returns_contract`, 'returns_contract', controllerNodeId, resourceNodeId);
+    upsertEdge(db, `${fileNodeId}→${surfaceId}:declares_surface`, 'declares_surface', fileNodeId, surfaceId);
+
+    const path = getSurfaceFeaturePath(db, surfaceId)!;
+    const block = formatFeaturePathBlock(path);
+
+    expect(block).toContain('POST /api/invoices');
+    expect(block).toContain('invoices.store');
+    expect(block).toContain('InvoiceController@store');
+    expect(block).toContain('StoreInvoiceRequest');
+    expect(block).toContain('InvoiceResource');
+    expect(block).toContain('routes/api.php');
+    expect(block).toContain('Path:');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// formatFileFeaturePathBlock()
+// ---------------------------------------------------------------------------
+
+describe('formatFileFeaturePathBlock()', () => {
+  let db: LuxDatabase;
+
+  beforeEach(() => { db = makeDb(); });
+  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+
+  it('returns null when no surfaces are associated with the file', () => {
+    const result = formatFileFeaturePathBlock(db, 'routes/api.php');
+    expect(result).toBeNull();
+  });
+
+  it('returns a block containing all surfaces for the file', () => {
+    upsertSurface(db, 'surface:http:GET:/api/invoices', 'GET /api/invoices', '/api/invoices', 'routes/api.php');
+    upsertSurface(db, 'surface:http:POST:/api/invoices', 'POST /api/invoices', '/api/invoices', 'routes/api.php');
+
+    const block = formatFileFeaturePathBlock(db, 'routes/api.php');
+    expect(block).not.toBeNull();
+    expect(block).toContain('GET /api/invoices');
+    expect(block).toContain('POST /api/invoices');
+  });
+});

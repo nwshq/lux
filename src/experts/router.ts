@@ -7,6 +7,7 @@ import { buildCleanEnv } from '../utils/subprocess-env.js';
 import { computeClusters } from '../scanner/imports/clustering.js';
 import { formatEdgeBlock } from '../scanner/associations/evidence.js';
 import { fileNodeId } from '../scanner/associations/types.js';
+import { formatFileFeaturePathBlock } from '../scanner/associations/surface-retrieval.js';
 
 /** An expert matched by FTS5 search with a relevance score. */
 export interface ScoredExpert {
@@ -670,6 +671,10 @@ export function getStructuralContextForFile(
  * Mutates each hit in-place, populating `overlayContext` with structural
  * relation data from the overlay DB when available.
  *
+ * For each hit, builds two layers of context:
+ *   1. Edge-level: raw overlay edges incident to the file node
+ *   2. Surface-level: feature-path summaries for any surfaces declared in the file
+ *
  * Non-fatal: hits whose files have no overlay data are left unchanged.
  */
 export function enrichHitsWithOverlay(
@@ -678,9 +683,21 @@ export function enrichHitsWithOverlay(
   rootPath: string
 ): void {
   for (const hit of hits) {
-    const ctx = getStructuralContextForFile(db, hit.filePath, rootPath);
-    if (ctx) {
-      hit.overlayContext = ctx;
+    const parts: string[] = [];
+
+    const edgeCtx = getStructuralContextForFile(db, hit.filePath, rootPath);
+    if (edgeCtx) parts.push(edgeCtx);
+
+    try {
+      const relPath = toRelativePath(hit.filePath, rootPath);
+      const surfaceCtx = formatFileFeaturePathBlock(db, relPath);
+      if (surfaceCtx) parts.push(surfaceCtx);
+    } catch {
+      // Non-fatal — surface retrieval is best-effort
+    }
+
+    if (parts.length > 0) {
+      hit.overlayContext = parts.join('\n\n');
     }
   }
 }
