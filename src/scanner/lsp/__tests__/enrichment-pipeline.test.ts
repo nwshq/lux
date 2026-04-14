@@ -702,6 +702,59 @@ describe('attachEnrichment', () => {
     expect((lsp.definitions as unknown[]).length).toBe(1);
   });
 
+  it('should preserve references and typeHierarchy from PHP enrichment', () => {
+    const entry = {
+      type: 'source-code',
+      title: 'InvoiceService',
+      filePath: '/app/Services/InvoiceService.php',
+      frontmatter: { language: 'php' },
+    };
+
+    const phpEnrichment = {
+      filePath: '/app/Services/InvoiceService.php',
+      languageId: 'php',
+      symbols: [{ name: 'InvoiceService', kind: 5, kindLabel: 'Class', startLine: 5, endLine: 40 }],
+      diagnostics: [],
+      definitions: [],
+      references: [
+        {
+          symbolName: 'InvoiceService',
+          symbolKind: 5,
+          referenceCount: 3,
+          referenceLocations: [{ uri: 'file:///app/Controllers/InvoiceController.php', line: 10 }],
+        },
+      ],
+      typeHierarchy: [
+        {
+          name: 'InvoiceService',
+          kind: 5,
+          uri: 'file:///app/Services/InvoiceService.php',
+          startLine: 5,
+          supertypes: [{ name: 'BaseService', uri: 'file:///app/Services/BaseService.php', kind: 5 }],
+          subtypes: [],
+        },
+      ],
+      enrichedAt: 1700000001,
+    };
+
+    const enrichments = new Map([[entry.filePath, phpEnrichment]]);
+    const result = attachEnrichment(entry, enrichments);
+    const lsp = (result.frontmatter as Record<string, unknown>).lsp as Record<string, unknown>;
+
+    expect(lsp.references).toBeDefined();
+    expect((lsp.references as unknown[]).length).toBe(1);
+    const ref = (lsp.references as Record<string, unknown>[])[0];
+    expect(ref.symbolName).toBe('InvoiceService');
+    expect(ref.referenceCount).toBe(3);
+
+    expect(lsp.typeHierarchy).toBeDefined();
+    expect((lsp.typeHierarchy as unknown[]).length).toBe(1);
+    const th = (lsp.typeHierarchy as Record<string, unknown>[])[0];
+    expect(th.name).toBe('InvoiceService');
+    const supertypes = th.supertypes as Array<Record<string, unknown>>;
+    expect(supertypes[0].name).toBe('BaseService');
+  });
+
   it('should return entry unchanged when no enrichment exists', () => {
     const entry = {
       type: 'doc',

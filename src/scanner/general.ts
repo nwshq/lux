@@ -5,10 +5,15 @@ import matter from 'gray-matter';
 import type { Frontmatter, ScannedKnowledge, ScanResult } from './types.js';
 import type { LuxDatabase } from '../db/index.js';
 import { loadLspConfig, type LuxLspConfig, type LspEnricherEntry } from './config.js';
-import { EnricherRegistry, type EnrichmentResult } from './lsp/index.js';
+import { EnricherRegistry, type EnrichmentMap } from './lsp/index.js';
 import { PhpLspEnricher } from './lsp/php.js';
+import { TypeScriptLspEnricher } from './lsp/typescript.js';
 import { parseImports } from './imports/index.js';
 import { detectModuleBoundaries, resolveModule } from './imports/module-boundary.js';
+import {
+  rebuildStructuralOverlay,
+  type OverlayRebuildResult,
+} from './associations/overlay-service.js';
 
 // ---------------------------------------------------------------------------
 // Source Code Scanning Constants
@@ -349,8 +354,8 @@ export class GeneralScanner {
 // LSP Enrichment Pipeline
 // ---------------------------------------------------------------------------
 
-/** Enrichment results indexed by file path. */
-export type EnrichmentMap = Map<string, EnrichmentResult>;
+/** Enrichment results indexed by file path. Re-exported from lsp/index for convenience. */
+export type { EnrichmentMap } from './lsp/index.js';
 
 /** Aggregated module dependency ready for DB insertion. */
 export interface AggregatedDependency {
@@ -377,6 +382,8 @@ export interface GeneralScanResult {
     /** Errors encountered during enrichment (non-fatal). */
     enrichmentErrors: Array<{ filePath: string; error: string }>;
   };
+  /** Structural overlay rebuild result (only present when overlayEnabled=true). */
+  overlay?: OverlayRebuildResult;
 }
 
 /** Options for the general scan pipeline. */
@@ -387,15 +394,24 @@ export interface GeneralScanOptions {
   onProgress?: (message: string) => void;
   /** Callback for enrichment errors. */
   onEnrichmentError?: (filePath: string, error: Error) => void;
+  /** Database to write structural overlay into. Required when overlayEnabled=true. */
+  db?: LuxDatabase;
+  /** Run structural overlay rebuild after scan+enrich. Requires db option. */
+  overlayEnabled?: boolean;
 }
 
 /** Map of language IDs to factory functions for built-in enrichers. */
-const ENRICHER_FACTORIES: Record<
-  string,
-  (entry: LspEnricherEntry) => InstanceType<typeof PhpLspEnricher>
-> = {
+const ENRICHER_FACTORIES: Record<string, (entry: LspEnricherEntry) => PhpLspEnricher | TypeScriptLspEnricher> = {
   php: (entry) =>
     new PhpLspEnricher({
+      serverCommand: entry.serverCommand,
+      serverArgs: entry.serverArgs,
+      maxConcurrency: entry.maxConcurrency,
+      requestTimeoutMs: entry.requestTimeoutMs,
+      initTimeoutMs: entry.initTimeoutMs,
+    }),
+  typescript: (entry) =>
+    new TypeScriptLspEnricher({
       serverCommand: entry.serverCommand,
       serverArgs: entry.serverArgs,
       maxConcurrency: entry.maxConcurrency,
@@ -516,6 +532,25 @@ export async function generalScan(
 
   report(`Enrichment complete: ${enrichments.size} files enriched, ${errors.length} errors.`);
 
+  // 8. Optionally rebuild structural overlay
+  let overlay: OverlayRebuildResult | undefined;
+  if (options?.overlayEnabled && options.db) {
+    report('Rebuilding structural overlay...');
+    try {
+      overlay = await rebuildStructuralOverlay(options.db, rootPath, scan, enrichments, {
+        onProgress: report,
+      });
+      report(
+        `Overlay complete: ${overlay.fileNodes} file node(s), ${overlay.symbolNodes} symbol node(s), ` +
+          `${overlay.edgesStored} edge(s) stored.`
+      );
+    } catch (error) {
+      report(
+        `Warning: overlay rebuild failed — ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
   return {
     scan,
     enrichments,
@@ -525,6 +560,7 @@ export async function generalScan(
       activeEnrichers: activeCount,
       enrichmentErrors: errors,
     },
+    overlay,
   };
 }
 
@@ -786,6 +822,8 @@ export function attachEnrichment(
   const enrichment = enrichments.get(entry.filePath);
   if (!enrichment) return entry;
 
+  const ext = enrichment as unknown as Record<string, unknown>;
+
   return {
     ...entry,
     frontmatter: {
@@ -794,6 +832,8 @@ export function attachEnrichment(
         symbols: enrichment.symbols,
         diagnostics: enrichment.diagnostics,
         definitions: enrichment.definitions,
+        references: ext['references'] as unknown[] | undefined,
+        typeHierarchy: ext['typeHierarchy'] as unknown[] | undefined,
         enrichedAt: enrichment.enrichedAt,
         languageId: enrichment.languageId,
       },

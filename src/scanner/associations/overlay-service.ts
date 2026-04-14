@@ -1,0 +1,177 @@
+// Structural overlay orchestration service.
+//
+// Single entry point for a complete overlay rebuild cycle:
+//   1. Collect HEAD commit and dirty file state from git
+//   2. Mark stale any fresh edges whose commit baseline has advanced
+//   3. Materialize structural nodes from the scan result
+//   4. Assemble AssociationContext from scan entries and enrichments
+//   5. Run AssociationEngine with the enabled resolver pack
+//
+// Designed to be called after generalScan() completes, or from a dedicated
+// CLI or MCP command.
+
+import type { LuxDatabase } from '../../db/index.js';
+import type { ScanResult, ScannedKnowledge } from '../types.js';
+import type { EnrichmentMap } from '../lsp/index.js';
+import { isGitRepository, getHeadCommit, getDirtyFiles } from '../git.js';
+import { materializeNodes } from './materializer.js';
+import { AssociationEngine } from './engine.js';
+import { createDefaultResolvers } from './framework/index.js';
+import type { AssociationContext, AssociationResolver } from './types.js';
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
+export interface OverlayRebuildOptions {
+  /** Include heuristic edges (default: false). */
+  includeHeuristics?: boolean;
+  /** Override resolver pack (default: createDefaultResolvers()). */
+  resolvers?: AssociationResolver[];
+  /** Progress callback. */
+  onProgress?: (message: string) => void;
+}
+
+export interface OverlayRebuildResult {
+  fileNodes: number;
+  symbolNodes: number;
+  edgesStored: number;
+  heuristicsFiltered: number;
+  staleMarked: number;
+  currentCommit: string | undefined;
+  dirtyFileCount: number;
+}
+
+/**
+ * Run a complete structural overlay rebuild.
+ *
+ * @param db - Database to read nodes from and write edges into.
+ * @param rootPath - Absolute repository root.
+ * @param scan - Completed ScanResult from GeneralScanner.
+ * @param enrichments - LSP enrichment map from generalScan().
+ * @param options - Rebuild options.
+ */
+export async function rebuildStructuralOverlay(
+  db: LuxDatabase,
+  rootPath: string,
+  scan: ScanResult,
+  enrichments: EnrichmentMap,
+  options: OverlayRebuildOptions = {}
+): Promise<OverlayRebuildResult> {
+  const report = options.onProgress ?? (() => {});
+
+  // 1. Collect git state
+  let currentCommit: string | undefined;
+  let dirtyFiles: string[] = [];
+
+  if (isGitRepository(rootPath)) {
+    try {
+      currentCommit = getHeadCommit(rootPath);
+      dirtyFiles = getDirtyFiles(rootPath);
+      report(
+        `Git state: commit=${currentCommit.slice(0, 8)}, dirty=${dirtyFiles.length} file(s).`
+      );
+    } catch {
+      report('Warning: could not read git state — freshness tracking will use "unknown".');
+    }
+  } else {
+    report('Not a git repository — freshness tracking will use "unknown".');
+  }
+
+  // 2. Mark stale edges from an earlier commit baseline
+  let staleMarked = 0;
+  if (currentCommit) {
+    staleMarked = db.markEdgesStaleByCommit(currentCommit);
+    if (staleMarked > 0) {
+      report(
+        `Marked ${staleMarked} edge(s) stale (commit advanced to ${currentCommit.slice(0, 8)}).`
+      );
+    }
+  }
+
+  // 3. Materialize structural nodes from scan output
+  report('Materializing structural nodes...');
+  const { fileNodes, symbolNodes } = materializeNodes(db, scan, enrichments, rootPath);
+  report(`Materialized ${fileNodes} file node(s) and ${symbolNodes} symbol node(s).`);
+
+  // 4. Assemble association context
+  const entries = buildContextEntries(scan, enrichments, rootPath);
+
+  const context: AssociationContext = {
+    rootPath,
+    nodes: [], // engine fetches nodes from DB via getStructuralNode() as needed
+    entries,
+    currentCommit,
+    dirtyFiles,
+  };
+
+  // 5. Run association engine
+  const resolvers = options.resolvers ?? createDefaultResolvers();
+  const engine = new AssociationEngine(db, resolvers, {
+    includeHeuristics: options.includeHeuristics ?? false,
+    onProgress: report,
+  });
+
+  report('Running association engine...');
+  const engineResult = await engine.rebuild(context);
+  report(
+    `Engine complete: ${engineResult.edgesStored} edge(s) stored, ` +
+      `${engineResult.heuristicsFiltered} heuristic(s) filtered.`
+  );
+
+  return {
+    fileNodes,
+    symbolNodes,
+    edgesStored: engineResult.edgesStored,
+    heuristicsFiltered: engineResult.heuristicsFiltered,
+    staleMarked,
+    currentCommit,
+    dirtyFileCount: dirtyFiles.length,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Private helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Build the entries array for AssociationContext.
+ * Each entry carries the file path, language ID, and a metadata record
+ * that includes file content (for resolver pattern matching) and any
+ * LSP enrichment data.
+ */
+function buildContextEntries(
+  scan: ScanResult,
+  enrichments: EnrichmentMap,
+  rootPath: string
+): AssociationContext['entries'] {
+  return scan.knowledge
+    .filter((k) => k.type === 'source-code')
+    .map((k: ScannedKnowledge) => {
+      const fm = k.frontmatter as Record<string, unknown> | undefined;
+      const languageId = fm?.language as string | undefined;
+      const metadata: Record<string, unknown> = {};
+
+      // Expose file content so resolvers can do pattern matching on it
+      if (k.content) {
+        metadata.content = k.content;
+      }
+
+      // Expose LSP enrichment data (symbols, definitions, references, etc.)
+      const enrichment = enrichments.get(k.filePath);
+      if (enrichment) {
+        metadata.lsp = enrichment;
+      }
+
+      // Use relative path so resolvers can build correct node IDs
+      const relPath = k.filePath.startsWith(rootPath + '/')
+        ? k.filePath.slice(rootPath.length + 1)
+        : k.filePath;
+
+      return {
+        filePath: relPath,
+        languageId,
+        metadata,
+      };
+    });
+}

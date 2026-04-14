@@ -5,6 +5,8 @@ import type { Expert } from '../db/types.js';
 import type { ExpertSessionManager, QueryOptions, QueryResult } from './session-manager.js';
 import { buildCleanEnv } from '../utils/subprocess-env.js';
 import { computeClusters } from '../scanner/imports/clustering.js';
+import { formatEdgeBlock } from '../scanner/associations/evidence.js';
+import { fileNodeId } from '../scanner/associations/types.js';
 
 /** An expert matched by FTS5 search with a relevance score. */
 export interface ScoredExpert {
@@ -40,6 +42,11 @@ export interface RouterOptions {
   routingModel?: string;
   /** Called with each chunk of expert response as it arrives. */
   onChunk?: (chunk: string) => void;
+  /**
+   * Repository root path. When provided, structural overlay edges are fetched
+   * for FTS5 hit files and injected as `overlayContext` in the augmented query.
+   */
+  rootPath?: string;
 }
 
 export interface FtsHit {
@@ -49,6 +56,8 @@ export interface FtsHit {
   title?: string;
   /** Raw metadata JSON string from the database entity. May contain lsp enrichment data. */
   metadata?: string;
+  /** Formatted structural relation context from the overlay (edges + evidence). */
+  overlayContext?: string;
 }
 
 interface ScoreResult {
@@ -171,6 +180,9 @@ export async function routeQuery(
       const responses: QueryResult[] = [];
       for (const se of qualified) {
         const expertHits = hitsByExpert.get(se.expert.slug) ?? [];
+        if (options.rootPath) {
+          enrichHitsWithOverlay(expertHits, db, options.rootPath);
+        }
         const augmented = buildAugmentedQuery(query, expertHits, options.maxContextBytes);
         const settled = await Promise.allSettled([
           sessionManager.query(se.expert.slug, augmented, queryOpts),
@@ -200,6 +212,9 @@ export async function routeQuery(
 
   // Collect FTS5 hits under chosen expert's mount_path for context enrichment
   const expertHits = hitsByExpert.get(chosenExpert.slug) ?? [];
+  if (options.rootPath) {
+    enrichHitsWithOverlay(expertHits, db, options.rootPath);
+  }
   const moduleContext = buildModuleContext(db, expertHits);
   const augmented = buildAugmentedQuery(query, expertHits, options.maxContextBytes, moduleContext);
 
@@ -505,6 +520,11 @@ export function buildAugmentedQuery(
 
     const bodyParts: string[] = [];
 
+    // Include structural overlay context (edges + evidence) if available
+    if (hit.overlayContext) {
+      bodyParts.push(`> **Structural Relations**\n${hit.overlayContext}`);
+    }
+
     // Include LSP relationship summary if available
     const lspSummary = extractLspRelationships(hit.metadata);
     if (lspSummary) {
@@ -599,6 +619,69 @@ function buildModuleContext(db: LuxDatabase, hits: FtsHit[]): string | undefined
     return lines.length > 0 ? lines.join('\n') : undefined;
   } catch {
     return undefined;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Structural overlay context enrichment
+// ---------------------------------------------------------------------------
+
+/**
+ * Convert an absolute file path to a relative path under rootPath.
+ * Returns the original path unchanged if it doesn't start with rootPath.
+ */
+function toRelativePath(absolutePath: string, rootPath: string): string {
+  const prefix = rootPath.endsWith('/') ? rootPath : rootPath + '/';
+  return absolutePath.startsWith(prefix) ? absolutePath.slice(prefix.length) : absolutePath;
+}
+
+/**
+ * Fetch structural overlay context for a single file — edges + evidence
+ * formatted as a concise text block.
+ *
+ * Returns null when:
+ * - The file has no structural node in the overlay
+ * - The overlay has no edges for this file
+ * - Any DB error occurs (non-fatal)
+ *
+ * @param db - LuxDatabase with structural overlay tables.
+ * @param absoluteFilePath - Absolute path of the file.
+ * @param rootPath - Repository root (used to compute relative paths for node IDs).
+ */
+export function getStructuralContextForFile(
+  db: LuxDatabase,
+  absoluteFilePath: string,
+  rootPath: string
+): string | null {
+  try {
+    const relPath = toRelativePath(absoluteFilePath, rootPath);
+    const nodeId = fileNodeId(relPath);
+
+    const edgesWithEvidence = db.getRelatedEdgesWithEvidence(nodeId);
+    if (edgesWithEvidence.length === 0) return null;
+
+    return formatEdgeBlock(nodeId, edgesWithEvidence);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Mutates each hit in-place, populating `overlayContext` with structural
+ * relation data from the overlay DB when available.
+ *
+ * Non-fatal: hits whose files have no overlay data are left unchanged.
+ */
+export function enrichHitsWithOverlay(
+  hits: FtsHit[],
+  db: LuxDatabase,
+  rootPath: string
+): void {
+  for (const hit of hits) {
+    const ctx = getStructuralContextForFile(db, hit.filePath, rootPath);
+    if (ctx) {
+      hit.overlayContext = ctx;
+    }
   }
 }
 

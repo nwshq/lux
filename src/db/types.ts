@@ -101,3 +101,69 @@ export interface DocumentSearchResult {
   content?: string;
   rank: number;
 }
+
+// ---------------------------------------------------------------------------
+// Structural overlay types (migration 008)
+// ---------------------------------------------------------------------------
+
+export type StructuralNodeType =
+  | 'file'
+  | 'symbol'
+  | 'route'
+  | 'template'
+  | 'contract'
+  | 'event'
+  | 'artifact';
+
+export type EdgeType =
+  | 'calls_endpoint'
+  | 'maps_route_to_consumer'
+  | 'renders_template'
+  | 'hydrates_component'
+  | 'uses_generated_type'
+  | 'implements_contract'
+  | 'emits_event'
+  | 'subscribes_event'
+  | 'shares_config_key';
+
+export type ConfidenceClass = 'proven' | 'artifact-backed' | 'framework-inferred' | 'heuristic';
+
+export type FreshnessStatus = 'fresh' | 'stale' | 'dirty-dependent' | 'unknown';
+
+export interface StructuralNode {
+  id: string;
+  node_type: StructuralNodeType;
+  file_path?: string;
+  language_id?: string;
+  symbol_name?: string;
+  symbol_kind?: string;
+  qualified_name?: string;
+  metadata?: string;
+  updated_at: number;
+}
+
+export interface StructuralEdge {
+  id: string;
+  source_node_id: string;
+  target_node_id: string;
+  edge_type: EdgeType;
+  confidence: number;
+  confidence_class: ConfidenceClass;
+  freshness_status: FreshnessStatus;
+  source_commit?: string;
+  dirty_dependency_count: number;
+  provenance_summary?: string;
+  updated_at: number;
+}
+
+export interface EdgeEvidence {
+  id: string;
+  edge_id: string;
+  resolver: string;
+  evidence_kind: string;
+  file_path?: string;
+  line?: number;
+  note?: string;
+  payload_json?: string;
+  recorded_at: number;
+}

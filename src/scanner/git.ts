@@ -74,3 +74,34 @@ export function commitExists(rootPath: string, commitHash: string): boolean {
     return false;
   }
 }
+
+/**
+ * Get the list of dirty (unstaged or staged but uncommitted) file paths
+ * relative to the repository root.
+ *
+ * Uses `git status --porcelain` to detect any modified, added, deleted,
+ * or renamed files in the working tree and index.
+ */
+export function getDirtyFiles(rootPath: string): string[] {
+  try {
+    const output = execSync('git status --porcelain', {
+      cwd: rootPath,
+      encoding: 'utf-8',
+    }).trim();
+
+    if (!output) return [];
+
+    return output
+      .split('\n')
+      .map((line) => {
+        // porcelain format: XY PATH or XY ORIG -> PATH
+        const raw = line.slice(3);
+        // Handle renames: "ORIG -> PATH" — take the target
+        const arrowIdx = raw.indexOf(' -> ');
+        return arrowIdx !== -1 ? raw.slice(arrowIdx + 4).trim() : raw.trim();
+      })
+      .filter((p) => p.length > 0);
+  } catch {
+    return [];
+  }
+}

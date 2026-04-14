@@ -68,6 +68,28 @@ export class PreparedQueries {
   readonly clearModuleDependencies: Database.Statement;
   readonly getDistinctModules: Database.Statement;
 
+  // Structural overlay queries — nodes
+  readonly upsertStructuralNode: Database.Statement;
+  readonly getStructuralNode: Database.Statement;
+  readonly getStructuralNodesByType: Database.Statement;
+  readonly getStructuralNodeByFilePath: Database.Statement;
+
+  // Structural overlay queries — edges
+  readonly upsertStructuralEdge: Database.Statement;
+  readonly getStructuralEdge: Database.Statement;
+  readonly getStructuralEdgesForSourceNode: Database.Statement;
+  readonly getStructuralEdgesForTargetNode: Database.Statement;
+  readonly getStructuralEdgesForNode: Database.Statement;
+  readonly invalidateEdgesForFile: Database.Statement;
+  readonly markEdgesStaleForFile: Database.Statement;
+  readonly markEdgesStaleByCommit: Database.Statement;
+
+  // Structural overlay queries — evidence
+  readonly insertEdgeEvidence: Database.Statement;
+  readonly deleteEdgeEvidence: Database.Statement;
+  readonly getEdgeEvidence: Database.Statement;
+  readonly getEdgeEvidenceByResolver: Database.Statement;
+
   constructor(db: Database.Database) {
     // Knowledge entry queries
     this.insertKnowledgeEntry = db.prepare(`
@@ -264,6 +286,112 @@ export class PreparedQueries {
         UNION
         SELECT target_module AS module FROM module_dependencies
       ) ORDER BY module
+    `);
+
+    // Structural overlay — node queries
+    this.upsertStructuralNode = db.prepare(`
+      INSERT INTO structural_nodes (id, node_type, file_path, language_id, symbol_name, symbol_kind, qualified_name, metadata, updated_at)
+      VALUES (@id, @node_type, @file_path, @language_id, @symbol_name, @symbol_kind, @qualified_name, @metadata, @updated_at)
+      ON CONFLICT(id) DO UPDATE SET
+        node_type = excluded.node_type,
+        file_path = excluded.file_path,
+        language_id = excluded.language_id,
+        symbol_name = excluded.symbol_name,
+        symbol_kind = excluded.symbol_kind,
+        qualified_name = excluded.qualified_name,
+        metadata = excluded.metadata,
+        updated_at = excluded.updated_at
+    `);
+
+    this.getStructuralNode = db.prepare(`
+      SELECT * FROM structural_nodes WHERE id = ?
+    `);
+
+    this.getStructuralNodesByType = db.prepare(`
+      SELECT * FROM structural_nodes WHERE node_type = ? ORDER BY updated_at DESC
+    `);
+
+    this.getStructuralNodeByFilePath = db.prepare(`
+      SELECT * FROM structural_nodes WHERE file_path = ? ORDER BY node_type
+    `);
+
+    // Structural overlay — edge queries
+    this.upsertStructuralEdge = db.prepare(`
+      INSERT INTO structural_edges (id, source_node_id, target_node_id, edge_type, confidence, confidence_class, freshness_status, source_commit, dirty_dependency_count, provenance_summary, updated_at)
+      VALUES (@id, @source_node_id, @target_node_id, @edge_type, @confidence, @confidence_class, @freshness_status, @source_commit, @dirty_dependency_count, @provenance_summary, @updated_at)
+      ON CONFLICT(id) DO UPDATE SET
+        source_node_id = excluded.source_node_id,
+        target_node_id = excluded.target_node_id,
+        edge_type = excluded.edge_type,
+        confidence = excluded.confidence,
+        confidence_class = excluded.confidence_class,
+        freshness_status = excluded.freshness_status,
+        source_commit = excluded.source_commit,
+        dirty_dependency_count = excluded.dirty_dependency_count,
+        provenance_summary = excluded.provenance_summary,
+        updated_at = excluded.updated_at
+    `);
+
+    this.getStructuralEdge = db.prepare(`
+      SELECT * FROM structural_edges WHERE id = ?
+    `);
+
+    this.getStructuralEdgesForSourceNode = db.prepare(`
+      SELECT * FROM structural_edges WHERE source_node_id = ? ORDER BY confidence DESC
+    `);
+
+    this.getStructuralEdgesForTargetNode = db.prepare(`
+      SELECT * FROM structural_edges WHERE target_node_id = ? ORDER BY confidence DESC
+    `);
+
+    this.getStructuralEdgesForNode = db.prepare(`
+      SELECT * FROM structural_edges
+      WHERE source_node_id = ? OR target_node_id = ?
+      ORDER BY confidence DESC
+    `);
+
+    this.invalidateEdgesForFile = db.prepare(`
+      UPDATE structural_edges SET freshness_status = 'dirty-dependent', updated_at = unixepoch()
+      WHERE id IN (
+        SELECT se.id FROM structural_edges se
+        JOIN structural_nodes sn ON se.source_node_id = sn.id OR se.target_node_id = sn.id
+        WHERE sn.file_path = ?
+      )
+    `);
+
+    this.markEdgesStaleForFile = db.prepare(`
+      UPDATE structural_edges SET freshness_status = 'stale', updated_at = unixepoch()
+      WHERE id IN (
+        SELECT se.id FROM structural_edges se
+        JOIN structural_nodes sn ON se.source_node_id = sn.id OR se.target_node_id = sn.id
+        WHERE sn.file_path = ?
+      )
+    `);
+
+    this.markEdgesStaleByCommit = db.prepare(`
+      UPDATE structural_edges
+      SET freshness_status = 'stale', updated_at = unixepoch()
+      WHERE freshness_status = 'fresh'
+        AND source_commit IS NOT NULL
+        AND source_commit != ?
+    `);
+
+    // Structural overlay — evidence queries
+    this.insertEdgeEvidence = db.prepare(`
+      INSERT INTO edge_evidence (id, edge_id, resolver, evidence_kind, file_path, line, note, payload_json, recorded_at)
+      VALUES (@id, @edge_id, @resolver, @evidence_kind, @file_path, @line, @note, @payload_json, @recorded_at)
+    `);
+
+    this.deleteEdgeEvidence = db.prepare(`
+      DELETE FROM edge_evidence WHERE edge_id = ?
+    `);
+
+    this.getEdgeEvidence = db.prepare(`
+      SELECT * FROM edge_evidence WHERE edge_id = ? ORDER BY recorded_at ASC
+    `);
+
+    this.getEdgeEvidenceByResolver = db.prepare(`
+      SELECT * FROM edge_evidence WHERE edge_id = ? AND resolver = ? ORDER BY recorded_at ASC
     `);
   }
 }

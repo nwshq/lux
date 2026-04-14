@@ -14,6 +14,9 @@ import type {
   ExpertSessionInsert,
   DocumentSearchResult,
   ModuleDependency,
+  StructuralNode,
+  StructuralEdge,
+  EdgeEvidence,
 } from './types.js';
 
 export class LuxDatabase {
@@ -373,6 +376,127 @@ export class LuxDatabase {
   getDistinctModules(): string[] {
     const rows = this.getQueries().getDistinctModules.all() as { module: string }[];
     return rows.map((r) => r.module);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Structural overlay operations
+  // ---------------------------------------------------------------------------
+
+  upsertStructuralNode(node: StructuralNode): void {
+    this.getQueries().upsertStructuralNode.run({
+      id: node.id,
+      node_type: node.node_type,
+      file_path: node.file_path ?? null,
+      language_id: node.language_id ?? null,
+      symbol_name: node.symbol_name ?? null,
+      symbol_kind: node.symbol_kind ?? null,
+      qualified_name: node.qualified_name ?? null,
+      metadata: node.metadata ?? null,
+      updated_at: node.updated_at,
+    });
+  }
+
+  upsertStructuralEdge(edge: StructuralEdge): void {
+    this.getQueries().upsertStructuralEdge.run({
+      id: edge.id,
+      source_node_id: edge.source_node_id,
+      target_node_id: edge.target_node_id,
+      edge_type: edge.edge_type,
+      confidence: edge.confidence,
+      confidence_class: edge.confidence_class,
+      freshness_status: edge.freshness_status,
+      source_commit: edge.source_commit ?? null,
+      dirty_dependency_count: edge.dirty_dependency_count,
+      provenance_summary: edge.provenance_summary ?? null,
+      updated_at: edge.updated_at,
+    });
+  }
+
+  /**
+   * Replace all evidence for an edge atomically.
+   * Deletes existing evidence then inserts the new set in a single transaction.
+   */
+  replaceEdgeEvidence(edgeId: string, evidence: EdgeEvidence[]): void {
+    const q = this.getQueries();
+    const replaceTransaction = this.db.transaction(() => {
+      q.deleteEdgeEvidence.run(edgeId);
+      for (const ev of evidence) {
+        q.insertEdgeEvidence.run({
+          id: ev.id,
+          edge_id: ev.edge_id,
+          resolver: ev.resolver,
+          evidence_kind: ev.evidence_kind,
+          file_path: ev.file_path ?? null,
+          line: ev.line ?? null,
+          note: ev.note ?? null,
+          payload_json: ev.payload_json ?? null,
+          recorded_at: ev.recorded_at,
+        });
+      }
+    });
+    replaceTransaction();
+  }
+
+  getStructuralNode(id: string): StructuralNode | null {
+    return (this.getQueries().getStructuralNode.get(id) as StructuralNode | undefined) ?? null;
+  }
+
+  getStructuralEdgesForNode(nodeId: string): StructuralEdge[] {
+    return this.getQueries().getStructuralEdgesForNode.all(nodeId, nodeId) as StructuralEdge[];
+  }
+
+  getEdgeEvidence(edgeId: string): EdgeEvidence[] {
+    return this.getQueries().getEdgeEvidence.all(edgeId) as EdgeEvidence[];
+  }
+
+  /**
+   * Mark edges that touch any of the given file paths as dirty-dependent.
+   * Returns the total number of edges invalidated.
+   */
+  invalidateEdgesForFiles(filePaths: string[]): number {
+    let total = 0;
+    const q = this.getQueries();
+    for (const filePath of filePaths) {
+      const info = q.invalidateEdgesForFile.run(filePath);
+      total += info.changes;
+    }
+    return total;
+  }
+
+  /**
+   * Mark edges touching file paths as stale (commit baseline no longer valid).
+   * Returns total edges marked stale.
+   */
+  markEdgesStaleForFiles(filePaths: string[]): number {
+    let total = 0;
+    const q = this.getQueries();
+    for (const filePath of filePaths) {
+      const info = q.markEdgesStaleForFile.run(filePath);
+      total += info.changes;
+    }
+    return total;
+  }
+
+  /**
+   * Mark all `fresh` edges whose source_commit differs from the given commit as stale.
+   * Call this at the start of a rebuild when the HEAD commit has advanced.
+   * Returns the number of edges marked stale.
+   */
+  markEdgesStaleByCommit(currentCommit: string): number {
+    const info = this.getQueries().markEdgesStaleByCommit.run(currentCommit);
+    return info.changes;
+  }
+
+  /**
+   * Retrieve all edges for a node plus their evidence in one call.
+   * Combines getStructuralEdgesForNode() and getEdgeEvidence() per edge.
+   */
+  getRelatedEdgesWithEvidence(nodeId: string): Array<{ edge: StructuralEdge; evidence: EdgeEvidence[] }> {
+    const edges = this.getStructuralEdgesForNode(nodeId);
+    return edges.map((edge) => ({
+      edge,
+      evidence: this.getEdgeEvidence(edge.id),
+    }));
   }
 
   // Utility operations

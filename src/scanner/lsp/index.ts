@@ -67,6 +67,9 @@ export interface EnrichmentResult {
   enrichedAt: number;
 }
 
+/** Enrichment results indexed by absolute file path. */
+export type EnrichmentMap = Map<string, EnrichmentResult>;
+
 // ---------------------------------------------------------------------------
 // LspEnricher interface
 // ---------------------------------------------------------------------------
