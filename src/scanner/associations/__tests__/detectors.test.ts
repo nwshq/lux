@@ -576,3 +576,411 @@ describe('LaravelHttpSurfaceDetector — route groups', () => {
     expect(surface!.metadata.controllerMethod).toBe('store');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Helper-wrapped path recovery
+// ---------------------------------------------------------------------------
+
+describe('LaravelHttpSurfaceDetector — helper-wrapped path recovery', () => {
+  const detector = new LaravelHttpSurfaceDetector();
+
+  it('recovers surface from pathLookup wrapper with invokable controller', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/web.php',
+        languageId: 'php',
+        content: `Route::get(pathLookup('/events/allsellerreport'), AllSellerReportController::class);`,
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/events/allsellerreport');
+    expect(batch.surfaces[0].metadata.path).toBe('/events/allsellerreport');
+    expect(batch.surfaces[0].metadata.localFragment).toBe('/events/allsellerreport');
+    expect(batch.surfaces[0].metadata.pathWrapper).toBe('pathLookup');
+  });
+
+  it('recovers surface from pathLookup wrapper with parameterized path', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/web.php',
+        languageId: 'php',
+        content: `Route::get(pathLookup('/events/bidhistoryreport/{event}'), BidHistoryReportController::class);`,
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/events/bidhistoryreport/{event}');
+    expect(batch.surfaces[0].metadata.path).toBe('/events/bidhistoryreport/{event}');
+    expect(batch.surfaces[0].metadata.pathWrapper).toBe('pathLookup');
+  });
+
+  it('recovers surface from pathLookup wrapper with array controller', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/web.php',
+        languageId: 'php',
+        content: `Route::get(pathLookup('/events/allwatcherreport'), [EventController::class, 'allWatcherReport']);`,
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/events/allwatcherreport');
+    expect(batch.surfaces[0].metadata.explicitProvider).toBe('EventController');
+    expect(batch.surfaces[0].metadata.controllerMethod).toBe('allWatcherReport');
+    expect(batch.surfaces[0].metadata.pathWrapper).toBe('pathLookup');
+  });
+
+  it('recovers surface from pathLookup wrapper with closure', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/web.php',
+        languageId: 'php',
+        content: `Route::get(pathLookup('/events/foo'), function () { return view('events.foo'); });`,
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/events/foo');
+    expect(batch.surfaces[0].metadata.pathWrapper).toBe('pathLookup');
+    expect(batch.surfaces[0].metadata.explicitProvider).toBeUndefined();
+  });
+
+  it('evidence note includes helper-wrapped form when pathWrapper is set', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/web.php',
+        languageId: 'php',
+        content: `Route::get(pathLookup('/events/allsellerreport'), AllSellerReportController::class);`,
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    const declEdge = batch.edges.find((e) => e.edgeType === 'declares_surface');
+    expect(declEdge).toBeDefined();
+    const note = declEdge!.provenance.evidenceLocations[0].note;
+    // Note should show the wrapper form, not a bare string literal
+    expect(note).toContain("pathLookup('/events/allsellerreport')");
+  });
+
+  it('does NOT recover surfaces from non-allowlisted helper wrappers', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/web.php',
+        languageId: 'php',
+        // dynamicPath is not in the allowlist — should not be captured
+        content: `Route::get(dynamicPath('/events/foo'), SomeController::class);`,
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(0);
+  });
+
+  it('does NOT recover surfaces from helper wrappers with non-literal arguments', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/web.php',
+        languageId: 'php',
+        // Variable argument — cannot be recovered conservatively
+        content: `Route::get(pathLookup($routeName), SomeController::class);`,
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(0);
+  });
+
+  it('composes canonical path with group prefixes when pathLookup path already contains the prefix', async () => {
+    // When pathLookup carries the full absolute path (e.g. '/events/foo'), and a group
+    // prefix is also present, the existing prefix deduplication logic must apply.
+    const ctx = makeContext([
+      {
+        filePath: 'routes/web.php',
+        languageId: 'php',
+        content: [
+          "Route::prefix('events')->group(function () {",
+          '    Route::get(pathLookup(\'/events/foo\'), SomeController::class);',
+          '});',
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    // Path already includes the prefix, so composed path should not double it
+    expect(batch.surfaces[0].metadata.path).toBe('/events/foo');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Conditional branch consolidation (T3 + T4)
+// ---------------------------------------------------------------------------
+
+describe('LaravelHttpSurfaceDetector — conditional branch consolidation', () => {
+  const detector = new LaravelHttpSurfaceDetector();
+
+  it('consolidates two declarations for the same (method, path) into one surface', async () => {
+    // Simulates an app-vs-core override pattern where both branches appear statically
+    const ctx = makeContext([
+      {
+        filePath: 'routes/web.php',
+        languageId: 'php',
+        content: [
+          '// app override branch',
+          "Route::get('/events/foo', [App\\Http\\Controllers\\FooController::class, 'index']);",
+          '// core fallback branch',
+          "Route::get('/events/foo', [Core\\Http\\Controllers\\FooController::class, 'index']);",
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    // Only one surface for the logical route
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/events/foo');
+  });
+
+  it('arbitration prefers the namespace-qualified controller as winner', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/web.php',
+        languageId: 'php',
+        content: [
+          // Unqualified first (would lose)
+          "Route::get('/events/foo', [FooController::class, 'index']);",
+          // Namespace-qualified second (should win)
+          "Route::get('/events/foo', [App\\Http\\Controllers\\FooController::class, 'index']);",
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    const surface = batch.surfaces[0];
+    // Winner is the namespace-qualified controller
+    expect(surface.metadata.explicitProvider).toBe('App\\Http\\Controllers\\FooController');
+  });
+
+  it('preserves losing branch as alternateProviders in metadata', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/web.php',
+        languageId: 'php',
+        content: [
+          "Route::get('/events/foo', [App\\Http\\Controllers\\FooController::class, 'index']);",
+          "Route::get('/events/foo', [Core\\Http\\Controllers\\FooController::class, 'index']);",
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    const surface = batch.surfaces[0];
+    // Losing branch preserved as alternates
+    expect(surface.metadata.alternateProviders).toBeDefined();
+    expect(surface.metadata.alternateProviders).toHaveLength(1);
+    const alt = surface.metadata.alternateProviders![0];
+    expect(alt.controllerQualifiedName).toMatch(/FooController/);
+  });
+
+  it('emits only one handled_by edge when two branches consolidate to one surface', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/web.php',
+        languageId: 'php',
+        content: [
+          "Route::get('/events/foo', [App\\Http\\Controllers\\FooController::class, 'index']);",
+          "Route::get('/events/foo', [Core\\Http\\Controllers\\FooController::class, 'index']);",
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    const handledEdges = batch.edges.filter((e) => e.edgeType === 'handled_by');
+    // Only one handled_by — no duplicate edges for the same surface
+    expect(handledEdges).toHaveLength(1);
+  });
+
+  it('keeps distinct surfaces intact when (method, path) differ', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/web.php',
+        languageId: 'php',
+        content: [
+          "Route::get('/events/foo', [FooController::class, 'index']);",
+          "Route::post('/events/foo', [FooController::class, 'store']);",
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    // Different methods → different logical surfaces → both kept
+    expect(batch.surfaces).toHaveLength(2);
+  });
+
+  it('unresolved fallback: first candidate kept when no controller is resolvable', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/web.php',
+        languageId: 'php',
+        // Both branches are closure routes — no explicit provider either way
+        content: [
+          "Route::get('/events/foo', function () { return 'v1'; });",
+          "Route::get('/events/foo', function () { return 'v2'; });",
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    // Consolidates to one surface (closure routes have no provider to arbitrate)
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].metadata.explicitProvider).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Module registration-context inheritance (T5 / T6)
+// ---------------------------------------------------------------------------
+
+describe('LaravelHttpSurfaceDetector — module registration-context inheritance', () => {
+  const detector = new LaravelHttpSurfaceDetector();
+
+  it('applies prefix from loadRoutesFrom module provider to route file declarations', async () => {
+    // Simulates a module service provider that calls loadRoutesFrom with no surrounding chain
+    // The route file has declarations without an explicit prefix.
+    const ctx = makeContext([
+      {
+        filePath: 'src/Modules/Accounting/Providers/RouteServiceProvider.php',
+        languageId: 'php',
+        content: [
+          "Route::prefix('admin/accounting')",
+          "    ->middleware(['web', 'auth'])",
+          "    ->group(function () {",
+          "        $this->loadRoutesFrom(__DIR__ . '/../routes/admin.php');",
+          '    });',
+        ].join('\n'),
+      },
+      {
+        filePath: 'src/Modules/Accounting/routes/admin.php',
+        languageId: 'php',
+        content: `Route::get('/', [AccountingController::class, 'index']);`,
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/admin/accounting');
+    expect(batch.surfaces[0].metadata.path).toBe('/admin/accounting');
+    expect(batch.surfaces[0].metadata.explicitProvider).toBe('AccountingController');
+  });
+
+  it('applies prefix and namespace from loadRoutesFrom module provider', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'src/Modules/Accounting/Providers/RouteServiceProvider.php',
+        languageId: 'php',
+        content: [
+          "Route::prefix('admin/accounting')",
+          "    ->namespace('acme\\Module\\Accounting\\Http\\Controllers')",
+          "    ->group(function () {",
+          "        $this->loadRoutesFrom(__DIR__ . '/../routes/admin.php');",
+          '    });',
+        ].join('\n'),
+      },
+      {
+        filePath: 'src/Modules/Accounting/routes/admin.php',
+        languageId: 'php',
+        content: `Route::get('/ledger', 'LedgerController@index');`,
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/admin/accounting/ledger');
+    expect(batch.surfaces[0].metadata.path).toBe('/admin/accounting/ledger');
+    expect(batch.surfaces[0].metadata.explicitProvider).toBe(
+      'acme\\Module\\Accounting\\Http\\Controllers\\LedgerController'
+    );
+  });
+
+  it('resolves invokable controller under inherited module namespace', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'src/Modules/Reporting/Providers/RouteServiceProvider.php',
+        languageId: 'php',
+        content: [
+          "Route::prefix('admin/reporting')",
+          "    ->namespace('acme\\Module\\Reporting\\Http\\Controllers')",
+          "    ->group(function () {",
+          "        $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');",
+          '    });',
+        ].join('\n'),
+      },
+      {
+        filePath: 'src/Modules/Reporting/routes/web.php',
+        languageId: 'php',
+        content: `Route::get('/summary', SummaryController::class);`,
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    // Invokable controller resolved via import map (no namespace prefix for ::class references)
+    expect(batch.surfaces[0].metadata.explicitProvider).toBe('SummaryController');
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/admin/reporting/summary');
+  });
+
+  it('module route file registered via plain loadRoutesFrom (no chain context) produces surface without prefix', async () => {
+    // loadRoutesFrom with no surrounding Route:: chain — no prefix/namespace can be extracted
+    const ctx = makeContext([
+      {
+        filePath: 'src/Modules/Simple/Providers/RouteServiceProvider.php',
+        languageId: 'php',
+        content: `$this->loadRoutesFrom(__DIR__ . '/../routes/routes.php');`,
+      },
+      {
+        filePath: 'src/Modules/Simple/routes/routes.php',
+        languageId: 'php',
+        content: `Route::get('/simple/ping', [PingController::class, 'index']);`,
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    // No prefix or namespace inherited — path is exactly as declared
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/simple/ping');
+    expect(batch.surfaces[0].metadata.path).toBe('/simple/ping');
+  });
+
+  it('does NOT register route file context when loadRoutesFrom uses a non-literal path', async () => {
+    // Variable path — too dynamic to recover safely, so no registration context is extracted
+    const ctx = makeContext([
+      {
+        filePath: 'src/Modules/Dynamic/Providers/RouteServiceProvider.php',
+        languageId: 'php',
+        content: [
+          "Route::prefix('admin/dynamic')",
+          "    ->group(function () {",
+          "        $this->loadRoutesFrom($this->routeFile());",
+          '    });',
+        ].join('\n'),
+      },
+      {
+        filePath: 'src/Modules/Dynamic/routes/dynamic.php',
+        languageId: 'php',
+        content: `Route::get('/item', [ItemController::class, 'index']);`,
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    // Route file is still detected via isRouteFile, but without provider context
+    // the path is recovered as-is from the declaration (no prefix applied)
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/item');
+    expect(batch.surfaces[0].metadata.path).toBe('/item');
+  });
+});

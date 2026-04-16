@@ -130,6 +130,18 @@ export interface CapabilitySurfaceMetadata {
   controllerMethod?: string;
   /** Group prefixes that contribute to the canonical path, outermost first. */
   declarationLineage?: string[];
+  /** Helper function name wrapping the path argument (e.g. 'pathLookup'), if path was helper-wrapped. */
+  pathWrapper?: string;
+  /**
+   * Alternate provider candidates preserved from conditional branch consolidation.
+   * Present when two or more declarations for the same (method, path) were found
+   * and arbitration selected a winner.
+   */
+  alternateProviders?: Array<{
+    rawControllerReference?: string;
+    controllerQualifiedName?: string;
+    controllerMethod?: string;
+  }>;
 }
 
 /**

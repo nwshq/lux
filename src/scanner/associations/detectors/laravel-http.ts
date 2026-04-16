@@ -57,6 +57,33 @@ const ROUTE_CLOSURE = /Route::(get|post|put|patch|delete|any)\(\s*['"]([^'"]+)['
  */
 const ROUTE_NAME = /->name\(\s*['"]([^'"]+)['"]\s*\)/g;
 
+/** Allowlist of helper function names that may wrap literal route path arguments. */
+const PATH_HELPER_ALLOWLIST = new Set(['pathLookup']);
+
+/**
+ * Matches: Route::get(pathLookup('/path'), [Controller::class, 'method'])
+ * Capture groups: 1=method, 2=helper, 3=path, 4=controller, 5=action
+ */
+const ROUTE_CONTROLLER_ARRAY_WRAPPED = /Route::(get|post|put|patch|delete|any)\(\s*([A-Za-z_][A-Za-z0-9_]*)\(\s*['"]([^'"]+)['"]\s*\)\s*,\s*\[\s*([A-Za-z_\\]+)::class\s*,\s*['"]([^'"]+)['"]\s*\]/gi;
+
+/**
+ * Matches: Route::get(pathLookup('/path'), InvokableController::class)
+ * Capture groups: 1=method, 2=helper, 3=path, 4=controller
+ */
+const ROUTE_INVOKABLE_WRAPPED = /Route::(get|post|put|patch|delete|any)\(\s*([A-Za-z_][A-Za-z0-9_]*)\(\s*['"]([^'"]+)['"]\s*\)\s*,\s*([A-Za-z_\\]+)::class\s*\)/gi;
+
+/**
+ * Matches: Route::get(pathLookup('/path'), 'Api\\InvoiceController@index')
+ * Capture groups: 1=method, 2=helper, 3=path, 4=controller, 5=action
+ */
+const ROUTE_CONTROLLER_STRING_WRAPPED = /Route::(get|post|put|patch|delete|any)\(\s*([A-Za-z_][A-Za-z0-9_]*)\(\s*['"]([^'"]+)['"]\s*\)\s*,\s*['"]([A-Za-z_\\]+)@([^'"]+)['"]\s*\)/gi;
+
+/**
+ * Matches: Route::get(pathLookup('/path'), function()
+ * Capture groups: 1=method, 2=helper, 3=path
+ */
+const ROUTE_CLOSURE_WRAPPED = /Route::(get|post|put|patch|delete|any)\(\s*([A-Za-z_][A-Za-z0-9_]*)\(\s*['"]([^'"]+)['"]\s*\)\s*,\s*function\s*\(/gi;
+
 // ---------------------------------------------------------------------------
 // LaravelHttpSurfaceDetector
 // ---------------------------------------------------------------------------
@@ -113,6 +140,7 @@ export class LaravelHttpSurfaceDetector implements CapabilitySurfaceDetector {
             method: route.method.toUpperCase(),
             path: route.path,
             localFragment: route.localFragment,
+            pathWrapper: route.pathWrapper,
             routeName: route.routeName,
             aliases: route.routeName ? [route.routeName] : undefined,
             explicitProvider: route.controllerQualifiedName,
@@ -120,6 +148,7 @@ export class LaravelHttpSurfaceDetector implements CapabilitySurfaceDetector {
             declarationLineage: route.declarationLineage.length > 0
               ? route.declarationLineage
               : undefined,
+            alternateProviders: route.alternateProviders,
           },
           updated_at: now,
         };
@@ -142,11 +171,17 @@ export class LaravelHttpSurfaceDetector implements CapabilitySurfaceDetector {
               {
                 filePath: entry.filePath,
                 line: route.line,
-                note: `Route::${route.method}('${route.localFragment}')${
-                  route.declarationLineage.length > 0
-                    ? ` [group: ${route.declarationLineage.join(' / ')}]`
-                    : ''
-                }`,
+                note: route.pathWrapper
+                  ? `Route::${route.method}(${route.pathWrapper}('${route.localFragment}'))${
+                      route.declarationLineage.length > 0
+                        ? ` [group: ${route.declarationLineage.join(' / ')}]`
+                        : ''
+                    }`
+                  : `Route::${route.method}('${route.localFragment}')${
+                      route.declarationLineage.length > 0
+                        ? ` [group: ${route.declarationLineage.join(' / ')}]`
+                        : ''
+                    }`,
               },
             ],
             extractedAt: now,
@@ -209,6 +244,17 @@ interface ParsedRoute {
   routeName?: string;
   /** Ancestor group prefixes, outermost first. */
   declarationLineage: string[];
+  /** Helper function name wrapping the path argument (e.g. 'pathLookup'), if any. */
+  pathWrapper?: string;
+  /**
+   * Alternate provider candidates from duplicate branch declarations (e.g. app-vs-core fallbacks).
+   * Populated when consolidation arbitrated between multiple declarations for the same (method, path).
+   */
+  alternateProviders?: Array<{
+    rawControllerReference?: string;
+    controllerQualifiedName?: string;
+    controllerMethod?: string;
+  }>;
 }
 
 interface GroupBlock {
@@ -233,27 +279,57 @@ function collectRouteFileRegistrations(
   for (const entry of context.entries) {
     if (entry.languageId !== 'php') continue;
     const content = (entry.metadata?.content as string | undefined) ?? '';
-    if (!content.includes('->group(__DIR__')) continue;
 
-    const groupRe = /->group\(\s*__DIR__\s*\.\s*['"]([^'"]+)['"]\s*\)/g;
-    let match: RegExpExecArray | null;
+    // Pattern A: ->group(__DIR__ . '/path/to/routes.php')
+    // Used by root and module service providers that pass a file path directly.
+    if (content.includes('->group(__DIR__')) {
+      const groupRe = /->group\(\s*__DIR__\s*\.\s*['"]([^'"]+)['"]\s*\)/g;
+      let match: RegExpExecArray | null;
 
-    while ((match = groupRe.exec(content)) !== null) {
-      const relativeRef = match[1];
-      const routeFilePath = pathPosix.normalize(
-        pathPosix.join(pathPosix.dirname(entry.filePath), relativeRef)
-      );
-      const chainChunk = content.slice(Math.max(0, match.index - 500), match.index);
-      const routeIdx = chainChunk.lastIndexOf('Route::');
-      const chainText = routeIdx >= 0 ? chainChunk.slice(routeIdx) : chainChunk;
-      const prefix = extractLastChainValue(chainText, /(?:^|->|::)prefix\(\s*['"]([^'"]+)['"]\s*\)/g);
-      const namespace = extractLastChainValue(chainText, /(?:^|->|::)namespace\(\s*['"]([^'"]+)['"]\s*\)/g);
+      while ((match = groupRe.exec(content)) !== null) {
+        const relativeRef = match[1];
+        const routeFilePath = pathPosix.normalize(
+          pathPosix.join(pathPosix.dirname(entry.filePath), relativeRef)
+        );
+        if (!routeFilePath.endsWith('.php')) continue;
+        if (registrations.has(routeFilePath)) continue;
+        const chainChunk = content.slice(Math.max(0, match.index - 500), match.index);
+        const routeIdx = chainChunk.lastIndexOf('Route::');
+        const chainText = routeIdx >= 0 ? chainChunk.slice(routeIdx) : chainChunk;
+        const prefix = extractLastChainValue(chainText, /(?:^|->|::)prefix\(\s*['"]([^'"]+)['"]\s*\)/g);
+        const namespace = extractLastChainValue(chainText, /(?:^|->|::)namespace\(\s*['"]([^'"]+)['"]\s*\)/g);
+        registrations.set(routeFilePath, {
+          ...(prefix ? { prefix: normalizePathFragment(prefix) } : {}),
+          ...(namespace ? { namespace: namespace.replace(/^\\/, '') } : {}),
+        });
+      }
+    }
 
-      if (!routeFilePath.endsWith('.php')) continue;
-      registrations.set(routeFilePath, {
-        ...(prefix ? { prefix: normalizePathFragment(prefix) } : {}),
-        ...(namespace ? { namespace: namespace.replace(/^\\/, '') } : {}),
-      });
+    // Pattern B: $this->loadRoutesFrom(__DIR__ . '/path/to/routes.php')
+    // Used by module service providers that call loadRoutesFrom inside boot().
+    // Scan backward from the loadRoutesFrom call to find a Route:: chain that
+    // supplies prefix/namespace context (e.g. from a wrapping ->group(function())).
+    if (content.includes('loadRoutesFrom(__DIR__')) {
+      const loadRe = /\bloadRoutesFrom\(\s*__DIR__\s*\.\s*['"]([^'"]+)['"]\s*\)/g;
+      let match: RegExpExecArray | null;
+
+      while ((match = loadRe.exec(content)) !== null) {
+        const relativeRef = match[1];
+        const routeFilePath = pathPosix.normalize(
+          pathPosix.join(pathPosix.dirname(entry.filePath), relativeRef)
+        );
+        if (!routeFilePath.endsWith('.php')) continue;
+        if (registrations.has(routeFilePath)) continue;
+        const chainChunk = content.slice(Math.max(0, match.index - 500), match.index);
+        const routeIdx = chainChunk.lastIndexOf('Route::');
+        const chainText = routeIdx >= 0 ? chainChunk.slice(routeIdx) : chainChunk;
+        const prefix = extractLastChainValue(chainText, /(?:^|->|::)prefix\(\s*['"]([^'"]+)['"]\s*\)/g);
+        const namespace = extractLastChainValue(chainText, /(?:^|->|::)namespace\(\s*['"]([^'"]+)['"]\s*\)/g);
+        registrations.set(routeFilePath, {
+          ...(prefix ? { prefix: normalizePathFragment(prefix) } : {}),
+          ...(namespace ? { namespace: namespace.replace(/^\\/, '') } : {}),
+        });
+      }
     }
   }
 
@@ -289,7 +365,7 @@ function parseRouteDeclarations(
     registration?.namespace
   );
   const rootPrefix = registration?.prefix;
-  return parseBlockContent(
+  const raw = parseBlockContent(
     content,
     rootPrefix ? [rootPrefix] : [],
     0,
@@ -297,6 +373,82 @@ function parseRouteDeclarations(
     importMap,
     controllerNamespace
   );
+  return consolidateLogicalSurfaces(raw);
+}
+
+/**
+ * Collapse route declarations that share the same logical surface identity
+ * (HTTP method + canonical external path) into a single entry, applying
+ * provider arbitration when multiple candidate controllers compete.
+ *
+ * This handles conditional app-vs-core override branches where the same route
+ * is declared twice — once for the app override controller and once for the
+ * core fallback — and both appear as static text in the route file.
+ */
+function consolidateLogicalSurfaces(routes: ParsedRoute[]): ParsedRoute[] {
+  const grouped = new Map<string, ParsedRoute[]>();
+  for (const route of routes) {
+    const key = `${route.method.toLowerCase()}:${route.path}`;
+    const existing = grouped.get(key);
+    if (existing) {
+      existing.push(route);
+    } else {
+      grouped.set(key, [route]);
+    }
+  }
+
+  const consolidated: ParsedRoute[] = [];
+  for (const group of grouped.values()) {
+    if (group.length === 1) {
+      consolidated.push(group[0]);
+    } else {
+      consolidated.push(arbitrateRouteProvider(group));
+    }
+  }
+
+  return consolidated;
+}
+
+/**
+ * Select the most structurally defensible provider from a set of competing
+ * declarations for the same logical surface.
+ *
+ * Priority:
+ *   1. Namespace-qualified controller (contains '\\') — most specific
+ *   2. Any named controller target
+ *   3. First candidate when all are equivalent or unresolved
+ *
+ * The losing candidates are preserved as `alternateProviders` on the winner.
+ */
+function arbitrateRouteProvider(candidates: ParsedRoute[]): ParsedRoute {
+  // Priority 1: namespace-qualified controller
+  const nsQualified = candidates.filter(
+    (r) => r.controllerQualifiedName && r.controllerQualifiedName.includes('\\')
+  );
+  if (nsQualified.length > 0) {
+    return attachAlternateProviders(nsQualified[0], candidates);
+  }
+
+  // Priority 2: any named controller
+  const named = candidates.filter((r) => r.controllerQualifiedName);
+  if (named.length > 0) {
+    return attachAlternateProviders(named[0], candidates);
+  }
+
+  // Priority 3: first candidate — preserve all provenance conservatively
+  return attachAlternateProviders(candidates[0], candidates);
+}
+
+function attachAlternateProviders(winner: ParsedRoute, all: ParsedRoute[]): ParsedRoute {
+  const alternates = all
+    .filter((r) => r !== winner)
+    .map((r) => ({
+      rawControllerReference: r.rawControllerReference,
+      controllerQualifiedName: r.controllerQualifiedName,
+      controllerMethod: r.controllerMethod,
+    }));
+  if (alternates.length === 0) return winner;
+  return { ...winner, alternateProviders: alternates };
 }
 
 // ---------------------------------------------------------------------------
@@ -625,6 +777,106 @@ function parseDirectRoutes(
       localFragment: fragment,
       line: lineNum,
       declarationLineage: [...prefixStack],
+    });
+  }
+
+  // Helper-wrapped controller array routes (e.g. Route::get(pathLookup('/path'), [...]))
+  ROUTE_CONTROLLER_ARRAY_WRAPPED.lastIndex = 0;
+  while ((m = ROUTE_CONTROLLER_ARRAY_WRAPPED.exec(masked)) !== null) {
+    const wrapperName = m[2];
+    if (!PATH_HELPER_ALLOWLIST.has(wrapperName)) continue;
+    const fragment = m[3];
+    const lineNum = lineFor(m.index);
+    const alreadyCaptured = routes.some(
+      (r) => Math.abs(r.line - lineNum) < 2 && r.localFragment === fragment
+    );
+    if (alreadyCaptured) continue;
+
+    routes.push({
+      method: m[1].toLowerCase(),
+      path: composedPath(fragment),
+      localFragment: fragment,
+      line: lineNum,
+      controllerQualifiedName: resolvePhpClassReference(m[4], importMap),
+      rawControllerReference: m[4],
+      controllerMethod: m[5],
+      routeName: routeNameFor(m.index),
+      declarationLineage: [...prefixStack],
+      pathWrapper: wrapperName,
+    });
+  }
+
+  // Helper-wrapped invokable controller routes (e.g. Route::get(pathLookup('/path'), Ctrl::class))
+  ROUTE_INVOKABLE_WRAPPED.lastIndex = 0;
+  while ((m = ROUTE_INVOKABLE_WRAPPED.exec(masked)) !== null) {
+    const wrapperName = m[2];
+    if (!PATH_HELPER_ALLOWLIST.has(wrapperName)) continue;
+    const fragment = m[3];
+    const lineNum = lineFor(m.index);
+    const alreadyCaptured = routes.some(
+      (r) => Math.abs(r.line - lineNum) < 2 && r.localFragment === fragment
+    );
+    if (alreadyCaptured) continue;
+
+    routes.push({
+      method: m[1].toLowerCase(),
+      path: composedPath(fragment),
+      localFragment: fragment,
+      line: lineNum,
+      controllerQualifiedName: resolvePhpClassReference(m[4], importMap),
+      rawControllerReference: m[4],
+      controllerMethod: undefined,
+      routeName: routeNameFor(m.index),
+      declarationLineage: [...prefixStack],
+      pathWrapper: wrapperName,
+    });
+  }
+
+  // Helper-wrapped legacy string controller routes (e.g. Route::get(pathLookup('/path'), 'Ctrl@method'))
+  ROUTE_CONTROLLER_STRING_WRAPPED.lastIndex = 0;
+  while ((m = ROUTE_CONTROLLER_STRING_WRAPPED.exec(masked)) !== null) {
+    const wrapperName = m[2];
+    if (!PATH_HELPER_ALLOWLIST.has(wrapperName)) continue;
+    const fragment = m[3];
+    const lineNum = lineFor(m.index);
+    const alreadyCaptured = routes.some(
+      (r) => Math.abs(r.line - lineNum) < 2 && r.localFragment === fragment
+    );
+    if (alreadyCaptured) continue;
+
+    routes.push({
+      method: m[1].toLowerCase(),
+      path: composedPath(fragment),
+      localFragment: fragment,
+      line: lineNum,
+      controllerQualifiedName: resolvePhpClassReference(m[4], importMap, controllerNamespace, true),
+      rawControllerReference: m[4],
+      controllerMethod: m[5],
+      routeName: routeNameFor(m.index),
+      declarationLineage: [...prefixStack],
+      pathWrapper: wrapperName,
+    });
+  }
+
+  // Helper-wrapped closure routes (e.g. Route::get(pathLookup('/path'), function() { ... }))
+  ROUTE_CLOSURE_WRAPPED.lastIndex = 0;
+  while ((m = ROUTE_CLOSURE_WRAPPED.exec(masked)) !== null) {
+    const wrapperName = m[2];
+    if (!PATH_HELPER_ALLOWLIST.has(wrapperName)) continue;
+    const fragment = m[3];
+    const lineNum = lineFor(m.index);
+    const alreadyCaptured = routes.some(
+      (r) => Math.abs(r.line - lineNum) < 2 && r.localFragment === fragment
+    );
+    if (alreadyCaptured) continue;
+
+    routes.push({
+      method: m[1].toLowerCase(),
+      path: composedPath(fragment),
+      localFragment: fragment,
+      line: lineNum,
+      declarationLineage: [...prefixStack],
+      pathWrapper: wrapperName,
     });
   }
 
