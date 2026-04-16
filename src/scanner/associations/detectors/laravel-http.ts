@@ -18,6 +18,7 @@
 //   - resolve consumer-side chains
 //   - attach contracts or artifacts (those belong to propagation)
 
+import { posix as pathPosix } from 'node:path';
 import type { AssociationContext, CapabilitySurfaceNode, StructuralRelationEdge } from '../types.js';
 import { httpSurfaceNodeId, fileNodeId, phpSymbolNodeId } from '../types.js';
 import type { CapabilitySurfaceDetector, DetectedSurfaceBatch } from './types.js';
@@ -38,6 +39,12 @@ const ROUTE_CONTROLLER_ARRAY = /Route::(get|post|put|patch|delete|any)\(\s*['"](
  * Capture groups: 1=method, 2=path, 3=controller
  */
 const ROUTE_INVOKABLE = /Route::(get|post|put|patch|delete|any)\(\s*['"]([^'"]+)['"]\s*,\s*([A-Za-z_\\]+)::class\s*\)/gi;
+
+/**
+ * Matches: Route::get('/path', 'Api\\InvoiceController@index')
+ * Capture groups: 1=method, 2=path, 3=controller, 4=action
+ */
+const ROUTE_CONTROLLER_STRING = /Route::(get|post|put|patch|delete|any)\(\s*['"]([^'"]+)['"]\s*,\s*['"]([A-Za-z_\\]+)@([^'"]+)['"]\s*\)/gi;
 
 /**
  * Matches: Route::get('/path', function()
@@ -79,13 +86,18 @@ export class LaravelHttpSurfaceDetector implements CapabilitySurfaceDetector {
     const routeEntries = context.entries.filter(
       (e) => e.languageId === 'php' && isRouteFile(e.filePath)
     );
+    const routeRegistrations = collectRouteFileRegistrations(context);
 
     for (const entry of routeEntries) {
       const content = (entry.metadata?.content as string | undefined) ?? '';
       if (!content) continue;
 
       const fileId = fileNodeId(entry.filePath);
-      const detectedRoutes = parseRouteDeclarations(content, entry.filePath);
+      const detectedRoutes = parseRouteDeclarations(
+        content,
+        entry.filePath,
+        routeRegistrations.get(entry.filePath)
+      );
 
       for (const route of detectedRoutes) {
         const surfaceId = httpSurfaceNodeId(route.method, route.path);
@@ -143,10 +155,7 @@ export class LaravelHttpSurfaceDetector implements CapabilitySurfaceDetector {
 
         // handled_by: surface → controller symbol (only when explicitly declared)
         if (route.controllerQualifiedName) {
-          const providerSymbolId = buildProviderSymbolId(
-            route.controllerQualifiedName,
-            route.controllerMethod
-          );
+          const providerSymbolId = buildProviderSymbolId(route.controllerQualifiedName);
           const handledEdgeId = `${surfaceId}→${providerSymbolId}:handled_by`;
           edges.push({
             id: handledEdgeId,
@@ -192,6 +201,8 @@ interface ParsedRoute {
   line: number;
   /** Fully-qualified controller class name, if explicit. */
   controllerQualifiedName?: string;
+  /** Raw controller reference as written in the route declaration. */
+  rawControllerReference?: string;
   /** Controller method name (e.g. 'index'), if explicit. */
   controllerMethod?: string;
   /** Named route, if declared. */
@@ -209,6 +220,56 @@ interface GroupBlock {
   innerEnd: number;
 }
 
+interface RouteFileRegistration {
+  prefix?: string;
+  namespace?: string;
+}
+
+function collectRouteFileRegistrations(
+  context: AssociationContext
+): Map<string, RouteFileRegistration> {
+  const registrations = new Map<string, RouteFileRegistration>();
+
+  for (const entry of context.entries) {
+    if (entry.languageId !== 'php') continue;
+    const content = (entry.metadata?.content as string | undefined) ?? '';
+    if (!content.includes('->group(__DIR__')) continue;
+
+    const groupRe = /->group\(\s*__DIR__\s*\.\s*['"]([^'"]+)['"]\s*\)/g;
+    let match: RegExpExecArray | null;
+
+    while ((match = groupRe.exec(content)) !== null) {
+      const relativeRef = match[1];
+      const routeFilePath = pathPosix.normalize(
+        pathPosix.join(pathPosix.dirname(entry.filePath), relativeRef)
+      );
+      const chainChunk = content.slice(Math.max(0, match.index - 500), match.index);
+      const routeIdx = chainChunk.lastIndexOf('Route::');
+      const chainText = routeIdx >= 0 ? chainChunk.slice(routeIdx) : chainChunk;
+      const prefix = extractLastChainValue(chainText, /(?:^|->|::)prefix\(\s*['"]([^'"]+)['"]\s*\)/g);
+      const namespace = extractLastChainValue(chainText, /(?:^|->|::)namespace\(\s*['"]([^'"]+)['"]\s*\)/g);
+
+      if (!routeFilePath.endsWith('.php')) continue;
+      registrations.set(routeFilePath, {
+        ...(prefix ? { prefix: normalizePathFragment(prefix) } : {}),
+        ...(namespace ? { namespace: namespace.replace(/^\\/, '') } : {}),
+      });
+    }
+  }
+
+  return registrations;
+}
+
+function extractLastChainValue(content: string, re: RegExp): string | undefined {
+  let result: string | undefined;
+  let match: RegExpExecArray | null;
+  re.lastIndex = 0;
+  while ((match = re.exec(content)) !== null) {
+    result = match[1];
+  }
+  return result;
+}
+
 // ---------------------------------------------------------------------------
 // Public parser entry point
 // ---------------------------------------------------------------------------
@@ -216,8 +277,26 @@ interface GroupBlock {
 /**
  * Parse all route declarations from PHP file content, handling nested route groups.
  */
-function parseRouteDeclarations(content: string, _filePath: string): ParsedRoute[] {
-  return parseBlockContent(content, [], 0, content);
+function parseRouteDeclarations(
+  content: string,
+  filePath: string,
+  registration?: RouteFileRegistration
+): ParsedRoute[] {
+  const importMap = extractPhpImportMap(content);
+  const controllerNamespace = inferRouteControllerNamespace(
+    filePath,
+    content,
+    registration?.namespace
+  );
+  const rootPrefix = registration?.prefix;
+  return parseBlockContent(
+    content,
+    rootPrefix ? [rootPrefix] : [],
+    0,
+    content,
+    importMap,
+    controllerNamespace
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -236,7 +315,9 @@ function parseBlockContent(
   block: string,
   prefixStack: string[],
   blockOffset: number,
-  rootContent: string
+  rootContent: string,
+  importMap: Map<string, string>,
+  controllerNamespace?: string
 ): ParsedRoute[] {
   const routes: ParsedRoute[] = [];
 
@@ -248,7 +329,7 @@ function parseBlockContent(
 
   // 3. Parse direct routes from masked content
   routes.push(
-    ...parseDirectRoutes(masked, prefixStack, blockOffset, rootContent)
+    ...parseDirectRoutes(masked, prefixStack, blockOffset, rootContent, importMap, controllerNamespace)
   );
 
   // 4. Recurse into each group block with the composed prefix stack
@@ -260,7 +341,9 @@ function parseBlockContent(
       innerBlock,
       newPrefixStack,
       blockOffset + group.innerStart,
-      rootContent
+      rootContent,
+      importMap,
+      controllerNamespace
     );
     routes.push(...innerRoutes);
   }
@@ -440,7 +523,9 @@ function parseDirectRoutes(
   masked: string,
   prefixStack: string[],
   blockOffset: number,
-  rootContent: string
+  rootContent: string,
+  importMap: Map<string, string>,
+  controllerNamespace?: string
 ): ParsedRoute[] {
   const routes: ParsedRoute[] = [];
 
@@ -470,7 +555,8 @@ function parseDirectRoutes(
       path: composedPath(fragment),
       localFragment: fragment,
       line: lineFor(m.index),
-      controllerQualifiedName: m[3],
+      controllerQualifiedName: resolvePhpClassReference(m[3], importMap),
+      rawControllerReference: m[3],
       controllerMethod: m[4],
       routeName: routeNameFor(m.index),
       declarationLineage: [...prefixStack],
@@ -492,8 +578,32 @@ function parseDirectRoutes(
       path: composedPath(fragment),
       localFragment: fragment,
       line: lineNum,
-      controllerQualifiedName: m[3],
+      controllerQualifiedName: resolvePhpClassReference(m[3], importMap),
+      rawControllerReference: m[3],
       controllerMethod: undefined,
+      routeName: routeNameFor(m.index),
+      declarationLineage: [...prefixStack],
+    });
+  }
+
+  // Legacy string controller routes
+  ROUTE_CONTROLLER_STRING.lastIndex = 0;
+  while ((m = ROUTE_CONTROLLER_STRING.exec(masked)) !== null) {
+    const fragment = m[2];
+    const lineNum = lineFor(m.index);
+    const alreadyCaptured = routes.some(
+      (r) => Math.abs(r.line - lineNum) < 2 && r.localFragment === fragment
+    );
+    if (alreadyCaptured) continue;
+
+    routes.push({
+      method: m[1].toLowerCase(),
+      path: composedPath(fragment),
+      localFragment: fragment,
+      line: lineNum,
+      controllerQualifiedName: resolvePhpClassReference(m[3], importMap, controllerNamespace, true),
+      rawControllerReference: m[3],
+      controllerMethod: m[4],
       routeName: routeNameFor(m.index),
       declarationLineage: [...prefixStack],
     });
@@ -521,6 +631,63 @@ function parseDirectRoutes(
   return routes;
 }
 
+function extractPhpImportMap(content: string): Map<string, string> {
+  const map = new Map<string, string>();
+  const useRe = /^use\s+([A-Za-z_\\][A-Za-z0-9_\\]*)(?:\s+as\s+(\w+))?\s*;/gm;
+
+  let match: RegExpExecArray | null;
+  while ((match = useRe.exec(content)) !== null) {
+    const qualified = match[1];
+    const alias = match[2] ?? qualified.split('\\').pop();
+    if (alias) map.set(alias, qualified);
+  }
+
+  return map;
+}
+
+function resolvePhpClassReference(
+  reference: string,
+  importMap: Map<string, string>,
+  controllerNamespace?: string,
+  prefixLegacyRelativeNamespace = false
+): string {
+  if (reference.startsWith('\\')) return reference.slice(1);
+  if (importMap.has(reference)) return importMap.get(reference)!;
+  if (reference.includes('\\')) {
+    return prefixLegacyRelativeNamespace && controllerNamespace
+      ? `${controllerNamespace}\\${reference}`
+      : reference;
+  }
+  if (prefixLegacyRelativeNamespace && controllerNamespace) return `${controllerNamespace}\\${reference}`;
+  return reference;
+}
+
+function inferRouteControllerNamespace(
+  filePath: string,
+  content: string,
+  registrationNamespace?: string
+): string | undefined {
+  const explicit = extractRouteNamespaceOverride(content);
+  if (explicit) return explicit;
+  if (registrationNamespace) return registrationNamespace;
+
+  if (/^routes\/(api|admin|web|json)\.php$/i.test(filePath)) {
+    return 'acme\\Core\\Http\\Controllers';
+  }
+
+  return undefined;
+}
+
+function extractRouteNamespaceOverride(content: string): string | undefined {
+  const namespaceChain = /->namespace\(\s*['"]([^'"]+)['"]\s*\)/.exec(content);
+  if (namespaceChain) return namespaceChain[1].replace(/^\\/, '');
+
+  const namespaceArray = /['"]namespace['"]\s*=>\s*['"]([^'"]+)['"]/.exec(content);
+  if (namespaceArray) return namespaceArray[1].replace(/^\\/, '');
+
+  return undefined;
+}
+
 // ---------------------------------------------------------------------------
 // Path composition helpers
 // ---------------------------------------------------------------------------
@@ -534,12 +701,25 @@ function parseDirectRoutes(
  *   - Trailing slashes are stripped unless the path is just '/'
  */
 function composeCanonicalPath(prefixStack: string[], localFragment: string): string {
-  const segments = [...prefixStack, localFragment]
+  const normalizedPrefixes = prefixStack
     .map((s) => normalizePathFragment(s))
     .filter((s) => s.length > 0);
+  const normalizedLocal = normalizePathFragment(localFragment);
 
-  if (segments.length === 0) return '/';
+  if (normalizedPrefixes.length === 0 && !normalizedLocal) return '/';
 
+  const prefixPath = normalizedPrefixes.join('/');
+  let localPath = normalizedLocal;
+
+  if (prefixPath && localPath) {
+    if (localPath === prefixPath) {
+      localPath = '';
+    } else if (localPath.startsWith(`${prefixPath}/`)) {
+      localPath = localPath.slice(prefixPath.length + 1);
+    }
+  }
+
+  const segments = [...normalizedPrefixes, localPath].filter((s) => s.length > 0);
   const joined = segments.join('/').replace(/\/+/g, '/');
   const withLeading = joined.startsWith('/') ? joined : '/' + joined;
   return withLeading.length > 1 && withLeading.endsWith('/')
@@ -554,6 +734,7 @@ function normalizePathFragment(fragment: string): string {
   return fragment.replace(/^\/+|\/+$/g, '');
 }
 
+
 // ---------------------------------------------------------------------------
 // Existing helpers
 // ---------------------------------------------------------------------------
@@ -561,12 +742,11 @@ function normalizePathFragment(fragment: string): string {
 /**
  * Build a PHP symbol node ID for a controller.
  *
- * Always targets the class-level node (e.g. `symbol:php:CalendarController`)
- * so `handled_by` edges resolve to nodes that the materializer actually
- * persists.  The specific method is preserved in surface metadata
- * (`controllerMethod`) and edge provenance for propagation use.
+ * Targets the class-level qualified node when a namespace is present so shared
+ * short controller names do not collapse across modules. Method identity is
+ * still preserved separately in surface metadata (`controllerMethod`).
  */
-function buildProviderSymbolId(qualifiedName: string, _method?: string): string {
+function buildProviderSymbolId(qualifiedName: string): string {
   return phpSymbolNodeId(qualifiedName);
 }
 

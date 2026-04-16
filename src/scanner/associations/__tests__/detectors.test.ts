@@ -150,6 +150,51 @@ describe('LaravelHttpSurfaceDetector.detect() — surface nodes', () => {
     expect(batch.surfaces[0].metadata.routeName).toBe('invoices.index');
     expect(batch.surfaces[0].metadata.aliases).toContain('invoices.index');
   });
+
+  it('emits a surface node for a legacy string-controller route under a registered api prefix', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'src/CoreServiceProvider.php',
+        languageId: 'php',
+        content: `Route::prefix('api')->middleware('api')->namespace("acme\\Core\\Http\\Controllers")->group(__DIR__ . '/../routes/api.php');`,
+      },
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: `Route::post('/listing/create', 'Api\\QuickAdminListingController@create')->name('admin.listing.create');`,
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].id).toBe('surface:http:POST:/api/listing/create');
+    expect(batch.surfaces[0].metadata.path).toBe('/api/listing/create');
+    expect(batch.surfaces[0].metadata.explicitProvider).toBe('acme\\Core\\Http\\Controllers\\Api\\QuickAdminListingController');
+    expect(batch.surfaces[0].metadata.controllerMethod).toBe('create');
+    expect(batch.surfaces[0].metadata.routeName).toBe('admin.listing.create');
+  });
+
+  it('captures legacy string-controller routes with registered api prefix and local fragments as written', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'src/CoreServiceProvider.php',
+        languageId: 'php',
+        content: `Route::prefix('api')->middleware('api')->namespace("acme\\Core\\Http\\Controllers")->group(__DIR__ . '/../routes/api.php');`,
+      },
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: `Route::get('users/dropdown/{query?}', 'Api\\UserController@dropdownIndex')->name('admin.users.dropdown');`,
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/api/users/dropdown/{query?}');
+    expect(batch.surfaces[0].metadata.path).toBe('/api/users/dropdown/{query?}');
+    expect(batch.surfaces[0].metadata.explicitProvider).toBe('acme\\Core\\Http\\Controllers\\Api\\UserController');
+    expect(batch.surfaces[0].metadata.routeName).toBe('admin.users.dropdown');
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -177,13 +222,14 @@ describe('LaravelHttpSurfaceDetector.detect() — boundary edges', () => {
   });
 
   it('emits handled_by from surface to class-level controller symbol (not method-level)', async () => {
-    // handled_by must target the class-level node that the materializer actually
-    // persists — method identity is preserved in surface metadata instead.
+    // handled_by must target the class-level controller node that the materializer
+    // persists. When the route declaration includes a namespace, preserve that
+    // qualified identity so duplicate short controller names do not collide.
     const ctx = makeContext([
       {
         filePath: 'routes/api.php',
         languageId: 'php',
-        content: `Route::get('/api/invoices', [InvoiceController::class, 'index']);`,
+        content: `Route::get('/api/invoices', [App\\Http\\Controllers\\InvoiceController::class, 'index']);`,
       },
     ]);
 
@@ -191,8 +237,7 @@ describe('LaravelHttpSurfaceDetector.detect() — boundary edges', () => {
     const handledEdge = batch.edges.find((e) => e.edgeType === 'handled_by');
     expect(handledEdge).toBeDefined();
     expect(handledEdge!.sourceNodeId).toBe('surface:http:GET:/api/invoices');
-    // Class-level node — no @method suffix
-    expect(handledEdge!.targetNodeId).toBe('symbol:php:InvoiceController');
+    expect(handledEdge!.targetNodeId).toBe('symbol:php:App\\Http\\Controllers\\InvoiceController');
     expect(handledEdge!.confidenceClass).toBe('framework-inferred');
 
     // Method is preserved in surface metadata
@@ -219,14 +264,14 @@ describe('LaravelHttpSurfaceDetector.detect() — boundary edges', () => {
       {
         filePath: 'routes/api.php',
         languageId: 'php',
-        content: `Route::post('/api/invoices', CreateInvoiceAction::class);`,
+        content: `Route::post('/api/invoices', App\\Actions\\CreateInvoiceAction::class);`,
       },
     ]);
 
     const batch = await detector.detect(ctx);
     const handledEdge = batch.edges.find((e) => e.edgeType === 'handled_by');
     expect(handledEdge).toBeDefined();
-    expect(handledEdge!.targetNodeId).toBe('symbol:php:CreateInvoiceAction');
+    expect(handledEdge!.targetNodeId).toBe('symbol:php:App\\Actions\\CreateInvoiceAction');
   });
 
   it('attaches evidence with file path and line number', async () => {
@@ -243,6 +288,23 @@ describe('LaravelHttpSurfaceDetector.detect() — boundary edges', () => {
     expect(declEdge!.provenance.evidenceLocations[0].filePath).toBe('routes/api.php');
     expect(declEdge!.provenance.resolver).toBe('laravel-http-surfaces');
     expect(declEdge!.provenance.evidenceKind).toBe('route-declaration');
+  });
+
+  it('resolves legacy string controllers through inherited route-group namespace', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/admin.php',
+        languageId: 'php',
+        content: `Route::put('/admin/update_sale_order', 'Api\\ListingController@updateSaleOrder')->name('admin.updateSaleOrder');`,
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    const surface = batch.surfaces.find((s) => s.id === 'surface:http:PUT:/admin/update_sale_order');
+    const handledEdge = batch.edges.find((e) => e.edgeType === 'handled_by');
+
+    expect(surface!.metadata.explicitProvider).toBe('acme\\Core\\Http\\Controllers\\Api\\ListingController');
+    expect(handledEdge!.targetNodeId).toBe('symbol:php:acme\\Core\\Http\\Controllers\\Api\\ListingController');
   });
 });
 
@@ -507,7 +569,6 @@ describe('LaravelHttpSurfaceDetector — route groups', () => {
     const handledEdge = batch.edges.find((e) => e.edgeType === 'handled_by');
     expect(handledEdge).toBeDefined();
     expect(handledEdge!.sourceNodeId).toBe('surface:http:POST:/api/invoices');
-    // Class-level node — no @method suffix
     expect(handledEdge!.targetNodeId).toBe('symbol:php:InvoiceController');
 
     // Method preserved in surface metadata

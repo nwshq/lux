@@ -170,8 +170,46 @@ describe('getSurfaceFeaturePath()', () => {
     upsertNode(db, requestNodeId, 'symbol', 'StoreInvoiceRequest');
     upsertNode(db, resourceNodeId, 'symbol', 'InvoiceResource');
     upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
-    upsertEdge(db, `${controllerNodeId}→${requestNodeId}:validates_with`, 'validates_with', controllerNodeId, requestNodeId);
-    upsertEdge(db, `${controllerNodeId}→${resourceNodeId}:returns_contract`, 'returns_contract', controllerNodeId, resourceNodeId);
+    db.upsertStructuralEdge({
+      id: `${controllerNodeId}→${requestNodeId}:validates_with:store`,
+      source_node_id: controllerNodeId,
+      target_node_id: requestNodeId,
+      edge_type: 'validates_with',
+      confidence: 0.9,
+      confidence_class: 'framework-inferred',
+      freshness_status: 'fresh',
+      dirty_dependency_count: 0,
+      provenance_summary: 'test',
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+    db.replaceEdgeEvidence(`${controllerNodeId}→${requestNodeId}:validates_with:store`, [{
+      id: `${controllerNodeId}→${requestNodeId}:validates_with:store:ev:0`,
+      edge_id: `${controllerNodeId}→${requestNodeId}:validates_with:store`,
+      resolver: 'test',
+      evidence_kind: 'php-typed-parameter',
+      note: 'request: StoreInvoiceRequest [method:store]',
+      recorded_at: Math.floor(Date.now() / 1000),
+    }]);
+    db.upsertStructuralEdge({
+      id: `${controllerNodeId}→${resourceNodeId}:returns_contract:store`,
+      source_node_id: controllerNodeId,
+      target_node_id: resourceNodeId,
+      edge_type: 'returns_contract',
+      confidence: 0.9,
+      confidence_class: 'framework-inferred',
+      freshness_status: 'fresh',
+      dirty_dependency_count: 0,
+      provenance_summary: 'test',
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+    db.replaceEdgeEvidence(`${controllerNodeId}→${resourceNodeId}:returns_contract:store`, [{
+      id: `${controllerNodeId}→${resourceNodeId}:returns_contract:store:ev:0`,
+      edge_id: `${controllerNodeId}→${resourceNodeId}:returns_contract:store`,
+      resolver: 'test',
+      evidence_kind: 'php-return-constructor',
+      note: 'response: InvoiceResource [method:store]',
+      recorded_at: Math.floor(Date.now() / 1000),
+    }]);
 
     const path = getSurfaceFeaturePath(db, surfaceId);
     expect(path!.validators).toHaveLength(1);
@@ -198,8 +236,46 @@ describe('getSurfaceFeaturePath()', () => {
     upsertNode(db, fileNode, 'file', 'routes/api.php', 'routes/api.php');
 
     upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
-    upsertEdge(db, `${controllerNodeId}→${requestNodeId}:validates_with`, 'validates_with', controllerNodeId, requestNodeId);
-    upsertEdge(db, `${controllerNodeId}→${resourceNodeId}:returns_contract`, 'returns_contract', controllerNodeId, resourceNodeId);
+    db.upsertStructuralEdge({
+      id: `${controllerNodeId}→${requestNodeId}:validates_with:index`,
+      source_node_id: controllerNodeId,
+      target_node_id: requestNodeId,
+      edge_type: 'validates_with',
+      confidence: 0.9,
+      confidence_class: 'framework-inferred',
+      freshness_status: 'fresh',
+      dirty_dependency_count: 0,
+      provenance_summary: 'test',
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+    db.replaceEdgeEvidence(`${controllerNodeId}→${requestNodeId}:validates_with:index`, [{
+      id: `${controllerNodeId}→${requestNodeId}:validates_with:index:ev:0`,
+      edge_id: `${controllerNodeId}→${requestNodeId}:validates_with:index`,
+      resolver: 'test',
+      evidence_kind: 'php-typed-parameter',
+      note: 'request: ListInvoicesRequest [method:index]',
+      recorded_at: Math.floor(Date.now() / 1000),
+    }]);
+    db.upsertStructuralEdge({
+      id: `${controllerNodeId}→${resourceNodeId}:returns_contract:index`,
+      source_node_id: controllerNodeId,
+      target_node_id: resourceNodeId,
+      edge_type: 'returns_contract',
+      confidence: 0.9,
+      confidence_class: 'framework-inferred',
+      freshness_status: 'fresh',
+      dirty_dependency_count: 0,
+      provenance_summary: 'test',
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+    db.replaceEdgeEvidence(`${controllerNodeId}→${resourceNodeId}:returns_contract:index`, [{
+      id: `${controllerNodeId}→${resourceNodeId}:returns_contract:index:ev:0`,
+      edge_id: `${controllerNodeId}→${resourceNodeId}:returns_contract:index`,
+      resolver: 'test',
+      evidence_kind: 'php-return-constructor',
+      note: 'response: InvoiceResource [method:index]',
+      recorded_at: Math.floor(Date.now() / 1000),
+    }]);
     upsertEdge(db, `${wrapperNodeId}→${surfaceId}:calls_surface`, 'calls_surface', wrapperNodeId, surfaceId);
     upsertEdge(db, `${artifactNodeId}→${surfaceId}:derived_from`, 'derived_from', artifactNodeId, surfaceId);
     upsertEdge(db, `${fileNode}→${surfaceId}:declares_surface`, 'declares_surface', fileNode, surfaceId);
@@ -263,7 +339,26 @@ describe('formatFeaturePath()', () => {
     upsertNode(db, resourceNodeId, 'symbol', 'InvoiceResource');
     upsertNode(db, wrapperNodeId, 'symbol', 'fetchInvoices');
     upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
-    upsertEdge(db, `${controllerNodeId}→${resourceNodeId}:returns_contract`, 'returns_contract', controllerNodeId, resourceNodeId);
+    db.upsertStructuralEdge({
+      id: `${controllerNodeId}→${resourceNodeId}:returns_contract:index`,
+      source_node_id: controllerNodeId,
+      target_node_id: resourceNodeId,
+      edge_type: 'returns_contract',
+      confidence: 0.9,
+      confidence_class: 'framework-inferred',
+      freshness_status: 'fresh',
+      dirty_dependency_count: 0,
+      provenance_summary: 'test',
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+    db.replaceEdgeEvidence(`${controllerNodeId}→${resourceNodeId}:returns_contract:index`, [{
+      id: `${controllerNodeId}→${resourceNodeId}:returns_contract:index:ev:0`,
+      edge_id: `${controllerNodeId}→${resourceNodeId}:returns_contract:index`,
+      resolver: 'test',
+      evidence_kind: 'php-return-constructor',
+      note: 'response: InvoiceResource [method:index]',
+      recorded_at: Math.floor(Date.now() / 1000),
+    }]);
     upsertEdge(db, `${wrapperNodeId}→${surfaceId}:calls_surface`, 'calls_surface', wrapperNodeId, surfaceId);
 
     const path = getSurfaceFeaturePath(db, surfaceId)!;
@@ -402,8 +497,46 @@ describe('formatFeaturePathBlock()', () => {
     upsertNode(db, resourceNodeId, 'symbol', 'InvoiceResource');
     upsertNode(db, fileNodeId, 'file', 'routes/api.php', 'routes/api.php');
     upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
-    upsertEdge(db, `${controllerNodeId}→${requestNodeId}:validates_with`, 'validates_with', controllerNodeId, requestNodeId);
-    upsertEdge(db, `${controllerNodeId}→${resourceNodeId}:returns_contract`, 'returns_contract', controllerNodeId, resourceNodeId);
+    db.upsertStructuralEdge({
+      id: `${controllerNodeId}→${requestNodeId}:validates_with:store`,
+      source_node_id: controllerNodeId,
+      target_node_id: requestNodeId,
+      edge_type: 'validates_with',
+      confidence: 0.9,
+      confidence_class: 'framework-inferred',
+      freshness_status: 'fresh',
+      dirty_dependency_count: 0,
+      provenance_summary: 'test',
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+    db.replaceEdgeEvidence(`${controllerNodeId}→${requestNodeId}:validates_with:store`, [{
+      id: `${controllerNodeId}→${requestNodeId}:validates_with:store:ev:0`,
+      edge_id: `${controllerNodeId}→${requestNodeId}:validates_with:store`,
+      resolver: 'test',
+      evidence_kind: 'php-typed-parameter',
+      note: 'request: StoreInvoiceRequest [method:store]',
+      recorded_at: Math.floor(Date.now() / 1000),
+    }]);
+    db.upsertStructuralEdge({
+      id: `${controllerNodeId}→${resourceNodeId}:returns_contract:store`,
+      source_node_id: controllerNodeId,
+      target_node_id: resourceNodeId,
+      edge_type: 'returns_contract',
+      confidence: 0.9,
+      confidence_class: 'framework-inferred',
+      freshness_status: 'fresh',
+      dirty_dependency_count: 0,
+      provenance_summary: 'test',
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+    db.replaceEdgeEvidence(`${controllerNodeId}→${resourceNodeId}:returns_contract:store`, [{
+      id: `${controllerNodeId}→${resourceNodeId}:returns_contract:store:ev:0`,
+      edge_id: `${controllerNodeId}→${resourceNodeId}:returns_contract:store`,
+      resolver: 'test',
+      evidence_kind: 'php-return-constructor',
+      note: 'response: InvoiceResource [method:store]',
+      recorded_at: Math.floor(Date.now() / 1000),
+    }]);
     upsertEdge(db, `${fileNodeId}→${surfaceId}:declares_surface`, 'declares_surface', fileNodeId, surfaceId);
 
     const path = getSurfaceFeaturePath(db, surfaceId)!;
@@ -416,6 +549,77 @@ describe('formatFeaturePathBlock()', () => {
     expect(block).toContain('InvoiceResource');
     expect(block).toContain('routes/api.php');
     expect(block).toContain('Path:');
+  });
+
+  it('filters provider-side validator edges by surface controllerMethod when provider is shared', () => {
+    const surfaceId = 'surface:http:POST:/event_messages';
+    const providerId = 'symbol:php:App\\Http\\Controllers\\EventMessageController';
+    const storeRequestId = 'symbol:php:App\\Http\\Requests\\StoreEventMessageRequest';
+    const indexRequestId = 'symbol:php:App\\Http\\Requests\\IndexEventMessageRequest';
+
+    db.upsertStructuralNode({
+      id: surfaceId,
+      node_type: 'capability-surface',
+      symbol_name: 'POST /event_messages',
+      language_id: 'http',
+      file_path: 'routes/api.php',
+      metadata: JSON.stringify({
+        transport: 'http',
+        method: 'POST',
+        path: '/event_messages',
+        controllerMethod: 'store',
+      }),
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+    upsertNode(db, providerId, 'symbol', 'EventMessageController');
+    upsertNode(db, storeRequestId, 'symbol', 'StoreEventMessageRequest');
+    upsertNode(db, indexRequestId, 'symbol', 'IndexEventMessageRequest');
+    upsertEdge(db, `${surfaceId}→${providerId}:handled_by`, 'handled_by', surfaceId, providerId);
+
+    db.upsertStructuralEdge({
+      id: `${providerId}→${storeRequestId}:validates_with:store`,
+      source_node_id: providerId,
+      target_node_id: storeRequestId,
+      edge_type: 'validates_with',
+      confidence: 0.9,
+      confidence_class: 'framework-inferred',
+      freshness_status: 'fresh',
+      dirty_dependency_count: 0,
+      provenance_summary: 'test',
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+    db.replaceEdgeEvidence(`${providerId}→${storeRequestId}:validates_with:store`, [{
+      id: `${providerId}→${storeRequestId}:validates_with:store:ev:0`,
+      edge_id: `${providerId}→${storeRequestId}:validates_with:store`,
+      resolver: 'test',
+      evidence_kind: 'php-typed-parameter',
+      note: 'request: App\\Http\\Requests\\StoreEventMessageRequest [method:store]',
+      recorded_at: Math.floor(Date.now() / 1000),
+    }]);
+
+    db.upsertStructuralEdge({
+      id: `${providerId}→${indexRequestId}:validates_with:index`,
+      source_node_id: providerId,
+      target_node_id: indexRequestId,
+      edge_type: 'validates_with',
+      confidence: 0.9,
+      confidence_class: 'framework-inferred',
+      freshness_status: 'fresh',
+      dirty_dependency_count: 0,
+      provenance_summary: 'test',
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+    db.replaceEdgeEvidence(`${providerId}→${indexRequestId}:validates_with:index`, [{
+      id: `${providerId}→${indexRequestId}:validates_with:index:ev:0`,
+      edge_id: `${providerId}→${indexRequestId}:validates_with:index`,
+      resolver: 'test',
+      evidence_kind: 'php-typed-parameter',
+      note: 'request: App\\Http\\Requests\\IndexEventMessageRequest [method:index]',
+      recorded_at: Math.floor(Date.now() / 1000),
+    }]);
+
+    const featurePath = getSurfaceFeaturePath(db, surfaceId)!;
+    expect(featurePath.validators.map((v) => v.id)).toEqual([storeRequestId]);
   });
 
   // Phase 5 — auditability: block formatter labels low-confidence consumers as "(candidate)"

@@ -150,6 +150,102 @@ export interface CapabilitySurfaceNode {
 }
 
 // ---------------------------------------------------------------------------
+// Transport contract metadata
+// ---------------------------------------------------------------------------
+
+/**
+ * Normalized metadata stored inside a contract StructuralNode.
+ *
+ * Covers both explicit contract closure (FormRequest, JsonResource, DTO) and
+ * coarse transport contract closure (empty-ack, page-response, route-bound-input,
+ * etc.). The `shapeConfidence` field distinguishes the two so retrieval can
+ * present them honestly without conflating exact schema truth with coarse
+ * transport truth.
+ */
+export interface TransportContractMetadata {
+  /** Transport protocol this contract belongs to. */
+  transport: 'http' | 'queue' | 'cli' | 'event';
+  /** Which side of the surface this contract describes. */
+  side: 'request' | 'response';
+  /**
+   * Normalized contract kind.
+   *
+   * Exact kinds (always `shapeConfidence: exact`):
+   *   - `explicit-class`     FormRequest, JsonResource, or DTO class
+   *   - `inline-validator`   $request->validate([...]) or Validator::make(...)
+   *
+   * Coarse response kinds (`shapeConfidence: coarse`):
+   *   - `inline-json`               response()->json([...]) or equivalent
+   *   - `empty-ack`                 no meaningful payload (unifies explicit/implicit)
+   *   - `redirect-response`         redirect() helper
+   *   - `page-response`             Inertia::render(), view(), inertia()
+   *   - `scalar-response`           response('ok', 200) or text-plain helpers
+   *   - `native-array-response`     array return, not adapter-serialized
+   *   - `native-object-response`    object/model return, not adapter-serialized
+   *   - `serialized-model-response` adapter-backed serialized model (conservative)
+   *   - `serialized-collection-response` adapter-backed serialized collection (conservative)
+   *   - `file-response`             download / stream response
+   *
+   * Coarse request kinds (`shapeConfidence: coarse`):
+   *   - `route-bound-input`     typed route model binding
+   *   - `implicit-input-shape`  repeated field / query access without FormRequest
+   */
+  contractKind:
+    | 'explicit-class'
+    | 'inline-validator'
+    | 'inline-json'
+    | 'implicit-input-shape'
+    | 'route-bound-input'
+    | 'empty-ack'
+    | 'redirect-response'
+    | 'page-response'
+    | 'scalar-response'
+    | 'native-array-response'
+    | 'native-object-response'
+    | 'serialized-model-response'
+    | 'serialized-collection-response'
+    | 'file-response';
+  /**
+   * Whether Lux is anchored to an explicit schema carrier (`exact`) or is
+   * describing the transport shape conservatively (`coarse`).
+   */
+  shapeConfidence: 'exact' | 'coarse';
+  /**
+   * Dominant structural role of the surface, when evidence is strong enough
+   * to justify a stable label.
+   */
+  interactionKind?: 'command' | 'query' | 'page' | 'redirect' | 'stream';
+  /** Framework that produced the evidence (e.g. 'laravel', 'inertia'). */
+  framework?: string;
+  /** Specific framework signal that triggered inference. */
+  frameworkSignal?: string;
+  /** Controller method scope this contract was inferred from. */
+  method?: string;
+  /** HTTP status code hint, if recoverable. */
+  statusCode?: number;
+  /** Content-type hint derived from the response helper. */
+  contentTypeHint?: string;
+  /**
+   * Sub-classification within a coarse kind.
+   *
+   * For `empty-ack`: `explicit-empty-return` | `implicit-fallthrough` | `framework-null-coercion`
+   */
+  evidenceSubtype?: string;
+  /** Route-model binding params (for `route-bound-input`). */
+  boundParams?: Array<{ param: string; type: string }>;
+  /** Request field or query access signals (for `implicit-input-shape`). */
+  inputSignals?: string[];
+  /** Response shape signals that informed coarse response classification. */
+  responseSignals?: string[];
+  /** When true, this node was synthesized by propagation (not a named class). */
+  synthetic?: boolean;
+  /** Role of this contract relative to the surface ('request' | 'response'). */
+  role?: string;
+  /** Deprecated legacy field — use contractKind instead. */
+  contractKindLegacy?: string;
+}
+
+// ---------------------------------------------------------------------------
 // Node ID builders
 // ---------------------------------------------------------------------------
 

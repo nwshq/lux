@@ -54,7 +54,7 @@ export function materializeNodes(
     // Symbol nodes — from LSP enrichment (may be absent for unenriched files)
     const enrichment = enrichments.get(entry.filePath);
     if (enrichment && enrichment.symbols.length > 0) {
-      const symNodes = buildSymbolNodes(entry.filePath, enrichment, rootPath);
+      const symNodes = buildSymbolNodes(entry.filePath, enrichment, rootPath, entry.content);
       for (const node of symNodes) {
         db.upsertStructuralNode(node);
         symbolNodes++;
@@ -93,17 +93,25 @@ export function buildFileNode(entry: ScannedKnowledge, rootPath: string): Struct
 export function buildSymbolNodes(
   absoluteFilePath: string,
   enrichment: EnrichmentResult,
-  rootPath: string
+  rootPath: string,
+  fileContent?: string
 ): StructuralNode[] {
   const relPath = toRelative(absoluteFilePath, rootPath);
   const lang = enrichment.languageId;
   const nodes: StructuralNode[] = [];
   const ts = nowEpoch();
 
-  // Use the PHP-enrichment-specific qualified name when available
+  // Use the PHP-enrichment-specific qualified name when available.
+  // When enrichment only carries short PHP names, derive a file-local FQN from
+  // the namespace declaration so duplicate controller/resource short names do
+  // not collapse across namespaces.
   const ext = enrichment as unknown as Record<string, unknown>;
   const phpReferences = ext['references'] as Array<{ symbolName: string; symbolKind: number }> | undefined;
-  const phpQualifiedNames = buildPhpQualifiedNameMap(phpReferences);
+  const phpQualifiedNames = buildPhpQualifiedNameMap(
+    enrichment.symbols.map((symbol) => symbol.name),
+    phpReferences,
+    fileContent
+  );
 
   for (const symbol of enrichment.symbols) {
     const id =
@@ -142,20 +150,37 @@ function nowEpoch(): number {
 }
 
 /**
- * Build a name→qualified_name map from PHP reference data.
- * PHP enrichment includes the symbol name but not the FQN from enrichment.symbols;
- * the references field carries the same names, so we use it to detect what's present.
- * In practice, the FQN would come from type hierarchy data.
+ * Build a short-name → qualified-name map for PHP symbols.
+ *
+ * Preference order:
+ *  1. Namespace declaration in the current file content, when available.
+ *  2. Reference-derived names from PHP enrichment (best-effort fallback).
  */
 function buildPhpQualifiedNameMap(
-  references?: Array<{ symbolName: string; symbolKind: number }>
+  symbolNames: string[],
+  references?: Array<{ symbolName: string; symbolKind: number }>,
+  fileContent?: string
 ): Map<string, string> {
   const map = new Map<string, string>();
+
+  const namespace = extractPhpNamespace(fileContent);
+  if (namespace) {
+    for (const symbolName of symbolNames) {
+      map.set(symbolName, `${namespace}\\${symbolName}`);
+    }
+    return map;
+  }
+
   if (!references) return map;
   for (const ref of references) {
-    // Placeholder: in a full implementation, extract the FQN from the file's
-    // namespace declaration combined with the symbol name. For now pass through.
     map.set(ref.symbolName, ref.symbolName);
   }
   return map;
+}
+
+function extractPhpNamespace(fileContent?: string): string | undefined {
+  if (!fileContent) return undefined;
+
+  const match = /^\s*namespace\s+([A-Za-z_\\][A-Za-z0-9_\\]*)\s*;/m.exec(fileContent);
+  return match?.[1];
 }

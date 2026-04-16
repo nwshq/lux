@@ -101,6 +101,26 @@ describe('buildSymbolNodes', () => {
     expect(nodes[0].node_type).toBe('symbol');
   });
 
+  it('derives qualified PHP symbol IDs from namespace declarations', () => {
+    const filePath = join(ROOT, 'app/Http/Controllers/InvoiceController.php');
+    const enrich = enrichment(filePath, 'php');
+
+    const nodes = buildSymbolNodes(
+      filePath,
+      enrich,
+      ROOT,
+      [
+        '<?php',
+        'namespace App\\Http\\Controllers;',
+        '',
+        'class MyClass {}',
+      ].join('\n')
+    );
+
+    expect(nodes[0].id).toBe('symbol:php:App\\Http\\Controllers\\MyClass');
+    expect(nodes[0].qualified_name).toBe('App\\Http\\Controllers\\MyClass');
+  });
+
   it('should produce distinct IDs for different files with same symbol names', () => {
     const p1 = join(ROOT, 'src/a.ts');
     const p2 = join(ROOT, 'src/b.ts');

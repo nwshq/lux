@@ -441,6 +441,10 @@ export class LuxDatabase {
     return (this.getQueries().getStructuralNode.get(id) as StructuralNode | undefined) ?? null;
   }
 
+  getStructuralNodesByFilePath(filePath: string): StructuralNode[] {
+    return this.getQueries().getStructuralNodeByFilePath.all(filePath) as StructuralNode[];
+  }
+
   getStructuralEdgesForNode(nodeId: string): StructuralEdge[] {
     return this.getQueries().getStructuralEdgesForNode.all(nodeId, nodeId) as StructuralEdge[];
   }

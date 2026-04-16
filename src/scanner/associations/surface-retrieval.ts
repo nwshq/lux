@@ -11,7 +11,8 @@
 // Retrieval uses only the DB — no re-parsing. Evidence is available but optional.
 
 import type { LuxDatabase } from '../../db/index.js';
-import type { StructuralNode } from '../../db/types.js';
+import type { StructuralNode, EdgeEvidence } from '../../db/types.js';
+import type { TransportContractMetadata } from './types.js';
 
 // ---------------------------------------------------------------------------
 // FeaturePath
@@ -103,9 +104,14 @@ export function getSurfaceFeaturePath(db: LuxDatabase, surfaceId: string): Featu
 
   // Expand provider edges to find validators and response contracts.
   // Only inspects the primary provider to keep the path compact.
+  const surfaceMeta = parseSurfaceMeta(surface);
+  const controllerMethodScope = inferControllerMethodScope(surfaceMeta, path.providers[0]?.id);
+
   for (const provider of path.providers.slice(0, 1)) {
     const providerEdges = db.getRelatedEdgesWithEvidence(provider.id);
-    for (const { edge } of providerEdges) {
+    for (const { edge, evidence } of providerEdges) {
+      if (!edgeMatchesControllerMethodScope(edge.id, evidence, controllerMethodScope)) continue;
+
       if (edge.edge_type === 'validates_with' && edge.source_node_id === provider.id) {
         const node = db.getStructuralNode(edge.target_node_id);
         if (node) path.validators.push(node);
@@ -147,9 +153,10 @@ export function getFeaturePathsForFile(db: LuxDatabase, filePath: string): Featu
  *
  * Output format (arrows indicate direction of call/dependency):
  * ```
- * consumer → surface → provider → contract
+ * consumer → surface → provider → request:<label> → response:<label> → interaction:<kind>
  * ```
  *
+ * Contract labels include fidelity: `exact(ClassName)` or `coarse(empty-ack)`.
  * Tokens use `symbol_name` for readability where available, falling back to node ID.
  */
 export function formatFeaturePath(path: FeaturePath): string {
@@ -174,16 +181,22 @@ export function formatFeaturePath(path: FeaturePath): string {
   }
 
   for (const v of path.validators.slice(0, 1)) {
-    parts.push(shortLabel(v));
+    parts.push(`request:${formatContractLabel(v)}`);
   }
 
   for (const r of path.responseContracts.slice(0, 1)) {
-    parts.push(shortLabel(r));
+    parts.push(`response:${formatContractLabel(r)}`);
   }
 
   // Artifact(s) shown at the end
   for (const a of path.artifacts.slice(0, 1)) {
     parts.push(shortLabel(a));
+  }
+
+  // Interaction kind (if derivable)
+  const interactionKind = inferSurfaceInteractionKind(path.validators, path.responseContracts);
+  if (interactionKind) {
+    parts.push(`interaction:${interactionKind}`);
   }
 
   return parts.join(' → ');
@@ -216,11 +229,16 @@ export function formatFeaturePathBlock(path: FeaturePath): string {
   }
 
   if (path.validators.length > 0) {
-    lines.push(`  Validates with: ${path.validators.map(shortLabel).join(', ')}`);
+    lines.push(`  Validates with: ${path.validators.map(formatContractLabel).join(', ')}`);
   }
 
   if (path.responseContracts.length > 0) {
-    lines.push(`  Returns: ${path.responseContracts.map(shortLabel).join(', ')}`);
+    lines.push(`  Returns: ${path.responseContracts.map(formatContractLabel).join(', ')}`);
+  }
+
+  const interactionKind = inferSurfaceInteractionKind(path.validators, path.responseContracts);
+  if (interactionKind) {
+    lines.push(`  Interaction: ${interactionKind}`);
   }
 
   if (path.consumers.length > 0) {
@@ -263,6 +281,7 @@ export function formatFileFeaturePathBlock(db: LuxDatabase, filePath: string): s
 
 interface SurfaceMeta {
   routeName?: string;
+  controllerMethod?: string;
 }
 
 function parseSurfaceMeta(surface: StructuralNode): SurfaceMeta {
@@ -271,6 +290,30 @@ function parseSurfaceMeta(surface: StructuralNode): SurfaceMeta {
   } catch {
     return {};
   }
+}
+
+function inferControllerMethodScope(
+  surfaceMeta: SurfaceMeta,
+  providerNodeId?: string
+): string | undefined {
+  if (surfaceMeta.controllerMethod) return surfaceMeta.controllerMethod;
+  if (!providerNodeId) return undefined;
+
+  const match = /@([A-Za-z_][A-Za-z0-9_]*)$/.exec(providerNodeId);
+  return match?.[1];
+}
+
+function edgeMatchesControllerMethodScope(
+  edgeId: string,
+  evidence: EdgeEvidence[],
+  controllerMethodScope?: string
+): boolean {
+  if (!controllerMethodScope) return true;
+
+  const idSuffix = `:${controllerMethodScope}`;
+  if (edgeId.endsWith(idSuffix)) return true;
+
+  return evidence.some((ev) => ev.note?.includes(`[method:${controllerMethodScope}]`));
 }
 
 /**
@@ -284,4 +327,121 @@ function shortLabel(node: StructuralNode): string {
   const id = node.id;
   const lastColon = id.lastIndexOf(':');
   return lastColon >= 0 ? id.slice(lastColon + 1) : id;
+}
+
+/**
+ * Parse TransportContractMetadata from a structural node's metadata JSON.
+ * Returns null if the node has no metadata or the metadata is not a contract.
+ */
+function parseContractMeta(node: StructuralNode): TransportContractMetadata | null {
+  if (node.node_type !== 'contract') return null;
+  try {
+    const raw = JSON.parse(node.metadata ?? '{}') as Partial<TransportContractMetadata>;
+    if (!raw.contractKind) return null;
+    return raw as TransportContractMetadata;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Build a concise contract label showing fidelity and kind.
+ *
+ * Examples:
+ *   - `exact(StoreInvoiceRequest)`
+ *   - `coarse(empty-ack)`
+ *   - `coarse(page-response)`
+ *   - `explicit-class(InvoiceResource)` — explicit class nodes not yet migrated
+ */
+export function formatContractLabel(node: StructuralNode): string {
+  const meta = parseContractMeta(node);
+  if (!meta) return shortLabel(node);
+
+  const kind = meta.contractKind;
+  const confidence = meta.shapeConfidence;
+
+  if (confidence === 'exact') {
+    // Exact contracts: show class name from symbol_name when available
+    const name = node.symbol_name ?? kind;
+    return `exact(${name})`;
+  }
+
+  // Coarse contracts: show kind + optional evidence subtype
+  if (meta.evidenceSubtype) {
+    return `coarse(${kind}/${meta.evidenceSubtype})`;
+  }
+  return `coarse(${kind})`;
+}
+
+/**
+ * Compute a numeric retrieval score for a contract node.
+ *
+ * Scoring order (higher is better):
+ *   5 — explicit exact contract class (FormRequest, JsonResource, DTO)
+ *   4 — exact inline validator or inline-json (structured but not class-backed)
+ *   3 — coarse with strong semantics: page-response, inline-json, serialized-*
+ *   2 — coarse with meaningful semantics: redirect, scalar, route-bound-input, native-*
+ *   1 — weak coarse: empty-ack, implicit-input-shape
+ *   0 — no contract
+ *
+ * Page and API surfaces score the same for equivalent contract kinds (transport-neutral).
+ */
+export function scoreContract(node: StructuralNode): number {
+  const meta = parseContractMeta(node);
+  if (!meta) {
+    // Non-migrated explicit contract nodes: treat as exact class
+    if (node.node_type === 'contract') return 5;
+    return 0;
+  }
+
+  if (meta.shapeConfidence === 'exact') {
+    if (meta.contractKind === 'explicit-class') return 5;
+    if (meta.contractKind === 'inline-validator' || meta.contractKind === 'inline-json') return 4;
+    return 4;
+  }
+
+  // Coarse scoring — transport-neutral
+  switch (meta.contractKind) {
+    case 'page-response':
+    case 'inline-json':
+    case 'serialized-model-response':
+    case 'serialized-collection-response':
+      return 3;
+    case 'redirect-response':
+    case 'scalar-response':
+    case 'route-bound-input':
+    case 'native-array-response':
+    case 'native-object-response':
+      return 2;
+    case 'empty-ack':
+    case 'implicit-input-shape':
+    case 'file-response':
+      return 1;
+    default:
+      return 1;
+  }
+}
+
+/**
+ * Extract the dominant interactionKind from a surface's contract nodes.
+ *
+ * Checks both response contracts (primary) and request contracts for a
+ * stable interactionKind label. Returns undefined when no strong evidence
+ * exists.
+ */
+export function inferSurfaceInteractionKind(
+  validators: StructuralNode[],
+  responseContracts: StructuralNode[]
+): TransportContractMetadata['interactionKind'] | undefined {
+  // Response contracts carry stronger interactionKind signal
+  for (const node of responseContracts) {
+    const meta = parseContractMeta(node);
+    if (meta?.interactionKind) return meta.interactionKind;
+  }
+  // Fall back to request contracts
+  for (const node of validators) {
+    const meta = parseContractMeta(node);
+    if (meta?.interactionKind) return meta.interactionKind;
+  }
+  return undefined;
 }
