@@ -92,9 +92,7 @@ export class LaravelHttpSurfaceDetector implements CapabilitySurfaceDetector {
   readonly name = 'laravel-http-surfaces';
 
   supports(context: AssociationContext): boolean {
-    return context.entries.some(
-      (e) => e.languageId === 'php' && isRouteFile(e.filePath)
-    );
+    return context.entries.some((e) => isEligibleRouteSource(e));
   }
 
   async detect(context: AssociationContext): Promise<DetectedSurfaceBatch> {
@@ -110,9 +108,7 @@ export class LaravelHttpSurfaceDetector implements CapabilitySurfaceDetector {
     const edges: StructuralRelationEdge[] = [];
     const now = Math.floor(Date.now() / 1000);
 
-    const routeEntries = context.entries.filter(
-      (e) => e.languageId === 'php' && isRouteFile(e.filePath)
-    );
+    const routeEntries = context.entries.filter((e) => isEligibleRouteSource(e));
     const routeRegistrations = collectRouteFileRegistrations(context);
 
     for (const entry of routeEntries) {
@@ -664,16 +660,12 @@ function findNextGroupOpener(content: string, fromPos: number): GroupOpenerResul
   const CHAIN_GROUP_RE = /->group\s*\(\s*function\s*\([^)]*\)\s*(?:use\s*\([^)]*\)\s*)?/g;
   CHAIN_GROUP_RE.lastIndex = fromPos;
 
-  // Pattern B: Route::group([...options...], function
-  const DIRECT_GROUP_RE = /Route::group\s*\(\s*\[([^\]]*)\]\s*,\s*function\s*\([^)]*\)\s*(?:use\s*\([^)]*\)\s*)?/g;
-  DIRECT_GROUP_RE.lastIndex = fromPos;
-
   const chainMatch = CHAIN_GROUP_RE.exec(content);
-  const directMatch = DIRECT_GROUP_RE.exec(content);
+  const directMatch = findDirectArrayGroupOpener(content, fromPos);
 
   const useChain =
     chainMatch !== null &&
-    (directMatch === null || chainMatch.index <= directMatch.index);
+    (directMatch === null || chainMatch.index <= directMatch.openerPos);
 
   if (useChain && chainMatch) {
     const prefix = extractPrefixFromChainBefore(content, chainMatch.index);
@@ -685,15 +677,43 @@ function findNextGroupOpener(content: string, fromPos: number): GroupOpenerResul
   }
 
   if (directMatch) {
-    const prefix = extractPrefixFromArrayOptions(directMatch[1]);
-    return {
-      openerPos: directMatch.index,
-      chainEndPos: directMatch.index + directMatch[0].length,
-      prefix,
-    };
+    return directMatch;
   }
 
   return null;
+}
+
+function findDirectArrayGroupOpener(
+  content: string,
+  fromPos: number
+): GroupOpenerResult | null {
+  const routeIdx = content.indexOf('Route::group', fromPos);
+  if (routeIdx < 0) return null;
+
+  const parenStart = content.indexOf('(', routeIdx + 'Route::group'.length);
+  if (parenStart < 0) return null;
+
+  const optionsStart = skipWhitespace(content, parenStart + 1);
+  if (optionsStart >= content.length || content[optionsStart] !== '[') return null;
+
+  const optionsEnd = findMatchingBracket(content, optionsStart, '[', ']');
+  if (optionsEnd < 0) return null;
+
+  const afterOptions = skipWhitespace(content, optionsEnd + 1);
+  if (afterOptions >= content.length || content[afterOptions] !== ',') return null;
+
+  const functionSlice = content.slice(afterOptions + 1);
+  const functionMatch = /^\s*function\s*\([^)]*\)\s*(?:use\s*\([^)]*\)\s*)?/.exec(functionSlice);
+  if (!functionMatch) return null;
+
+  const optionsText = content.slice(optionsStart + 1, optionsEnd);
+  const prefix = extractPrefixFromArrayOptions(optionsText);
+
+  return {
+    openerPos: routeIdx,
+    chainEndPos: afterOptions + 1 + functionMatch[0].length,
+    prefix,
+  };
 }
 
 /**
@@ -727,22 +747,58 @@ function extractPrefixFromArrayOptions(optionsText: string): string {
   return match ? normalizePathFragment(match[1]) : '';
 }
 
-/**
- * Find the position of the closing brace matching the '{' at `openPos`.
- * Returns -1 if no match is found.
- */
-function findMatchingBrace(content: string, openPos: number): number {
+function skipWhitespace(content: string, pos: number): number {
+  let i = pos;
+  while (i < content.length && /\s/.test(content[i])) i++;
+  return i;
+}
+
+function findMatchingBracket(
+  content: string,
+  openPos: number,
+  openChar: string,
+  closeChar: string
+): number {
   let depth = 1;
   let i = openPos + 1;
 
   while (i < content.length && depth > 0) {
     const ch = content[i];
-    if (ch === '{') depth++;
-    else if (ch === '}') depth--;
+
+    if (ch === "'") {
+      i++;
+      while (i < content.length && content[i] !== "'") {
+        if (content[i] === '\\' && i + 1 < content.length) i += 2;
+        else i++;
+      }
+      if (i < content.length) i++;
+      continue;
+    }
+
+    if (ch === '"') {
+      i++;
+      while (i < content.length && content[i] !== '"') {
+        if (content[i] === '\\' && i + 1 < content.length) i += 2;
+        else i++;
+      }
+      if (i < content.length) i++;
+      continue;
+    }
+
+    if (ch === openChar) depth++;
+    else if (ch === closeChar) depth--;
     i++;
   }
 
   return depth === 0 ? i - 1 : -1;
+}
+
+/**
+ * Find the position of the closing brace matching the '{' at `openPos`.
+ * Returns -1 if no match is found.
+ */
+function findMatchingBrace(content: string, openPos: number): number {
+  return findMatchingBracket(content, openPos, '{', '}');
 }
 
 /**
@@ -1114,8 +1170,63 @@ function buildProviderSymbolId(qualifiedName: string): string {
 }
 
 /**
- * Heuristic to identify Laravel route files.
+ * Heuristic to identify Laravel route files by path alone.
+ *
+ * Matches files under a `routes/` directory or any PHP file named `routes.php`.
  */
 function isRouteFile(filePath: string): boolean {
   return /(^|\/)routes\/.+\.php$/i.test(filePath) || /routes\.php$/i.test(filePath);
+}
+
+/**
+ * Regex used to detect whether a PHP file body contains at least one direct
+ * Laravel HTTP route declaration. Matches `Route::get(` / `::post(` / etc.
+ *
+ * Deliberately narrow — does NOT match bare `Route::group(` or `Route::prefix(`,
+ * since those appear in plain file-registration providers that should continue
+ * to be handled only as `loadRoutesFrom` / `->group(__DIR__)` registrations
+ * against an external route file, not as inline route declarations.
+ */
+const INLINE_ROUTE_DECLARATION_RE = /\bRoute::(?:get|post|put|patch|delete|any)\s*\(/i;
+
+/**
+ * Conservative content-based heuristic: does this PHP file contain at least
+ * one direct Laravel HTTP route declaration (after stripping comments)?
+ */
+function hasInlineRouteDeclaration(content: string): boolean {
+  if (!content) return false;
+  return INLINE_ROUTE_DECLARATION_RE.test(maskPhpComments(content));
+}
+
+/**
+ * Heuristic for RouteServiceProvider-style files: PHP files whose name ends
+ * in `Provider.php` and whose body clearly contains Laravel route declarations
+ * (not merely `loadRoutesFrom` pointing at an external route file).
+ *
+ * This lets us pick up module providers that declare routes inline — e.g.
+ * `src/Module/ExternalApi/RouteServiceProvider.php` with
+ * `Route::prefix('api')->group(function () { Route::get(...); })` — without
+ * broadening detection to arbitrary PHP files that happen to mention Route.
+ */
+function isProviderStyleRouteSource(filePath: string, content: string | undefined): boolean {
+  if (!/(?:^|\/)[A-Za-z0-9_]*Provider\.php$/i.test(filePath)) return false;
+  // Avoid re-classifying files already covered by the routes/* heuristic.
+  if (isRouteFile(filePath)) return false;
+  return hasInlineRouteDeclaration(content ?? '');
+}
+
+/**
+ * Unified eligibility check for the detector: a PHP entry qualifies as a route
+ * source if it either lives in a conventional route-file location, or is a
+ * provider-style file whose content contains inline route declarations.
+ */
+function isEligibleRouteSource(entry: {
+  filePath: string;
+  languageId?: string;
+  metadata?: Record<string, unknown>;
+}): boolean {
+  if (entry.languageId !== 'php') return false;
+  if (isRouteFile(entry.filePath)) return true;
+  const content = (entry.metadata?.content as string | undefined) ?? '';
+  return isProviderStyleRouteSource(entry.filePath, content);
 }

@@ -552,6 +552,34 @@ describe('LaravelHttpSurfaceDetector — route groups', () => {
     expect(batch.surfaces[0].id).toBe('surface:http:GET:/dashboard');
   });
 
+  it('composes canonical path from Route::group array syntax when options contain nested arrays before the callback', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'src/Module/ExternalApi/RouteServiceProvider.php',
+        languageId: 'php',
+        content: [
+          'Route::group([',
+          "    'prefix' => 'api/external/v1',",
+          "    'middleware' => [",
+          "        HandleApiExceptions::class,",
+          "        'auth:sanctum',",
+          "        'throttle:external-api',",
+          '    ],',
+          '], function () {',
+          "    Route::get('users', IndexUsersController::class);",
+          '});',
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/api/external/v1/users');
+    expect(batch.surfaces[0].metadata.path).toBe('/api/external/v1/users');
+    expect(batch.surfaces[0].metadata.localFragment).toBe('users');
+    expect(batch.surfaces[0].metadata.declarationLineage).toEqual(['api/external/v1']);
+  });
+
   it('preserves handled_by edge with class-level controller within a group', async () => {
     const ctx = makeContext([
       {
@@ -1312,5 +1340,213 @@ describe('LaravelHttpSurfaceDetector — provider-kind classification', () => {
     expect(handled).toHaveLength(0);
     // And the surface is honestly classified — not left as an empty miss.
     expect(batch.surfaces[0].metadata.providerKind).toBe('closure');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Provider-declared inline route files (RouteServiceProvider-style)
+// ---------------------------------------------------------------------------
+
+describe('LaravelHttpSurfaceDetector — provider-declared inline routes', () => {
+  const detector = new LaravelHttpSurfaceDetector();
+
+  it('supports() returns true for a RouteServiceProvider file with an inline Route::prefix(..)->group(..) block', () => {
+    const ctx = makeContext([
+      {
+        filePath: 'src/Module/ExternalApi/RouteServiceProvider.php',
+        languageId: 'php',
+        content: [
+          "Route::prefix('api/external')->middleware(['api'])->group(function () {",
+          "    Route::get('/ping', [PingController::class, 'index']);",
+          '});',
+        ].join('\n'),
+      },
+    ]);
+    expect(detector.supports(ctx)).toBe(true);
+  });
+
+  it('supports() returns true for a provider file with a direct top-level Route::get declaration', () => {
+    const ctx = makeContext([
+      {
+        filePath: 'src/Module/ExternalApi/RouteServiceProvider.php',
+        languageId: 'php',
+        content: `Route::get('/api/external/health', [HealthController::class, 'index']);`,
+      },
+    ]);
+    expect(detector.supports(ctx)).toBe(true);
+  });
+
+  it('supports() returns false for a plain service provider file that contains no route declarations', () => {
+    const ctx = makeContext([
+      {
+        filePath: 'src/Module/ExternalApi/ExternalApiServiceProvider.php',
+        languageId: 'php',
+        content: [
+          'class ExternalApiServiceProvider extends ServiceProvider {',
+          '    public function register(): void {',
+          '        $this->app->singleton(ExternalApiClient::class);',
+          '    }',
+          '}',
+        ].join('\n'),
+      },
+    ]);
+    expect(detector.supports(ctx)).toBe(false);
+  });
+
+  it('supports() returns false for a non-provider PHP service file even if it mentions Route::get in a docblock', () => {
+    const ctx = makeContext([
+      {
+        filePath: 'src/Services/InvoiceService.php',
+        languageId: 'php',
+        content: [
+          '/**',
+          " * Helper for Route::get('/invoices', ...) lookups — not a route file.",
+          ' */',
+          'class InvoiceService {}',
+        ].join('\n'),
+      },
+    ]);
+    expect(detector.supports(ctx)).toBe(false);
+  });
+
+  it('supports() returns false for a provider file that only registers external route files (no inline declarations)', () => {
+    // loadRoutesFrom-only providers are still handled via collectRouteFileRegistrations
+    // against their target route file — they should NOT be treated as route sources themselves.
+    const ctx = makeContext([
+      {
+        filePath: 'src/Module/Accounting/Providers/RouteServiceProvider.php',
+        languageId: 'php',
+        content: [
+          "Route::prefix('admin/accounting')",
+          "    ->group(function () {",
+          "        $this->loadRoutesFrom(__DIR__ . '/../routes/admin.php');",
+          '    });',
+        ].join('\n'),
+      },
+    ]);
+    expect(detector.supports(ctx)).toBe(false);
+  });
+
+  it('detect() emits surfaces from an inline Route::prefix(..)->group(..) block in a RouteServiceProvider file', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'src/Module/ExternalApi/RouteServiceProvider.php',
+        languageId: 'php',
+        content: [
+          "Route::prefix('api/external')->middleware(['api'])->group(function () {",
+          "    Route::get('/ping', [PingController::class, 'index']);",
+          "    Route::post('/events', [EventsController::class, 'store']);",
+          '});',
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(2);
+    const ids = batch.surfaces.map((s) => s.id).sort();
+    expect(ids).toContain('surface:http:GET:/api/external/ping');
+    expect(ids).toContain('surface:http:POST:/api/external/events');
+
+    const ping = batch.surfaces.find((s) => s.id === 'surface:http:GET:/api/external/ping')!;
+    expect(ping.metadata.declarationLineage).toEqual(['api/external']);
+    expect(ping.metadata.explicitProvider).toBe('PingController');
+    expect(ping.file_path).toBe('src/Module/ExternalApi/RouteServiceProvider.php');
+
+    // declares_surface edge anchors the surface back to the provider file itself
+    const declEdge = batch.edges.find(
+      (e) => e.edgeType === 'declares_surface' && e.targetNodeId === 'surface:http:GET:/api/external/ping'
+    );
+    expect(declEdge).toBeDefined();
+    expect(declEdge!.sourceNodeId).toBe('file:src/Module/ExternalApi/RouteServiceProvider.php');
+  });
+
+  it('detect() emits a surface from a direct top-level Route::get inside a provider file', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'src/Module/ExternalApi/RouteServiceProvider.php',
+        languageId: 'php',
+        content: `Route::get('/api/external/health', [HealthController::class, 'index']);`,
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/api/external/health');
+    expect(batch.surfaces[0].metadata.explicitProvider).toBe('HealthController');
+  });
+
+  it('detect() does not emit surfaces from a non-route provider (no route declarations)', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'src/Module/ExternalApi/ExternalApiServiceProvider.php',
+        languageId: 'php',
+        content: [
+          'class ExternalApiServiceProvider extends ServiceProvider {',
+          '    public function register(): void {',
+          '        $this->app->singleton(ExternalApiClient::class);',
+          '    }',
+          '}',
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(0);
+    expect(batch.edges).toHaveLength(0);
+  });
+
+  it('detect() ignores commented-out inline route declarations in a provider file', async () => {
+    // The content-based eligibility check must honour comment masking so a
+    // provider whose only Route::get is commented out is not treated as a route source.
+    const ctx = makeContext([
+      {
+        filePath: 'src/Module/ExternalApi/RouteServiceProvider.php',
+        languageId: 'php',
+        content: [
+          'class ExternalApiServiceProvider extends ServiceProvider {',
+          '    public function boot(): void {',
+          "        // Route::get('/disabled', [DisabledController::class, 'index']);",
+          '    }',
+          '}',
+        ].join('\n'),
+      },
+    ]);
+
+    expect(detector.supports(ctx)).toBe(false);
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(0);
+  });
+
+  it('preserves the classic routes/api.php path when both a classic route file and an inline provider are present', async () => {
+    // Regression guard: the new heuristic must not interfere with the existing
+    // registration flow for conventional route files.
+    const ctx = makeContext([
+      {
+        filePath: 'src/CoreServiceProvider.php',
+        languageId: 'php',
+        content: `Route::prefix('api')->middleware('api')->group(__DIR__ . '/../routes/api.php');`,
+      },
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: `Route::get('/invoices', [InvoiceController::class, 'index']);`,
+      },
+      {
+        filePath: 'src/Module/ExternalApi/RouteServiceProvider.php',
+        languageId: 'php',
+        content: [
+          "Route::prefix('api/external')->group(function () {",
+          "    Route::get('/ping', [PingController::class, 'index']);",
+          '});',
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    const ids = batch.surfaces.map((s) => s.id).sort();
+    expect(ids).toEqual([
+      'surface:http:GET:/api/external/ping',
+      'surface:http:GET:/api/invoices',
+    ]);
   });
 });
