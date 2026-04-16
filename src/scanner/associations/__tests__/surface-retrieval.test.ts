@@ -10,6 +10,7 @@ import {
   formatFeaturePath,
   formatFeaturePathBlock,
   formatFileFeaturePathBlock,
+  CLOSURE_HANDLER_TOKEN,
 } from '../surface-retrieval.js';
 import type { StructuralNode, StructuralEdge } from '../../../db/types.js';
 
@@ -691,5 +692,191 @@ describe('formatFileFeaturePathBlock()', () => {
     expect(block).not.toBeNull();
     expect(block).toContain('GET /api/invoices');
     expect(block).toContain('POST /api/invoices');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Closure-backed surface rendering
+// ---------------------------------------------------------------------------
+//
+// Closure-backed routes (providerKind === 'closure') never emit a `handled_by`
+// edge — the route body is an inline anonymous function with no named provider.
+// Retrieval must distinguish them from controller-backed surfaces whose
+// provider resolution failed, so formatters branch on the metadata instead of
+// treating an empty `providers[]` as an unresolved miss in both cases.
+
+/**
+ * Upsert a capability-surface node with an explicit providerKind annotation.
+ * Mirrors what the detector persists for closure- vs controller-backed routes.
+ */
+function upsertSurfaceWithKind(
+  db: LuxDatabase,
+  id: string,
+  handle: string,
+  path: string,
+  filePath: string,
+  providerKind: 'controller' | 'closure'
+): void {
+  db.upsertStructuralNode({
+    id,
+    node_type: 'capability-surface',
+    symbol_name: handle,
+    language_id: 'http',
+    file_path: filePath,
+    metadata: JSON.stringify({
+      transport: 'http',
+      method: handle.split(' ')[0],
+      path,
+      providerKind,
+    }),
+    updated_at: Math.floor(Date.now() / 1000),
+  });
+}
+
+describe('getSurfaceFeaturePath() — providerKind propagation', () => {
+  let db: LuxDatabase;
+
+  beforeEach(() => { db = makeDb(); });
+  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+
+  it('propagates providerKind=closure and sets isClosureBacked=true', () => {
+    const surfaceId = 'surface:http:GET:/health';
+    upsertSurfaceWithKind(db, surfaceId, 'GET /health', '/health', 'routes/api.php', 'closure');
+
+    const path = getSurfaceFeaturePath(db, surfaceId)!;
+    expect(path.providerKind).toBe('closure');
+    expect(path.isClosureBacked).toBe(true);
+  });
+
+  it('propagates providerKind=controller and sets isClosureBacked=false', () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    upsertSurfaceWithKind(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php', 'controller');
+
+    const path = getSurfaceFeaturePath(db, surfaceId)!;
+    expect(path.providerKind).toBe('controller');
+    expect(path.isClosureBacked).toBe(false);
+  });
+
+  it('leaves providerKind undefined for legacy surfaces without the annotation', () => {
+    // upsertSurface() does not set providerKind — mirrors pre-tranche detector output.
+    upsertSurface(db, 'surface:http:GET:/legacy', 'GET /legacy', '/legacy', 'routes/api.php');
+
+    const path = getSurfaceFeaturePath(db, 'surface:http:GET:/legacy')!;
+    expect(path.providerKind).toBeUndefined();
+    expect(path.isClosureBacked).toBe(false);
+  });
+});
+
+describe('formatFeaturePath() — closure-backed surfaces', () => {
+  let db: LuxDatabase;
+
+  beforeEach(() => { db = makeDb(); });
+  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+
+  it('emits the closure-handler token in the provider slot for a closure-backed surface', () => {
+    const surfaceId = 'surface:http:GET:/health';
+    upsertSurfaceWithKind(db, surfaceId, 'GET /health', '/health', 'routes/api.php', 'closure');
+
+    const path = getSurfaceFeaturePath(db, surfaceId)!;
+    const formatted = formatFeaturePath(path);
+
+    // Surface renders as first-class handled, with arrow separation — not a
+    // silent drop that would conflate it with an unresolved miss.
+    expect(formatted).toBe(`GET /health → ${CLOSURE_HANDLER_TOKEN}`);
+  });
+
+  it('renders consumer → surface → closure-handler for a closure-backed surface with a proven consumer', () => {
+    const surfaceId = 'surface:http:GET:/health';
+    const consumerId = 'symbol:ts:src/monitor.ts#pingHealth';
+
+    upsertSurfaceWithKind(db, surfaceId, 'GET /health', '/health', 'routes/api.php', 'closure');
+    upsertNode(db, consumerId, 'symbol', 'pingHealth');
+    upsertEdge(db, `${consumerId}→${surfaceId}:calls_surface`, 'calls_surface', consumerId, surfaceId);
+
+    const path = getSurfaceFeaturePath(db, surfaceId)!;
+    const formatted = formatFeaturePath(path);
+
+    expect(formatted).toBe(`pingHealth → GET /health → ${CLOSURE_HANDLER_TOKEN}`);
+  });
+
+  it('does NOT fabricate closure-handler for controller-backed surfaces whose provider is unresolved', () => {
+    // Controller-backed surface where the `handled_by` edge never resolved in the
+    // DB (provider miss). The formatter must keep the provider slot empty so the
+    // signal of "truly missing" is preserved — we only synthesize a handler
+    // token when the detector classified the surface as closure-backed.
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    upsertSurfaceWithKind(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php', 'controller');
+
+    const path = getSurfaceFeaturePath(db, surfaceId)!;
+    const formatted = formatFeaturePath(path);
+
+    expect(formatted).toBe('GET /api/invoices');
+    expect(formatted).not.toContain(CLOSURE_HANDLER_TOKEN);
+  });
+
+  it('keeps controller-backed rendering unchanged when a provider is resolved', () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const controllerNodeId = 'symbol:php:InvoiceController@index';
+
+    upsertSurfaceWithKind(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php', 'controller');
+    upsertNode(db, controllerNodeId, 'symbol', 'InvoiceController@index');
+    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+
+    const path = getSurfaceFeaturePath(db, surfaceId)!;
+    const formatted = formatFeaturePath(path);
+
+    expect(formatted).toContain('InvoiceController@index');
+    expect(formatted).not.toContain(CLOSURE_HANDLER_TOKEN);
+  });
+});
+
+describe('formatFeaturePathBlock() — closure-backed surfaces', () => {
+  let db: LuxDatabase;
+
+  beforeEach(() => { db = makeDb(); });
+  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+
+  it('renders a "Handler: closure (inline)" line for closure-backed surfaces', () => {
+    const surfaceId = 'surface:http:GET:/health';
+    upsertSurfaceWithKind(db, surfaceId, 'GET /health', '/health', 'routes/api.php', 'closure');
+
+    const path = getSurfaceFeaturePath(db, surfaceId)!;
+    const block = formatFeaturePathBlock(path);
+
+    expect(block).toContain('Surface: GET /health');
+    expect(block).toContain('Handler: closure (inline)');
+    // Closure-backed surfaces must not emit a Provider(s) line — that label is
+    // reserved for resolved controller nodes so readers can distinguish the two.
+    expect(block).not.toContain('Provider(s):');
+    // Compact Path: line also surfaces the closure-handler token.
+    expect(block).toContain(`Path: GET /health → ${CLOSURE_HANDLER_TOKEN}`);
+  });
+
+  it('does NOT emit a Handler line for controller-backed surfaces with unresolved providers', () => {
+    // An unresolved controller-backed surface stays silent in the block — the
+    // absence of Provider(s) is itself a meaningful signal of the miss.
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    upsertSurfaceWithKind(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php', 'controller');
+
+    const path = getSurfaceFeaturePath(db, surfaceId)!;
+    const block = formatFeaturePathBlock(path);
+
+    expect(block).not.toContain('Handler:');
+    expect(block).not.toContain('Provider(s):');
+  });
+
+  it('keeps controller-backed block output unchanged when a provider is resolved', () => {
+    const surfaceId = 'surface:http:GET:/api/invoices';
+    const controllerNodeId = 'symbol:php:InvoiceController@index';
+
+    upsertSurfaceWithKind(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php', 'controller');
+    upsertNode(db, controllerNodeId, 'symbol', 'InvoiceController@index');
+    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+
+    const path = getSurfaceFeaturePath(db, surfaceId)!;
+    const block = formatFeaturePathBlock(path);
+
+    expect(block).toContain('Provider(s): InvoiceController@index');
+    expect(block).not.toContain('Handler:');
   });
 });

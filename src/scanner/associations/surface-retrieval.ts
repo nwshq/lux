@@ -26,6 +26,12 @@ import type { TransportContractMetadata } from './types.js';
 export const PROVEN_CONFIDENCE_THRESHOLD = 0.75;
 
 /**
+ * Synthetic provider token used to render closure-backed surfaces as honestly
+ * handled in compact output without fabricating a named provider node.
+ */
+export const CLOSURE_HANDLER_TOKEN = 'closure-handler';
+
+/**
  * A surface-centered feature path assembled from overlay edges.
  *
  * All arrays may be empty — partial paths are valid and useful.
@@ -53,6 +59,24 @@ export interface FeaturePath {
   artifacts: StructuralNode[];
   /** The file that declares this surface (declares_surface source side). */
   declaringFile: StructuralNode | null;
+  /**
+   * How the underlying surface declaration supplies its handler, mirrored from
+   * CapabilitySurfaceMetadata.providerKind. Absent when the detector could not
+   * classify the declaration form (legacy / non-Laravel surfaces).
+   *
+   *   - `controller` — route targets a named class/action; `providers` is
+   *                    expected to resolve via `handled_by`.
+   *   - `closure`    — route targets an inline anonymous function; no provider
+   *                    node exists, and retrieval treats the surface as
+   *                    first-class handled rather than as an unresolved miss.
+   */
+  providerKind?: 'controller' | 'closure';
+  /**
+   * Convenience flag: true iff `providerKind === 'closure'`. Downstream
+   * formatters branch on this to emit a synthetic closure-handler token
+   * without confusing it for a real provider.
+   */
+  isClosureBacked: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -69,6 +93,7 @@ export function getSurfaceFeaturePath(db: LuxDatabase, surfaceId: string): Featu
   if (!ctx) return null;
 
   const { surface, edges } = ctx;
+  const surfaceMeta = parseSurfaceMeta(surface);
   const path: FeaturePath = {
     surface,
     consumers: [],
@@ -78,6 +103,8 @@ export function getSurfaceFeaturePath(db: LuxDatabase, surfaceId: string): Featu
     responseContracts: [],
     artifacts: [],
     declaringFile: null,
+    providerKind: surfaceMeta.providerKind,
+    isClosureBacked: surfaceMeta.providerKind === 'closure',
   };
 
   for (const { edge } of edges) {
@@ -104,7 +131,6 @@ export function getSurfaceFeaturePath(db: LuxDatabase, surfaceId: string): Featu
 
   // Expand provider edges to find validators and response contracts.
   // Only inspects the primary provider to keep the path compact.
-  const surfaceMeta = parseSurfaceMeta(surface);
   const controllerMethodScope = inferControllerMethodScope(surfaceMeta, path.providers[0]?.id);
 
   for (const provider of path.providers.slice(0, 1)) {
@@ -158,6 +184,12 @@ export function getFeaturePathsForFile(db: LuxDatabase, filePath: string): Featu
  *
  * Contract labels include fidelity: `exact(ClassName)` or `coarse(empty-ack)`.
  * Tokens use `symbol_name` for readability where available, falling back to node ID.
+ *
+ * Closure-backed surfaces (`providerKind === 'closure'`) never have a
+ * `handled_by` provider, but they are genuinely handled — the route body is
+ * an inline anonymous function. To distinguish these from unresolved provider
+ * misses, the provider slot renders the synthetic `closure-handler` token
+ * instead of being silently dropped. No fabricated class name is emitted.
  */
 export function formatFeaturePath(path: FeaturePath): string {
   const parts: string[] = [];
@@ -176,8 +208,13 @@ export function formatFeaturePath(path: FeaturePath): string {
   parts.push(shortLabel(path.surface));
 
   // Right side: provider → validator/contract
-  for (const p of path.providers.slice(0, 1)) {
-    parts.push(shortLabel(p));
+  // Controller-backed surfaces render their resolved provider node.
+  // Closure-backed surfaces with no provider emit a synthetic handler token so
+  // they appear as first-class handled rather than as an unresolved miss.
+  if (path.providers.length > 0) {
+    parts.push(shortLabel(path.providers[0]));
+  } else if (path.isClosureBacked) {
+    parts.push(CLOSURE_HANDLER_TOKEN);
   }
 
   for (const v of path.validators.slice(0, 1)) {
@@ -224,8 +261,14 @@ export function formatFeaturePathBlock(path: FeaturePath): string {
     lines.push(`  Declared in: ${path.declaringFile.file_path ?? path.declaringFile.id}`);
   }
 
+  // Handler classification — controller-backed surfaces list their resolved
+  // provider node(s); closure-backed surfaces render an explicit inline
+  // handler line so readers can distinguish them from unresolved provider
+  // misses (which stay silent, preserving the signal).
   if (path.providers.length > 0) {
     lines.push(`  Provider(s): ${path.providers.map(shortLabel).join(', ')}`);
+  } else if (path.isClosureBacked) {
+    lines.push(`  Handler: closure (inline)`);
   }
 
   if (path.validators.length > 0) {
@@ -282,6 +325,7 @@ export function formatFileFeaturePathBlock(db: LuxDatabase, filePath: string): s
 interface SurfaceMeta {
   routeName?: string;
   controllerMethod?: string;
+  providerKind?: 'controller' | 'closure';
 }
 
 function parseSurfaceMeta(surface: StructuralNode): SurfaceMeta {
