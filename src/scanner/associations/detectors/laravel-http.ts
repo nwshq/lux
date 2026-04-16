@@ -145,6 +145,7 @@ export class LaravelHttpSurfaceDetector implements CapabilitySurfaceDetector {
             aliases: route.routeName ? [route.routeName] : undefined,
             explicitProvider: route.controllerQualifiedName,
             controllerMethod: route.controllerMethod,
+            providerKind: route.providerKind,
             declarationLineage: route.declarationLineage.length > 0
               ? route.declarationLineage
               : undefined,
@@ -240,6 +241,11 @@ interface ParsedRoute {
   rawControllerReference?: string;
   /** Controller method name (e.g. 'index'), if explicit. */
   controllerMethod?: string;
+  /**
+   * How the route supplies its handler. `controller` = named class/action,
+   * `closure` = inline anonymous function. Always set by the parser.
+   */
+  providerKind: 'controller' | 'closure';
   /** Named route, if declared. */
   routeName?: string;
   /** Ancestor group prefixes, outermost first. */
@@ -278,7 +284,10 @@ function collectRouteFileRegistrations(
 
   for (const entry of context.entries) {
     if (entry.languageId !== 'php') continue;
-    const content = (entry.metadata?.content as string | undefined) ?? '';
+    const rawContent = (entry.metadata?.content as string | undefined) ?? '';
+    // Mask comments so commented-out ->group/loadRoutesFrom calls don't
+    // register spurious (and potentially mis-prefixed) route files.
+    const content = rawContent ? maskPhpComments(rawContent) : '';
 
     // Pattern A: ->group(__DIR__ . '/path/to/routes.php')
     // Used by root and module service providers that pass a file path directly.
@@ -352,28 +361,122 @@ function extractLastChainValue(content: string, re: RegExp): string | undefined 
 
 /**
  * Parse all route declarations from PHP file content, handling nested route groups.
+ *
+ * Comments (single-line `//`, hash `#`, and multi-line `/* ... *\/`) are masked
+ * out with spaces before parsing so commented-out route declarations are never
+ * emitted as surfaces. Character positions are preserved so line numbers in
+ * evidence remain accurate.
  */
 function parseRouteDeclarations(
   content: string,
   filePath: string,
   registration?: RouteFileRegistration
 ): ParsedRoute[] {
-  const importMap = extractPhpImportMap(content);
+  // Build the import map from the original content so `use` statements
+  // inside /* */ comments are ignored (maskPhpComments strips them).
+  const commentStripped = maskPhpComments(content);
+  const importMap = extractPhpImportMap(commentStripped);
   const controllerNamespace = inferRouteControllerNamespace(
     filePath,
-    content,
+    commentStripped,
     registration?.namespace
   );
   const rootPrefix = registration?.prefix;
   const raw = parseBlockContent(
-    content,
+    commentStripped,
     rootPrefix ? [rootPrefix] : [],
     0,
-    content,
+    commentStripped,
     importMap,
     controllerNamespace
   );
   return consolidateLogicalSurfaces(raw);
+}
+
+/**
+ * Replace PHP comment bodies with spaces, preserving character positions and
+ * newlines. Handles `//`, `#`, and `/* ... *\/` comments, and skips past
+ * single- and double-quoted string literals so a `//` appearing inside a
+ * string (e.g. `'http://...'`) is not mistaken for the start of a comment.
+ *
+ * Note: `#[` (PHP 8 attribute syntax) is preserved — only bare `#` comments
+ * are masked.
+ *
+ * Heredoc and nowdoc syntax is not specifically handled; these are rare in
+ * route files and would at worst cause a trailing `//` inside them to be
+ * stripped, which does not produce spurious route declarations.
+ */
+function maskPhpComments(content: string): string {
+  const chars = content.split('');
+  const len = content.length;
+  let i = 0;
+
+  while (i < len) {
+    const ch = content[i];
+    const next = i + 1 < len ? content[i + 1] : '';
+
+    // Multi-line /* ... */ comment
+    if (ch === '/' && next === '*') {
+      chars[i] = ' ';
+      chars[i + 1] = ' ';
+      i += 2;
+      while (i < len) {
+        if (content[i] === '*' && i + 1 < len && content[i + 1] === '/') {
+          chars[i] = ' ';
+          chars[i + 1] = ' ';
+          i += 2;
+          break;
+        }
+        if (content[i] !== '\n') chars[i] = ' ';
+        i++;
+      }
+      continue;
+    }
+
+    // Single-line // comment
+    if (ch === '/' && next === '/') {
+      while (i < len && content[i] !== '\n') {
+        chars[i] = ' ';
+        i++;
+      }
+      continue;
+    }
+
+    // Shell-style # comment (skip PHP 8 attribute syntax #[...])
+    if (ch === '#' && next !== '[') {
+      while (i < len && content[i] !== '\n') {
+        chars[i] = ' ';
+        i++;
+      }
+      continue;
+    }
+
+    // Single-quoted string — skip over without masking
+    if (ch === "'") {
+      i++;
+      while (i < len && content[i] !== "'") {
+        if (content[i] === '\\' && i + 1 < len) i += 2;
+        else i++;
+      }
+      if (i < len) i++; // consume closing quote
+      continue;
+    }
+
+    // Double-quoted string — skip over without masking
+    if (ch === '"') {
+      i++;
+      while (i < len && content[i] !== '"') {
+        if (content[i] === '\\' && i + 1 < len) i += 2;
+        else i++;
+      }
+      if (i < len) i++; // consume closing quote
+      continue;
+    }
+
+    i++;
+  }
+
+  return chars.join('');
 }
 
 /**
@@ -710,6 +813,7 @@ function parseDirectRoutes(
       controllerQualifiedName: resolvePhpClassReference(m[3], importMap),
       rawControllerReference: m[3],
       controllerMethod: m[4],
+      providerKind: 'controller',
       routeName: routeNameFor(m.index),
       declarationLineage: [...prefixStack],
     });
@@ -733,6 +837,7 @@ function parseDirectRoutes(
       controllerQualifiedName: resolvePhpClassReference(m[3], importMap),
       rawControllerReference: m[3],
       controllerMethod: undefined,
+      providerKind: 'controller',
       routeName: routeNameFor(m.index),
       declarationLineage: [...prefixStack],
     });
@@ -756,6 +861,7 @@ function parseDirectRoutes(
       controllerQualifiedName: resolvePhpClassReference(m[3], importMap, controllerNamespace, true),
       rawControllerReference: m[3],
       controllerMethod: m[4],
+      providerKind: 'controller',
       routeName: routeNameFor(m.index),
       declarationLineage: [...prefixStack],
     });
@@ -776,6 +882,7 @@ function parseDirectRoutes(
       path: composedPath(fragment),
       localFragment: fragment,
       line: lineNum,
+      providerKind: 'closure',
       declarationLineage: [...prefixStack],
     });
   }
@@ -800,6 +907,7 @@ function parseDirectRoutes(
       controllerQualifiedName: resolvePhpClassReference(m[4], importMap),
       rawControllerReference: m[4],
       controllerMethod: m[5],
+      providerKind: 'controller',
       routeName: routeNameFor(m.index),
       declarationLineage: [...prefixStack],
       pathWrapper: wrapperName,
@@ -826,6 +934,7 @@ function parseDirectRoutes(
       controllerQualifiedName: resolvePhpClassReference(m[4], importMap),
       rawControllerReference: m[4],
       controllerMethod: undefined,
+      providerKind: 'controller',
       routeName: routeNameFor(m.index),
       declarationLineage: [...prefixStack],
       pathWrapper: wrapperName,
@@ -852,6 +961,7 @@ function parseDirectRoutes(
       controllerQualifiedName: resolvePhpClassReference(m[4], importMap, controllerNamespace, true),
       rawControllerReference: m[4],
       controllerMethod: m[5],
+      providerKind: 'controller',
       routeName: routeNameFor(m.index),
       declarationLineage: [...prefixStack],
       pathWrapper: wrapperName,
@@ -875,6 +985,7 @@ function parseDirectRoutes(
       path: composedPath(fragment),
       localFragment: fragment,
       line: lineNum,
+      providerKind: 'closure',
       declarationLineage: [...prefixStack],
       pathWrapper: wrapperName,
     });

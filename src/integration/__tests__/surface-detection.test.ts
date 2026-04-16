@@ -205,6 +205,16 @@ describe.skipIf(!pathExists)('auctic-core surface detection — aggregate scorec
     const surfaceCount = batch.surfaces.length;
     const withProviders = batch.surfaces.filter((s) => s.metadata.explicitProvider).length;
     const emptySurfaces = surfaceCount - withProviders;
+    const closureBacked = batch.surfaces.filter(
+      (s) => s.metadata.providerKind === 'closure'
+    ).length;
+    const controllerBacked = batch.surfaces.filter(
+      (s) => s.metadata.providerKind === 'controller'
+    ).length;
+    // True provider misses: no provider AND not classified as a closure.
+    const unresolvedMisses = batch.surfaces.filter(
+      (s) => !s.metadata.explicitProvider && s.metadata.providerKind !== 'closure'
+    ).length;
 
     // Pre-tranche baseline: surfaceCount=634, withProviders=578, emptySurfaces=53
     // (note: baseline was measured under the previous detection layer and may
@@ -212,9 +222,12 @@ describe.skipIf(!pathExists)('auctic-core surface detection — aggregate scorec
     const baseline = { surfaceCount: 634, withProviders: 578, emptySurfaces: 53 };
 
     console.log('--- auctic-core surface scorecard ---');
-    console.log(`  surfaceCount:  ${surfaceCount}  (baseline: ${baseline.surfaceCount})`);
-    console.log(`  withProviders: ${withProviders}  (baseline: ${baseline.withProviders})`);
-    console.log(`  emptySurfaces: ${emptySurfaces}  (baseline: ${baseline.emptySurfaces})`);
+    console.log(`  surfaceCount:     ${surfaceCount}  (baseline: ${baseline.surfaceCount})`);
+    console.log(`  withProviders:    ${withProviders}  (baseline: ${baseline.withProviders})`);
+    console.log(`  emptySurfaces:    ${emptySurfaces}  (baseline: ${baseline.emptySurfaces})`);
+    console.log(`  controllerBacked: ${controllerBacked}`);
+    console.log(`  closureBacked:    ${closureBacked}`);
+    console.log(`  unresolvedMisses: ${unresolvedMisses}`);
     console.log('-------------------------------------');
 
     // We should have a non-trivial number of surfaces
@@ -224,9 +237,44 @@ describe.skipIf(!pathExists)('auctic-core surface detection — aggregate scorec
     const providerCoverageRate = withProviders / surfaceCount;
     expect(providerCoverageRate).toBeGreaterThan(0.7);
 
+    // Every surface is honestly classified — either controller-backed or closure-backed.
+    expect(controllerBacked + closureBacked).toBe(surfaceCount);
+
+    // The "empty" column must decompose into closure-backed + true unresolved misses.
+    expect(closureBacked + unresolvedMisses).toBe(emptySurfaces);
+
     // Minimal cross-file duplicates (DB upsert deduplicates at persist time)
     const ids = batch.surfaces.map((s) => s.id);
     const dupCount = ids.length - new Set(ids).size;
     expect(dupCount).toBeLessThanOrEqual(5);
+  });
+
+  it('every surface has an honest providerKind classification', () => {
+    // No surface should be left unclassified — detection always knows whether
+    // the declaration form was controller- or closure-backed.
+    const unclassified = batch.surfaces.filter(
+      (s) => s.metadata.providerKind !== 'controller' &&
+             s.metadata.providerKind !== 'closure'
+    );
+    expect(unclassified).toHaveLength(0);
+  });
+
+  it('closure-backed surfaces never carry a fabricated explicitProvider', () => {
+    const closureWithProvider = batch.surfaces.filter(
+      (s) => s.metadata.providerKind === 'closure' && s.metadata.explicitProvider
+    );
+    expect(closureWithProvider).toHaveLength(0);
+  });
+
+  it('closure-backed surfaces never produce a handled_by edge', () => {
+    const closureIds = new Set(
+      batch.surfaces
+        .filter((s) => s.metadata.providerKind === 'closure')
+        .map((s) => s.id)
+    );
+    const handledClosureEdges = batch.edges.filter(
+      (e) => e.edgeType === 'handled_by' && closureIds.has(e.sourceNodeId)
+    );
+    expect(handledClosureEdges).toHaveLength(0);
   });
 });

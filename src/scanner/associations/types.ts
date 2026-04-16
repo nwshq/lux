@@ -128,6 +128,19 @@ export interface CapabilitySurfaceMetadata {
    * the `handled_by` edge points to the class-level node.
    */
   controllerMethod?: string;
+  /**
+   * How the route declaration supplies its handler. Distinguishes closure-backed
+   * surfaces (where no provider exists to resolve) from controller-backed ones
+   * (where a named class/action is the target). Retrieval layers should treat
+   * `closure` surfaces as honest self-contained handlers rather than as
+   * unresolved provider misses.
+   *
+   *   - `controller`: route targets a named controller class/action
+   *   - `closure`:    route targets an inline anonymous function
+   *
+   * Absence indicates the detector could not classify the declaration form.
+   */
+  providerKind?: 'controller' | 'closure';
   /** Group prefixes that contribute to the canonical path, outermost first. */
   declarationLineage?: string[];
   /** Helper function name wrapping the path argument (e.g. 'pathLookup'), if path was helper-wrapped. */

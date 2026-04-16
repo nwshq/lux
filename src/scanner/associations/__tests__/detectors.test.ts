@@ -984,3 +984,333 @@ describe('LaravelHttpSurfaceDetector — module registration-context inheritance
     expect(batch.surfaces[0].metadata.path).toBe('/item');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Comment-aware route extraction
+// ---------------------------------------------------------------------------
+
+describe('LaravelHttpSurfaceDetector — comment-aware extraction', () => {
+  const detector = new LaravelHttpSurfaceDetector();
+
+  it('does not emit surfaces for routes commented out with //', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: [
+          "// Route::get('/disabled', [DisabledController::class, 'index']);",
+          "Route::get('/active', [ActiveController::class, 'index']);",
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/active');
+  });
+
+  it('does not emit surfaces for routes commented out with #', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: [
+          "# Route::get('/disabled', [DisabledController::class, 'index']);",
+          "Route::get('/active', [ActiveController::class, 'index']);",
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/active');
+  });
+
+  it('does not emit surfaces for routes wrapped in /* ... */ block comments', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: [
+          '/*',
+          "Route::get('/legacy-1', [LegacyController::class, 'one']);",
+          "Route::post('/legacy-2', [LegacyController::class, 'two']);",
+          '*/',
+          "Route::get('/active', [ActiveController::class, 'index']);",
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/active');
+  });
+
+  it('ignores a trailing // comment after an active route declaration', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: "Route::get('/active', [ActiveController::class, 'index']); // TODO",
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/active');
+    expect(batch.surfaces[0].metadata.explicitProvider).toBe('ActiveController');
+  });
+
+  it('does not emit closure routes that are commented out', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: [
+          "// Route::get('/disabled-closure', function () { return 'old'; });",
+          "Route::get('/active-closure', function () { return 'ok'; });",
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/active-closure');
+  });
+
+  it('does not emit routes inside a commented-out group block', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: [
+          '/*',
+          "Route::prefix('legacy')->group(function () {",
+          "    Route::get('/inside', [LegacyController::class, 'index']);",
+          '});',
+          '*/',
+          "Route::get('/active', [ActiveController::class, 'index']);",
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    const ids = batch.surfaces.map((s) => s.id).sort();
+    expect(ids).toEqual(['surface:http:GET:/active']);
+  });
+
+  it('preserves routes whose string literals contain //', async () => {
+    // Ensures the comment masker correctly skips over string literals and does
+    // not misinterpret the // inside 'http://' as the start of a line comment.
+    const ctx = makeContext([
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content:
+          "Route::get('/callback', [AuthController::class, 'handle'])->name('callback'); // redirect target for http://example.com",
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/callback');
+  });
+
+  it('still parses routes that follow a closed /* ... */ block', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: [
+          '/**',
+          ' * API routes — see docs/api.md',
+          ' */',
+          "Route::get('/ping', [PingController::class, 'index']);",
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/ping');
+  });
+
+  it('does not emit duplicates when the only alternate branch is commented out', async () => {
+    // Regression guard: conditional branch consolidation must not see a commented-out
+    // alternative as a competing declaration.
+    const ctx = makeContext([
+      {
+        filePath: 'routes/web.php',
+        languageId: 'php',
+        content: [
+          "// Route::get('/events/foo', [Core\\Http\\Controllers\\FooController::class, 'index']);",
+          "Route::get('/events/foo', [App\\Http\\Controllers\\FooController::class, 'index']);",
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    const surface = batch.surfaces[0];
+    expect(surface.metadata.explicitProvider).toBe('App\\Http\\Controllers\\FooController');
+    // No alternate provider — the commented-out line was masked before parsing.
+    expect(surface.metadata.alternateProviders).toBeUndefined();
+  });
+
+  it('does not register module route file context from a commented-out loadRoutesFrom', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'src/Modules/Dead/Providers/RouteServiceProvider.php',
+        languageId: 'php',
+        content: [
+          "// Route::prefix('admin/dead')",
+          "//     ->group(function () {",
+          "//         $this->loadRoutesFrom(__DIR__ . '/../routes/admin.php');",
+          '//     });',
+        ].join('\n'),
+      },
+      {
+        filePath: 'src/Modules/Dead/routes/admin.php',
+        languageId: 'php',
+        content: `Route::get('/raw', [RawController::class, 'index']);`,
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    // The commented-out provider chain must not apply the /admin/dead prefix.
+    expect(batch.surfaces[0].id).toBe('surface:http:GET:/raw');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Provider-kind classification (closure vs controller)
+// ---------------------------------------------------------------------------
+
+describe('LaravelHttpSurfaceDetector — provider-kind classification', () => {
+  const detector = new LaravelHttpSurfaceDetector();
+
+  it('marks controller-array routes with providerKind=controller', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: `Route::get('/a', [AController::class, 'index']);`,
+      },
+    ]);
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces[0].metadata.providerKind).toBe('controller');
+  });
+
+  it('marks invokable-controller routes with providerKind=controller', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: `Route::post('/a', AInvokableController::class);`,
+      },
+    ]);
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces[0].metadata.providerKind).toBe('controller');
+  });
+
+  it('marks legacy string-controller routes with providerKind=controller', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/admin.php',
+        languageId: 'php',
+        content: `Route::put('/a', 'Api\\AController@index');`,
+      },
+    ]);
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces[0].metadata.providerKind).toBe('controller');
+  });
+
+  it('marks closure routes with providerKind=closure (not a provider miss)', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: `Route::get('/health', function () { return 'ok'; });`,
+      },
+    ]);
+    const batch = await detector.detect(ctx);
+    const surface = batch.surfaces[0];
+    expect(surface.metadata.providerKind).toBe('closure');
+    expect(surface.metadata.explicitProvider).toBeUndefined();
+  });
+
+  it('marks helper-wrapped closure routes with providerKind=closure', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/web.php',
+        languageId: 'php',
+        content: `Route::get(pathLookup('/events/foo'), function () { return view('events.foo'); });`,
+      },
+    ]);
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces[0].metadata.providerKind).toBe('closure');
+    expect(batch.surfaces[0].metadata.pathWrapper).toBe('pathLookup');
+  });
+
+  it('marks helper-wrapped invokable-controller routes with providerKind=controller', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/web.php',
+        languageId: 'php',
+        content: `Route::get(pathLookup('/events/report'), ReportController::class);`,
+      },
+    ]);
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces[0].metadata.providerKind).toBe('controller');
+  });
+
+  it('consolidation: controller beats closure on same (method, path); winner kind=controller', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/web.php',
+        languageId: 'php',
+        content: [
+          "Route::get('/events/foo', function () { return 'stub'; });",
+          "Route::get('/events/foo', [App\\Http\\Controllers\\FooController::class, 'index']);",
+        ].join('\n'),
+      },
+    ]);
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].metadata.providerKind).toBe('controller');
+    expect(batch.surfaces[0].metadata.explicitProvider).toBe('App\\Http\\Controllers\\FooController');
+  });
+
+  it('consolidation: two closure branches keep providerKind=closure', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/web.php',
+        languageId: 'php',
+        content: [
+          "Route::get('/events/foo', function () { return 'v1'; });",
+          "Route::get('/events/foo', function () { return 'v2'; });",
+        ].join('\n'),
+      },
+    ]);
+    const batch = await detector.detect(ctx);
+    expect(batch.surfaces).toHaveLength(1);
+    expect(batch.surfaces[0].metadata.providerKind).toBe('closure');
+    expect(batch.surfaces[0].metadata.explicitProvider).toBeUndefined();
+  });
+
+  it('closure routes do not emit a handled_by edge', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: `Route::get('/health', function () { return 'ok'; });`,
+      },
+    ]);
+    const batch = await detector.detect(ctx);
+    const handled = batch.edges.filter((e) => e.edgeType === 'handled_by');
+    expect(handled).toHaveLength(0);
+    // And the surface is honestly classified — not left as an empty miss.
+    expect(batch.surfaces[0].metadata.providerKind).toBe('closure');
+  });
+});
