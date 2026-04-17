@@ -6,8 +6,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
-  issues: write
   packages: write
 
 jobs:
@@ -65,21 +63,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Capture pre-release version
+        id: prerelease
+        run: echo "version=$(node -p \"JSON.parse(require('fs').readFileSync('package.json', 'utf8')).version\")" >> "$GITHUB_OUTPUT"
+
       - name: Build
         run: npm run build
-
-      - name: Package release tarball
-        run: |
-          mkdir -p lux-release/bin
-
-          cp -r dist lux-release/
-          cp package.json package-lock.json lux-release/
-          cp bin/lux lux-release/bin/
-          chmod +x lux-release/bin/lux
-
-          tar -czf lux-linux-x64.tar.gz -C lux-release .
-
-          rm -rf lux-release
 
       - name: Release
         run: npx semantic-release
@@ -87,3 +76,31 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Capture post-release version
+        id: postrelease
+        run: echo "version=$(node -p \"JSON.parse(require('fs').readFileSync('package.json', 'utf8')).version\")" >> "$GITHUB_OUTPUT"
+
+      - name: Package release tarball
+        if: steps.postrelease.outputs.version != steps.prerelease.outputs.version
+        env:
+          RELEASE_VERSION: ${{ steps.postrelease.outputs.version }}
+        run: |
+          ARCHIVE_ROOT="lux-v${RELEASE_VERSION}-linux-x64"
+
+          mkdir -p "${ARCHIVE_ROOT}/bin"
+          cp -r dist "${ARCHIVE_ROOT}/"
+          cp package.json package-lock.json "${ARCHIVE_ROOT}/"
+          cp bin/lux "${ARCHIVE_ROOT}/bin/"
+          chmod +x "${ARCHIVE_ROOT}/bin/lux"
+
+          tar -czf "${ARCHIVE_ROOT}.tar.gz" -C "${ARCHIVE_ROOT}" .
+
+          rm -rf "${ARCHIVE_ROOT}"
+
+      - name: Upload tarball to GitHub release
+        if: steps.postrelease.outputs.version != steps.prerelease.outputs.version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ steps.postrelease.outputs.version }}
+        run: gh release upload "v${RELEASE_VERSION}" "lux-v${RELEASE_VERSION}-linux-x64.tar.gz" --clobber

@@ -1,43 +1,22 @@
 /**
  * semantic-release configuration
  *
- * Workflow: conventional commits → changelog → version bump → GitHub Release with tarball
- * No npm publish — distributed via GitHub Releases only.
+ * Protected-branch-safe workflow:
+ * - semantic-release determines the next version from conventional commits
+ * - @semantic-release/npm updates package.json/package-lock.json in the CI workspace
+ *   and publishes the package to GitHub Packages
+ * - @semantic-release/github creates the tag and GitHub release
+ * - the Actions workflow packages and uploads the tarball after the version bump,
+ *   so the shipped CLI artifact reports the released version via package.json
+ *
+ * No changelog commits or git write-back to main.
  */
 export default {
   branches: ['main'],
   plugins: [
     '@semantic-release/commit-analyzer',
     '@semantic-release/release-notes-generator',
-    [
-      '@semantic-release/changelog',
-      {
-        changelogFile: 'CHANGELOG.md',
-      },
-    ],
-    [
-      '@semantic-release/npm',
-      {
-        npmPublish: false,
-      },
-    ],
-    [
-      '@semantic-release/git',
-      {
-        assets: ['package.json', 'CHANGELOG.md'],
-        message: 'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
-      },
-    ],
-    [
-      '@semantic-release/github',
-      {
-        assets: [
-          {
-            path: 'lux-*.tar.gz',
-            label: 'lux-${nextRelease.version}-linux-x64.tar.gz',
-          },
-        ],
-      },
-    ],
+    '@semantic-release/npm',
+    '@semantic-release/github',
   ],
 };
