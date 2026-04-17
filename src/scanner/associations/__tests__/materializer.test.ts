@@ -220,6 +220,34 @@ describe('materializeNodes', () => {
     expect(symbolNode).not.toBeNull();
   });
 
+  it('counts unique symbol node IDs when enrichment emits duplicate symbol names in one file', () => {
+    const filePath = join(ROOT, 'src/app.ts');
+    const scan: ScanResult = {
+      knowledge: [sourceEntry('src/app.ts', 'typescript')],
+    };
+
+    const duplicateEnrichment: EnrichmentResult = {
+      filePath,
+      languageId: 'typescript',
+      symbols: [
+        { name: 'action() callback', kind: 12, kindLabel: 'Function', startLine: 1, endLine: 5 },
+        { name: 'action() callback', kind: 12, kindLabel: 'Function', startLine: 10, endLine: 20 },
+        { name: 'uniqueFunction', kind: 12, kindLabel: 'Function', startLine: 30, endLine: 40 },
+      ],
+      diagnostics: [],
+      definitions: [],
+      enrichedAt: Math.floor(Date.now() / 1000),
+    };
+
+    const enrichments: EnrichmentMap = new Map([[filePath, duplicateEnrichment]]);
+
+    const result = materializeNodes(db, scan, enrichments, ROOT);
+    expect(result.fileNodes).toBe(1);
+    expect(result.symbolNodes).toBe(2);
+    expect(db.getStructuralNode('symbol:ts:src/app.ts#action() callback')).not.toBeNull();
+    expect(db.getStructuralNode('symbol:ts:src/app.ts#uniqueFunction')).not.toBeNull();
+  });
+
   it('should work with an empty enrichment map', () => {
     const scan: ScanResult = {
       knowledge: [

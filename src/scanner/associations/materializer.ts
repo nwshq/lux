@@ -55,9 +55,13 @@ export function materializeNodes(
     const enrichment = enrichments.get(entry.filePath);
     if (enrichment && enrichment.symbols.length > 0) {
       const symNodes = buildSymbolNodes(entry.filePath, enrichment, rootPath, entry.content);
+      const seenIds = new Set<string>();
       for (const node of symNodes) {
         db.upsertStructuralNode(node);
-        symbolNodes++;
+        if (!seenIds.has(node.id)) {
+          seenIds.add(node.id);
+          symbolNodes++;
+        }
       }
     }
   }
