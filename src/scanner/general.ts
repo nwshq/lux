@@ -450,84 +450,75 @@ export async function generalScan(
   // 2. Parse imports and compute module dependencies (independent of LSP)
   const dependencies = parseDependencies(scan, rootPath, config, report);
 
-  // 3. If LSP is disabled, return scan-only result
-  if (!config.lsp.enabled) {
-    return {
-      scan,
-      enrichments: new Map(),
-      dependencies,
-      stats: { enrichedFiles: 0, activeEnrichers: 0, enrichmentErrors: [] },
-    };
-  }
-
-  // 3. Build enricher registry from config
-  report('Initializing LSP enrichers...');
-  const registry = buildRegistry(config.lsp.enrichers);
-
-  if (registry.size === 0) {
-    report('No LSP enrichers configured.');
-    return {
-      scan,
-      enrichments: new Map(),
-      dependencies,
-      stats: { enrichedFiles: 0, activeEnrichers: 0, enrichmentErrors: [] },
-    };
-  }
-
-  // 4. Initialize enrichers
-  const workspaceRoot = config.lsp.workspaceRoot ?? rootPath;
-  let activeCount = 0;
-
-  for (const enricher of registry.getAll()) {
-    try {
-      report(`Initializing ${enricher.languageId} enricher...`);
-      await enricher.initialize(workspaceRoot);
-      activeCount++;
-    } catch (error) {
-      report(
-        `Failed to initialize ${enricher.languageId} enricher: ${
-          error instanceof Error ? error.message : String(error)
-        }`
-      );
-    }
-  }
-
-  // 5. Collect enrichable files from scan results
-  const filesToEnrich = collectEnrichableFiles(scan, registry);
-  report(`Found ${filesToEnrich.size} files to enrich across ${activeCount} enrichers.`);
-
-  // 6. Run enrichment
   const enrichments: EnrichmentMap = new Map();
   const errors: Array<{ filePath: string; error: string }> = [];
+  let activeCount = 0;
 
-  for (const [languageId, filePaths] of filesToEnrich) {
-    const enricher = registry.get(languageId);
-    if (!enricher?.isReady) continue;
+  if (!config.lsp.enabled) {
+    report('LSP enrichment disabled.');
+  } else {
+    // 3. Build enricher registry from config
+    report('Initializing LSP enrichers...');
+    const registry = buildRegistry(config.lsp.enrichers);
 
-    report(`Enriching ${filePaths.length} ${languageId} files...`);
+    if (registry.size === 0) {
+      report('No LSP enrichers configured.');
+    } else {
+      // 4. Initialize enrichers
+      const workspaceRoot = config.lsp.workspaceRoot ?? rootPath;
 
-    for (const filePath of filePaths) {
-      try {
-        const result = await enricher.enrich(filePath);
-        if (result) {
-          enrichments.set(filePath, result);
+      for (const enricher of registry.getAll()) {
+        try {
+          report(`Initializing ${enricher.languageId} enricher...`);
+          await enricher.initialize(workspaceRoot);
+          activeCount++;
+        } catch (error) {
+          report(
+            `Failed to initialize ${enricher.languageId} enricher: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
         }
+      }
+
+      // 5. Collect enrichable files from scan results
+      const filesToEnrich = collectEnrichableFiles(scan, registry);
+      report(`Found ${filesToEnrich.size} files to enrich across ${activeCount} enrichers.`);
+
+      // 6. Run enrichment
+      for (const [languageId, filePaths] of filesToEnrich) {
+        const enricher = registry.get(languageId);
+        if (!enricher?.isReady) continue;
+
+        report(`Enriching ${filePaths.length} ${languageId} files...`);
+
+        for (const filePath of filePaths) {
+          try {
+            const result = await enricher.enrich(filePath);
+            if (result) {
+              enrichments.set(filePath, result);
+            }
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            errors.push({ filePath, error: message });
+            options?.onEnrichmentError?.(
+              filePath,
+              error instanceof Error ? error : new Error(message)
+            );
+          }
+        }
+      }
+
+      // 7. Shut down enrichers
+      report('Shutting down LSP enrichers...');
+      try {
+        await registry.shutdownAll();
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        errors.push({ filePath, error: message });
-        options?.onEnrichmentError?.(filePath, error instanceof Error ? error : new Error(message));
+        report(
+          `Warning: enricher shutdown errors: ${error instanceof Error ? error.message : String(error)}`
+        );
       }
     }
-  }
-
-  // 7. Shut down enrichers
-  report('Shutting down LSP enrichers...');
-  try {
-    await registry.shutdownAll();
-  } catch (error) {
-    report(
-      `Warning: enricher shutdown errors: ${error instanceof Error ? error.message : String(error)}`
-    );
   }
 
   report(`Enrichment complete: ${enrichments.size} files enriched, ${errors.length} errors.`);

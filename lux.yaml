@@ -1,0 +1,12 @@
+lsp:
+  enabled: true
+  workspace_root: .
+  enrichers:
+    - language_id: typescript
+      enabled: true
+      server_command: typescript-language-server
+      server_args:
+        - --stdio
+      max_concurrency: 4
+      request_timeout_ms: 15000
+      init_timeout_ms: 60000

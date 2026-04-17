@@ -23,6 +23,9 @@ export class PreparedQueries {
   // Clear queries
   readonly clearEvents: Database.Statement;
   readonly clearKnowledgeEntries: Database.Statement;
+  readonly clearStructuralNodes: Database.Statement;
+  readonly clearStructuralEdges: Database.Statement;
+  readonly clearEdgeEvidence: Database.Statement;
 
   // FTS5 search queries
   readonly searchKnowledgeEntriesFts: Database.Statement;
@@ -139,6 +142,9 @@ export class PreparedQueries {
     // Clear queries (used by clearAll)
     this.clearEvents = db.prepare(`DELETE FROM events`);
     this.clearKnowledgeEntries = db.prepare(`DELETE FROM knowledge_entries`);
+    this.clearEdgeEvidence = db.prepare(`DELETE FROM edge_evidence`);
+    this.clearStructuralEdges = db.prepare(`DELETE FROM structural_edges`);
+    this.clearStructuralNodes = db.prepare(`DELETE FROM structural_nodes`);
 
     // FTS5 search queries
     // Search knowledge entries using FTS5 - returns full knowledge entry records

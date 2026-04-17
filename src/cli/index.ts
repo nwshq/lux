@@ -8,6 +8,8 @@ import { fileURLToPath } from 'url';
 import { LuxDatabase } from '../db/index.js';
 import { GeneralScanner } from '../scanner/index.js';
 import { generalScan, attachEnrichment } from '../scanner/general.js';
+import { rebuildWithOverlay } from '../scanner/rebuild-orchestrator.js';
+import type { RebuildResult } from '../scanner/rebuild-orchestrator.js';
 import { isGitRepository, getHeadCommit, getGitDiff, commitExists } from '../scanner/git.js';
 import { buildIncrementalPlan } from '../scanner/incremental.js';
 import { addSearchCommand } from './search.js';
@@ -17,6 +19,7 @@ import { addLintCommand } from './lint.js';
 import { addExpertCommands } from './expert.js';
 import { addAskCommand } from './ask.js';
 import { addDepsCommand } from './deps.js';
+import { addOverlayCommands } from './overlay.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const version: string = (
@@ -43,9 +46,17 @@ const indexCmd = program.command('index').description('Manage index');
 
 indexCmd
   .command('rebuild')
-  .description('Rebuild index from content directory')
+  .description(
+    'Rebuild index from content directory.\n' +
+      '  Default: overlay-complete rebuild with structural overlay and trust summary.\n' +
+      '  Use --content-only for a faster fallback that skips overlay materialization.'
+  )
   .option('--quiet', 'Suppress output')
-  .action(async (options: { quiet?: boolean }) => {
+  .option(
+    '--content-only',
+    'Run a content-only rebuild: knowledge index only, no structural overlay.'
+  )
+  .action(async (options: { quiet?: boolean; contentOnly?: boolean }) => {
     const opts = program.opts();
     const corpusPath = opts.corpus as string;
     let db: LuxDatabase | undefined;
@@ -81,17 +92,35 @@ indexCmd
         console.log(`Scanning content directory: ${corpusPath}`);
       }
 
-      // Scan content directory with LSP enrichment pipeline
       let generalResult;
-      try {
-        generalResult = await generalScan(corpusPath, {
-          onProgress: options.quiet ? undefined : (msg) => console.log(`  ${msg}`),
-        });
-      } catch (error) {
-        console.error('Error: Failed to scan content directory');
-        console.error(`  ${error instanceof Error ? error.message : String(error)}`);
-        db.close();
-        process.exit(1);
+      let overlayResult: RebuildResult | undefined;
+
+      if (options.contentOnly) {
+        // Content-only path: scan + enrich, no structural overlay
+        try {
+          generalResult = await generalScan(corpusPath, {
+            onProgress: options.quiet ? undefined : (msg) => console.log(`  ${msg}`),
+          });
+        } catch (error) {
+          console.error('Error: Failed to scan content directory');
+          console.error(`  ${error instanceof Error ? error.message : String(error)}`);
+          db.close();
+          process.exit(1);
+        }
+      } else {
+        // Overlay-complete path: default rebuild mode
+        try {
+          const { result, scanResult } = await rebuildWithOverlay(db, corpusPath, {
+            onProgress: options.quiet ? undefined : (msg) => console.log(`  ${msg}`),
+          });
+          overlayResult = result;
+          generalResult = scanResult;
+        } catch (error) {
+          console.error('Error: Failed to run overlay-complete rebuild');
+          console.error(`  ${error instanceof Error ? error.message : String(error)}`);
+          db.close();
+          process.exit(1);
+        }
       }
 
       // Attach enrichment data to each knowledge entry
@@ -121,38 +150,42 @@ indexCmd
         if (generalResult.dependencies.length > 0) {
           console.log(`  Detected ${generalResult.dependencies.length} module dependencies`);
         }
-        console.log(`\nClearing existing index...`);
-      }
-
-      // Clear database with error handling
-      try {
-        db.clearAll();
-      } catch (error) {
-        console.error('Error: Failed to clear existing index');
-        console.error(`  ${error instanceof Error ? error.message : String(error)}`);
-        db.close();
-        process.exit(1);
-      }
-
-      if (!options.quiet) {
-        console.log('Indexing...');
-      }
-
-      // Index with comprehensive error handling
-      try {
-        await scanner.index(db, result);
-      } catch (error) {
-        console.error('Error: Failed to index content');
-        if (error instanceof Error) {
-          console.error(`  ${error.message}`);
-          if (error.message.includes('UNIQUE constraint')) {
-            console.error('  This suggests duplicate entries in your content directory');
-          }
-        } else {
-          console.error(`  ${String(error)}`);
+        if (options.contentOnly) {
+          console.log(`\nClearing existing index...`);
         }
-        db.close();
-        process.exit(1);
+      }
+
+      if (options.contentOnly) {
+        // Clear database with error handling
+        try {
+          db.clearAll();
+        } catch (error) {
+          console.error('Error: Failed to clear existing index');
+          console.error(`  ${error instanceof Error ? error.message : String(error)}`);
+          db.close();
+          process.exit(1);
+        }
+
+        if (!options.quiet) {
+          console.log('Indexing...');
+        }
+
+        // Index with comprehensive error handling
+        try {
+          await scanner.index(db, result);
+        } catch (error) {
+          console.error('Error: Failed to index content');
+          if (error instanceof Error) {
+            console.error(`  ${error.message}`);
+            if (error.message.includes('UNIQUE constraint')) {
+              console.error('  This suggests duplicate entries in your content directory');
+            }
+          } else {
+            console.error(`  ${String(error)}`);
+          }
+          db.close();
+          process.exit(1);
+        }
       }
 
       // Write module dependencies
@@ -181,7 +214,9 @@ indexCmd
         db.insertEvent({
           source: 'cli',
           event_type: 'index_rebuild',
-          summary: `Indexed ${result.knowledge.length} knowledge entries`,
+          summary: options.contentOnly
+            ? `Content-only rebuild: ${result.knowledge.length} knowledge entries`
+            : `Overlay-complete rebuild: ${result.knowledge.length} entries, mode=${overlayResult?.mode ?? 'unknown'}`,
         });
       } catch {
         // Non-fatal: log but don't fail
@@ -206,7 +241,15 @@ indexCmd
       }
 
       if (!options.quiet) {
-        console.log('✓ Index rebuilt successfully');
+        if (overlayResult) {
+          printRebuildTrustSummary(overlayResult);
+        } else {
+          console.log('\nMode: content-only');
+          console.log(
+            '  (This is the fallback path. Run plain "lux index rebuild" for the canonical overlay-complete rebuild.)'
+          );
+        }
+        console.log('\n✓ Index rebuilt successfully');
       }
 
       db.close();
@@ -276,42 +319,28 @@ indexCmd
             console.log('No previous index commit found, running full rebuild...');
           }
         }
-        // Delegate to the rebuild logic by re-executing it programmatically
-        // We replicate the rebuild flow here for simplicity
-        const scanner = new GeneralScanner(corpusPath);
-        let generalResult;
         try {
-          generalResult = await generalScan(corpusPath, {
+          const { result } = await rebuildWithOverlay(db, corpusPath, {
             onProgress: options.quiet ? undefined : (msg) => console.log(`  ${msg}`),
           });
+          const headCommit = getHeadCommit(corpusPath);
+          db.setIndexMetadata('last_indexed_commit', headCommit);
+
+          if (!options.quiet) {
+            printRebuildTrustSummary(result);
+            console.log(
+              `\n✓ Full rebuild complete (${result.surfaceCount} surfaces, commit ${headCommit.slice(0, 8)})`
+            );
+          }
+
+          db.close();
+          return;
         } catch (error) {
-          console.error('Error: Failed to scan content directory');
+          console.error('Error: Failed to run full overlay rebuild');
           console.error(`  ${error instanceof Error ? error.message : String(error)}`);
           db.close();
           process.exit(1);
         }
-
-        const result = {
-          ...generalResult.scan,
-          knowledge: generalResult.scan.knowledge.map((entry) =>
-            attachEnrichment(entry, generalResult.enrichments)
-          ),
-        };
-
-        db.clearAll();
-        await scanner.index(db, result);
-
-        const headCommit = getHeadCommit(corpusPath);
-        db.setIndexMetadata('last_indexed_commit', headCommit);
-
-        if (!options.quiet) {
-          console.log(
-            `✓ Full rebuild complete (${result.knowledge.length} entries, commit ${headCommit.slice(0, 8)})`
-          );
-        }
-
-        db.close();
-        return;
       }
 
       // Verify stored commit still exists
@@ -321,40 +350,28 @@ indexCmd
             'Warning: Stored commit no longer exists (possible force push), running full rebuild...'
           );
         }
-        const scanner = new GeneralScanner(corpusPath);
-        let generalResult;
         try {
-          generalResult = await generalScan(corpusPath, {
+          const { result } = await rebuildWithOverlay(db, corpusPath, {
             onProgress: options.quiet ? undefined : (msg) => console.log(`  ${msg}`),
           });
+          const headCommit = getHeadCommit(corpusPath);
+          db.setIndexMetadata('last_indexed_commit', headCommit);
+
+          if (!options.quiet) {
+            printRebuildTrustSummary(result);
+            console.log(
+              `\n✓ Full rebuild complete (${result.surfaceCount} surfaces, commit ${headCommit.slice(0, 8)})`
+            );
+          }
+
+          db.close();
+          return;
         } catch (error) {
-          console.error('Error: Failed to scan content directory');
+          console.error('Error: Failed to run full overlay rebuild');
           console.error(`  ${error instanceof Error ? error.message : String(error)}`);
           db.close();
           process.exit(1);
         }
-
-        const result = {
-          ...generalResult.scan,
-          knowledge: generalResult.scan.knowledge.map((entry) =>
-            attachEnrichment(entry, generalResult.enrichments)
-          ),
-        };
-
-        db.clearAll();
-        await scanner.index(db, result);
-
-        const headCommit = getHeadCommit(corpusPath);
-        db.setIndexMetadata('last_indexed_commit', headCommit);
-
-        if (!options.quiet) {
-          console.log(
-            `✓ Full rebuild complete (${result.knowledge.length} entries, commit ${headCommit.slice(0, 8)})`
-          );
-        }
-
-        db.close();
-        return;
       }
 
       // Get HEAD commit
@@ -381,24 +398,23 @@ indexCmd
         if (!options.quiet) {
           console.warn('Warning: git diff failed, running full rebuild...');
         }
-        const scanner = new GeneralScanner(corpusPath);
-        const generalResult = await generalScan(corpusPath, {
-          onProgress: options.quiet ? undefined : (msg) => console.log(`  ${msg}`),
-        });
-        const result = {
-          ...generalResult.scan,
-          knowledge: generalResult.scan.knowledge.map((entry) =>
-            attachEnrichment(entry, generalResult.enrichments)
-          ),
-        };
-        db.clearAll();
-        await scanner.index(db, result);
-        db.setIndexMetadata('last_indexed_commit', headCommit);
-        if (!options.quiet) {
-          console.log(`✓ Full rebuild complete (${result.knowledge.length} entries)`);
+        try {
+          const { result } = await rebuildWithOverlay(db, corpusPath, {
+            onProgress: options.quiet ? undefined : (msg) => console.log(`  ${msg}`),
+          });
+          db.setIndexMetadata('last_indexed_commit', headCommit);
+          if (!options.quiet) {
+            printRebuildTrustSummary(result);
+            console.log(`\n✓ Full rebuild complete (${result.surfaceCount} surfaces)`);
+          }
+          db.close();
+          return;
+        } catch (error) {
+          console.error('Error: Failed to run full overlay rebuild');
+          console.error(`  ${error instanceof Error ? error.message : String(error)}`);
+          db.close();
+          process.exit(1);
         }
-        db.close();
-        return;
       }
 
       // Build incremental plan
@@ -566,7 +582,7 @@ indexCmd
 
 indexCmd
   .command('status')
-  .description('Show index statistics')
+  .description('Show index statistics and overlay state')
   .action(() => {
     const opts = program.opts();
     const db = new LuxDatabase(opts.db as string);
@@ -575,6 +591,21 @@ indexCmd
     console.log('\nIndex Statistics:\n');
     console.log(`  Knowledge Entries: ${stats.knowledge_entries}`);
     console.log(`  Events: ${stats.events}`);
+
+    const surfaces = db.getCapabilitySurfaces();
+    const fileNodes = db.getStructuralNodesByType('file');
+    const symbolNodes = db.getStructuralNodesByType('symbol');
+
+    console.log('\nStructural Overlay:');
+    if (surfaces.length === 0 && fileNodes.length === 0) {
+      console.log('  No overlay — run "lux index rebuild" to build the canonical overlay path.');
+    } else {
+      const overlayMode =
+        symbolNodes.length === 0 && surfaces.length > 0 ? 'degraded-overlay' : 'overlay-present';
+      console.log(`  Mode: ${overlayMode}`);
+      console.log(`  Surfaces: ${surfaces.length}`);
+      console.log(`  Nodes: ${fileNodes.length} files, ${symbolNodes.length} symbols`);
+    }
     console.log();
 
     db.close();
@@ -601,4 +632,40 @@ addAskCommand(program);
 // Add deps command
 addDepsCommand(program);
 
+// Add overlay commands
+addOverlayCommands(program);
+
 program.parse();
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function printRebuildTrustSummary(r: RebuildResult): void {
+  console.log(`\nMode: ${r.mode}`);
+
+  if (r.mode === 'overlay-complete' || r.mode === 'degraded-overlay') {
+    console.log(`Surfaces: ${r.surfaceCount}`);
+    if (r.surfaceCount > 0) {
+      console.log(
+        `Provider kinds: ${r.controllerBackedCount} controller-backed, ` +
+          `${r.closureBackedCount} closure-backed, ${r.unknownProviderKindCount} unknown`
+      );
+    }
+    console.log(`Nodes: ${r.fileNodeCount} files, ${r.symbolNodeCount} symbols`);
+    console.log(`Edges: ${r.detectorEdgeCount} detector, ${r.propagatedEdgeCount} propagated`);
+    console.log(
+      `Enrichments: ${
+        r.enrichmentStatus === 'active'
+          ? 'loaded from repo config'
+          : r.configLspEnabled
+            ? 'configured but unavailable'
+            : 'inactive'
+      }`
+    );
+  }
+
+  for (const warning of r.warnings) {
+    console.warn(`Warning: ${warning}`);
+  }
+}

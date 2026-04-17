@@ -445,6 +445,10 @@ export class LuxDatabase {
     return this.getQueries().getStructuralNodeByFilePath.all(filePath) as StructuralNode[];
   }
 
+  getStructuralNodesByType(nodeType: string): StructuralNode[] {
+    return this.getQueries().getStructuralNodesByType.all(nodeType) as StructuralNode[];
+  }
+
   getStructuralEdgesForNode(nodeId: string): StructuralEdge[] {
     return this.getQueries().getStructuralEdgesForNode.all(nodeId, nodeId) as StructuralEdge[];
   }
@@ -544,6 +548,10 @@ export class LuxDatabase {
   // Utility operations
   clearAll() {
     const queries = this.getQueries();
+    queries.clearEdgeEvidence.run();
+    queries.clearStructuralEdges.run();
+    queries.clearStructuralNodes.run();
+    queries.clearModuleDependencies.run();
     queries.clearExpertSessions.run();
     queries.clearExperts.run();
     queries.clearEvents.run();

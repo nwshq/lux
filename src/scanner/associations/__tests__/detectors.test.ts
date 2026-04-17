@@ -1549,4 +1549,74 @@ describe('LaravelHttpSurfaceDetector — provider-declared inline routes', () =>
       'surface:http:GET:/api/invoices',
     ]);
   });
+
+  it('detects helper-method routes invoked from boot() in provider files', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'src/Module/BidRegistration/RouteServiceProvider.php',
+        languageId: 'php',
+        content: [
+          'class RouteServiceProvider extends ServiceProvider',
+          '{',
+          '    public function boot(): void',
+          '    {',
+          '        $this->routes(function () {',
+          "            Route::group(['prefix' => 'api/bidregistration'], function() {",
+          "                Route::middleware(['auth:api'])->group(function () {",
+          '                    $this->authApiRoutes();',
+          '                });',
+          '            });',
+          '        });',
+          '    }',
+          '',
+          '    protected function authApiRoutes(): void',
+          '    {',
+          "        Route::post('/archive', [ArchiveRegistrationController::class, 'store']);",
+          "        Route::post('/deny', [DenyRegistrationController::class, 'store']);",
+          "        Route::get('/eligibility/{event}', ShowRegistrationEligibilityController::class);",
+          '    }',
+          '}',
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    const ids = batch.surfaces.map((s) => s.id).sort();
+    expect(ids).toContain('surface:http:POST:/api/bidregistration/archive');
+    expect(ids).toContain('surface:http:POST:/api/bidregistration/deny');
+    expect(ids).toContain('surface:http:GET:/api/bidregistration/eligibility/{event}');
+  });
+
+  it('detects helper-method routes inside arrow-function group callbacks in provider files', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'src/Module/SecureDocument/RouteServiceProvider.php',
+        languageId: 'php',
+        content: [
+          'class RouteServiceProvider extends ServiceProvider',
+          '{',
+          '    public function boot(): void',
+          '    {',
+          '        $this->routes(function () {',
+          "            Route::middleware(['auth:api'])->group(fn() => $this->apiRoutes());",
+          '        });',
+          '    }',
+          '',
+          '    protected function apiRoutes(): void',
+          '    {',
+          "        Route::group(['prefix' => 'api/sdl', 'as' => 'sdl.'], function () {",
+          "            Route::post('/persist', [ApiController::class, 'persist'])->name('persist');",
+          '        });',
+          '    }',
+          '}',
+        ].join('\n'),
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    const persist = batch.surfaces.find((s) => s.id === 'surface:http:POST:/api/sdl/persist');
+    expect(persist).toBeDefined();
+    expect(persist!.metadata.declarationLineage).toEqual(['api/sdl']);
+    expect(persist!.metadata.explicitProvider).toBe('ApiController');
+  });
 });

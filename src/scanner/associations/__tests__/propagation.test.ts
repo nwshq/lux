@@ -794,6 +794,63 @@ describe('propagateSurfaces() — provider propagation (PHP content analysis)', 
     expect(edges.some((e) => e.edge.id.includes(':updateSaleOrder') && e.edge.target_node_id === syntheticId)).toBe(true);
   });
 
+  it('emits a synthetic validates_with contract for inline validator() helper usage when no FormRequest exists', async () => {
+    const surfaceId = 'surface:http:POST:/api/events/registration-settings/{event}';
+    const providerId = 'symbol:php:UpdateEventRegistrationSettingsController';
+
+    db.upsertStructuralNode({
+      id: surfaceId,
+      node_type: 'capability-surface',
+      symbol_name: 'POST /api/events/registration-settings/{event}',
+      language_id: 'http',
+      file_path: 'src/Module/BidRegistration/RouteServiceProvider.php',
+      metadata: JSON.stringify({
+        transport: 'http', method: 'POST', path: '/api/events/registration-settings/{event}', controllerMethod: '__invoke',
+      }),
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+    upsertNode(db, providerId, 'symbol', 'src/Module/BidRegistration/Http/Controllers/UpdateEventRegistrationSettingsController.php');
+    upsertEdge(db, `${surfaceId}→${providerId}:handled_by`, 'handled_by', surfaceId, providerId);
+
+    const phpContent = [
+      '<?php',
+      'class UpdateEventRegistrationSettingsController extends Controller',
+      '{',
+      '    public function __invoke(Request $request, $event): JsonResponse',
+      '    {',
+      '        $validated = validator($request->all(), [',
+      "            'approval_type' => ['required', 'string'],",
+      "            'require_drivers_license' => ['boolean'],",
+      '        ]);',
+      '        if ($validated->fails()) {',
+      "            return response()->json(['success' => false], 422);",
+      '        }',
+      "        return response()->json(['success' => true]);",
+      '    }',
+      '}',
+    ].join('\n');
+
+    const ctx = makeContext([
+      {
+        filePath: 'src/Module/BidRegistration/Http/Controllers/UpdateEventRegistrationSettingsController.php',
+        languageId: 'php',
+        content: phpContent,
+      },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.providerEdgesAdded).toBe(2);
+
+    const syntheticId = 'contract:php:src/Module/BidRegistration/Http/Controllers/UpdateEventRegistrationSettingsController.php#__invoke:inline-validator';
+    const syntheticNode = db.getStructuralNode(syntheticId);
+    expect(syntheticNode).toBeDefined();
+    expect(syntheticNode?.node_type).toBe('contract');
+
+    const edges = db.getRelatedEdgesWithEvidence(providerId)
+      .filter((e) => e.edge.edge_type === 'validates_with');
+    expect(edges.some((e) => e.edge.id.includes(':__invoke') && e.edge.target_node_id === syntheticId)).toBe(true);
+  });
+
   it('emits a synthetic returns_contract node for inline response()->json payloads when no resource exists', async () => {
     const surfaceId = 'surface:http:GET:/api/listings/{listing}';
     const providerId = 'symbol:php:QuickAdminListingController';
@@ -1066,7 +1123,46 @@ describe('propagateSurfaces() — consumer propagation', () => {
     const surfaceCtx = db.getSurfaceCenteredContext(surfaceId);
     const callsEdge = surfaceCtx!.edges.find((e) => e.edge.edge_type === 'calls_surface');
     expect(callsEdge).toBeDefined();
-    expect(callsEdge!.edge.confidence).toBeCloseTo(0.65);
+    expect(callsEdge!.edge.confidence).toBeCloseTo(0.75);
+  });
+
+  it('does not emit calls_surface when transport method contradicts the surface method', async () => {
+    const surfaceId = 'surface:http:POST:/api/events/registration-settings/{event}';
+    const fileNodeId = 'file:src/Module/BidRegistration/resources/js/components/BidRegistrationDialog/BidRegistrationDialog.vue';
+
+    db.upsertStructuralNode({
+      id: surfaceId,
+      node_type: 'capability-surface',
+      symbol_name: 'POST /api/events/registration-settings/{event}',
+      language_id: 'http',
+      file_path: 'src/Module/BidRegistration/RouteServiceProvider.php',
+      metadata: JSON.stringify({
+        transport: 'http',
+        method: 'POST',
+        path: '/api/events/registration-settings/{event}',
+      }),
+      updated_at: Math.floor(Date.now() / 1000),
+    });
+    upsertNode(db, fileNodeId, 'file', 'src/Module/BidRegistration/resources/js/components/BidRegistrationDialog/BidRegistrationDialog.vue');
+
+    const ctx = makeContext([
+      {
+        filePath: 'src/Module/BidRegistration/resources/js/components/BidRegistrationDialog/BidRegistrationDialog.vue',
+        languageId: 'vue',
+        content: [
+          'async function fetchData(eventId) {',
+          '  return axios.get(`/api/events/registration-settings/${eventId}`);',
+          '}',
+        ].join('\n'),
+      },
+    ]);
+
+    const result = await propagateSurfaces(db, ctx);
+    expect(result.consumerEdgesAdded).toBe(0);
+
+    const surfaceCtx = db.getSurfaceCenteredContext(surfaceId);
+    const callsEdge = surfaceCtx?.edges.find((e) => e.edge.edge_type === 'calls_surface');
+    expect(callsEdge).toBeUndefined();
   });
 
   it('matches axios route-name callsites inside Vue methods when a symbol node exists', async () => {
@@ -2135,6 +2231,37 @@ describe('coarse contract inference — request kinds', () => {
     expect(meta.contractKind).toBe('implicit-input-shape');
     expect(meta.inputSignals).toContain('q');
     expect(meta.inputSignals).toContain('page');
+  });
+
+  it('infers implicit-input-shape from Laravel request property access', async () => {
+    const phpContent = [
+      '<?php',
+      'class UserHistoryController extends Controller {',
+      '    public function show(Request $request) {',
+      '        $history = BidRegistration::where("user_id", $request->user_id)->get();',
+      '        return response()->json($history);',
+      '    }',
+      '}',
+    ].join('\n');
+
+    const { controllerNodeId, ctx } = setupCoarseSurfacePost(
+      'surface:http:POST:/api/user-history',
+      'app/Http/Controllers/UserHistoryController.php',
+      'show',
+      phpContent,
+    );
+
+    await propagateSurfaces(db, ctx);
+
+    const edges = db.getRelatedEdgesWithEvidence(controllerNodeId);
+    const requestEdge = edges.find((e) => e.edge.edge_type === 'validates_with');
+    expect(requestEdge).toBeDefined();
+
+    const contractNode = db.getStructuralNode(requestEdge!.edge.target_node_id);
+    expect(contractNode).toBeDefined();
+    const meta = JSON.parse(contractNode!.metadata ?? '{}');
+    expect(meta.contractKind).toBe('implicit-input-shape');
+    expect(meta.inputSignals).toContain('user_id');
   });
 
   it('does not emit coarse request contract when explicit FormRequest fills the request role', async () => {

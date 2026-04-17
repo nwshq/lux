@@ -39,6 +39,7 @@ SQLite + FTS5            ← Portable single-file storage with full-text search
 - **MCP-native:** The MCP server (`lux-mcp`) is the primary AI interface. CLI (`lux`) is the human interface. Both share the same database and business logic.
 - **Expert panel:** Domain-specialist AI agents registered to subdirectories, routed via FTS5 scoring + LLM selection (Haiku), queried via subprocess isolation.
 - **Eventually consistent:** Index rebuilds on git commits (post-commit hook) or manual `lux index rebuild`.
+- **Capability-surface overlay:** Structural overlay (surfaces, nodes, edges) is separate from the content index. `lux index rebuild` is the canonical overlay-complete path for capability-surface validation. Use `--content-only` only as an explicit fallback. `lux overlay check` is the pre-flight gate for validation scripts.
 
 ## Project Structure
 
@@ -256,6 +257,10 @@ Configure in Claude Desktop or mcporter via `mcp-config.example.json`.
 | Add an LSP enricher | `src/scanner/lsp/` (implement `LspEnricher`) |
 | Modify expert routing | `src/experts/router.ts` |
 | Change scanner behavior | `src/scanner/general.ts` |
+| Run overlay-complete rebuild | `lux index rebuild` |
+| Check overlay trust state | `lux overlay check` (pre-flight gate for validation scripts) |
+| Inspect overlay state | `lux overlay status` or `lux overlay status --json` |
+| Modify overlay rebuild contract | `src/scanner/rebuild-orchestrator.ts` |
 | Debug git hooks | `bin/post-commit-hook.sh`, set `LUX_LOG_FILE` |
 | Run quality checks | `npm run check` |
 

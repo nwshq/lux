@@ -262,15 +262,22 @@ interface ParsedRoute {
 interface GroupBlock {
   /** The prefix contributed by this group (may be empty string). */
   prefix: string;
-  /** Character index of first char inside the opening '{'. */
+  /** Character index of first char inside the callback body or arrow expression. */
   innerStart: number;
-  /** Character index just before the closing '}'. */
+  /** Character index just before the callback body/expression terminator. */
   innerEnd: number;
 }
 
 interface RouteFileRegistration {
   prefix?: string;
   namespace?: string;
+}
+
+interface PhpMethodBlock {
+  name: string;
+  bodyStart: number;
+  bodyEnd: number;
+  body: string;
 }
 
 function collectRouteFileRegistrations(
@@ -378,6 +385,26 @@ function parseRouteDeclarations(
     registration?.namespace
   );
   const rootPrefix = registration?.prefix;
+
+  if (isProviderStyleRouteSource(filePath, content)) {
+    const methodBlocks = extractPhpMethodBlocks(commentStripped);
+    const bootBlock = methodBlocks.get('boot');
+
+    if (bootBlock) {
+      const raw = parseBlockContent(
+        bootBlock.body,
+        rootPrefix ? [rootPrefix] : [],
+        bootBlock.bodyStart,
+        commentStripped,
+        importMap,
+        controllerNamespace,
+        methodBlocks,
+        ['boot']
+      );
+      return consolidateLogicalSurfaces(raw);
+    }
+  }
+
   const raw = parseBlockContent(
     commentStripped,
     rootPrefix ? [rootPrefix] : [],
@@ -568,7 +595,9 @@ function parseBlockContent(
   blockOffset: number,
   rootContent: string,
   importMap: Map<string, string>,
-  controllerNamespace?: string
+  controllerNamespace?: string,
+  helperMethods?: Map<string, PhpMethodBlock>,
+  helperCallStack: string[] = []
 ): ParsedRoute[] {
   const routes: ParsedRoute[] = [];
 
@@ -583,6 +612,27 @@ function parseBlockContent(
     ...parseDirectRoutes(masked, prefixStack, blockOffset, rootContent, importMap, controllerNamespace)
   );
 
+  if (helperMethods && helperMethods.size > 0) {
+    for (const helperCall of findHelperMethodCalls(masked)) {
+      const helper = helperMethods.get(helperCall);
+      if (!helper) continue;
+      if (helperCallStack.includes(helperCall)) continue;
+
+      routes.push(
+        ...parseBlockContent(
+          helper.body,
+          prefixStack,
+          helper.bodyStart,
+          rootContent,
+          importMap,
+          controllerNamespace,
+          helperMethods,
+          [...helperCallStack, helperCall]
+        )
+      );
+    }
+  }
+
   // 4. Recurse into each group block with the composed prefix stack
   for (const group of topLevelGroups) {
     const innerBlock = block.slice(group.innerStart, group.innerEnd);
@@ -594,7 +644,9 @@ function parseBlockContent(
       blockOffset + group.innerStart,
       rootContent,
       importMap,
-      controllerNamespace
+      controllerNamespace,
+      helperMethods,
+      helperCallStack
     );
     routes.push(...innerRoutes);
   }
@@ -619,22 +671,14 @@ function findTopLevelGroupBlocks(content: string): GroupBlock[] {
     const opener = findNextGroupOpener(content, pos);
     if (!opener) break;
 
-    // Find the opening brace after the 'function ...' part
-    const bracePos = content.indexOf('{', opener.chainEndPos);
-    if (bracePos < 0) break;
-
-    // Find the matching closing brace
-    const closePos = findMatchingBrace(content, bracePos);
-    if (closePos < 0) break;
-
     blocks.push({
       prefix: opener.prefix,
-      innerStart: bracePos + 1,
-      innerEnd: closePos,
+      innerStart: opener.contentStart,
+      innerEnd: opener.contentEnd,
     });
 
-    // Skip past the entire group block to avoid re-matching inner groups
-    pos = closePos + 1;
+    // Skip past the entire group block/expression to avoid re-matching inner groups
+    pos = opener.contentEnd + 1;
   }
 
   return blocks;
@@ -643,8 +687,10 @@ function findTopLevelGroupBlocks(content: string): GroupBlock[] {
 interface GroupOpenerResult {
   /** Start position of the Route:: chain (or the ->group for chain openers). */
   openerPos: number;
-  /** Position immediately after the 'function (...)' or 'function()' token. */
-  chainEndPos: number;
+  /** Character index of first char inside the callback body or arrow expression. */
+  contentStart: number;
+  /** Character index just before the callback body/expression terminator. */
+  contentEnd: number;
   /** The prefix string extracted from the group declaration. */
   prefix: string;
 }
@@ -653,11 +699,13 @@ interface GroupOpenerResult {
  * Find the next group opener starting at `fromPos`.
  * Handles two patterns:
  *   A) Route::...->prefix('x')->...->group(function () { ... })
+ *      Route::...->prefix('x')->...->group(fn() => ...)
  *   B) Route::group(['prefix' => 'x'], function () { ... })
+ *      Route::group(['prefix' => 'x'], fn() => ...)
  */
 function findNextGroupOpener(content: string, fromPos: number): GroupOpenerResult | null {
-  // Pattern A: any ->group(function
-  const CHAIN_GROUP_RE = /->group\s*\(\s*function\s*\([^)]*\)\s*(?:use\s*\([^)]*\)\s*)?/g;
+  // Pattern A: any ->group(...callback...)
+  const CHAIN_GROUP_RE = /->group\s*\(/g;
   CHAIN_GROUP_RE.lastIndex = fromPos;
 
   const chainMatch = CHAIN_GROUP_RE.exec(content);
@@ -668,10 +716,16 @@ function findNextGroupOpener(content: string, fromPos: number): GroupOpenerResul
     (directMatch === null || chainMatch.index <= directMatch.openerPos);
 
   if (useChain && chainMatch) {
+    const parenStart = content.indexOf('(', chainMatch.index);
+    if (parenStart < 0) return directMatch;
+    const callback = parseGroupCallback(content, parenStart + 1, parenStart);
+    if (!callback) return directMatch;
+
     const prefix = extractPrefixFromChainBefore(content, chainMatch.index);
     return {
       openerPos: chainMatch.index,
-      chainEndPos: chainMatch.index + chainMatch[0].length,
+      contentStart: callback.contentStart,
+      contentEnd: callback.contentEnd,
       prefix,
     };
   }
@@ -702,18 +756,50 @@ function findDirectArrayGroupOpener(
   const afterOptions = skipWhitespace(content, optionsEnd + 1);
   if (afterOptions >= content.length || content[afterOptions] !== ',') return null;
 
-  const functionSlice = content.slice(afterOptions + 1);
-  const functionMatch = /^\s*function\s*\([^)]*\)\s*(?:use\s*\([^)]*\)\s*)?/.exec(functionSlice);
-  if (!functionMatch) return null;
+  const callback = parseGroupCallback(content, afterOptions + 1, parenStart);
+  if (!callback) return null;
 
   const optionsText = content.slice(optionsStart + 1, optionsEnd);
   const prefix = extractPrefixFromArrayOptions(optionsText);
 
   return {
     openerPos: routeIdx,
-    chainEndPos: afterOptions + 1 + functionMatch[0].length,
+    contentStart: callback.contentStart,
+    contentEnd: callback.contentEnd,
     prefix,
   };
+}
+
+function parseGroupCallback(
+  content: string,
+  callbackPos: number,
+  groupParenStart: number
+): { contentStart: number; contentEnd: number } | null {
+  const callbackSlice = content.slice(callbackPos);
+
+  const functionMatch = /^\s*function\s*\([^)]*\)\s*(?:use\s*\([^)]*\)\s*)?/.exec(callbackSlice);
+  if (functionMatch) {
+    const bracePos = content.indexOf('{', callbackPos + functionMatch[0].length);
+    if (bracePos < 0) return null;
+    const closePos = findMatchingBrace(content, bracePos);
+    if (closePos < 0) return null;
+    return {
+      contentStart: bracePos + 1,
+      contentEnd: closePos,
+    };
+  }
+
+  const arrowMatch = /^\s*fn\s*\([^)]*\)\s*=>/.exec(callbackSlice);
+  if (arrowMatch) {
+    const groupClosePos = findMatchingBracket(content, groupParenStart, '(', ')');
+    if (groupClosePos < 0) return null;
+    return {
+      contentStart: callbackPos + arrowMatch[0].length,
+      contentEnd: groupClosePos,
+    };
+  }
+
+  return null;
 }
 
 /**
@@ -1062,6 +1148,43 @@ function extractPhpImportMap(content: string): Map<string, string> {
   }
 
   return map;
+}
+
+function extractPhpMethodBlocks(content: string): Map<string, PhpMethodBlock> {
+  const blocks = new Map<string, PhpMethodBlock>();
+  const methodRe = /\b(?:public|protected|private)\s+function\s+([A-Za-z_][A-Za-z0-9_]*)\s*\([^)]*\)\s*(?::\s*[^\{]+)?\{/g;
+
+  let match: RegExpExecArray | null;
+  while ((match = methodRe.exec(content)) !== null) {
+    const bracePos = content.indexOf('{', match.index);
+    if (bracePos < 0) continue;
+    const closePos = findMatchingBrace(content, bracePos);
+    if (closePos < 0) continue;
+
+    const name = match[1];
+    const bodyStart = bracePos + 1;
+    const bodyEnd = closePos;
+    blocks.set(name, {
+      name,
+      bodyStart,
+      bodyEnd,
+      body: content.slice(bodyStart, bodyEnd),
+    });
+  }
+
+  return blocks;
+}
+
+function findHelperMethodCalls(content: string): string[] {
+  const calls: string[] = [];
+  const callRe = /\$this->([A-Za-z_][A-Za-z0-9_]*)\s*\(\s*\)/g;
+
+  let match: RegExpExecArray | null;
+  while ((match = callRe.exec(content)) !== null) {
+    calls.push(match[1]);
+  }
+
+  return calls;
 }
 
 function resolvePhpClassReference(

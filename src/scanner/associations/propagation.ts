@@ -312,8 +312,12 @@ function runConsumerPropagation(
  * templates do not have exported function symbols.
  *
  * Inline Blade consumers now support two tiers:
- *   - 0.65 candidate: transport + local path/route reference
- *   - 0.75 proven:    transport + local path/route reference + method match
+ *   - 0.65 candidate: transport + local path/route reference, but method unknown
+ *   - 0.75 proven:    transport + local path/route reference + known method match
+ *
+ * Known method contradictions are rejected rather than kept as low-confidence
+ * candidates. A GET transport call should not attach to a POST surface just
+ * because the path matches.
  */
 
 function runBladeConsumerPropagation(
@@ -410,13 +414,11 @@ function findScriptTransportEvidence(
     const routeMatched = routeName ? matchesRouteExpression(expr, routeName) : false;
     if (!pathMatched && !routeMatched) return;
 
-    const methodMatches = (
-      methodExplicit
-      && normalizedSurfaceMethod !== null
-      && transportMethod !== null
-      && normalizedSurfaceMethod === transportMethod
-    );
+    const methodKnown = normalizedSurfaceMethod !== null && transportMethod !== null;
+    const methodContradicts = methodKnown && normalizedSurfaceMethod !== transportMethod;
+    if (methodContradicts) return;
 
+    const methodMatches = methodKnown;
     const confidence = methodMatches ? 0.75 : 0.65;
     const evidenceKind = routeMatched
       ? (methodMatches
@@ -515,13 +517,11 @@ function findBladeTransportEvidence(
     const routeMatched = routeName ? matchesRouteExpression(expr, routeName) : false;
     if (!pathMatched && !routeMatched) return;
 
-    const methodMatches = (
-      methodExplicit &&
-      normalizedSurfaceMethod !== null &&
-      transportMethod !== null &&
-      normalizedSurfaceMethod === transportMethod
-    );
+    const methodKnown = normalizedSurfaceMethod !== null && transportMethod !== null;
+    const methodContradicts = methodKnown && normalizedSurfaceMethod !== transportMethod;
+    if (methodContradicts) return;
 
+    const methodMatches = methodKnown;
     const confidence = methodMatches ? 0.75 : 0.65;
     const evidenceKind = routeMatched
       ? (methodMatches
@@ -1124,7 +1124,9 @@ function findInlineContractsViaPhpContent(
 
   if (!explicitRoles.has('request')) {
     const hasInlineValidator = /\$request->validate\s*\(\s*\[/.test(content)
-      || /\bValidator::make\s*\(/.test(content);
+      || /\bValidator::make\s*\(/.test(content)
+      // Laravel global helper: validator($data, [ ... ])
+      || /\bvalidator\s*\(\s*[\s\S]*?,\s*\[/.test(content);
 
     if (hasInlineValidator) {
       const node = buildInlineContractNode(
@@ -1425,7 +1427,8 @@ function inferCoarseResponseKind(content: string): {
  * Infer coarse request contract from PHP method body content.
  *
  * Returns route-bound-input when typed route model binding is present,
- * or implicit-input-shape when repeated field/query access is found.
+ * or implicit-input-shape when request fields are read via helpers or
+ * Laravel's magic request-property access.
  */
 function inferCoarseRequestKind(content: string): {
   contractKind: 'route-bound-input' | 'implicit-input-shape';
@@ -1454,15 +1457,20 @@ function inferCoarseRequestKind(content: string): {
     return { contractKind: 'route-bound-input', boundParams };
   }
 
-  // Implicit input shape: repeated $request->input(...) or $request->has(...)
-  const inputSignals: string[] = [];
-  const inputFieldRe = /\$request\s*->\s*(?:input|get|query|has|filled|missing)\s*\(\s*['"]([^'"]+)['"]/g;
+  // Implicit input shape: request helpers plus Laravel's magic property access.
+  const inputSignals = new Set<string>();
+  const inputFieldRe = /\$request\s*->\s*(?:input|get|query|has|filled|missing|boolean)\s*\(\s*['"]([^'"]+)['"]/g;
   while ((m = inputFieldRe.exec(content)) !== null) {
-    inputSignals.push(m[1]);
+    inputSignals.add(m[1]);
   }
 
-  if (inputSignals.length >= 2) {
-    return { contractKind: 'implicit-input-shape', inputSignals };
+  const requestPropertyRe = /\$request\s*->\s*([a-z_][A-Za-z0-9_]*)\b(?!\s*\()/g;
+  while ((m = requestPropertyRe.exec(content)) !== null) {
+    inputSignals.add(m[1]);
+  }
+
+  if (inputSignals.size >= 1) {
+    return { contractKind: 'implicit-input-shape', inputSignals: [...inputSignals].sort() };
   }
 
   return null;

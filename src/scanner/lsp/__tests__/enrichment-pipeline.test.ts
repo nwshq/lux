@@ -10,6 +10,7 @@ import {
 } from '../index.js';
 import type { EnrichmentResult, LspEnricher } from '../index.js';
 import { generalScan, attachEnrichment } from '../../general.js';
+import { LuxDatabase } from '../../../db/index.js';
 import {
   buildAugmentedQuery,
   extractLspRelationships,
@@ -657,6 +658,59 @@ describe('generalScan pipeline', () => {
 
     expect(result.stats.activeEnrichers).toBe(0);
     expect(progress.some((m) => m.includes('No LSP enrichers configured'))).toBe(true);
+  });
+
+  it('should still rebuild overlay when LSP is disabled', async () => {
+    writeFileSync(join(corpusDir, 'package.json'), '{}');
+    writeFileSync(join(corpusDir, 'ExampleController.php'), '<?php\nclass ExampleController {}\n');
+
+    const dbPath = join(corpusDir, 'overlay-no-lsp.db');
+    const db = new LuxDatabase(dbPath);
+
+    try {
+      const result = await generalScan(corpusDir, {
+        config: {
+          lsp: { enabled: false, enrichers: [] },
+          deps: { enabled: true },
+        },
+        db,
+        overlayEnabled: true,
+      });
+
+      expect(result.overlay).toBeDefined();
+      expect(result.overlay!.fileNodes).toBeGreaterThan(0);
+      expect(db.getStructuralNodesByType('file').length).toBeGreaterThan(0);
+    } finally {
+      db.close();
+    }
+  });
+
+  it('should still rebuild overlay when no known enrichers are configured', async () => {
+    writeFileSync(join(corpusDir, 'package.json'), '{}');
+    writeFileSync(join(corpusDir, 'ExampleController.php'), '<?php\nclass ExampleController {}\n');
+
+    const dbPath = join(corpusDir, 'overlay-no-known-enrichers.db');
+    const db = new LuxDatabase(dbPath);
+
+    try {
+      const result = await generalScan(corpusDir, {
+        config: {
+          lsp: {
+            enabled: true,
+            enrichers: [{ languageId: 'unknown-lang', enabled: true }],
+          },
+          deps: { enabled: true },
+        },
+        db,
+        overlayEnabled: true,
+      });
+
+      expect(result.overlay).toBeDefined();
+      expect(result.overlay!.fileNodes).toBeGreaterThan(0);
+      expect(db.getStructuralNodesByType('file').length).toBeGreaterThan(0);
+    } finally {
+      db.close();
+    }
   });
 });
 

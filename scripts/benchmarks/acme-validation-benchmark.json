@@ -1,0 +1,283 @@
+{
+  "name": "auctic-validation-benchmark",
+  "version": 1,
+  "repo": "auctic-core",
+  "cohorts": [
+    {
+      "id": "routes-api",
+      "label": "routes/api.php",
+      "tier": 1,
+      "kind": "primary",
+      "selector": { "filePath": "routes/api.php" },
+      "expectConsumerSignals": true,
+      "description": "Primary acme benchmark for first-party API discovery and end-to-end closure.",
+      "exemplars": [
+        {
+          "method": "POST",
+          "path": "/api/account/prefset",
+          "routeName": "account.prefset",
+          "targetLevel": "L5",
+          "consumerFiles": ["resources/js/Pages/Account/Notifications.vue"]
+        },
+        {
+          "method": "GET",
+          "path": "/api/event/{event}/messages",
+          "routeName": "event-messages",
+          "targetLevel": "L5",
+          "consumerFiles": [
+            "resources/js/Shared/Event/MessageCenter.vue",
+            "resources/js/Shared/Admin/AdminMessageCenter.vue"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/event_messages",
+          "routeName": "event-messages.store",
+          "targetLevel": "L5",
+          "consumerFiles": [
+            "resources/js/Shared/Event/MessageCenter.vue",
+            "resources/js/Shared/Admin/AdminMessageForm.vue"
+          ]
+        },
+        {
+          "method": "PUT",
+          "path": "/api/event_messages/{eventMessage}",
+          "routeName": "event-messages.update",
+          "targetLevel": "L5",
+          "consumerFiles": ["resources/js/Shared/Admin/AdminMessageForm.vue"]
+        },
+        {
+          "method": "POST",
+          "path": "/api/listing/create",
+          "routeName": "admin.listing.create",
+          "targetLevel": "L5",
+          "consumerFiles": [
+            "resources/js/Shared/Sidebar/QuickAdd.vue",
+            "resources/js/Shared/Sidebar/QuickAddLive.vue"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/listings/end/{listing}",
+          "routeName": "listing.end",
+          "targetLevel": "L5",
+          "consumerFiles": [
+            "resources/js/AdminPages/OperatorAdmin/BidAdmin.vue",
+            "resources/js/AdminPages/OperatorAdmin/OperatorAdmin.vue",
+            "src/Module/LiveEventManagement/resources/js/services/live-event-management-api.js"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/event/tagnumber/{event}",
+          "routeName": "event-tag-number",
+          "targetLevel": "L5",
+          "consumerFiles": ["resources/js/Shared/Sidebar/QuickAdd.vue"]
+        },
+        {
+          "method": "GET",
+          "path": "/api/event/saleorder/{event}",
+          "routeName": "event-sale-order",
+          "targetLevel": "L5",
+          "consumerFiles": ["resources/js/Shared/Sidebar/QuickEdit.vue"]
+        }
+      ]
+    },
+    {
+      "id": "routes-admin",
+      "label": "routes/admin.php",
+      "tier": 2,
+      "kind": "secondary",
+      "selector": { "filePath": "routes/admin.php" },
+      "expectConsumerSignals": true,
+      "description": "Admin-side benchmark for route-name consumers and stateful internal UX flows.",
+      "exemplars": [
+        {
+          "method": "GET",
+          "path": "/admin/bid_chart_data/{event}",
+          "routeName": "admin.bidChartData",
+          "targetLevel": "L5",
+          "consumerFiles": ["resources/js/AdminPages/EventAdmin/components/BiddingChart.vue"]
+        },
+        {
+          "method": "GET",
+          "path": "/admin/registration_data/{event}",
+          "routeName": "admin.registrationData",
+          "targetLevel": "L5",
+          "consumerFiles": ["resources/js/AdminPages/EventAdmin/views/RegistrationAdmin/registration-admin-state.service.js"]
+        },
+        {
+          "method": "GET",
+          "path": "/admin/reindex_listing/{listing}",
+          "routeName": "admin.reindexListing",
+          "targetLevel": "L5",
+          "consumerFiles": [
+            "resources/js/Shared/Admin/DropdownListingActions.vue",
+            "resources/js/Shared/Admin/ListingMediaManager.vue",
+            "src/Module/CatalogAdmin/resources/js/views/ListingsTable/Columns/CatalogDropdownActions.vue",
+            "src/Module/CatalogAdmin/resources/js/views/ViewListing/components/MainDetailsPanel/components/ActionsMenu.vue",
+            "src/Module/MediaAdmin/resources/js/views/MediaTable/Columns/MediaActionsColumn.vue"
+          ]
+        },
+        {
+          "method": "PUT",
+          "path": "/admin/update_sale_order",
+          "routeName": "admin.updateSaleOrder",
+          "targetLevel": "L5",
+          "consumerFiles": ["src/Module/CatalogAdmin/resources/js/views/Dialogs/EditSalesOrderDialog.vue"]
+        },
+        {
+          "method": "GET",
+          "path": "/admin/users_present/{event}",
+          "routeName": "admin.usersPresent",
+          "targetLevel": "L5",
+          "consumerFiles": [
+            "resources/js/store/adminLiveEvent.js",
+            "resources/js/store/liveEvent.js",
+            "src/Module/LiveBidDataAdmin/resources/js/views/LiveBidData.vue"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/admin/listings_watched_by_user/{event}/{user}",
+          "routeName": "admin.listingsWatchedByUser",
+          "targetLevel": "L5",
+          "consumerFiles": ["resources/js/AdminPages/EventAdmin/views/RegistrationAdmin/RegistrationsTable/RegistrationsTable.vue"]
+        }
+      ]
+    },
+    {
+      "id": "routes-json",
+      "label": "routes/json.php",
+      "tier": 3,
+      "kind": "compact",
+      "selector": { "filePath": "routes/json.php" },
+      "expectConsumerSignals": true,
+      "description": "Compact high-confidence literal-path benchmark for media and admin flows.",
+      "exemplars": [
+        {
+          "method": "POST",
+          "path": "/api/listing-media-conversions",
+          "targetLevel": "L5",
+          "consumerFiles": ["resources/js/Shared/Admin/ListingMediaManager.vue"]
+        },
+        {
+          "method": "POST",
+          "path": "/api/listings/{listing}/media",
+          "targetLevel": "L5",
+          "consumerFiles": ["resources/js/Shared/Admin/ListingMediaManager.vue"]
+        },
+        {
+          "method": "POST",
+          "path": "/api/listings/media/move",
+          "targetLevel": "L5",
+          "consumerFiles": ["resources/js/Shared/Admin/ListingMediaManager.vue"]
+        },
+        {
+          "method": "POST",
+          "path": "/api/listing/item_videos/store/{listing}",
+          "targetLevel": "L5",
+          "consumerFiles": ["resources/js/Shared/Admin/ListingExternalVideoLinkManager.vue"]
+        },
+        {
+          "method": "PUT",
+          "path": "/api/listing/item_videos/update/{listing}",
+          "targetLevel": "L5",
+          "consumerFiles": ["resources/js/Shared/Admin/ListingExternalVideoLinkManager.vue"]
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/listing/item_videos/delete/{listing}",
+          "targetLevel": "L5",
+          "consumerFiles": ["resources/js/Shared/Admin/ListingExternalVideoLinkManager.vue"]
+        }
+      ]
+    },
+    {
+      "id": "bid-registration-module",
+      "label": "src/Module/BidRegistration/RouteServiceProvider.php",
+      "tier": 4,
+      "kind": "provider-declared",
+      "selector": { "filePath": "src/Module/BidRegistration/RouteServiceProvider.php" },
+      "expectConsumerSignals": true,
+      "description": "Recovered provider-declared module routes with real acme callers.",
+      "exemplars": [
+        {
+          "method": "GET",
+          "path": "/api/events/registration-settings/{event}",
+          "targetLevel": "L4",
+          "stretchLevel": "L5",
+          "consumerFiles": [
+            "src/Module/BidRegistration/resources/js/components/BidRegistrationDialog/BidRegistrationDialog.vue",
+            "src/Module/Event/resources/js/modals/EventSettings/components/RegistrationPanel.vue"
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/api/events/registration-settings/{event}",
+          "targetLevel": "L4",
+          "stretchLevel": "L5",
+          "consumerFiles": ["src/Module/Event/resources/js/modals/EventSettings/components/RegistrationPanel.vue"]
+        },
+        {
+          "method": "GET",
+          "path": "/api/bidregistration/terms/for-registration/{event_id}",
+          "targetLevel": "L4",
+          "consumerFiles": ["src/Module/BidRegistration/resources/js/components/BidRegistrationDialog/BidRegistrationDialog.vue"]
+        }
+      ]
+    },
+    {
+      "id": "listing-module",
+      "label": "src/Module/Listing/RouteServiceProvider.php",
+      "tier": 4,
+      "kind": "provider-declared",
+      "selector": { "filePath": "src/Module/Listing/RouteServiceProvider.php" },
+      "expectConsumerSignals": true,
+      "description": "Recovered listing module route-provider benchmark.",
+      "exemplars": [
+        {
+          "method": "GET",
+          "path": "/admin/api/listings/search",
+          "targetLevel": "L5",
+          "consumerFiles": ["resources/js/Shared/MediaManagerComponents/MoveMediaDialog.vue"]
+        }
+      ]
+    },
+    {
+      "id": "secure-document-module",
+      "label": "src/Module/SecureDocument/RouteServiceProvider.php",
+      "tier": 4,
+      "kind": "provider-declared",
+      "selector": { "filePath": "src/Module/SecureDocument/RouteServiceProvider.php" },
+      "expectConsumerSignals": true,
+      "description": "Recovered secure-document module route-provider benchmark.",
+      "exemplars": [
+        {
+          "method": "POST",
+          "path": "/api/sdl/persist",
+          "targetLevel": "L5",
+          "consumerFiles": ["resources/js/AdminPages/CustomForms/partials/Field.vue"]
+        }
+      ]
+    },
+    {
+      "id": "web-sentinel",
+      "label": "routes/web.php",
+      "tier": 5,
+      "kind": "sentinel",
+      "selector": { "filePath": "routes/web.php" },
+      "expectConsumerSignals": true,
+      "description": "Sentinel API-shaped web routes that should remain discoverable.",
+      "exemplars": [
+        {
+          "method": "POST",
+          "path": "/api/track_user_action",
+          "routeName": "user.track-user-action",
+          "targetLevel": "L5",
+          "consumerFiles": ["resources/js/Shared/utils/track-util.js"]
+        }
+      ]
+    }
+  ]
+}
