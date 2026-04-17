@@ -65,7 +65,9 @@ jobs:
 
       - name: Capture pre-release version
         id: prerelease
-        run: echo "version=$(node -p \"JSON.parse(require('fs').readFileSync('package.json', 'utf8')).version\")" >> "$GITHUB_OUTPUT"
+        run: |
+          VERSION=$(node -e "console.log(JSON.parse(require('fs').readFileSync('package.json', 'utf8')).version)")
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Build
         run: npm run build
@@ -79,7 +81,9 @@ jobs:
 
       - name: Capture post-release version
         id: postrelease
-        run: echo "version=$(node -p \"JSON.parse(require('fs').readFileSync('package.json', 'utf8')).version\")" >> "$GITHUB_OUTPUT"
+        run: |
+          VERSION=$(node -e "console.log(JSON.parse(require('fs').readFileSync('package.json', 'utf8')).version)")
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Package release tarball
         if: steps.postrelease.outputs.version != steps.prerelease.outputs.version
