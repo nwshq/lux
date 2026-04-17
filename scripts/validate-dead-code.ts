@@ -33,7 +33,7 @@ const SRC = resolve(ROOT, 'src');
  * Entry point files whose exports are consumed externally (CLI, MCP server).
  * Relative to src/.
  */
-const ENTRY_POINTS = new Set(['cli/index.ts', 'mcp/server.ts']);
+const ENTRY_POINTS = new Set(['index.ts', 'cli/index.ts', 'mcp/server.ts']);
 
 /**
  * Files that are barrel re-exports consumed by entry points.

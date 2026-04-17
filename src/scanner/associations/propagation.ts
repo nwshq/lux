@@ -1897,7 +1897,7 @@ function isVendoredPublicAsset(filePath: string): boolean {
  *  4. Wrapper-directory location (api/, services/, hooks/, use-*) → handwritten-wrapper
  *  5. Otherwise → ordinary-service
  */
-export function classifyArtifactRole(filePath: string, content: string): ArtifactRole {
+function classifyArtifactRole(filePath: string, content: string): ArtifactRole {
   const lower = filePath.toLowerCase();
 
   // Signal 0: hard exclusion for vendored/distribution asset trees

@@ -7,8 +7,8 @@ import { existsSync, readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { LuxDatabase } from '../db/index.js';
 import { GeneralScanner } from '../scanner/index.js';
-import { generalScan, attachEnrichment } from '../scanner/general.js';
-import { rebuildWithOverlay } from '../scanner/rebuild-orchestrator.js';
+import { attachEnrichment } from '../scanner/general.js';
+import { rebuildWithOverlay, rebuildContentOnly } from '../scanner/rebuild-orchestrator.js';
 import type { RebuildResult } from '../scanner/rebuild-orchestrator.js';
 import { isGitRepository, getHeadCommit, getGitDiff, commitExists } from '../scanner/git.js';
 import { buildIncrementalPlan } from '../scanner/incremental.js';
@@ -98,9 +98,10 @@ indexCmd
       if (options.contentOnly) {
         // Content-only path: scan + enrich, no structural overlay
         try {
-          generalResult = await generalScan(corpusPath, {
+          const { scanResult } = await rebuildContentOnly(corpusPath, {
             onProgress: options.quiet ? undefined : (msg) => console.log(`  ${msg}`),
           });
+          generalResult = scanResult;
         } catch (error) {
           console.error('Error: Failed to scan content directory');
           console.error(`  ${error instanceof Error ? error.message : String(error)}`);

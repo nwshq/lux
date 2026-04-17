@@ -23,9 +23,14 @@ export {
   routeNodeId,
   contractNodeId,
   artifactNodeId,
+  surfaceNodeId,
 } from './types.js';
 
 export { summarizeEdgeEvidence, formatEdgeBlock, annotateFreshness } from './evidence.js';
 export type { EdgeWithEvidence } from './evidence.js';
 
-export { createDefaultResolvers } from './framework/index.js';
+export {
+  createDefaultResolvers,
+  LaravelRoutesResolver,
+  GeneratedTypesResolver,
+} from './framework/index.js';

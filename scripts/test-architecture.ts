@@ -40,7 +40,8 @@ const ALLOWED_MODULES = new Set([
   'utils',
 ]);
 
-
+/** Intentional root entry points under src/. */
+const ALLOWED_ROOT_TS_FILES = new Set(['index.ts']);
 
 /** Modules that are test-only (contain only __tests__/, no source files expected at root). */
 const TEST_ONLY_MODULES = new Set(['integration']);
@@ -115,12 +116,14 @@ function checkModuleBoundaries(): CheckResult {
         });
       }
     } else if (entry.isFile() && entry.name.endsWith('.ts')) {
-      // No loose .ts files at src/ root
-      violations.push({
-        file: `src/${entry.name}`,
-        check: 'module-boundary',
-        message: `Loose TypeScript file at src/ root. All source files must live within a module directory.`,
-      });
+      // No loose .ts files at src/ root, except explicit package entry points.
+      if (!ALLOWED_ROOT_TS_FILES.has(entry.name)) {
+        violations.push({
+          file: `src/${entry.name}`,
+          check: 'module-boundary',
+          message: `Loose TypeScript file at src/ root. All source files must live within a module directory unless explicitly allowed as a package entry point.`,
+        });
+      }
     }
   }
 

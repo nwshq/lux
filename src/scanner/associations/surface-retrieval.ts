@@ -23,7 +23,7 @@ import type { TransportContractMetadata } from './types.js';
  * Edges below this threshold are gathered for auditability but not surfaced
  * as primary chain members in compact output.
  */
-export const PROVEN_CONFIDENCE_THRESHOLD = 0.75;
+const PROVEN_CONFIDENCE_THRESHOLD = 0.75;
 
 /**
  * Synthetic provider token used to render closure-backed surfaces as honestly
@@ -147,6 +147,9 @@ export function getSurfaceFeaturePath(db: LuxDatabase, surfaceId: string): Featu
       }
     }
   }
+
+  path.validators.sort(compareContractsForDisplay);
+  path.responseContracts.sort(compareContractsForDisplay);
 
   return path;
 }
@@ -397,7 +400,7 @@ function parseContractMeta(node: StructuralNode): TransportContractMetadata | nu
  *   - `coarse(page-response)`
  *   - `explicit-class(InvoiceResource)` — explicit class nodes not yet migrated
  */
-export function formatContractLabel(node: StructuralNode): string {
+function formatContractLabel(node: StructuralNode): string {
   const meta = parseContractMeta(node);
   if (!meta) return shortLabel(node);
 
@@ -430,7 +433,7 @@ export function formatContractLabel(node: StructuralNode): string {
  *
  * Page and API surfaces score the same for equivalent contract kinds (transport-neutral).
  */
-export function scoreContract(node: StructuralNode): number {
+function scoreContract(node: StructuralNode): number {
   const meta = parseContractMeta(node);
   if (!meta) {
     // Non-migrated explicit contract nodes: treat as exact class
@@ -473,7 +476,7 @@ export function scoreContract(node: StructuralNode): number {
  * stable interactionKind label. Returns undefined when no strong evidence
  * exists.
  */
-export function inferSurfaceInteractionKind(
+function inferSurfaceInteractionKind(
   validators: StructuralNode[],
   responseContracts: StructuralNode[]
 ): TransportContractMetadata['interactionKind'] | undefined {
@@ -488,4 +491,10 @@ export function inferSurfaceInteractionKind(
     if (meta?.interactionKind) return meta.interactionKind;
   }
   return undefined;
+}
+
+function compareContractsForDisplay(a: StructuralNode, b: StructuralNode): number {
+  const scoreDelta = scoreContract(b) - scoreContract(a);
+  if (scoreDelta !== 0) return scoreDelta;
+  return shortLabel(a).localeCompare(shortLabel(b));
 }

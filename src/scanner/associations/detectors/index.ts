@@ -100,7 +100,7 @@ export async function runDetectors(
 /**
  * Convert a CapabilitySurfaceNode (in-memory) to a StructuralNode (DB shape).
  */
-export function capabilitySurfaceToStructuralNode(surface: CapabilitySurfaceNode): StructuralNode {
+function capabilitySurfaceToStructuralNode(surface: CapabilitySurfaceNode): StructuralNode {
   return {
     id: surface.id,
     node_type: 'capability-surface',
