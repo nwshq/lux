@@ -34,7 +34,12 @@ function makeContext(
   };
 }
 
-function upsertNode(db: LuxDatabase, id: string, nodeType: StructuralNode['node_type'], filePath?: string): void {
+function upsertNode(
+  db: LuxDatabase,
+  id: string,
+  nodeType: StructuralNode['node_type'],
+  filePath?: string
+): void {
   db.upsertStructuralNode({
     id,
     node_type: nodeType,
@@ -46,7 +51,13 @@ function upsertNode(db: LuxDatabase, id: string, nodeType: StructuralNode['node_
   });
 }
 
-function upsertEdge(db: LuxDatabase, id: string, edgeType: StructuralEdge['edge_type'], sourceNodeId: string, targetNodeId: string): void {
+function upsertEdge(
+  db: LuxDatabase,
+  id: string,
+  edgeType: StructuralEdge['edge_type'],
+  sourceNodeId: string,
+  targetNodeId: string
+): void {
   db.upsertStructuralEdge({
     id,
     source_node_id: sourceNodeId,
@@ -61,7 +72,12 @@ function upsertEdge(db: LuxDatabase, id: string, edgeType: StructuralEdge['edge_
   });
 }
 
-function upsertSurface(db: LuxDatabase, surfaceId: string, path: string, controllerNodeId?: string): void {
+function upsertSurface(
+  db: LuxDatabase,
+  surfaceId: string,
+  path: string,
+  controllerNodeId?: string
+): void {
   db.upsertStructuralNode({
     id: surfaceId,
     node_type: 'capability-surface',
@@ -90,8 +106,13 @@ function upsertSurface(db: LuxDatabase, surfaceId: string, path: string, control
 describe('propagateSurfaces() — no surfaces', () => {
   let db: LuxDatabase;
 
-  beforeEach(() => { db = makeDb(); });
-  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+  beforeEach(() => {
+    db = makeDb();
+  });
+  afterEach(() => {
+    db.close();
+    rmSync(testDir, { recursive: true, force: true });
+  });
 
   it('returns zero counts when no surfaces exist', async () => {
     const ctx = makeContext([]);
@@ -109,8 +130,13 @@ describe('propagateSurfaces() — no surfaces', () => {
 describe('propagateSurfaces() — provider propagation', () => {
   let db: LuxDatabase;
 
-  beforeEach(() => { db = makeDb(); });
-  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+  beforeEach(() => {
+    db = makeDb();
+  });
+  afterEach(() => {
+    db.close();
+    rmSync(testDir, { recursive: true, force: true });
+  });
 
   it('emits validates_with edge when controller file has FormRequest sibling in LSP hierarchy', async () => {
     const surfaceId = 'surface:http:GET:/api/invoices';
@@ -122,9 +148,7 @@ describe('propagateSurfaces() — provider propagation', () => {
     upsertNode(db, requestNodeId, 'symbol', 'app/Http/Requests/ListInvoicesRequest.php');
 
     const lspData = {
-      typeHierarchy: [
-        { name: 'ListInvoicesRequest', supertypes: [{ name: 'FormRequest' }] },
-      ],
+      typeHierarchy: [{ name: 'ListInvoicesRequest', supertypes: [{ name: 'FormRequest' }] }],
     };
 
     const ctx = makeContext([
@@ -154,9 +178,7 @@ describe('propagateSurfaces() — provider propagation', () => {
     upsertNode(db, resourceNodeId, 'symbol', 'app/Http/Resources/InvoiceResource.php');
 
     const lspData = {
-      typeHierarchy: [
-        { name: 'InvoiceResource', supertypes: [{ name: 'JsonResource' }] },
-      ],
+      typeHierarchy: [{ name: 'InvoiceResource', supertypes: [{ name: 'JsonResource' }] }],
     };
 
     const ctx = makeContext([
@@ -246,9 +268,7 @@ describe('propagateSurfaces() — provider propagation', () => {
     upsertNode(db, controllerNodeId, 'symbol', 'app/Http/Controllers/InvoiceController.php');
 
     const lspData = {
-      typeHierarchy: [
-        { name: 'ListInvoicesRequest', supertypes: [{ name: 'FormRequest' }] },
-      ],
+      typeHierarchy: [{ name: 'ListInvoicesRequest', supertypes: [{ name: 'FormRequest' }] }],
     };
 
     const ctx = makeContext([
@@ -280,12 +300,21 @@ describe('propagateSurfaces() — provider propagation', () => {
       language_id: 'http',
       file_path: 'routes/api.php',
       metadata: JSON.stringify({
-        transport: 'http', method: 'GET', path: '/api/invoices',
-        explicitProvider: 'App\\Http\\Controllers\\InvoiceController', controllerMethod: 'index',
+        transport: 'http',
+        method: 'GET',
+        path: '/api/invoices',
+        explicitProvider: 'App\\Http\\Controllers\\InvoiceController',
+        controllerMethod: 'index',
       }),
       updated_at: Math.floor(Date.now() / 1000),
     });
-    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+    upsertEdge(
+      db,
+      `${surfaceId}→${controllerNodeId}:handled_by`,
+      'handled_by',
+      surfaceId,
+      controllerNodeId
+    );
     upsertNode(db, controllerNodeId, 'symbol', 'app/Http/Controllers/InvoiceController.php');
     upsertNode(db, requestNodeId, 'symbol', 'app/Http/Requests/ListInvoicesRequest.php');
 
@@ -297,13 +326,17 @@ describe('propagateSurfaces() — provider propagation', () => {
       '{',
       '    public function index(ListInvoicesRequest $request)',
       '    {',
-      "        return response()->json(Invoice::all());",
+      '        return response()->json(Invoice::all());',
       '    }',
       '}',
     ].join('\n');
 
     const ctx = makeContext([
-      { filePath: 'app/Http/Controllers/InvoiceController.php', languageId: 'php', content: phpContent },
+      {
+        filePath: 'app/Http/Controllers/InvoiceController.php',
+        languageId: 'php',
+        content: phpContent,
+      },
     ]);
 
     const result = await propagateSurfaces(db, ctx);
@@ -323,9 +356,7 @@ describe('propagateSurfaces() — provider propagation', () => {
     upsertNode(db, requestNodeId, 'symbol', 'app/Http/Requests/ListInvoicesRequest.php');
 
     const lspData = {
-      typeHierarchy: [
-        { name: 'ListInvoicesRequest', supertypes: [{ name: 'FormRequest' }] },
-      ],
+      typeHierarchy: [{ name: 'ListInvoicesRequest', supertypes: [{ name: 'FormRequest' }] }],
     };
     const ctx = makeContext([
       { filePath: 'app/Http/Controllers/InvoiceController.php', languageId: 'php', lsp: lspData },
@@ -348,8 +379,13 @@ describe('propagateSurfaces() — provider propagation', () => {
 describe('propagateSurfaces() — provider propagation (PHP content analysis)', () => {
   let db: LuxDatabase;
 
-  beforeEach(() => { db = makeDb(); });
-  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+  beforeEach(() => {
+    db = makeDb();
+  });
+  afterEach(() => {
+    db.close();
+    rmSync(testDir, { recursive: true, force: true });
+  });
 
   it('emits validates_with via typed method parameter when no LSP data present', async () => {
     const surfaceId = 'surface:http:POST:/api/invoices';
@@ -413,7 +449,11 @@ describe('propagateSurfaces() — provider propagation (PHP content analysis)', 
     ].join('\n');
 
     const ctx = makeContext([
-      { filePath: 'app/Http/Controllers/InvoiceController.php', languageId: 'php', content: phpContent },
+      {
+        filePath: 'app/Http/Controllers/InvoiceController.php',
+        languageId: 'php',
+        content: phpContent,
+      },
     ]);
 
     const result = await propagateSurfaces(db, ctx);
@@ -444,7 +484,11 @@ describe('propagateSurfaces() — provider propagation (PHP content analysis)', 
     ].join('\n');
 
     const ctx = makeContext([
-      { filePath: 'app/Http/Controllers/InvoiceController.php', languageId: 'php', content: phpContent },
+      {
+        filePath: 'app/Http/Controllers/InvoiceController.php',
+        languageId: 'php',
+        content: phpContent,
+      },
     ]);
 
     const result = await propagateSurfaces(db, ctx);
@@ -478,7 +522,11 @@ describe('propagateSurfaces() — provider propagation (PHP content analysis)', 
     ].join('\n');
 
     const ctx = makeContext([
-      { filePath: 'app/Http/Controllers/InvoiceController.php', languageId: 'php', content: phpContent },
+      {
+        filePath: 'app/Http/Controllers/InvoiceController.php',
+        languageId: 'php',
+        content: phpContent,
+      },
     ]);
 
     const result = await propagateSurfaces(db, ctx);
@@ -488,7 +536,11 @@ describe('propagateSurfaces() — provider propagation (PHP content analysis)', 
 
     // The explicit FormRequest validates_with edge must still be present
     const edges = db.getRelatedEdgesWithEvidence(controllerNodeId);
-    expect(edges.some((e) => e.edge.edge_type === 'validates_with' && e.edge.target_node_id === requestNodeId)).toBe(true);
+    expect(
+      edges.some(
+        (e) => e.edge.edge_type === 'validates_with' && e.edge.target_node_id === requestNodeId
+      )
+    ).toBe(true);
   });
 
   it('does NOT emit validates_with for bare Request base class', async () => {
@@ -513,7 +565,11 @@ describe('propagateSurfaces() — provider propagation (PHP content analysis)', 
     ].join('\n');
 
     const ctx = makeContext([
-      { filePath: 'app/Http/Controllers/InvoiceController.php', languageId: 'php', content: phpContent },
+      {
+        filePath: 'app/Http/Controllers/InvoiceController.php',
+        languageId: 'php',
+        content: phpContent,
+      },
     ]);
 
     const result = await propagateSurfaces(db, ctx);
@@ -554,9 +610,7 @@ describe('propagateSurfaces() — provider propagation (PHP content analysis)', 
     ].join('\n');
 
     const lspData = {
-      typeHierarchy: [
-        { name: 'InvoiceResource', supertypes: [{ name: 'JsonResource' }] },
-      ],
+      typeHierarchy: [{ name: 'InvoiceResource', supertypes: [{ name: 'JsonResource' }] }],
     };
 
     const ctx = makeContext([
@@ -591,7 +645,10 @@ describe('propagateSurfaces() — provider propagation (PHP content analysis)', 
       language_id: 'http',
       file_path: 'routes/api.php',
       metadata: JSON.stringify({
-        transport: 'http', method: 'GET', path: '/event/{event}/messages', controllerMethod: 'index',
+        transport: 'http',
+        method: 'GET',
+        path: '/event/{event}/messages',
+        controllerMethod: 'index',
       }),
       updated_at: Math.floor(Date.now() / 1000),
     });
@@ -602,15 +659,30 @@ describe('propagateSurfaces() — provider propagation (PHP content analysis)', 
       language_id: 'http',
       file_path: 'routes/api.php',
       metadata: JSON.stringify({
-        transport: 'http', method: 'POST', path: '/event_messages', controllerMethod: 'store',
+        transport: 'http',
+        method: 'POST',
+        path: '/event_messages',
+        controllerMethod: 'store',
       }),
       updated_at: Math.floor(Date.now() / 1000),
     });
     upsertNode(db, providerId, 'symbol', 'app/Http/Controllers/EventMessageController.php');
     upsertNode(db, indexRequestId, 'symbol', 'app/Http/Requests/IndexEventMessageRequest.php');
     upsertNode(db, storeRequestId, 'symbol', 'app/Http/Requests/StoreEventMessageRequest.php');
-    upsertEdge(db, `${indexSurfaceId}→${providerId}:handled_by`, 'handled_by', indexSurfaceId, providerId);
-    upsertEdge(db, `${storeSurfaceId}→${providerId}:handled_by`, 'handled_by', storeSurfaceId, providerId);
+    upsertEdge(
+      db,
+      `${indexSurfaceId}→${providerId}:handled_by`,
+      'handled_by',
+      indexSurfaceId,
+      providerId
+    );
+    upsertEdge(
+      db,
+      `${storeSurfaceId}→${providerId}:handled_by`,
+      'handled_by',
+      storeSurfaceId,
+      providerId
+    );
 
     const phpContent = [
       '<?php',
@@ -653,10 +725,24 @@ describe('propagateSurfaces() — provider propagation (PHP content analysis)', 
       .map((e) => e.edge.target_node_id)
       .sort();
     expect(validateTargets).toEqual([indexRequestId, storeRequestId].sort());
-    expect(edges.some((e) => e.edge.id.includes(':index') && e.edge.target_node_id === indexRequestId)).toBe(true);
-    expect(edges.some((e) => e.edge.id.includes(':store') && e.edge.target_node_id === storeRequestId)).toBe(true);
-    expect(edges.some((e) => e.edge.id.includes(':index') && e.edge.target_node_id.includes('inline-json-response'))).toBe(true);
-    expect(edges.some((e) => e.edge.id.includes(':store') && e.edge.target_node_id.includes('inline-json-response'))).toBe(true);
+    expect(
+      edges.some((e) => e.edge.id.includes(':index') && e.edge.target_node_id === indexRequestId)
+    ).toBe(true);
+    expect(
+      edges.some((e) => e.edge.id.includes(':store') && e.edge.target_node_id === storeRequestId)
+    ).toBe(true);
+    expect(
+      edges.some(
+        (e) =>
+          e.edge.id.includes(':index') && e.edge.target_node_id.includes('inline-json-response')
+      )
+    ).toBe(true);
+    expect(
+      edges.some(
+        (e) =>
+          e.edge.id.includes(':store') && e.edge.target_node_id.includes('inline-json-response')
+      )
+    ).toBe(true);
   });
 
   it('keeps response resources method-scoped on shared controllers', async () => {
@@ -673,7 +759,10 @@ describe('propagateSurfaces() — provider propagation (PHP content analysis)', 
       language_id: 'http',
       file_path: 'routes/api.php',
       metadata: JSON.stringify({
-        transport: 'http', method: 'GET', path: '/api/settlements', controllerMethod: 'index',
+        transport: 'http',
+        method: 'GET',
+        path: '/api/settlements',
+        controllerMethod: 'index',
       }),
       updated_at: Math.floor(Date.now() / 1000),
     });
@@ -684,15 +773,30 @@ describe('propagateSurfaces() — provider propagation (PHP content analysis)', 
       language_id: 'http',
       file_path: 'routes/api.php',
       metadata: JSON.stringify({
-        transport: 'http', method: 'GET', path: '/api/settlements/{settlement}', controllerMethod: 'show',
+        transport: 'http',
+        method: 'GET',
+        path: '/api/settlements/{settlement}',
+        controllerMethod: 'show',
       }),
       updated_at: Math.floor(Date.now() / 1000),
     });
     upsertNode(db, providerId, 'symbol', 'app/Http/Controllers/SettlementController.php');
     upsertNode(db, indexResourceId, 'symbol', 'app/Http/Resources/SettlementIndexResource.php');
     upsertNode(db, showResourceId, 'symbol', 'app/Http/Resources/SettlementShowResource.php');
-    upsertEdge(db, `${indexSurfaceId}→${providerId}:handled_by`, 'handled_by', indexSurfaceId, providerId);
-    upsertEdge(db, `${showSurfaceId}→${providerId}:handled_by`, 'handled_by', showSurfaceId, providerId);
+    upsertEdge(
+      db,
+      `${indexSurfaceId}→${providerId}:handled_by`,
+      'handled_by',
+      indexSurfaceId,
+      providerId
+    );
+    upsertEdge(
+      db,
+      `${showSurfaceId}→${providerId}:handled_by`,
+      'handled_by',
+      showSurfaceId,
+      providerId
+    );
 
     const phpContent = [
       '<?php',
@@ -729,13 +833,22 @@ describe('propagateSurfaces() — provider propagation (PHP content analysis)', 
     // `show(Settlement $settlement)` typed parameter — total edges is 3.
     expect(result.providerEdgesAdded).toBe(3);
 
-    const edges = db.getRelatedEdgesWithEvidence(providerId)
+    const edges = db
+      .getRelatedEdgesWithEvidence(providerId)
       .filter((e) => e.edge.edge_type === 'returns_contract');
 
-    expect(edges.some((e) => e.edge.id.includes(':index') && e.edge.target_node_id === indexResourceId)).toBe(true);
-    expect(edges.some((e) => e.edge.id.includes(':index') && e.edge.target_node_id === showResourceId)).toBe(false);
-    expect(edges.some((e) => e.edge.id.includes(':show') && e.edge.target_node_id === showResourceId)).toBe(true);
-    expect(edges.some((e) => e.edge.id.includes(':show') && e.edge.target_node_id === indexResourceId)).toBe(false);
+    expect(
+      edges.some((e) => e.edge.id.includes(':index') && e.edge.target_node_id === indexResourceId)
+    ).toBe(true);
+    expect(
+      edges.some((e) => e.edge.id.includes(':index') && e.edge.target_node_id === showResourceId)
+    ).toBe(false);
+    expect(
+      edges.some((e) => e.edge.id.includes(':show') && e.edge.target_node_id === showResourceId)
+    ).toBe(true);
+    expect(
+      edges.some((e) => e.edge.id.includes(':show') && e.edge.target_node_id === indexResourceId)
+    ).toBe(false);
   });
 
   it('emits a synthetic validates_with contract for inline $request->validate() when no FormRequest exists', async () => {
@@ -749,7 +862,10 @@ describe('propagateSurfaces() — provider propagation (PHP content analysis)', 
       language_id: 'http',
       file_path: 'routes/admin.php',
       metadata: JSON.stringify({
-        transport: 'http', method: 'PUT', path: '/admin/update_sale_order', controllerMethod: 'updateSaleOrder',
+        transport: 'http',
+        method: 'PUT',
+        path: '/admin/update_sale_order',
+        controllerMethod: 'updateSaleOrder',
       }),
       updated_at: Math.floor(Date.now() / 1000),
     });
@@ -784,14 +900,20 @@ describe('propagateSurfaces() — provider propagation (PHP content analysis)', 
     // `return response('ok', 200)` — total edges is 2.
     expect(result.providerEdgesAdded).toBe(2);
 
-    const syntheticId = 'contract:php:app/Http/Controllers/ListingController.php#updateSaleOrder:inline-validator';
+    const syntheticId =
+      'contract:php:app/Http/Controllers/ListingController.php#updateSaleOrder:inline-validator';
     const syntheticNode = db.getStructuralNode(syntheticId);
     expect(syntheticNode).toBeDefined();
     expect(syntheticNode?.node_type).toBe('contract');
 
-    const edges = db.getRelatedEdgesWithEvidence(providerId)
+    const edges = db
+      .getRelatedEdgesWithEvidence(providerId)
       .filter((e) => e.edge.edge_type === 'validates_with');
-    expect(edges.some((e) => e.edge.id.includes(':updateSaleOrder') && e.edge.target_node_id === syntheticId)).toBe(true);
+    expect(
+      edges.some(
+        (e) => e.edge.id.includes(':updateSaleOrder') && e.edge.target_node_id === syntheticId
+      )
+    ).toBe(true);
   });
 
   it('emits a synthetic validates_with contract for inline validator() helper usage when no FormRequest exists', async () => {
@@ -805,11 +927,19 @@ describe('propagateSurfaces() — provider propagation (PHP content analysis)', 
       language_id: 'http',
       file_path: 'src/Module/BidRegistration/RouteServiceProvider.php',
       metadata: JSON.stringify({
-        transport: 'http', method: 'POST', path: '/api/events/registration-settings/{event}', controllerMethod: '__invoke',
+        transport: 'http',
+        method: 'POST',
+        path: '/api/events/registration-settings/{event}',
+        controllerMethod: '__invoke',
       }),
       updated_at: Math.floor(Date.now() / 1000),
     });
-    upsertNode(db, providerId, 'symbol', 'src/Module/BidRegistration/Http/Controllers/UpdateEventRegistrationSettingsController.php');
+    upsertNode(
+      db,
+      providerId,
+      'symbol',
+      'src/Module/BidRegistration/Http/Controllers/UpdateEventRegistrationSettingsController.php'
+    );
     upsertEdge(db, `${surfaceId}→${providerId}:handled_by`, 'handled_by', surfaceId, providerId);
 
     const phpContent = [
@@ -832,7 +962,8 @@ describe('propagateSurfaces() — provider propagation (PHP content analysis)', 
 
     const ctx = makeContext([
       {
-        filePath: 'src/Module/BidRegistration/Http/Controllers/UpdateEventRegistrationSettingsController.php',
+        filePath:
+          'src/Module/BidRegistration/Http/Controllers/UpdateEventRegistrationSettingsController.php',
         languageId: 'php',
         content: phpContent,
       },
@@ -841,14 +972,18 @@ describe('propagateSurfaces() — provider propagation (PHP content analysis)', 
     const result = await propagateSurfaces(db, ctx);
     expect(result.providerEdgesAdded).toBe(2);
 
-    const syntheticId = 'contract:php:src/Module/BidRegistration/Http/Controllers/UpdateEventRegistrationSettingsController.php#__invoke:inline-validator';
+    const syntheticId =
+      'contract:php:src/Module/BidRegistration/Http/Controllers/UpdateEventRegistrationSettingsController.php#__invoke:inline-validator';
     const syntheticNode = db.getStructuralNode(syntheticId);
     expect(syntheticNode).toBeDefined();
     expect(syntheticNode?.node_type).toBe('contract');
 
-    const edges = db.getRelatedEdgesWithEvidence(providerId)
+    const edges = db
+      .getRelatedEdgesWithEvidence(providerId)
       .filter((e) => e.edge.edge_type === 'validates_with');
-    expect(edges.some((e) => e.edge.id.includes(':__invoke') && e.edge.target_node_id === syntheticId)).toBe(true);
+    expect(
+      edges.some((e) => e.edge.id.includes(':__invoke') && e.edge.target_node_id === syntheticId)
+    ).toBe(true);
   });
 
   it('emits a synthetic returns_contract node for inline response()->json payloads when no resource exists', async () => {
@@ -862,7 +997,10 @@ describe('propagateSurfaces() — provider propagation (PHP content analysis)', 
       language_id: 'http',
       file_path: 'routes/api.php',
       metadata: JSON.stringify({
-        transport: 'http', method: 'GET', path: '/api/listings/{listing}', controllerMethod: 'show',
+        transport: 'http',
+        method: 'GET',
+        path: '/api/listings/{listing}',
+        controllerMethod: 'show',
       }),
       updated_at: Math.floor(Date.now() / 1000),
     });
@@ -900,15 +1038,21 @@ describe('propagateSurfaces() — provider propagation (PHP content analysis)', 
     // `Listing $listing` typed param — total edges is 2.
     expect(result.providerEdgesAdded).toBe(2);
 
-    const syntheticId = 'contract:php:app/Http/Controllers/QuickAdminListingController.php#show:inline-json-response';
+    const syntheticId =
+      'contract:php:app/Http/Controllers/QuickAdminListingController.php#show:inline-json-response';
     const syntheticNode = db.getStructuralNode(syntheticId);
     expect(syntheticNode).toBeDefined();
     expect(syntheticNode?.node_type).toBe('contract');
 
-    const edges = db.getRelatedEdgesWithEvidence(providerId)
+    const edges = db
+      .getRelatedEdgesWithEvidence(providerId)
       .filter((e) => e.edge.edge_type === 'returns_contract');
-    expect(edges.some((e) => e.edge.id.includes(':show') && e.edge.target_node_id === syntheticId)).toBe(true);
-    expect(edges.some((e) => e.edge.id.includes(':show') && e.edge.id.includes(':create'))).toBe(false);
+    expect(
+      edges.some((e) => e.edge.id.includes(':show') && e.edge.target_node_id === syntheticId)
+    ).toBe(true);
+    expect(edges.some((e) => e.edge.id.includes(':show') && e.edge.id.includes(':create'))).toBe(
+      false
+    );
   });
 });
 
@@ -919,8 +1063,13 @@ describe('propagateSurfaces() — provider propagation (PHP content analysis)', 
 describe('propagateSurfaces() — consumer propagation', () => {
   let db: LuxDatabase;
 
-  beforeEach(() => { db = makeDb(); });
-  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+  beforeEach(() => {
+    db = makeDb();
+  });
+  afterEach(() => {
+    db.close();
+    rmSync(testDir, { recursive: true, force: true });
+  });
 
   it('emits calls_surface edge when TS wrapper function references surface path', async () => {
     const surfaceId = 'surface:http:GET:/api/invoices';
@@ -932,7 +1081,7 @@ describe('propagateSurfaces() — consumer propagation', () => {
     const tsContent = [
       "import axios from 'axios';",
       '',
-      "export async function fetchInvoices(params: InvoiceParams) {",
+      'export async function fetchInvoices(params: InvoiceParams) {',
       "  return axios.get('/api/invoices', { params });",
       '}',
     ].join('\n');
@@ -957,7 +1106,7 @@ describe('propagateSurfaces() — consumer propagation', () => {
     upsertNode(db, wrapperNodeId, 'symbol', 'src/api/users.ts');
 
     const tsContent = [
-      "export const getUsers = async (page: number) => {",
+      'export const getUsers = async (page: number) => {',
       "  const response = await fetch('/api/users?page=' + page);",
       '  return response.json();',
       '};',
@@ -978,7 +1127,7 @@ describe('propagateSurfaces() — consumer propagation', () => {
     upsertSurface(db, surfaceId, '/api/invoices');
 
     const tsContent = [
-      "export async function fetchInvoices() {",
+      'export async function fetchInvoices() {',
       "  return fetch('/api/invoices');",
       '}',
     ].join('\n');
@@ -1041,11 +1190,9 @@ describe('propagateSurfaces() — consumer propagation', () => {
     upsertNode(db, wrapperNodeId, 'symbol', 'src/utils/paths.ts');
 
     // Function mentions the path but never calls fetch / axios / HTTP method
-    const tsContent = [
-      "export function invoicesPath() {",
-      "  return '/api/invoices';",
-      '}',
-    ].join('\n');
+    const tsContent = ['export function invoicesPath() {', "  return '/api/invoices';", '}'].join(
+      '\n'
+    );
 
     const ctx = makeContext([
       { filePath: 'src/utils/paths.ts', languageId: 'typescript', content: tsContent },
@@ -1093,7 +1240,7 @@ describe('propagateSurfaces() — consumer propagation', () => {
     upsertNode(db, wrapperNodeId, 'symbol', 'src/api/invoices.ts');
 
     const tsContent = [
-      "export async function fetchInvoice(id: number) {",
+      'export async function fetchInvoice(id: number) {',
       "  return fetch('/api/invoices/' + id);",
       '}',
     ].join('\n');
@@ -1128,7 +1275,8 @@ describe('propagateSurfaces() — consumer propagation', () => {
 
   it('does not emit calls_surface when transport method contradicts the surface method', async () => {
     const surfaceId = 'surface:http:POST:/api/events/registration-settings/{event}';
-    const fileNodeId = 'file:src/Module/BidRegistration/resources/js/components/BidRegistrationDialog/BidRegistrationDialog.vue';
+    const fileNodeId =
+      'file:src/Module/BidRegistration/resources/js/components/BidRegistrationDialog/BidRegistrationDialog.vue';
 
     db.upsertStructuralNode({
       id: surfaceId,
@@ -1143,11 +1291,17 @@ describe('propagateSurfaces() — consumer propagation', () => {
       }),
       updated_at: Math.floor(Date.now() / 1000),
     });
-    upsertNode(db, fileNodeId, 'file', 'src/Module/BidRegistration/resources/js/components/BidRegistrationDialog/BidRegistrationDialog.vue');
+    upsertNode(
+      db,
+      fileNodeId,
+      'file',
+      'src/Module/BidRegistration/resources/js/components/BidRegistrationDialog/BidRegistrationDialog.vue'
+    );
 
     const ctx = makeContext([
       {
-        filePath: 'src/Module/BidRegistration/resources/js/components/BidRegistrationDialog/BidRegistrationDialog.vue',
+        filePath:
+          'src/Module/BidRegistration/resources/js/components/BidRegistrationDialog/BidRegistrationDialog.vue',
         languageId: 'vue',
         content: [
           'async function fetchData(eventId) {',
@@ -1184,7 +1338,12 @@ describe('propagateSurfaces() — consumer propagation', () => {
       updated_at: Math.floor(Date.now() / 1000),
     });
     upsertNode(db, methodNodeId, 'symbol', 'resources/js/Shared/Sidebar/QuickAdd.vue');
-    upsertNode(db, 'file:resources/js/Shared/Sidebar/QuickAdd.vue', 'file', 'resources/js/Shared/Sidebar/QuickAdd.vue');
+    upsertNode(
+      db,
+      'file:resources/js/Shared/Sidebar/QuickAdd.vue',
+      'file',
+      'resources/js/Shared/Sidebar/QuickAdd.vue'
+    );
 
     const ctx = makeContext([
       {
@@ -1280,7 +1439,12 @@ describe('propagateSurfaces() — consumer propagation', () => {
       metadata: '{}',
       updated_at: Math.floor(Date.now() / 1000),
     });
-    upsertNode(db, 'file:resources/js/Shared/Admin/AdminMessageForm.vue', 'file', 'resources/js/Shared/Admin/AdminMessageForm.vue');
+    upsertNode(
+      db,
+      'file:resources/js/Shared/Admin/AdminMessageForm.vue',
+      'file',
+      'resources/js/Shared/Admin/AdminMessageForm.vue'
+    );
 
     const ctx = makeContext([
       {
@@ -1314,8 +1478,13 @@ describe('propagateSurfaces() — consumer propagation', () => {
 describe('propagateSurfaces() — artifact propagation', () => {
   let db: LuxDatabase;
 
-  beforeEach(() => { db = makeDb(); });
-  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+  beforeEach(() => {
+    db = makeDb();
+  });
+  afterEach(() => {
+    db.close();
+    rmSync(testDir, { recursive: true, force: true });
+  });
 
   it('emits derived_from edge for a generated openapi file referencing surface path', async () => {
     const surfaceId = 'surface:http:GET:/api/invoices';
@@ -1326,7 +1495,7 @@ describe('propagateSurfaces() — artifact propagation', () => {
 
     const artifactContent = [
       '// Auto-generated. Do not edit.',
-      "export function getApiInvoices(params: InvoiceParams): Promise<Invoice[]> {",
+      'export function getApiInvoices(params: InvoiceParams): Promise<Invoice[]> {',
       "  return request({ method: 'GET', path: '/api/invoices', params });",
       '}',
     ].join('\n');
@@ -1374,7 +1543,7 @@ describe('propagateSurfaces() — artifact propagation', () => {
     upsertSurface(db, surfaceId, '/api/invoices');
     upsertNode(db, fileNodeId, 'file', 'src/components/InvoiceList.tsx');
 
-    const content = "// References /api/invoices in a comment";
+    const content = '// References /api/invoices in a comment';
 
     const ctx = makeContext([
       { filePath: 'src/components/InvoiceList.tsx', languageId: 'typescript', content },
@@ -1390,7 +1559,7 @@ describe('propagateSurfaces() — artifact propagation', () => {
 
     upsertSurface(db, surfaceId, '/api/invoices');
 
-    const artifactContent = "// references /api/invoices";
+    const artifactContent = '// references /api/invoices';
 
     const ctx = makeContext([
       {
@@ -1411,7 +1580,7 @@ describe('propagateSurfaces() — artifact propagation', () => {
     upsertSurface(db, surfaceId, '/api/invoices');
     upsertNode(db, artifactNodeId, 'file', 'src/generated/openapi-client.ts');
 
-    const content = "// /api/invoices endpoint";
+    const content = '// /api/invoices endpoint';
     const ctx = makeContext([
       { filePath: 'src/generated/openapi-client.ts', languageId: 'typescript', content },
     ]);
@@ -1454,7 +1623,8 @@ describe('propagateSurfaces() — artifact propagation', () => {
     upsertSurface(db, surfaceId, '/api/invoices');
     upsertNode(db, fileNodeId, 'file', 'src/services/invoice-service.ts');
 
-    const content = "export class InvoiceService { async getAll() { return fetch('/api/invoices'); } }";
+    const content =
+      "export class InvoiceService { async getAll() { return fetch('/api/invoices'); } }";
 
     const ctx = makeContext([
       { filePath: 'src/services/invoice-service.ts', languageId: 'typescript', content },
@@ -1588,8 +1758,13 @@ describe('propagateSurfaces() — artifact propagation', () => {
 describe('propagateSurfaces() — result aggregation', () => {
   let db: LuxDatabase;
 
-  beforeEach(() => { db = makeDb(); });
-  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+  beforeEach(() => {
+    db = makeDb();
+  });
+  afterEach(() => {
+    db.close();
+    rmSync(testDir, { recursive: true, force: true });
+  });
 
   it('returns correct counts across all three pass types simultaneously', async () => {
     const surfaceId = 'surface:http:GET:/api/invoices';
@@ -1605,9 +1780,7 @@ describe('propagateSurfaces() — result aggregation', () => {
     upsertNode(db, artifactNodeId, 'file', 'src/generated/openapi-client.ts');
 
     const lspData = {
-      typeHierarchy: [
-        { name: 'ListInvoicesRequest', supertypes: [{ name: 'FormRequest' }] },
-      ],
+      typeHierarchy: [{ name: 'ListInvoicesRequest', supertypes: [{ name: 'FormRequest' }] }],
     };
 
     const ctx = makeContext([
@@ -1620,7 +1793,7 @@ describe('propagateSurfaces() — result aggregation', () => {
       {
         filePath: 'src/generated/openapi-client.ts',
         languageId: 'typescript',
-        content: "// generated: /api/invoices",
+        content: '// generated: /api/invoices',
       },
     ]);
 
@@ -1638,8 +1811,13 @@ describe('propagateSurfaces() — result aggregation', () => {
 describe('propagateSurfaces() — blade consumer propagation', () => {
   let db: LuxDatabase;
 
-  beforeEach(() => { db = makeDb(); });
-  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+  beforeEach(() => {
+    db = makeDb();
+  });
+  afterEach(() => {
+    db.close();
+    rmSync(testDir, { recursive: true, force: true });
+  });
 
   function upsertBladeFileNode(db: LuxDatabase, relPath: string): void {
     db.upsertStructuralNode({
@@ -1691,7 +1869,9 @@ describe('propagateSurfaces() — blade consumer propagation', () => {
     expect(result.consumerEdgesAdded).toBeGreaterThanOrEqual(1);
 
     const edges = db.getStructuralEdgesForNode(surfaceId);
-    const blade = edges.find((e) => e.source_node_id === 'file:resources/views/patients/index.blade.php');
+    const blade = edges.find(
+      (e) => e.source_node_id === 'file:resources/views/patients/index.blade.php'
+    );
     expect(blade).toBeDefined();
     expect(blade!.edge_type).toBe('calls_surface');
     expect(blade!.confidence).toBe(0.75);
@@ -1726,7 +1906,9 @@ describe('propagateSurfaces() — blade consumer propagation', () => {
     expect(result.consumerEdgesAdded).toBeGreaterThanOrEqual(1);
 
     const edges = db.getStructuralEdgesForNode(surfaceId);
-    const blade = edges.find((e) => e.source_node_id === 'file:resources/views/patients/create.blade.php');
+    const blade = edges.find(
+      (e) => e.source_node_id === 'file:resources/views/patients/create.blade.php'
+    );
     expect(blade).toBeDefined();
     expect(blade!.edge_type).toBe('calls_surface');
     expect(blade!.confidence).toBe(0.75);
@@ -1762,7 +1944,9 @@ describe('propagateSurfaces() — blade consumer propagation', () => {
     expect(result.consumerEdgesAdded).toBeGreaterThanOrEqual(1);
 
     const edges = db.getStructuralEdgesForNode(surfaceId);
-    const blade = edges.find((e) => e.source_node_id === 'file:resources/views/patients/create.blade.php');
+    const blade = edges.find(
+      (e) => e.source_node_id === 'file:resources/views/patients/create.blade.php'
+    );
     expect(blade).toBeDefined();
     expect(blade!.edge_type).toBe('calls_surface');
   });
@@ -1790,7 +1974,9 @@ describe('propagateSurfaces() — blade consumer propagation', () => {
     expect(result.consumerEdgesAdded).toBeGreaterThanOrEqual(1);
 
     const edges = db.getStructuralEdgesForNode(surfaceId);
-    const blade = edges.find((e) => e.source_node_id === 'file:resources/views/appointments/show.blade.php');
+    const blade = edges.find(
+      (e) => e.source_node_id === 'file:resources/views/appointments/show.blade.php'
+    );
     expect(blade).toBeDefined();
     expect(blade!.confidence).toBe(0.75);
     expect(blade!.provenance_summary).toContain('blade-transport-path-and-method-reference');
@@ -1815,7 +2001,9 @@ describe('propagateSurfaces() — blade consumer propagation', () => {
     expect(result.consumerEdgesAdded).toBeGreaterThanOrEqual(1);
 
     const edges = db.getStructuralEdgesForNode(surfaceId);
-    const blade = edges.find((e) => e.source_node_id === 'file:resources/views/dashboard.blade.php');
+    const blade = edges.find(
+      (e) => e.source_node_id === 'file:resources/views/dashboard.blade.php'
+    );
     expect(blade).toBeDefined();
     expect(blade!.confidence).toBe(0.75);
     expect(blade!.provenance_summary).toContain('blade-transport-route-and-method-reference');
@@ -1844,7 +2032,9 @@ describe('propagateSurfaces() — blade consumer propagation', () => {
     expect(result.consumerEdgesAdded).toBeGreaterThanOrEqual(1);
 
     const edges = db.getStructuralEdgesForNode(surfaceId);
-    const blade = edges.find((e) => e.source_node_id === 'file:resources/views/appointments/show.blade.php');
+    const blade = edges.find(
+      (e) => e.source_node_id === 'file:resources/views/appointments/show.blade.php'
+    );
     expect(blade).toBeDefined();
   });
 
@@ -1864,7 +2054,9 @@ describe('propagateSurfaces() — blade consumer propagation', () => {
 
     await propagateSurfaces(db, ctx);
     const edges = db.getStructuralEdgesForNode(surfaceId);
-    const blade = edges.find((e) => e.source_node_id === 'file:resources/views/patients/help.blade.php');
+    const blade = edges.find(
+      (e) => e.source_node_id === 'file:resources/views/patients/help.blade.php'
+    );
     expect(blade).toBeUndefined();
   });
 
@@ -1887,7 +2079,9 @@ describe('propagateSurfaces() — blade consumer propagation', () => {
     expect(result.consumerEdgesAdded).toBeGreaterThanOrEqual(1);
 
     const edges = db.getStructuralEdgesForNode(surfaceId);
-    const blade = edges.find((e) => e.source_node_id === 'file:resources/views/dashboard.blade.php');
+    const blade = edges.find(
+      (e) => e.source_node_id === 'file:resources/views/dashboard.blade.php'
+    );
     expect(blade).toBeDefined();
     expect(blade!.edge_type).toBe('calls_surface');
   });
@@ -1900,8 +2094,13 @@ describe('propagateSurfaces() — blade consumer propagation', () => {
 describe('coarse contract inference — response kinds', () => {
   let db: LuxDatabase;
 
-  beforeEach(() => { db = makeDb(); });
-  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+  beforeEach(() => {
+    db = makeDb();
+  });
+  afterEach(() => {
+    db.close();
+    rmSync(testDir, { recursive: true, force: true });
+  });
 
   /**
    * Helper: set up a surface with a controller node pointed at a PHP file,
@@ -1923,16 +2122,23 @@ describe('coarse contract inference — response kinds', () => {
       language_id: 'http',
       file_path: 'routes/web.php',
       metadata: JSON.stringify({
-        transport: 'http', method: httpMethod, path, controllerMethod,
+        transport: 'http',
+        method: httpMethod,
+        path,
+        controllerMethod,
       }),
       updated_at: Math.floor(Date.now() / 1000),
     });
     upsertNode(db, controllerNodeId, 'symbol', controllerFile);
-    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+    upsertEdge(
+      db,
+      `${surfaceId}→${controllerNodeId}:handled_by`,
+      'handled_by',
+      surfaceId,
+      controllerNodeId
+    );
 
-    const ctx = makeContext([
-      { filePath: controllerFile, languageId: 'php', content: phpContent },
-    ]);
+    const ctx = makeContext([{ filePath: controllerFile, languageId: 'php', content: phpContent }]);
     return { controllerNodeId, ctx };
   }
 
@@ -1949,18 +2155,18 @@ describe('coarse contract inference — response kinds', () => {
 
     const { controllerNodeId, ctx } = setupCoarseSurface(
       'surface:http:POST:/api/track',
-      'POST', '/api/track',
+      'POST',
+      '/api/track',
       'app/Http/Controllers/TrackController.php',
       'store',
-      phpContent,
+      phpContent
     );
 
     await propagateSurfaces(db, ctx);
 
     const edges = db.getRelatedEdgesWithEvidence(controllerNodeId);
-    const returnEdge = edges.find((e) =>
-      e.edge.edge_type === 'returns_contract' &&
-      e.edge.source_node_id === controllerNodeId
+    const returnEdge = edges.find(
+      (e) => e.edge.edge_type === 'returns_contract' && e.edge.source_node_id === controllerNodeId
     );
     expect(returnEdge).toBeDefined();
 
@@ -1986,18 +2192,18 @@ describe('coarse contract inference — response kinds', () => {
 
     const { controllerNodeId, ctx } = setupCoarseSurface(
       'surface:http:POST:/api/track_event',
-      'POST', '/api/track_event',
+      'POST',
+      '/api/track_event',
       'app/Http/Controllers/TrackController.php',
       'track',
-      phpContent,
+      phpContent
     );
 
     await propagateSurfaces(db, ctx);
 
     const edges = db.getRelatedEdgesWithEvidence(controllerNodeId);
-    const returnEdge = edges.find((e) =>
-      e.edge.edge_type === 'returns_contract' &&
-      e.edge.source_node_id === controllerNodeId
+    const returnEdge = edges.find(
+      (e) => e.edge.edge_type === 'returns_contract' && e.edge.source_node_id === controllerNodeId
     );
     expect(returnEdge).toBeDefined();
 
@@ -2021,18 +2227,18 @@ describe('coarse contract inference — response kinds', () => {
 
     const { controllerNodeId, ctx } = setupCoarseSurface(
       'surface:http:GET:/invoices',
-      'GET', '/invoices',
+      'GET',
+      '/invoices',
       'app/Http/Controllers/InvoiceController.php',
       'index',
-      phpContent,
+      phpContent
     );
 
     await propagateSurfaces(db, ctx);
 
     const edges = db.getRelatedEdgesWithEvidence(controllerNodeId);
-    const returnEdge = edges.find((e) =>
-      e.edge.edge_type === 'returns_contract' &&
-      e.edge.source_node_id === controllerNodeId
+    const returnEdge = edges.find(
+      (e) => e.edge.edge_type === 'returns_contract' && e.edge.source_node_id === controllerNodeId
     );
     expect(returnEdge).toBeDefined();
 
@@ -2057,10 +2263,11 @@ describe('coarse contract inference — response kinds', () => {
 
     const { controllerNodeId, ctx } = setupCoarseSurface(
       'surface:http:GET:/admin/dashboard',
-      'GET', '/admin/dashboard',
+      'GET',
+      '/admin/dashboard',
       'app/Http/Controllers/AdminController.php',
       'dashboard',
-      phpContent,
+      phpContent
     );
 
     await propagateSurfaces(db, ctx);
@@ -2086,10 +2293,11 @@ describe('coarse contract inference — response kinds', () => {
 
     const { controllerNodeId, ctx } = setupCoarseSurface(
       'surface:http:POST:/logout',
-      'POST', '/logout',
+      'POST',
+      '/logout',
       'app/Http/Controllers/AuthController.php',
       'logout',
-      phpContent,
+      phpContent
     );
 
     await propagateSurfaces(db, ctx);
@@ -2114,10 +2322,11 @@ describe('coarse contract inference — response kinds', () => {
 
     const { controllerNodeId, ctx } = setupCoarseSurface(
       'surface:http:GET:/ping',
-      'GET', '/ping',
+      'GET',
+      '/ping',
       'app/Http/Controllers/PingController.php',
       'ping',
-      phpContent,
+      phpContent
     );
 
     await propagateSurfaces(db, ctx);
@@ -2138,8 +2347,13 @@ describe('coarse contract inference — response kinds', () => {
 describe('coarse contract inference — request kinds', () => {
   let db: LuxDatabase;
 
-  beforeEach(() => { db = makeDb(); });
-  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+  beforeEach(() => {
+    db = makeDb();
+  });
+  afterEach(() => {
+    db.close();
+    rmSync(testDir, { recursive: true, force: true });
+  });
 
   function setupCoarseSurfacePost(
     surfaceId: string,
@@ -2155,12 +2369,21 @@ describe('coarse contract inference — request kinds', () => {
       language_id: 'http',
       file_path: 'routes/api.php',
       metadata: JSON.stringify({
-        transport: 'http', method: 'POST', path: '/api/items', controllerMethod,
+        transport: 'http',
+        method: 'POST',
+        path: '/api/items',
+        controllerMethod,
       }),
       updated_at: Math.floor(Date.now() / 1000),
     });
     upsertNode(db, controllerNodeId, 'symbol', controllerFile);
-    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+    upsertEdge(
+      db,
+      `${surfaceId}→${controllerNodeId}:handled_by`,
+      'handled_by',
+      surfaceId,
+      controllerNodeId
+    );
     return {
       controllerNodeId,
       ctx: makeContext([{ filePath: controllerFile, languageId: 'php', content: phpContent }]),
@@ -2181,7 +2404,7 @@ describe('coarse contract inference — request kinds', () => {
       'surface:http:POST:/api/items',
       'app/Http/Controllers/EventController.php',
       'show',
-      phpContent,
+      phpContent
     );
 
     await propagateSurfaces(db, ctx);
@@ -2216,7 +2439,7 @@ describe('coarse contract inference — request kinds', () => {
       'surface:http:POST:/api/items',
       'app/Http/Controllers/SearchController.php',
       'search',
-      phpContent,
+      phpContent
     );
 
     await propagateSurfaces(db, ctx);
@@ -2248,7 +2471,7 @@ describe('coarse contract inference — request kinds', () => {
       'surface:http:POST:/api/user-history',
       'app/Http/Controllers/UserHistoryController.php',
       'show',
-      phpContent,
+      phpContent
     );
 
     await propagateSurfaces(db, ctx);
@@ -2276,13 +2499,22 @@ describe('coarse contract inference — request kinds', () => {
       language_id: 'http',
       file_path: 'routes/api.php',
       metadata: JSON.stringify({
-        transport: 'http', method: 'POST', path: '/api/invoices', controllerMethod: 'store',
+        transport: 'http',
+        method: 'POST',
+        path: '/api/invoices',
+        controllerMethod: 'store',
       }),
       updated_at: Math.floor(Date.now() / 1000),
     });
     upsertNode(db, controllerNodeId, 'symbol', 'app/Http/Controllers/InvoiceController.php');
     upsertNode(db, requestNodeId, 'symbol', 'app/Http/Requests/StoreInvoiceRequest.php');
-    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+    upsertEdge(
+      db,
+      `${surfaceId}→${controllerNodeId}:handled_by`,
+      'handled_by',
+      surfaceId,
+      controllerNodeId
+    );
 
     const phpContent = [
       '<?php',
@@ -2296,7 +2528,11 @@ describe('coarse contract inference — request kinds', () => {
     ].join('\n');
 
     const ctx = makeContext([
-      { filePath: 'app/Http/Controllers/InvoiceController.php', languageId: 'php', content: phpContent },
+      {
+        filePath: 'app/Http/Controllers/InvoiceController.php',
+        languageId: 'php',
+        content: phpContent,
+      },
     ]);
 
     await propagateSurfaces(db, ctx);
@@ -2320,8 +2556,13 @@ describe('coarse contract inference — request kinds', () => {
 describe('coarse contract inference — sibling method isolation', () => {
   let db: LuxDatabase;
 
-  beforeEach(() => { db = makeDb(); });
-  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+  beforeEach(() => {
+    db = makeDb();
+  });
+  afterEach(() => {
+    db.close();
+    rmSync(testDir, { recursive: true, force: true });
+  });
 
   it('does not smear page-response evidence from one method to a sibling empty-ack method', async () => {
     // A mixed-style controller: index() renders a page, store() is a command.
@@ -2351,27 +2592,53 @@ describe('coarse contract inference — sibling method isolation', () => {
 
     // Index surface
     db.upsertStructuralNode({
-      id: indexSurfaceId, node_type: 'capability-surface',
-      symbol_name: 'GET /events', language_id: 'http', file_path: 'routes/web.php',
-      metadata: JSON.stringify({ transport: 'http', method: 'GET', path: '/events', controllerMethod: 'index' }),
+      id: indexSurfaceId,
+      node_type: 'capability-surface',
+      symbol_name: 'GET /events',
+      language_id: 'http',
+      file_path: 'routes/web.php',
+      metadata: JSON.stringify({
+        transport: 'http',
+        method: 'GET',
+        path: '/events',
+        controllerMethod: 'index',
+      }),
       updated_at: Math.floor(Date.now() / 1000),
     });
     upsertNode(db, controllerNodeIdIndex, 'symbol', controllerFile);
-    upsertEdge(db, `${indexSurfaceId}→${controllerNodeIdIndex}:handled_by`, 'handled_by', indexSurfaceId, controllerNodeIdIndex);
+    upsertEdge(
+      db,
+      `${indexSurfaceId}→${controllerNodeIdIndex}:handled_by`,
+      'handled_by',
+      indexSurfaceId,
+      controllerNodeIdIndex
+    );
 
     // Store surface
     db.upsertStructuralNode({
-      id: storeSurfaceId, node_type: 'capability-surface',
-      symbol_name: 'POST /events', language_id: 'http', file_path: 'routes/web.php',
-      metadata: JSON.stringify({ transport: 'http', method: 'POST', path: '/events', controllerMethod: 'store' }),
+      id: storeSurfaceId,
+      node_type: 'capability-surface',
+      symbol_name: 'POST /events',
+      language_id: 'http',
+      file_path: 'routes/web.php',
+      metadata: JSON.stringify({
+        transport: 'http',
+        method: 'POST',
+        path: '/events',
+        controllerMethod: 'store',
+      }),
       updated_at: Math.floor(Date.now() / 1000),
     });
     upsertNode(db, controllerNodeIdStore, 'symbol', controllerFile);
-    upsertEdge(db, `${storeSurfaceId}→${controllerNodeIdStore}:handled_by`, 'handled_by', storeSurfaceId, controllerNodeIdStore);
+    upsertEdge(
+      db,
+      `${storeSurfaceId}→${controllerNodeIdStore}:handled_by`,
+      'handled_by',
+      storeSurfaceId,
+      controllerNodeIdStore
+    );
 
-    const ctx = makeContext([
-      { filePath: controllerFile, languageId: 'php', content: phpContent },
-    ]);
+    const ctx = makeContext([{ filePath: controllerFile, languageId: 'php', content: phpContent }]);
 
     await propagateSurfaces(db, ctx);
 
@@ -2400,8 +2667,13 @@ describe('coarse contract inference — sibling method isolation', () => {
 describe('coarse contract inference — adapter-gated serialized response', () => {
   let db: LuxDatabase;
 
-  beforeEach(() => { db = makeDb(); });
-  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+  beforeEach(() => {
+    db = makeDb();
+  });
+  afterEach(() => {
+    db.close();
+    rmSync(testDir, { recursive: true, force: true });
+  });
 
   it('emits serialized-collection-response for Eloquent collection return in API controller path', async () => {
     const phpContent = [
@@ -2418,17 +2690,29 @@ describe('coarse contract inference — adapter-gated serialized response', () =
     const controllerFile = 'app/Http/Controllers/Api/JobController.php';
 
     db.upsertStructuralNode({
-      id: surfaceId, node_type: 'capability-surface',
-      symbol_name: 'GET /api/jobs', language_id: 'http', file_path: 'routes/api.php',
-      metadata: JSON.stringify({ transport: 'http', method: 'GET', path: '/api/jobs', controllerMethod: 'index' }),
+      id: surfaceId,
+      node_type: 'capability-surface',
+      symbol_name: 'GET /api/jobs',
+      language_id: 'http',
+      file_path: 'routes/api.php',
+      metadata: JSON.stringify({
+        transport: 'http',
+        method: 'GET',
+        path: '/api/jobs',
+        controllerMethod: 'index',
+      }),
       updated_at: Math.floor(Date.now() / 1000),
     });
     upsertNode(db, controllerNodeId, 'symbol', controllerFile);
-    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+    upsertEdge(
+      db,
+      `${surfaceId}→${controllerNodeId}:handled_by`,
+      'handled_by',
+      surfaceId,
+      controllerNodeId
+    );
 
-    const ctx = makeContext([
-      { filePath: controllerFile, languageId: 'php', content: phpContent },
-    ]);
+    const ctx = makeContext([{ filePath: controllerFile, languageId: 'php', content: phpContent }]);
 
     await propagateSurfaces(db, ctx);
 
@@ -2456,17 +2740,29 @@ describe('coarse contract inference — adapter-gated serialized response', () =
     const controllerFile = 'app/Http/Controllers/ReportController.php';
 
     db.upsertStructuralNode({
-      id: surfaceId, node_type: 'capability-surface',
-      symbol_name: 'GET /reports', language_id: 'http', file_path: 'routes/web.php',
-      metadata: JSON.stringify({ transport: 'http', method: 'GET', path: '/reports', controllerMethod: 'index' }),
+      id: surfaceId,
+      node_type: 'capability-surface',
+      symbol_name: 'GET /reports',
+      language_id: 'http',
+      file_path: 'routes/web.php',
+      metadata: JSON.stringify({
+        transport: 'http',
+        method: 'GET',
+        path: '/reports',
+        controllerMethod: 'index',
+      }),
       updated_at: Math.floor(Date.now() / 1000),
     });
     upsertNode(db, controllerNodeId, 'symbol', controllerFile);
-    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+    upsertEdge(
+      db,
+      `${surfaceId}→${controllerNodeId}:handled_by`,
+      'handled_by',
+      surfaceId,
+      controllerNodeId
+    );
 
-    const ctx = makeContext([
-      { filePath: controllerFile, languageId: 'php', content: phpContent },
-    ]);
+    const ctx = makeContext([{ filePath: controllerFile, languageId: 'php', content: phpContent }]);
 
     await propagateSurfaces(db, ctx);
 
@@ -2487,16 +2783,28 @@ describe('coarse contract inference — adapter-gated serialized response', () =
     const resourceNodeId = 'symbol:php:InvoiceResource';
 
     db.upsertStructuralNode({
-      id: surfaceId, node_type: 'capability-surface',
-      symbol_name: 'GET /api/invoices', language_id: 'http', file_path: 'routes/api.php',
+      id: surfaceId,
+      node_type: 'capability-surface',
+      symbol_name: 'GET /api/invoices',
+      language_id: 'http',
+      file_path: 'routes/api.php',
       metadata: JSON.stringify({
-        transport: 'http', method: 'GET', path: '/api/invoices', controllerMethod: 'index',
+        transport: 'http',
+        method: 'GET',
+        path: '/api/invoices',
+        controllerMethod: 'index',
       }),
       updated_at: Math.floor(Date.now() / 1000),
     });
     upsertNode(db, controllerNodeId, 'symbol', 'app/Http/Controllers/InvoiceController.php');
     upsertNode(db, resourceNodeId, 'symbol', 'app/Http/Resources/InvoiceResource.php');
-    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+    upsertEdge(
+      db,
+      `${surfaceId}→${controllerNodeId}:handled_by`,
+      'handled_by',
+      surfaceId,
+      controllerNodeId
+    );
 
     const phpContent = [
       '<?php',
@@ -2509,7 +2817,11 @@ describe('coarse contract inference — adapter-gated serialized response', () =
     ].join('\n');
 
     const ctx = makeContext([
-      { filePath: 'app/Http/Controllers/InvoiceController.php', languageId: 'php', content: phpContent },
+      {
+        filePath: 'app/Http/Controllers/InvoiceController.php',
+        languageId: 'php',
+        content: phpContent,
+      },
     ]);
 
     await propagateSurfaces(db, ctx);
@@ -2530,8 +2842,13 @@ describe('coarse contract inference — adapter-gated serialized response', () =
 describe('coarse contract inference — native-array-response, native-object-response, framework-null-coercion', () => {
   let db: LuxDatabase;
 
-  beforeEach(() => { db = makeDb(); });
-  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+  beforeEach(() => {
+    db = makeDb();
+  });
+  afterEach(() => {
+    db.close();
+    rmSync(testDir, { recursive: true, force: true });
+  });
 
   function setupSurface(
     surfaceId: string,
@@ -2541,13 +2858,27 @@ describe('coarse contract inference — native-array-response, native-object-res
   ): { controllerNodeId: string; ctx: AssociationContext } {
     const controllerNodeId = 'symbol:php:SomeController';
     db.upsertStructuralNode({
-      id: surfaceId, node_type: 'capability-surface',
-      symbol_name: 'GET /some', language_id: 'http', file_path: 'routes/web.php',
-      metadata: JSON.stringify({ transport: 'http', method: 'GET', path: '/some', controllerMethod }),
+      id: surfaceId,
+      node_type: 'capability-surface',
+      symbol_name: 'GET /some',
+      language_id: 'http',
+      file_path: 'routes/web.php',
+      metadata: JSON.stringify({
+        transport: 'http',
+        method: 'GET',
+        path: '/some',
+        controllerMethod,
+      }),
       updated_at: Math.floor(Date.now() / 1000),
     });
     upsertNode(db, controllerNodeId, 'symbol', controllerFile);
-    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+    upsertEdge(
+      db,
+      `${surfaceId}→${controllerNodeId}:handled_by`,
+      'handled_by',
+      surfaceId,
+      controllerNodeId
+    );
     return {
       controllerNodeId,
       ctx: makeContext([{ filePath: controllerFile, languageId: 'php', content: phpContent }]),
@@ -2568,7 +2899,7 @@ describe('coarse contract inference — native-array-response, native-object-res
       'surface:http:GET:/stats/summary',
       'app/Http/Controllers/StatsController.php',
       'summary',
-      phpContent,
+      phpContent
     );
 
     await propagateSurfaces(db, ctx);
@@ -2576,7 +2907,9 @@ describe('coarse contract inference — native-array-response, native-object-res
     const edges = db.getRelatedEdgesWithEvidence(controllerNodeId);
     const returnEdge = edges.find((e) => e.edge.edge_type === 'returns_contract');
     expect(returnEdge).toBeDefined();
-    const meta = JSON.parse(db.getStructuralNode(returnEdge!.edge.target_node_id)!.metadata ?? '{}');
+    const meta = JSON.parse(
+      db.getStructuralNode(returnEdge!.edge.target_node_id)!.metadata ?? '{}'
+    );
     expect(meta.contractKind).toBe('native-array-response');
     expect(meta.shapeConfidence).toBe('coarse');
     expect(meta.interactionKind).toBe('query');
@@ -2596,7 +2929,7 @@ describe('coarse contract inference — native-array-response, native-object-res
       'surface:http:GET:/legacy/data',
       'app/Http/Controllers/LegacyController.php',
       'data',
-      phpContent,
+      phpContent
     );
 
     await propagateSurfaces(db, ctx);
@@ -2604,7 +2937,9 @@ describe('coarse contract inference — native-array-response, native-object-res
     const edges = db.getRelatedEdgesWithEvidence(controllerNodeId);
     const returnEdge = edges.find((e) => e.edge.edge_type === 'returns_contract');
     expect(returnEdge).toBeDefined();
-    const meta = JSON.parse(db.getStructuralNode(returnEdge!.edge.target_node_id)!.metadata ?? '{}');
+    const meta = JSON.parse(
+      db.getStructuralNode(returnEdge!.edge.target_node_id)!.metadata ?? '{}'
+    );
     expect(meta.contractKind).toBe('native-array-response');
   });
 
@@ -2623,7 +2958,7 @@ describe('coarse contract inference — native-array-response, native-object-res
       'surface:http:GET:/profile/show',
       'app/Http/Controllers/ProfileController.php',
       'show',
-      phpContent,
+      phpContent
     );
 
     await propagateSurfaces(db, ctx);
@@ -2631,7 +2966,9 @@ describe('coarse contract inference — native-array-response, native-object-res
     const edges = db.getRelatedEdgesWithEvidence(controllerNodeId);
     const returnEdge = edges.find((e) => e.edge.edge_type === 'returns_contract');
     expect(returnEdge).toBeDefined();
-    const meta = JSON.parse(db.getStructuralNode(returnEdge!.edge.target_node_id)!.metadata ?? '{}');
+    const meta = JSON.parse(
+      db.getStructuralNode(returnEdge!.edge.target_node_id)!.metadata ?? '{}'
+    );
     expect(meta.contractKind).toBe('native-object-response');
     expect(meta.shapeConfidence).toBe('coarse');
     expect(meta.interactionKind).toBe('query');
@@ -2652,7 +2989,7 @@ describe('coarse contract inference — native-array-response, native-object-res
       'surface:http:POST:/token/issue',
       'app/Http/Controllers/TokenController.php',
       'issue',
-      phpContent,
+      phpContent
     );
 
     await propagateSurfaces(db, ctx);
@@ -2660,7 +2997,9 @@ describe('coarse contract inference — native-array-response, native-object-res
     const edges = db.getRelatedEdgesWithEvidence(controllerNodeId);
     const returnEdge = edges.find((e) => e.edge.edge_type === 'returns_contract');
     expect(returnEdge).toBeDefined();
-    const meta = JSON.parse(db.getStructuralNode(returnEdge!.edge.target_node_id)!.metadata ?? '{}');
+    const meta = JSON.parse(
+      db.getStructuralNode(returnEdge!.edge.target_node_id)!.metadata ?? '{}'
+    );
     expect(meta.contractKind).toBe('native-object-response');
   });
 
@@ -2682,7 +3021,7 @@ describe('coarse contract inference — native-array-response, native-object-res
       'surface:http:POST:/webhook/handle',
       'app/Http/Controllers/WebhookController.php',
       'handle',
-      phpContent,
+      phpContent
     );
 
     await propagateSurfaces(db, ctx);
@@ -2690,7 +3029,9 @@ describe('coarse contract inference — native-array-response, native-object-res
     const edges = db.getRelatedEdgesWithEvidence(controllerNodeId);
     const returnEdge = edges.find((e) => e.edge.edge_type === 'returns_contract');
     expect(returnEdge).toBeDefined();
-    const meta = JSON.parse(db.getStructuralNode(returnEdge!.edge.target_node_id)!.metadata ?? '{}');
+    const meta = JSON.parse(
+      db.getStructuralNode(returnEdge!.edge.target_node_id)!.metadata ?? '{}'
+    );
     expect(meta.contractKind).toBe('empty-ack');
     expect(meta.evidenceSubtype).toBe('framework-null-coercion');
     expect(meta.interactionKind).toBe('command');
@@ -2715,7 +3056,7 @@ describe('coarse contract inference — native-array-response, native-object-res
       'surface:http:GET:/search',
       'app/Http/Controllers/SearchController.php',
       'search',
-      phpContent,
+      phpContent
     );
 
     await propagateSurfaces(db, ctx);
@@ -2723,7 +3064,9 @@ describe('coarse contract inference — native-array-response, native-object-res
     const edges = db.getRelatedEdgesWithEvidence(controllerNodeId);
     const returnEdge = edges.find((e) => e.edge.edge_type === 'returns_contract');
     expect(returnEdge).toBeDefined();
-    const meta = JSON.parse(db.getStructuralNode(returnEdge!.edge.target_node_id)!.metadata ?? '{}');
+    const meta = JSON.parse(
+      db.getStructuralNode(returnEdge!.edge.target_node_id)!.metadata ?? '{}'
+    );
     // Empty array literal is still native-array-response, not empty-ack
     expect(meta.contractKind).toBe('native-array-response');
     expect(meta.contractKind).not.toBe('empty-ack');

@@ -119,20 +119,14 @@ export function addOverlayCommands(program: Command): void {
 
       if (surfaces.length === 0 && fileNodes.length === 0) {
         console.error('Error: No structural overlay found in database.');
-        console.error(
-          '  Run "lux index rebuild" to build the canonical overlay-complete index.'
-        );
+        console.error('  Run "lux index rebuild" to build the canonical overlay-complete index.');
         process.exit(1);
       }
 
       if (symbolNodes.length === 0) {
         console.error('Error: Overlay is degraded — no symbol nodes are present.');
-        console.error(
-          '  Provider propagation trust is reduced without symbol materialization.'
-        );
-        console.error(
-          '  Run "lux index rebuild" with LSP enrichment enabled.'
-        );
+        console.error('  Provider propagation trust is reduced without symbol materialization.');
+        console.error('  Run "lux index rebuild" with LSP enrichment enabled.');
         process.exit(1);
       }
 

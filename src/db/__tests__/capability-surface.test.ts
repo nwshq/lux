@@ -18,11 +18,7 @@ function now(): number {
   return Math.floor(Date.now() / 1000);
 }
 
-function makeSurfaceNode(
-  id: string,
-  handle: string,
-  filePath?: string
-): StructuralNode {
+function makeSurfaceNode(id: string, handle: string, filePath?: string): StructuralNode {
   const meta = {
     transport: 'http',
     method: handle.split(' ')[0],
@@ -71,7 +67,11 @@ describe('capability-surface node persistence', () => {
   });
 
   it('should persist a capability-surface node with node_type capability-surface', () => {
-    const node = makeSurfaceNode('surface:http:GET:/api/invoices', 'GET /api/invoices', 'routes/api.php');
+    const node = makeSurfaceNode(
+      'surface:http:GET:/api/invoices',
+      'GET /api/invoices',
+      'routes/api.php'
+    );
     db.upsertStructuralNode(node);
 
     const stored = db.getStructuralNode('surface:http:GET:/api/invoices');
@@ -107,7 +107,9 @@ describe('capability-surface node persistence', () => {
 
   it('should return all capability-surface nodes via getCapabilitySurfaces()', () => {
     db.upsertStructuralNode(makeSurfaceNode('surface:http:GET:/api/invoices', 'GET /api/invoices'));
-    db.upsertStructuralNode(makeSurfaceNode('surface:http:POST:/api/invoices', 'POST /api/invoices'));
+    db.upsertStructuralNode(
+      makeSurfaceNode('surface:http:POST:/api/invoices', 'POST /api/invoices')
+    );
     db.upsertStructuralNode(makeSurfaceNode('surface:http:GET:/api/users', 'GET /api/users'));
     // Also insert a non-surface node — should not appear
     db.upsertStructuralNode({
@@ -124,7 +126,9 @@ describe('capability-surface node persistence', () => {
 
   it('should find surfaces by handle prefix via searchSurfacesByHandle()', () => {
     db.upsertStructuralNode(makeSurfaceNode('surface:http:GET:/api/invoices', 'GET /api/invoices'));
-    db.upsertStructuralNode(makeSurfaceNode('surface:http:POST:/api/invoices', 'POST /api/invoices'));
+    db.upsertStructuralNode(
+      makeSurfaceNode('surface:http:POST:/api/invoices', 'POST /api/invoices')
+    );
     db.upsertStructuralNode(makeSurfaceNode('surface:http:GET:/api/users', 'GET /api/users'));
 
     const getResults = db.searchSurfacesByHandle('GET %');
@@ -146,8 +150,18 @@ describe('capability-surface node persistence', () => {
     const controllerSymId = 'symbol:php:App\\Http\\Controllers\\InvoiceController@index';
 
     db.upsertStructuralNode(makeSurfaceNode(surfaceId, 'GET /api/invoices', 'routes/api.php'));
-    db.upsertStructuralNode({ id: routeFileId, node_type: 'file', file_path: 'routes/api.php', updated_at: now() });
-    db.upsertStructuralNode({ id: controllerSymId, node_type: 'symbol', file_path: 'app/Http/Controllers/InvoiceController.php', updated_at: now() });
+    db.upsertStructuralNode({
+      id: routeFileId,
+      node_type: 'file',
+      file_path: 'routes/api.php',
+      updated_at: now(),
+    });
+    db.upsertStructuralNode({
+      id: controllerSymId,
+      node_type: 'symbol',
+      file_path: 'app/Http/Controllers/InvoiceController.php',
+      updated_at: now(),
+    });
 
     db.upsertStructuralEdge(makeEdge('e1', routeFileId, surfaceId, 'declares_surface'));
     db.upsertStructuralEdge(makeEdge('e2', surfaceId, controllerSymId, 'handled_by'));
@@ -167,7 +181,12 @@ describe('capability-surface node persistence', () => {
     const routeFileId = 'file:routes/api.php';
 
     db.upsertStructuralNode(makeSurfaceNode(surfaceId, 'GET /api/orders'));
-    db.upsertStructuralNode({ id: routeFileId, node_type: 'file', file_path: 'routes/api.php', updated_at: now() });
+    db.upsertStructuralNode({
+      id: routeFileId,
+      node_type: 'file',
+      file_path: 'routes/api.php',
+      updated_at: now(),
+    });
 
     expect(() => {
       db.upsertStructuralEdge(makeEdge('e-decl', routeFileId, surfaceId, 'declares_surface'));

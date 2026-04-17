@@ -499,7 +499,9 @@ export class LuxDatabase {
    * Retrieve all edges for a node plus their evidence in one call.
    * Combines getStructuralEdgesForNode() and getEdgeEvidence() per edge.
    */
-  getRelatedEdgesWithEvidence(nodeId: string): Array<{ edge: StructuralEdge; evidence: EdgeEvidence[] }> {
+  getRelatedEdgesWithEvidence(
+    nodeId: string
+  ): Array<{ edge: StructuralEdge; evidence: EdgeEvidence[] }> {
     const edges = this.getStructuralEdgesForNode(nodeId);
     return edges.map((edge) => ({
       edge,

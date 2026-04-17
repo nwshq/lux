@@ -784,7 +784,9 @@ describe('attachEnrichment', () => {
           kind: 5,
           uri: 'file:///app/Services/InvoiceService.php',
           startLine: 5,
-          supertypes: [{ name: 'BaseService', uri: 'file:///app/Services/BaseService.php', kind: 5 }],
+          supertypes: [
+            { name: 'BaseService', uri: 'file:///app/Services/BaseService.php', kind: 5 },
+          ],
           subtypes: [],
         },
       ],

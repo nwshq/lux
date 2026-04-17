@@ -6,7 +6,11 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdirSync, rmSync } from 'fs';
 import { join } from 'path';
 import { LuxDatabase } from '../../db/index.js';
-import { getStructuralContextForFile, enrichHitsWithOverlay, buildAugmentedQuery } from '../router.js';
+import {
+  getStructuralContextForFile,
+  enrichHitsWithOverlay,
+  buildAugmentedQuery,
+} from '../router.js';
 import type { FtsHit } from '../router.js';
 import type { StructuralNode, StructuralEdge, EdgeType } from '../../db/types.js';
 
@@ -154,9 +158,7 @@ describe('enrichHitsWithOverlay', () => {
   });
 
   it('should leave hits unchanged when no nodes exist in DB', () => {
-    const hits: FtsHit[] = [
-      { filePath: join(ROOT, 'src/app.ts'), rank: 0, content: 'code' },
-    ];
+    const hits: FtsHit[] = [{ filePath: join(ROOT, 'src/app.ts'), rank: 0, content: 'code' }];
 
     enrichHitsWithOverlay(hits, db, ROOT);
 
@@ -176,7 +178,8 @@ describe('buildAugmentedQuery with overlayContext', () => {
         rank: 0,
         content: 'export class App {}',
         title: 'src/app.ts',
-        overlayContext: 'Structural relations for file:src/app.ts:\n\n→ file:src/api.ts\n[calls_endpoint]',
+        overlayContext:
+          'Structural relations for file:src/app.ts:\n\n→ file:src/api.ts\n[calls_endpoint]',
       },
     ];
 

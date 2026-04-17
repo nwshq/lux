@@ -25,11 +25,7 @@ export {
   artifactNodeId,
 } from './types.js';
 
-export {
-  summarizeEdgeEvidence,
-  formatEdgeBlock,
-  annotateFreshness,
-} from './evidence.js';
+export { summarizeEdgeEvidence, formatEdgeBlock, annotateFreshness } from './evidence.js';
 export type { EdgeWithEvidence } from './evidence.js';
 
 export { createDefaultResolvers } from './framework/index.js';

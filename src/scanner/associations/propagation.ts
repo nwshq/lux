@@ -96,11 +96,7 @@ function runProviderPropagation(
     // Pass the controller method from surface metadata so PHP content
     // analysis can focus on the correct method body.
     const methodScope = inferControllerMethodScope(surfaceMeta.controllerMethod, controllerNodeId);
-    const candidates = findSymbolsLinkedToController(
-      controllerFilePath,
-      context,
-      methodScope
-    );
+    const candidates = findSymbolsLinkedToController(controllerFilePath, context, methodScope);
 
     const filledRoles = new Set<'request' | 'response'>();
 
@@ -119,7 +115,8 @@ function runProviderPropagation(
       }
       if (!resolved) continue;
 
-      const edgeType: EdgeType = candidate.role === 'request' ? 'validates_with' : 'returns_contract';
+      const edgeType: EdgeType =
+        candidate.role === 'request' ? 'validates_with' : 'returns_contract';
       const edgeId = `${controllerNodeId}→${resolved.nodeId}:${edgeType}:propagated${methodScope ? `:${methodScope}` : ''}`;
       const propEdge = {
         id: edgeId,
@@ -210,18 +207,16 @@ function runConsumerPropagation(
   const surfaceId = surface.id;
 
   const scriptEntries = context.entries.filter(
-    (e) =>
-      e.languageId === 'typescript'
-      || e.languageId === 'javascript'
-      || e.languageId === 'vue'
+    (e) => e.languageId === 'typescript' || e.languageId === 'javascript' || e.languageId === 'vue'
   );
 
   for (const entry of scriptEntries) {
     const content = (entry.metadata?.content as string | undefined) ?? '';
     if (!content) continue;
     if (
-      (searchPath && !content.includes(searchPath))
-      && (!meta.routeName || !content.includes(meta.routeName))
+      searchPath &&
+      !content.includes(searchPath) &&
+      (!meta.routeName || !content.includes(meta.routeName))
     ) {
       continue;
     }
@@ -342,7 +337,12 @@ function runBladeConsumerPropagation(
     const content = (entry.metadata?.content as string | undefined) ?? '';
     if (!content) continue;
 
-    const evidence = findBladeTransportEvidence(content, staticSkeleton, meta.routeName, meta.method);
+    const evidence = findBladeTransportEvidence(
+      content,
+      staticSkeleton,
+      meta.routeName,
+      meta.method
+    );
     if (!evidence) continue;
 
     const consumerNodeId = `file:${entry.filePath}`;
@@ -421,16 +421,14 @@ function findScriptTransportEvidence(
     const methodMatches = methodKnown;
     const confidence = methodMatches ? 0.75 : 0.65;
     const evidenceKind = routeMatched
-      ? (methodMatches
-          ? 'script-transport-route-and-method-reference'
-          : 'script-transport-route-reference')
-      : (methodMatches
-          ? 'script-transport-path-and-method-reference'
-          : 'script-transport-path-reference');
+      ? methodMatches
+        ? 'script-transport-route-and-method-reference'
+        : 'script-transport-route-reference'
+      : methodMatches
+        ? 'script-transport-path-and-method-reference'
+        : 'script-transport-path-reference';
 
-    const targetNote = routeMatched && routeName
-      ? `route(${routeName})`
-      : `path ${path}`;
+    const targetNote = routeMatched && routeName ? `route(${routeName})` : `path ${path}`;
     const line = lineNumberAt(content, matchIndex);
 
     matches.push({
@@ -469,7 +467,13 @@ function findScriptTransportEvidence(
     const window = content.slice(m.index, m.index + 500);
     const enrichedWindow = enrichScriptTransportWindow(content, window, m.index);
     const explicitMethod = extractTransportMethod(enrichedWindow);
-    recordMatch('fetch()', explicitMethod ?? 'GET', explicitMethod !== null, enrichedWindow, m.index);
+    recordMatch(
+      'fetch()',
+      explicitMethod ?? 'GET',
+      explicitMethod !== null,
+      enrichedWindow,
+      m.index
+    );
   }
 
   const AJAX_RE = /\$\s*\.\s*ajax\s*\(/g;
@@ -529,16 +533,14 @@ function findBladeTransportEvidence(
     const methodMatches = methodKnown;
     const confidence = methodMatches ? 0.75 : 0.65;
     const evidenceKind = routeMatched
-      ? (methodMatches
-          ? 'blade-transport-route-and-method-reference'
-          : 'blade-transport-route-reference')
-      : (methodMatches
-          ? 'blade-transport-path-and-method-reference'
-          : 'blade-transport-path-reference');
+      ? methodMatches
+        ? 'blade-transport-route-and-method-reference'
+        : 'blade-transport-route-reference'
+      : methodMatches
+        ? 'blade-transport-path-and-method-reference'
+        : 'blade-transport-path-reference';
 
-    const targetNote = routeMatched && routeName
-      ? `route(${routeName})`
-      : `path ${path}`;
+    const targetNote = routeMatched && routeName ? `route(${routeName})` : `path ${path}`;
     const line = lineNumberAt(content, matchIndex);
 
     matches.push({
@@ -591,7 +593,10 @@ function findBladeTransportEvidence(
 }
 
 function extractTransportMethod(expr: string): string | null {
-  const methodMatch = /(?:['"`](?:method|type)['"`]|method|type)\s*:\s*['"`](GET|POST|PUT|PATCH|DELETE)['"`]/i.exec(expr);
+  const methodMatch =
+    /(?:['"`](?:method|type)['"`]|method|type)\s*:\s*['"`](GET|POST|PUT|PATCH|DELETE)['"`]/i.exec(
+      expr
+    );
   return methodMatch ? methodMatch[1].toUpperCase() : null;
 }
 
@@ -618,7 +623,10 @@ function enrichScriptTransportWindow(content: string, window: string, matchIndex
 }
 
 function extractAjaxUrlExpression(expr: string): string | null {
-  const urlMatch = /(?:['"`]url['"`]|url)\s*:\s*([\s\S]{0,300}?)(?=,\s*(?:['"`][A-Za-z_][A-Za-z0-9_]*['"`]|[A-Za-z_][A-Za-z0-9_]*)\s*:|}\s*\)|\)\s*;|$)/.exec(expr);
+  const urlMatch =
+    /(?:['"`]url['"`]|url)\s*:\s*([\s\S]{0,300}?)(?=,\s*(?:['"`][A-Za-z_][A-Za-z0-9_]*['"`]|[A-Za-z_][A-Za-z0-9_]*)\s*:|}\s*\)|\)\s*;|$)/.exec(
+      expr
+    );
   return urlMatch ? urlMatch[1] : null;
 }
 
@@ -630,7 +638,9 @@ function matchesRouteExpression(expr: string, routeName: string): boolean {
 
 function matchesPathExpression(expr: string, surfaceSegments: string[]): boolean {
   const candidates = extractComparablePathCandidates(expr);
-  return candidates.some((candidate) => arraysEqual(toComparablePathSegments(candidate), surfaceSegments));
+  return candidates.some((candidate) =>
+    arraysEqual(toComparablePathSegments(candidate), surfaceSegments)
+  );
 }
 
 function extractComparablePathCandidates(expr: string): string[] {
@@ -820,16 +830,26 @@ function findSymbolsLinkedToController(
   const lspCandidates: SymbolWithRole[] = [];
 
   // ── Path 1: LSP type hierarchy ──────────────────────────────────────────────
-  const lsp = (entry.metadata?.lsp as Record<string, unknown> | undefined);
+  const lsp = entry.metadata?.lsp as Record<string, unknown> | undefined;
   if (lsp) {
-    const typeHierarchy = (lsp.typeHierarchy as Array<{ name: string; supertypes?: Array<{ name: string }> }> | undefined);
+    const typeHierarchy = lsp.typeHierarchy as
+      | Array<{ name: string; supertypes?: Array<{ name: string }> }>
+      | undefined;
     if (typeHierarchy) {
       for (const sym of typeHierarchy) {
         const supers = sym.supertypes?.map((s) => s.name) ?? [];
         if (supers.some((s) => s.includes('FormRequest'))) {
-          lspCandidates.push({ qualifiedName: sym.name, role: 'request', evidenceKind: 'lsp-type-hierarchy' });
+          lspCandidates.push({
+            qualifiedName: sym.name,
+            role: 'request',
+            evidenceKind: 'lsp-type-hierarchy',
+          });
         } else if (supers.some((s) => s.includes('JsonResource') || s.includes('Resource'))) {
-          lspCandidates.push({ qualifiedName: sym.name, role: 'response', evidenceKind: 'lsp-type-hierarchy' });
+          lspCandidates.push({
+            qualifiedName: sym.name,
+            role: 'response',
+            evidenceKind: 'lsp-type-hierarchy',
+          });
         }
       }
     }
@@ -840,9 +860,7 @@ function findSymbolsLinkedToController(
   if (content) {
     // Scope analysis to the named method body when known, to avoid picking up
     // typed parameters or return expressions from unrelated sibling methods.
-    const scope = controllerMethod
-      ? extractMethodBody(content, controllerMethod)
-      : content;
+    const scope = controllerMethod ? extractMethodBody(content, controllerMethod) : content;
 
     const phpCandidates = findSymbolsViaPhpContent(scope);
     for (const candidate of phpCandidates) {
@@ -932,7 +950,7 @@ function findNextUnquotedBrace(content: string, fromIndex: number): number {
       continue;
     }
     if (inSingle) {
-      if (ch === '\'' && prev !== '\\') inSingle = false;
+      if (ch === "'" && prev !== '\\') inSingle = false;
       continue;
     }
     if (inDouble) {
@@ -954,7 +972,7 @@ function findNextUnquotedBrace(content: string, fromIndex: number): number {
       inLineComment = true;
       continue;
     }
-    if (ch === '\'') {
+    if (ch === "'") {
       inSingle = true;
       continue;
     }
@@ -989,7 +1007,7 @@ function findMatchingPhpBrace(content: string, openBrace: number): number {
       continue;
     }
     if (inSingle) {
-      if (ch === '\'' && prev !== '\\') inSingle = false;
+      if (ch === "'" && prev !== '\\') inSingle = false;
       continue;
     }
     if (inDouble) {
@@ -1011,7 +1029,7 @@ function findMatchingPhpBrace(content: string, openBrace: number): number {
       inLineComment = true;
       continue;
     }
-    if (ch === '\'') {
+    if (ch === "'") {
       inSingle = true;
       continue;
     }
@@ -1091,7 +1109,11 @@ function findSymbolsViaPhpContent(content: string): SymbolWithRole[] {
     importMap.set(short, qualified);
   }
 
-  const addCandidate = (shortName: string, role: SymbolWithRole['role'], evidenceKind: string): void => {
+  const addCandidate = (
+    shortName: string,
+    role: SymbolWithRole['role'],
+    evidenceKind: string
+  ): void => {
     const qualifiedName = importMap.get(shortName) ?? shortName;
     if (!results.some((r) => r.qualifiedName === qualifiedName)) {
       results.push({ qualifiedName, role, evidenceKind });
@@ -1114,7 +1136,8 @@ function findSymbolsViaPhpContent(content: string): SymbolWithRole[] {
   }
 
   // Static factory calls: XResource::collection(...) / XResource::make(...) / XResource::from(...)
-  const staticFactoryRe = /([A-Z][A-Za-z0-9_]*(?:Resource|Response|DTO|Dto|Contract))::(?:collection|make|from)\s*\(/g;
+  const staticFactoryRe =
+    /([A-Z][A-Za-z0-9_]*(?:Resource|Response|DTO|Dto|Contract))::(?:collection|make|from)\s*\(/g;
   while ((m = staticFactoryRe.exec(content)) !== null) {
     addCandidate(m[1], 'response', 'php-static-factory');
   }
@@ -1133,10 +1156,11 @@ function findInlineContractsViaPhpContent(
   const now = Math.floor(Date.now() / 1000);
 
   if (!explicitRoles.has('request')) {
-    const hasInlineValidator = /\$request->validate\s*\(\s*\[/.test(content)
-      || /\bValidator::make\s*\(/.test(content)
+    const hasInlineValidator =
+      /\$request->validate\s*\(\s*\[/.test(content) ||
+      /\bValidator::make\s*\(/.test(content) ||
       // Laravel global helper: validator($data, [ ... ])
-      || /\bvalidator\s*\(\s*[\s\S]*?,\s*\[/.test(content);
+      /\bvalidator\s*\(\s*[\s\S]*?,\s*\[/.test(content);
 
     if (hasInlineValidator) {
       const node = buildInlineContractNode(
@@ -1157,11 +1181,13 @@ function findInlineContractsViaPhpContent(
   }
 
   if (!explicitRoles.has('response')) {
-    const hasDirectJsonArray = /\breturn\s+response(?:\(\))?->json\s*\(\s*\[/.test(content)
-      || /\breturn\s+response\s*\(\s*\[/.test(content);
-    const hasVariableJsonResponse = /\breturn\s+response(?:\(\))?->json\s*\(\s*\$[A-Za-z_][A-Za-z0-9_]*/.test(content)
-      && (/\$[A-Za-z_][A-Za-z0-9_]*\s*=\s*\[/.test(content)
-        || /\$[A-Za-z_][A-Za-z0-9_]*\s*=.*->toArray\s*\(/s.test(content));
+    const hasDirectJsonArray =
+      /\breturn\s+response(?:\(\))?->json\s*\(\s*\[/.test(content) ||
+      /\breturn\s+response\s*\(\s*\[/.test(content);
+    const hasVariableJsonResponse =
+      /\breturn\s+response(?:\(\))?->json\s*\(\s*\$[A-Za-z_][A-Za-z0-9_]*/.test(content) &&
+      (/\$[A-Za-z_][A-Za-z0-9_]*\s*=\s*\[/.test(content) ||
+        /\$[A-Za-z_][A-Za-z0-9_]*\s*=.*->toArray\s*\(/s.test(content));
 
     if (hasDirectJsonArray || hasVariableJsonResponse) {
       const node = buildInlineContractNode(
@@ -1384,7 +1410,9 @@ function inferCoarseResponseKind(content: string): {
   // or constructor call in the same scope.
   if (
     /\breturn\s+\$[a-z][A-Za-z0-9_]*\s*;/.test(content) &&
-    /\$[a-z][A-Za-z0-9_]*\s*=\s*(?:new\s+[A-Z]|\$[a-z][A-Za-z0-9_]*->|[A-Z][A-Za-z0-9_]*::)/.test(content)
+    /\$[a-z][A-Za-z0-9_]*\s*=\s*(?:new\s+[A-Z]|\$[a-z][A-Za-z0-9_]*->|[A-Z][A-Za-z0-9_]*::)/.test(
+      content
+    )
   ) {
     return {
       contractKind: 'native-object-response',
@@ -1418,9 +1446,10 @@ function inferCoarseResponseKind(content: string): {
 
   // 9. empty-ack / implicit-fallthrough: side-effecting pattern with no return
   const hasExplicitReturn = /\breturn\b/.test(content);
-  const hasSideEffect = (
-    /\b(?:save|create|update|delete|dispatch|fire|event|push|store|attach|detach|sync)\s*\(/.test(content)
-  );
+  const hasSideEffect =
+    /\b(?:save|create|update|delete|dispatch|fire|event|push|store|attach|detach|sync)\s*\(/.test(
+      content
+    );
   if (!hasExplicitReturn && hasSideEffect) {
     return {
       contractKind: 'empty-ack',
@@ -1469,7 +1498,8 @@ function inferCoarseRequestKind(content: string): {
 
   // Implicit input shape: request helpers plus Laravel's magic property access.
   const inputSignals = new Set<string>();
-  const inputFieldRe = /\$request\s*->\s*(?:input|get|query|has|filled|missing|boolean)\s*\(\s*['"]([^'"]+)['"]/g;
+  const inputFieldRe =
+    /\$request\s*->\s*(?:input|get|query|has|filled|missing|boolean)\s*\(\s*['"]([^'"]+)['"]/g;
   while ((m = inputFieldRe.exec(content)) !== null) {
     inputSignals.add(m[1]);
   }
@@ -1515,9 +1545,10 @@ function inferAdapterBackedResponseKind(
 
   // Only emit when there is a direct return of a model or model collection.
   // Match both static class calls (Model::all()) and variable calls ($model->all()).
-  const collectionPattern = (
-    /\breturn\s+(?:\$[a-z][A-Za-z0-9_]*|[A-Z][A-Za-z0-9_]*)(?:->|::)(?:all|paginate|get|latest|oldest)\s*\(/.test(content)
-  );
+  const collectionPattern =
+    /\breturn\s+(?:\$[a-z][A-Za-z0-9_]*|[A-Z][A-Za-z0-9_]*)(?:->|::)(?:all|paginate|get|latest|oldest)\s*\(/.test(
+      content
+    );
   if (collectionPattern) {
     return {
       contractKind: 'serialized-collection-response',
@@ -1525,10 +1556,9 @@ function inferAdapterBackedResponseKind(
     };
   }
 
-  const modelPattern = (
+  const modelPattern =
     /\breturn\s+\$[a-z][A-Za-z0-9_]*;/.test(content) &&
-    /\b(?:find|firstOrFail|findOrFail|create|updateOrCreate|firstOrCreate)\s*\(/.test(content)
-  );
+    /\b(?:find|firstOrFail|findOrFail|create|updateOrCreate|firstOrCreate)\s*\(/.test(content);
   if (modelPattern) {
     return {
       contractKind: 'serialized-model-response',
@@ -1546,8 +1576,10 @@ function interactionKindFromResponseKind(
   contractKind: TransportContractMetadata['contractKind']
 ): TransportContractMetadata['interactionKind'] | undefined {
   switch (contractKind) {
-    case 'page-response': return 'page';
-    case 'redirect-response': return 'redirect';
+    case 'page-response':
+      return 'page';
+    case 'redirect-response':
+      return 'redirect';
     case 'inline-json':
     case 'native-array-response':
     case 'native-object-response':
@@ -1557,8 +1589,10 @@ function interactionKindFromResponseKind(
     case 'empty-ack':
     case 'scalar-response':
       return 'command';
-    case 'file-response': return 'stream';
-    default: return undefined;
+    case 'file-response':
+      return 'stream';
+    default:
+      return undefined;
   }
 }
 
@@ -1592,9 +1626,10 @@ function runCoarseContractInference(
     const requestInference = inferCoarseRequestKind(methodBody);
     if (requestInference) {
       const { contractKind, boundParams, inputSignals } = requestInference;
-      const label = contractKind === 'route-bound-input'
-        ? `${methodScope} route-bound input`
-        : `${methodScope} implicit input shape`;
+      const label =
+        contractKind === 'route-bound-input'
+          ? `${methodScope} route-bound input`
+          : `${methodScope} implicit input shape`;
 
       const node = buildCoarseContractNode(
         controllerFilePath,
@@ -1611,25 +1646,29 @@ function runCoarseContractInference(
       db.upsertStructuralNode(node);
 
       const edgeId = `${controllerNodeId}→${node.id}:validates_with:coarse`;
-      AssociationEngine.persistEdges(db, [{
-        id: edgeId,
-        edgeType: 'validates_with',
-        sourceNodeId: controllerNodeId,
-        targetNodeId: node.id,
-        sourceLanguage: 'php',
-        targetLanguage: 'php',
-        confidence: contractKind === 'route-bound-input' ? 0.7 : 0.6,
-        confidenceClass: 'framework-inferred',
-        provenance: {
-          resolver: 'propagation:provider:coarse',
-          evidenceKind: `coarse-${contractKind}`,
-          evidenceLocations: [{
-            filePath: controllerFilePath,
-            note: `${contractKind} [method:${methodScope}]`,
-          }],
-          extractedAt: now,
+      AssociationEngine.persistEdges(db, [
+        {
+          id: edgeId,
+          edgeType: 'validates_with',
+          sourceNodeId: controllerNodeId,
+          targetNodeId: node.id,
+          sourceLanguage: 'php',
+          targetLanguage: 'php',
+          confidence: contractKind === 'route-bound-input' ? 0.7 : 0.6,
+          confidenceClass: 'framework-inferred',
+          provenance: {
+            resolver: 'propagation:provider:coarse',
+            evidenceKind: `coarse-${contractKind}`,
+            evidenceLocations: [
+              {
+                filePath: controllerFilePath,
+                note: `${contractKind} [method:${methodScope}]`,
+              },
+            ],
+            extractedAt: now,
+          },
         },
-      }]);
+      ]);
       added++;
     }
   }
@@ -1645,9 +1684,9 @@ function runCoarseContractInference(
       if (!contractKind) return added;
 
       const label = `${methodScope} ${contractKind}`;
-      const interactionKind = (
-        'interactionKind' in coarseKind ? coarseKind.interactionKind : undefined
-      ) ?? interactionKindFromResponseKind(contractKind);
+      const interactionKind =
+        ('interactionKind' in coarseKind ? coarseKind.interactionKind : undefined) ??
+        interactionKindFromResponseKind(contractKind);
 
       const node = buildCoarseContractNode(
         controllerFilePath,
@@ -1676,27 +1715,31 @@ function runCoarseContractInference(
 
       const isAdapterBacked = adapterBacked !== null;
       const edgeId = `${controllerNodeId}→${node.id}:returns_contract:coarse`;
-      AssociationEngine.persistEdges(db, [{
-        id: edgeId,
-        edgeType: 'returns_contract',
-        sourceNodeId: controllerNodeId,
-        targetNodeId: node.id,
-        sourceLanguage: 'php',
-        targetLanguage: 'php',
-        confidence: isAdapterBacked ? 0.7 : 0.6,
-        confidenceClass: 'framework-inferred',
-        provenance: {
-          resolver: 'propagation:provider:coarse',
-          evidenceKind: isAdapterBacked
-            ? `adapter-backed-${contractKind}`
-            : `coarse-${contractKind}`,
-          evidenceLocations: [{
-            filePath: controllerFilePath,
-            note: `${contractKind} [method:${methodScope}]`,
-          }],
-          extractedAt: now,
+      AssociationEngine.persistEdges(db, [
+        {
+          id: edgeId,
+          edgeType: 'returns_contract',
+          sourceNodeId: controllerNodeId,
+          targetNodeId: node.id,
+          sourceLanguage: 'php',
+          targetLanguage: 'php',
+          confidence: isAdapterBacked ? 0.7 : 0.6,
+          confidenceClass: 'framework-inferred',
+          provenance: {
+            resolver: 'propagation:provider:coarse',
+            evidenceKind: isAdapterBacked
+              ? `adapter-backed-${contractKind}`
+              : `coarse-${contractKind}`,
+            evidenceLocations: [
+              {
+                filePath: controllerFilePath,
+                note: `${contractKind} [method:${methodScope}]`,
+              },
+            ],
+            extractedAt: now,
+          },
         },
-      }]);
+      ]);
       added++;
     }
   }
@@ -1731,14 +1774,20 @@ function resolveConsumerSymbolNode(
   }
 
   const fileNodes = db.getStructuralNodesByFilePath(filePath);
-  const exactByName = fileNodes.find((node) => node.node_type === 'symbol' && node.symbol_name === candidateName);
+  const exactByName = fileNodes.find(
+    (node) => node.node_type === 'symbol' && node.symbol_name === candidateName
+  );
   if (exactByName) return exactByName;
 
-  const exactByQualified = fileNodes.find((node) => node.node_type === 'symbol' && node.qualified_name === candidateName);
+  const exactByQualified = fileNodes.find(
+    (node) => node.node_type === 'symbol' && node.qualified_name === candidateName
+  );
   if (exactByQualified) return exactByQualified;
 
   const suffix = `#${candidateName}`;
-  const byIdSuffix = fileNodes.find((node) => node.node_type === 'symbol' && node.id.endsWith(suffix));
+  const byIdSuffix = fileNodes.find(
+    (node) => node.node_type === 'symbol' && node.id.endsWith(suffix)
+  );
   if (byIdSuffix) return byIdSuffix;
 
   return null;
@@ -1766,17 +1815,22 @@ function extractConsumerCandidates(lines: string[], evidenceLine: number): Consu
     const fnMatch = /(?:export\s+)?(?:async\s+)?function\s+([A-Za-z_$][A-Za-z0-9_$]*)/.exec(line);
     if (fnMatch) record(fnMatch[1], j);
 
-    const arrowMatch = /(?:export\s+)?const\s+([A-Za-z_$][A-Za-z0-9_$]*)\s*=\s*(?:async\s*)?(?:\([^)]*\)|[A-Za-z_$][A-Za-z0-9_$]*)\s*=>/.exec(line);
+    const arrowMatch =
+      /(?:export\s+)?const\s+([A-Za-z_$][A-Za-z0-9_$]*)\s*=\s*(?:async\s*)?(?:\([^)]*\)|[A-Za-z_$][A-Za-z0-9_$]*)\s*=>/.exec(
+        line
+      );
     if (arrowMatch) record(arrowMatch[1], j);
 
-    const methodMatch = /^\s*(?:async\s+)?([A-Za-z_$][A-Za-z0-9_$]*)\s*\([^)]*\)\s*\{?\s*,?\s*$/.exec(line);
+    const methodMatch =
+      /^\s*(?:async\s+)?([A-Za-z_$][A-Za-z0-9_$]*)\s*\([^)]*\)\s*\{?\s*,?\s*$/.exec(line);
     if (methodMatch && !isControlKeyword(methodMatch[1])) record(methodMatch[1], j);
 
     if (results.length >= 4) break;
   }
 
   for (let j = evidenceLine + 1; j <= maxLine; j++) {
-    const methodMatch = /^\s*(?:async\s+)?([A-Za-z_$][A-Za-z0-9_$]*)\s*\([^)]*\)\s*\{?\s*,?\s*$/.exec(lines[j]);
+    const methodMatch =
+      /^\s*(?:async\s+)?([A-Za-z_$][A-Za-z0-9_$]*)\s*\([^)]*\)\s*\{?\s*,?\s*$/.exec(lines[j]);
     if (methodMatch && !isControlKeyword(methodMatch[1])) {
       record(methodMatch[1], j);
       break;
@@ -1802,7 +1856,11 @@ function isControlKeyword(name: string): boolean {
  * - handwritten-wrapper: manually written transport wrapper — consumer-side
  * - ordinary-service: general utility/service with no artifact evidence
  */
-export type ArtifactRole = 'generated-client' | 'schema-derived' | 'handwritten-wrapper' | 'ordinary-service';
+export type ArtifactRole =
+  | 'generated-client'
+  | 'schema-derived'
+  | 'handwritten-wrapper'
+  | 'ordinary-service';
 
 /** Matches generation markers in file headers (first ~1 000 chars). */
 const GENERATION_HEADER_RE =
@@ -1859,8 +1917,7 @@ export function classifyArtifactRole(filePath: string, content: string): Artifac
 
   // Signal 3: OpenAPI / Swagger artifact — strong schema-derivation cue
   const isOpenApiNaming = lower.includes('openapi') || lower.includes('swagger');
-  const isInWrapperDir =
-    /\/api\/|\/services\/|\/hooks\//.test(lower) || lower.includes('use-');
+  const isInWrapperDir = /\/api\/|\/services\/|\/hooks\//.test(lower) || lower.includes('use-');
 
   if (isOpenApiNaming && !isInWrapperDir) {
     return 'schema-derived';

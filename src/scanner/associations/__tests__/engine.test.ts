@@ -44,7 +44,9 @@ function makeEdge(overrides: Partial<StructuralRelationEdge> = {}): StructuralRe
     provenance: {
       resolver: 'test-resolver',
       evidenceKind: 'test-match',
-      evidenceLocations: [{ filePath: 'resources/js/pages/Invoice.tsx', line: 10, note: 'GET /api/invoices' }],
+      evidenceLocations: [
+        { filePath: 'resources/js/pages/Invoice.tsx', line: 10, note: 'GET /api/invoices' },
+      ],
       extractedAt: now(),
     },
     ...overrides,

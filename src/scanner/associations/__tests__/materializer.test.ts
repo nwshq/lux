@@ -109,12 +109,7 @@ describe('buildSymbolNodes', () => {
       filePath,
       enrich,
       ROOT,
-      [
-        '<?php',
-        'namespace App\\Http\\Controllers;',
-        '',
-        'class MyClass {}',
-      ].join('\n')
+      ['<?php', 'namespace App\\Http\\Controllers;', '', 'class MyClass {}'].join('\n')
     );
 
     expect(nodes[0].id).toBe('symbol:php:App\\Http\\Controllers\\MyClass');
@@ -250,10 +245,7 @@ describe('materializeNodes', () => {
 
   it('should work with an empty enrichment map', () => {
     const scan: ScanResult = {
-      knowledge: [
-        sourceEntry('src/a.ts', 'typescript'),
-        sourceEntry('src/b.ts', 'typescript'),
-      ],
+      knowledge: [sourceEntry('src/a.ts', 'typescript'), sourceEntry('src/b.ts', 'typescript')],
     };
 
     const result = materializeNodes(db, scan, new Map(), ROOT);

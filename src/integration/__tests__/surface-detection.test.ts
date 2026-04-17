@@ -58,14 +58,22 @@ function globPhpFiles(dir: string, recursive = true): string[] {
 //   - Module RouteServiceProvider.php files under src/Module/
 //   - Module routes/*.php files under src/Module/
 function buildAucticContext(): AssociationContext {
-  const entries: Array<{ filePath: string; languageId: string; metadata: Record<string, unknown> }> = [];
+  const entries: Array<{
+    filePath: string;
+    languageId: string;
+    metadata: Record<string, unknown>;
+  }> = [];
 
   function addPhpFiles(files: string[]): void {
     for (const f of files) {
       if (!existsSync(f)) continue;
       try {
         const e = phpEntry(f);
-        entries.push({ filePath: e.filePath, languageId: e.languageId, metadata: { content: e.content } });
+        entries.push({
+          filePath: e.filePath,
+          languageId: e.languageId,
+          metadata: { content: e.content },
+        });
       } catch {
         // skip unreadable files
       }
@@ -77,9 +85,7 @@ function buildAucticContext(): AssociationContext {
   addPhpFiles(rootRoutes);
 
   // Root service providers
-  const rootProviders = [
-    join(AUCTIC_CORE_PATH, 'src/CoreServiceProvider.php'),
-  ];
+  const rootProviders = [join(AUCTIC_CORE_PATH, 'src/CoreServiceProvider.php')];
   addPhpFiles(rootProviders);
 
   // Module service providers and route files
@@ -126,71 +132,74 @@ function surfaceWithId(
 // Tests
 // ---------------------------------------------------------------------------
 
-describe.skipIf(!pathExists)('auctic-core surface detection — representative holdout validation (T7)', () => {
-  const detector = new LaravelHttpSurfaceDetector();
-  let batch: Awaited<ReturnType<LaravelHttpSurfaceDetector['detect']>>;
+describe.skipIf(!pathExists)(
+  'auctic-core surface detection — representative holdout validation (T7)',
+  () => {
+    const detector = new LaravelHttpSurfaceDetector();
+    let batch: Awaited<ReturnType<LaravelHttpSurfaceDetector['detect']>>;
 
-  beforeEach(async () => {
-    const ctx = buildAucticContext();
-    batch = await detector.detect(ctx);
-  });
+    beforeEach(async () => {
+      const ctx = buildAucticContext();
+      batch = await detector.detect(ctx);
+    });
 
-  it('detects GET /events/allsellerreport with a provider', () => {
-    const surface = surfaceWithId(batch, 'surface:http:GET:/events/allsellerreport');
-    expect(surface).toBeDefined();
-    expect(surface!.metadata.explicitProvider).toBeDefined();
-    expect(String(surface!.metadata.explicitProvider)).toContain('EventsController');
-  });
+    it('detects GET /events/allsellerreport with a provider', () => {
+      const surface = surfaceWithId(batch, 'surface:http:GET:/events/allsellerreport');
+      expect(surface).toBeDefined();
+      expect(surface!.metadata.explicitProvider).toBeDefined();
+      expect(String(surface!.metadata.explicitProvider)).toContain('EventsController');
+    });
 
-  it('detects GET /events/allwatcherreport with a provider', () => {
-    const surface = surfaceWithId(batch, 'surface:http:GET:/events/allwatcherreport');
-    expect(surface).toBeDefined();
-    expect(surface!.metadata.explicitProvider).toBeDefined();
-    expect(String(surface!.metadata.explicitProvider)).toContain('EventsController');
-  });
+    it('detects GET /events/allwatcherreport with a provider', () => {
+      const surface = surfaceWithId(batch, 'surface:http:GET:/events/allwatcherreport');
+      expect(surface).toBeDefined();
+      expect(surface!.metadata.explicitProvider).toBeDefined();
+      expect(String(surface!.metadata.explicitProvider)).toContain('EventsController');
+    });
 
-  it('detects GET /events/bidhistoryreport/{event} with a provider', () => {
-    const surface = surfaceWithId(batch, 'surface:http:GET:/events/bidhistoryreport/{event}');
-    expect(surface).toBeDefined();
-    expect(surface!.metadata.explicitProvider).toBeDefined();
-    expect(String(surface!.metadata.explicitProvider)).toContain('EventsController');
-  });
+    it('detects GET /events/bidhistoryreport/{event} with a provider', () => {
+      const surface = surfaceWithId(batch, 'surface:http:GET:/events/bidhistoryreport/{event}');
+      expect(surface).toBeDefined();
+      expect(surface!.metadata.explicitProvider).toBeDefined();
+      expect(String(surface!.metadata.explicitProvider)).toContain('EventsController');
+    });
 
-  it('detects GET /admin/accounting/{any?} (module-owned invokable controller)', () => {
-    // The accounting module's admin.php declares:
-    //   Route::group(['prefix' => 'admin/accounting', ...], function () {
-    //     Route::get('/{any?}', AccountingIndexController::class)
-    //   })
-    // giving path /admin/accounting/{any?} with the fully-qualified invokable controller.
-    const surface = surfaceWithId(batch, 'surface:http:GET:/admin/accounting/{any?}');
-    expect(surface).toBeDefined();
-    expect(surface!.metadata.explicitProvider).toBeDefined();
-    expect(String(surface!.metadata.explicitProvider)).toContain('AccountingIndexController');
-  });
+    it('detects GET /admin/accounting/{any?} (module-owned invokable controller)', () => {
+      // The accounting module's admin.php declares:
+      //   Route::group(['prefix' => 'admin/accounting', ...], function () {
+      //     Route::get('/{any?}', AccountingIndexController::class)
+      //   })
+      // giving path /admin/accounting/{any?} with the fully-qualified invokable controller.
+      const surface = surfaceWithId(batch, 'surface:http:GET:/admin/accounting/{any?}');
+      expect(surface).toBeDefined();
+      expect(surface!.metadata.explicitProvider).toBeDefined();
+      expect(String(surface!.metadata.explicitProvider)).toContain('AccountingIndexController');
+    });
 
-  it('detects at least two /api/v1/* surfaces', () => {
-    const apiV1Surfaces = batch.surfaces.filter((s) =>
-      typeof s.metadata.path === 'string' && s.metadata.path.startsWith('/api/v1/')
-    );
-    expect(apiV1Surfaces.length).toBeGreaterThanOrEqual(2);
-    // At least one should have an explicit provider
-    const withProvider = apiV1Surfaces.filter((s) => s.metadata.explicitProvider);
-    expect(withProvider.length).toBeGreaterThanOrEqual(1);
-  });
+    it('detects at least two /api/v1/* surfaces', () => {
+      const apiV1Surfaces = batch.surfaces.filter(
+        (s) => typeof s.metadata.path === 'string' && s.metadata.path.startsWith('/api/v1/')
+      );
+      expect(apiV1Surfaces.length).toBeGreaterThanOrEqual(2);
+      // At least one should have an explicit provider
+      const withProvider = apiV1Surfaces.filter((s) => s.metadata.explicitProvider);
+      expect(withProvider.length).toBeGreaterThanOrEqual(1);
+    });
 
-  it('has no more than a handful of cross-file duplicate surface IDs', () => {
-    // Cross-file duplicates can occur when the same route is registered in both a
-    // module route file and a root route file. These are deduplicated at DB upsert
-    // time (same node ID → overwrite), not at in-memory detection time.
-    // Within-file consolidation (T3+T4) handles conditional-branch duplicates.
-    const ids = surfaceIds(batch);
-    const idCounts: Record<string, number> = {};
-    for (const id of ids) idCounts[id] = (idCounts[id] ?? 0) + 1;
-    const dupCount = Object.values(idCounts).filter((c) => c > 1).length;
-    // Allow up to 5 cross-file duplicates — more than that suggests a regression
-    expect(dupCount).toBeLessThanOrEqual(5);
-  });
-});
+    it('has no more than a handful of cross-file duplicate surface IDs', () => {
+      // Cross-file duplicates can occur when the same route is registered in both a
+      // module route file and a root route file. These are deduplicated at DB upsert
+      // time (same node ID → overwrite), not at in-memory detection time.
+      // Within-file consolidation (T3+T4) handles conditional-branch duplicates.
+      const ids = surfaceIds(batch);
+      const idCounts: Record<string, number> = {};
+      for (const id of ids) idCounts[id] = (idCounts[id] ?? 0) + 1;
+      const dupCount = Object.values(idCounts).filter((c) => c > 1).length;
+      // Allow up to 5 cross-file duplicates — more than that suggests a regression
+      expect(dupCount).toBeLessThanOrEqual(5);
+    });
+  }
+);
 
 describe.skipIf(!pathExists)('auctic-core surface detection — aggregate scorecard (T8)', () => {
   const detector = new LaravelHttpSurfaceDetector();
@@ -253,8 +262,7 @@ describe.skipIf(!pathExists)('auctic-core surface detection — aggregate scorec
     // No surface should be left unclassified — detection always knows whether
     // the declaration form was controller- or closure-backed.
     const unclassified = batch.surfaces.filter(
-      (s) => s.metadata.providerKind !== 'controller' &&
-             s.metadata.providerKind !== 'closure'
+      (s) => s.metadata.providerKind !== 'controller' && s.metadata.providerKind !== 'closure'
     );
     expect(unclassified).toHaveLength(0);
   });
@@ -268,9 +276,7 @@ describe.skipIf(!pathExists)('auctic-core surface detection — aggregate scorec
 
   it('closure-backed surfaces never produce a handled_by edge', () => {
     const closureIds = new Set(
-      batch.surfaces
-        .filter((s) => s.metadata.providerKind === 'closure')
-        .map((s) => s.id)
+      batch.surfaces.filter((s) => s.metadata.providerKind === 'closure').map((s) => s.id)
     );
     const handledClosureEdges = batch.edges.filter(
       (e) => e.edgeType === 'handled_by' && closureIds.has(e.sourceNodeId)

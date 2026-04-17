@@ -677,11 +677,7 @@ export function getStructuralContextForFile(
  *
  * Non-fatal: hits whose files have no overlay data are left unchanged.
  */
-export function enrichHitsWithOverlay(
-  hits: FtsHit[],
-  db: LuxDatabase,
-  rootPath: string
-): void {
+export function enrichHitsWithOverlay(hits: FtsHit[], db: LuxDatabase, rootPath: string): void {
   for (const hit of hits) {
     const parts: string[] = [];
 

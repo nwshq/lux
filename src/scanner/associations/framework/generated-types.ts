@@ -21,14 +21,14 @@ const GENERATED_TS_PATTERNS = [
   /auto-generated\./i,
   /openapi-types\./i,
   /api-types\./i,
-  /ziggy\.js$/i,  // Laravel Ziggy route types
+  /ziggy\.js$/i, // Laravel Ziggy route types
 ];
 
 /** PHP file patterns that typically produce type artifacts. */
 const PHP_DTO_PATTERNS = [
-  /Data\.php$/,      // Laravel Spatie Data DTOs
-  /Resource\.php$/,  // Laravel API resources
-  /Request\.php$/,   // Laravel form requests
+  /Data\.php$/, // Laravel Spatie Data DTOs
+  /Resource\.php$/, // Laravel API resources
+  /Request\.php$/, // Laravel form requests
 ];
 
 // ---------------------------------------------------------------------------
@@ -148,7 +148,11 @@ function findGeneratedArtifacts(context: AssociationContext): GeneratedArtifact[
     })
     .map((e) => {
       const rel = toRelative(e.filePath, context.rootPath);
-      const baseName = rel.split('/').pop()?.replace(/\.[^.]+$/, '') ?? rel;
+      const baseName =
+        rel
+          .split('/')
+          .pop()
+          ?.replace(/\.[^.]+$/, '') ?? rel;
       return {
         artifactId: artifactNodeId(rel),
         filePath: e.filePath,
@@ -185,7 +189,10 @@ function findMatchingArtifact(
   artifacts: GeneratedArtifact[]
 ): GeneratedArtifact | null {
   // Direct name match (e.g. InvoiceData → invoice-data or InvoiceData.d.ts)
-  const normalized = phpBaseName.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '');
+  const normalized = phpBaseName
+    .replace(/([A-Z])/g, '-$1')
+    .toLowerCase()
+    .replace(/^-/, '');
 
   const match =
     artifacts.find((a) => a.baseName === phpBaseName) ??
@@ -200,9 +207,7 @@ function findTsImportersOfArtifacts(
   artifacts: GeneratedArtifact[]
 ): TsImporter[] {
   const importers: TsImporter[] = [];
-  const artifactNames = new Map(
-    artifacts.map((a) => [a.baseName, a])
-  );
+  const artifactNames = new Map(artifacts.map((a) => [a.baseName, a]));
 
   const tsEntries = context.entries.filter(
     (e) => e.languageId === 'typescript' || e.languageId === 'javascript'
@@ -220,9 +225,15 @@ function findTsImportersOfArtifacts(
       if (!importMatch) continue;
 
       const importPath = importMatch[1];
-      const importBaseName = importPath.split('/').pop()?.replace(/\.[^.]+$/, '').toLowerCase() ?? '';
+      const importBaseName =
+        importPath
+          .split('/')
+          .pop()
+          ?.replace(/\.[^.]+$/, '')
+          .toLowerCase() ?? '';
 
-      const artifact = artifactNames.get(importBaseName) ??
+      const artifact =
+        artifactNames.get(importBaseName) ??
         Array.from(artifactNames.values()).find((a) => importPath.includes(a.baseName));
 
       if (!artifact) continue;

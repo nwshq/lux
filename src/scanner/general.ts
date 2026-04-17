@@ -401,7 +401,10 @@ export interface GeneralScanOptions {
 }
 
 /** Map of language IDs to factory functions for built-in enrichers. */
-const ENRICHER_FACTORIES: Record<string, (entry: LspEnricherEntry) => PhpLspEnricher | TypeScriptLspEnricher> = {
+const ENRICHER_FACTORIES: Record<
+  string,
+  (entry: LspEnricherEntry) => PhpLspEnricher | TypeScriptLspEnricher
+> = {
   php: (entry) =>
     new PhpLspEnricher({
       serverCommand: entry.serverCommand,

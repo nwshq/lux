@@ -6,11 +6,7 @@
 
 import type { LuxDatabase } from '../../db/index.js';
 import type { StructuralEdge, EdgeEvidence } from '../../db/types.js';
-import type {
-  AssociationContext,
-  AssociationResolver,
-  StructuralRelationEdge,
-} from './types.js';
+import type { AssociationContext, AssociationResolver, StructuralRelationEdge } from './types.js';
 
 // ---------------------------------------------------------------------------
 // AssociationEngine

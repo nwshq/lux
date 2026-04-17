@@ -189,11 +189,7 @@ function classifyResult(
     countProviderKinds(db);
 
   const propagationStatus: 'ran' | 'skipped' | 'empty' =
-    overlay.propagationEdgesAdded > 0
-      ? 'ran'
-      : overlay.surfacesDetected > 0
-        ? 'empty'
-        : 'skipped';
+    overlay.propagationEdgesAdded > 0 ? 'ran' : overlay.surfacesDetected > 0 ? 'empty' : 'skipped';
 
   return {
     mode,

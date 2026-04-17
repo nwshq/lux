@@ -110,7 +110,9 @@ export function buildSymbolNodes(
   // the namespace declaration so duplicate controller/resource short names do
   // not collapse across namespaces.
   const ext = enrichment as unknown as Record<string, unknown>;
-  const phpReferences = ext['references'] as Array<{ symbolName: string; symbolKind: number }> | undefined;
+  const phpReferences = ext['references'] as
+    | Array<{ symbolName: string; symbolKind: number }>
+    | undefined;
   const phpQualifiedNames = buildPhpQualifiedNameMap(
     enrichment.symbols.map((symbol) => symbol.name),
     phpReferences,

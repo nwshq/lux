@@ -20,16 +20,11 @@ import type { EdgeEvidence, StructuralEdge } from '../../db/types.js';
  * laravel-routes via route-match: routes/api.php:42 (GET /api/users)
  * ```
  */
-export function summarizeEdgeEvidence(
-  edge: StructuralEdge,
-  evidence: EdgeEvidence[]
-): string {
+export function summarizeEdgeEvidence(edge: StructuralEdge, evidence: EdgeEvidence[]): string {
   const header = `[${edge.edge_type} / ${edge.confidence_class} / ${edge.confidence.toFixed(2)}]`;
 
   if (evidence.length === 0) {
-    const provenance = edge.provenance_summary
-      ? `\n  ${edge.provenance_summary}`
-      : '';
+    const provenance = edge.provenance_summary ? `\n  ${edge.provenance_summary}` : '';
     return `${header}${provenance}`;
   }
 
@@ -84,9 +79,7 @@ export function formatEdgeBlock(nodeId: string, edgesWithEvidence: EdgeWithEvide
   const lines: string[] = [`Structural relations for ${nodeId}:`];
   for (const { edge, evidence } of edgesWithEvidence) {
     const direction =
-      edge.source_node_id === nodeId
-        ? `→ ${edge.target_node_id}`
-        : `← ${edge.source_node_id}`;
+      edge.source_node_id === nodeId ? `→ ${edge.target_node_id}` : `← ${edge.source_node_id}`;
     lines.push(`\n${direction}`);
     lines.push(summarizeEdgeEvidence(edge, evidence));
   }

@@ -78,9 +78,7 @@ export async function rebuildStructuralOverlay(
     try {
       currentCommit = getHeadCommit(rootPath);
       dirtyFiles = getDirtyFiles(rootPath);
-      report(
-        `Git state: commit=${currentCommit.slice(0, 8)}, dirty=${dirtyFiles.length} file(s).`
-      );
+      report(`Git state: commit=${currentCommit.slice(0, 8)}, dirty=${dirtyFiles.length} file(s).`);
     } catch {
       report('Warning: could not read git state — freshness tracking will use "unknown".');
     }

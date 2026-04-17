@@ -184,10 +184,7 @@ function extractTsApiCallsites(context: AssociationContext): TsCallsite[] {
   return callsites;
 }
 
-function findMatchingRoute(
-  apiPath: string,
-  routes: PhpRoute[]
-): PhpRoute | null {
+function findMatchingRoute(apiPath: string, routes: PhpRoute[]): PhpRoute | null {
   // Exact match first
   const exact = routes.find((r) => r.path === apiPath);
   if (exact) return exact;

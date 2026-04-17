@@ -39,16 +39,12 @@ describe('LaravelHttpSurfaceDetector.supports()', () => {
   const detector = new LaravelHttpSurfaceDetector();
 
   it('returns true for a context with a PHP route file', () => {
-    const ctx = makeContext([
-      { filePath: 'routes/api.php', languageId: 'php', content: '' },
-    ]);
+    const ctx = makeContext([{ filePath: 'routes/api.php', languageId: 'php', content: '' }]);
     expect(detector.supports(ctx)).toBe(true);
   });
 
   it('returns false when no PHP route files are present', () => {
-    const ctx = makeContext([
-      { filePath: 'src/app.ts', languageId: 'typescript', content: '' },
-    ]);
+    const ctx = makeContext([{ filePath: 'src/app.ts', languageId: 'typescript', content: '' }]);
     expect(detector.supports(ctx)).toBe(false);
   });
 
@@ -169,7 +165,9 @@ describe('LaravelHttpSurfaceDetector.detect() — surface nodes', () => {
     expect(batch.surfaces).toHaveLength(1);
     expect(batch.surfaces[0].id).toBe('surface:http:POST:/api/listing/create');
     expect(batch.surfaces[0].metadata.path).toBe('/api/listing/create');
-    expect(batch.surfaces[0].metadata.explicitProvider).toBe('acme\\Core\\Http\\Controllers\\Api\\QuickAdminListingController');
+    expect(batch.surfaces[0].metadata.explicitProvider).toBe(
+      'acme\\Core\\Http\\Controllers\\Api\\QuickAdminListingController'
+    );
     expect(batch.surfaces[0].metadata.controllerMethod).toBe('create');
     expect(batch.surfaces[0].metadata.routeName).toBe('admin.listing.create');
   });
@@ -192,7 +190,9 @@ describe('LaravelHttpSurfaceDetector.detect() — surface nodes', () => {
     expect(batch.surfaces).toHaveLength(1);
     expect(batch.surfaces[0].id).toBe('surface:http:GET:/api/users/dropdown/{query?}');
     expect(batch.surfaces[0].metadata.path).toBe('/api/users/dropdown/{query?}');
-    expect(batch.surfaces[0].metadata.explicitProvider).toBe('acme\\Core\\Http\\Controllers\\Api\\UserController');
+    expect(batch.surfaces[0].metadata.explicitProvider).toBe(
+      'acme\\Core\\Http\\Controllers\\Api\\UserController'
+    );
     expect(batch.surfaces[0].metadata.routeName).toBe('admin.users.dropdown');
   });
 });
@@ -300,11 +300,17 @@ describe('LaravelHttpSurfaceDetector.detect() — boundary edges', () => {
     ]);
 
     const batch = await detector.detect(ctx);
-    const surface = batch.surfaces.find((s) => s.id === 'surface:http:PUT:/admin/update_sale_order');
+    const surface = batch.surfaces.find(
+      (s) => s.id === 'surface:http:PUT:/admin/update_sale_order'
+    );
     const handledEdge = batch.edges.find((e) => e.edgeType === 'handled_by');
 
-    expect(surface!.metadata.explicitProvider).toBe('acme\\Core\\Http\\Controllers\\Api\\ListingController');
-    expect(handledEdge!.targetNodeId).toBe('symbol:php:acme\\Core\\Http\\Controllers\\Api\\ListingController');
+    expect(surface!.metadata.explicitProvider).toBe(
+      'acme\\Core\\Http\\Controllers\\Api\\ListingController'
+    );
+    expect(handledEdge!.targetNodeId).toBe(
+      'symbol:php:acme\\Core\\Http\\Controllers\\Api\\ListingController'
+    );
   });
 });
 
@@ -378,9 +384,7 @@ describe('runDetectors()', () => {
   });
 
   it('skips detectors that do not support the context', async () => {
-    const ctx = makeContext([
-      { filePath: 'src/app.ts', languageId: 'typescript', content: '' },
-    ]);
+    const ctx = makeContext([{ filePath: 'src/app.ts', languageId: 'typescript', content: '' }]);
 
     const result = await runDetectors(db, ctx);
     expect(result.surfacesDetected).toBe(0);
@@ -561,7 +565,7 @@ describe('LaravelHttpSurfaceDetector — route groups', () => {
           'Route::group([',
           "    'prefix' => 'api/external/v1',",
           "    'middleware' => [",
-          "        HandleApiExceptions::class,",
+          '        HandleApiExceptions::class,',
           "        'auth:sanctum',",
           "        'throttle:external-api',",
           '    ],',
@@ -732,7 +736,7 @@ describe('LaravelHttpSurfaceDetector — helper-wrapped path recovery', () => {
         languageId: 'php',
         content: [
           "Route::prefix('events')->group(function () {",
-          '    Route::get(pathLookup(\'/events/foo\'), SomeController::class);',
+          "    Route::get(pathLookup('/events/foo'), SomeController::class);",
           '});',
         ].join('\n'),
       },
@@ -887,7 +891,7 @@ describe('LaravelHttpSurfaceDetector — module registration-context inheritance
         content: [
           "Route::prefix('admin/accounting')",
           "    ->middleware(['web', 'auth'])",
-          "    ->group(function () {",
+          '    ->group(function () {',
           "        $this->loadRoutesFrom(__DIR__ . '/../routes/admin.php');",
           '    });',
         ].join('\n'),
@@ -914,7 +918,7 @@ describe('LaravelHttpSurfaceDetector — module registration-context inheritance
         content: [
           "Route::prefix('admin/accounting')",
           "    ->namespace('acme\\Module\\Accounting\\Http\\Controllers')",
-          "    ->group(function () {",
+          '    ->group(function () {',
           "        $this->loadRoutesFrom(__DIR__ . '/../routes/admin.php');",
           '    });',
         ].join('\n'),
@@ -943,7 +947,7 @@ describe('LaravelHttpSurfaceDetector — module registration-context inheritance
         content: [
           "Route::prefix('admin/reporting')",
           "    ->namespace('acme\\Module\\Reporting\\Http\\Controllers')",
-          "    ->group(function () {",
+          '    ->group(function () {',
           "        $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');",
           '    });',
         ].join('\n'),
@@ -992,8 +996,8 @@ describe('LaravelHttpSurfaceDetector — module registration-context inheritance
         languageId: 'php',
         content: [
           "Route::prefix('admin/dynamic')",
-          "    ->group(function () {",
-          "        $this->loadRoutesFrom($this->routeFile());",
+          '    ->group(function () {',
+          '        $this->loadRoutesFrom($this->routeFile());',
           '    });',
         ].join('\n'),
       },
@@ -1192,7 +1196,7 @@ describe('LaravelHttpSurfaceDetector — comment-aware extraction', () => {
         languageId: 'php',
         content: [
           "// Route::prefix('admin/dead')",
-          "//     ->group(function () {",
+          '//     ->group(function () {',
           "//         $this->loadRoutesFrom(__DIR__ . '/../routes/admin.php');",
           '//     });',
         ].join('\n'),
@@ -1307,7 +1311,9 @@ describe('LaravelHttpSurfaceDetector — provider-kind classification', () => {
     const batch = await detector.detect(ctx);
     expect(batch.surfaces).toHaveLength(1);
     expect(batch.surfaces[0].metadata.providerKind).toBe('controller');
-    expect(batch.surfaces[0].metadata.explicitProvider).toBe('App\\Http\\Controllers\\FooController');
+    expect(batch.surfaces[0].metadata.explicitProvider).toBe(
+      'App\\Http\\Controllers\\FooController'
+    );
   });
 
   it('consolidation: two closure branches keep providerKind=closure', async () => {
@@ -1418,7 +1424,7 @@ describe('LaravelHttpSurfaceDetector — provider-declared inline routes', () =>
         languageId: 'php',
         content: [
           "Route::prefix('admin/accounting')",
-          "    ->group(function () {",
+          '    ->group(function () {',
           "        $this->loadRoutesFrom(__DIR__ . '/../routes/admin.php');",
           '    });',
         ].join('\n'),
@@ -1454,7 +1460,9 @@ describe('LaravelHttpSurfaceDetector — provider-declared inline routes', () =>
 
     // declares_surface edge anchors the surface back to the provider file itself
     const declEdge = batch.edges.find(
-      (e) => e.edgeType === 'declares_surface' && e.targetNodeId === 'surface:http:GET:/api/external/ping'
+      (e) =>
+        e.edgeType === 'declares_surface' &&
+        e.targetNodeId === 'surface:http:GET:/api/external/ping'
     );
     expect(declEdge).toBeDefined();
     expect(declEdge!.sourceNodeId).toBe('file:src/Module/ExternalApi/RouteServiceProvider.php');
@@ -1544,10 +1552,7 @@ describe('LaravelHttpSurfaceDetector — provider-declared inline routes', () =>
 
     const batch = await detector.detect(ctx);
     const ids = batch.surfaces.map((s) => s.id).sort();
-    expect(ids).toEqual([
-      'surface:http:GET:/api/external/ping',
-      'surface:http:GET:/api/invoices',
-    ]);
+    expect(ids).toEqual(['surface:http:GET:/api/external/ping', 'surface:http:GET:/api/invoices']);
   });
 
   it('detects helper-method routes invoked from boot() in provider files', async () => {

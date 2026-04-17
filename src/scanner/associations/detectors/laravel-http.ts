@@ -19,7 +19,11 @@
 //   - attach contracts or artifacts (those belong to propagation)
 
 import { posix as pathPosix } from 'node:path';
-import type { AssociationContext, CapabilitySurfaceNode, StructuralRelationEdge } from '../types.js';
+import type {
+  AssociationContext,
+  CapabilitySurfaceNode,
+  StructuralRelationEdge,
+} from '../types.js';
 import { httpSurfaceNodeId, fileNodeId, phpSymbolNodeId } from '../types.js';
 import type { CapabilitySurfaceDetector, DetectedSurfaceBatch } from './types.js';
 import { emptyBatch } from './types.js';
@@ -32,25 +36,29 @@ import { emptyBatch } from './types.js';
  * Matches: Route::get('/path', [Controller::class, 'method'])
  * Capture groups: 1=method, 2=path, 3=controller, 4=action
  */
-const ROUTE_CONTROLLER_ARRAY = /Route::(get|post|put|patch|delete|any)\(\s*['"]([^'"]+)['"]\s*,\s*\[\s*([A-Za-z_\\]+)::class\s*,\s*['"]([^'"]+)['"]\s*\]/gi;
+const ROUTE_CONTROLLER_ARRAY =
+  /Route::(get|post|put|patch|delete|any)\(\s*['"]([^'"]+)['"]\s*,\s*\[\s*([A-Za-z_\\]+)::class\s*,\s*['"]([^'"]+)['"]\s*\]/gi;
 
 /**
  * Matches: Route::get('/path', InvokableController::class)
  * Capture groups: 1=method, 2=path, 3=controller
  */
-const ROUTE_INVOKABLE = /Route::(get|post|put|patch|delete|any)\(\s*['"]([^'"]+)['"]\s*,\s*([A-Za-z_\\]+)::class\s*\)/gi;
+const ROUTE_INVOKABLE =
+  /Route::(get|post|put|patch|delete|any)\(\s*['"]([^'"]+)['"]\s*,\s*([A-Za-z_\\]+)::class\s*\)/gi;
 
 /**
  * Matches: Route::get('/path', 'Api\\InvoiceController@index')
  * Capture groups: 1=method, 2=path, 3=controller, 4=action
  */
-const ROUTE_CONTROLLER_STRING = /Route::(get|post|put|patch|delete|any)\(\s*['"]([^'"]+)['"]\s*,\s*['"]([A-Za-z_\\]+)@([^'"]+)['"]\s*\)/gi;
+const ROUTE_CONTROLLER_STRING =
+  /Route::(get|post|put|patch|delete|any)\(\s*['"]([^'"]+)['"]\s*,\s*['"]([A-Za-z_\\]+)@([^'"]+)['"]\s*\)/gi;
 
 /**
  * Matches: Route::get('/path', function()
  * Capture groups: 1=method, 2=path
  */
-const ROUTE_CLOSURE = /Route::(get|post|put|patch|delete|any)\(\s*['"]([^'"]+)['"]\s*,\s*function\s*\(/gi;
+const ROUTE_CLOSURE =
+  /Route::(get|post|put|patch|delete|any)\(\s*['"]([^'"]+)['"]\s*,\s*function\s*\(/gi;
 
 /**
  * Matches: ->name('route.name')
@@ -64,25 +72,29 @@ const PATH_HELPER_ALLOWLIST = new Set(['pathLookup']);
  * Matches: Route::get(pathLookup('/path'), [Controller::class, 'method'])
  * Capture groups: 1=method, 2=helper, 3=path, 4=controller, 5=action
  */
-const ROUTE_CONTROLLER_ARRAY_WRAPPED = /Route::(get|post|put|patch|delete|any)\(\s*([A-Za-z_][A-Za-z0-9_]*)\(\s*['"]([^'"]+)['"]\s*\)\s*,\s*\[\s*([A-Za-z_\\]+)::class\s*,\s*['"]([^'"]+)['"]\s*\]/gi;
+const ROUTE_CONTROLLER_ARRAY_WRAPPED =
+  /Route::(get|post|put|patch|delete|any)\(\s*([A-Za-z_][A-Za-z0-9_]*)\(\s*['"]([^'"]+)['"]\s*\)\s*,\s*\[\s*([A-Za-z_\\]+)::class\s*,\s*['"]([^'"]+)['"]\s*\]/gi;
 
 /**
  * Matches: Route::get(pathLookup('/path'), InvokableController::class)
  * Capture groups: 1=method, 2=helper, 3=path, 4=controller
  */
-const ROUTE_INVOKABLE_WRAPPED = /Route::(get|post|put|patch|delete|any)\(\s*([A-Za-z_][A-Za-z0-9_]*)\(\s*['"]([^'"]+)['"]\s*\)\s*,\s*([A-Za-z_\\]+)::class\s*\)/gi;
+const ROUTE_INVOKABLE_WRAPPED =
+  /Route::(get|post|put|patch|delete|any)\(\s*([A-Za-z_][A-Za-z0-9_]*)\(\s*['"]([^'"]+)['"]\s*\)\s*,\s*([A-Za-z_\\]+)::class\s*\)/gi;
 
 /**
  * Matches: Route::get(pathLookup('/path'), 'Api\\InvoiceController@index')
  * Capture groups: 1=method, 2=helper, 3=path, 4=controller, 5=action
  */
-const ROUTE_CONTROLLER_STRING_WRAPPED = /Route::(get|post|put|patch|delete|any)\(\s*([A-Za-z_][A-Za-z0-9_]*)\(\s*['"]([^'"]+)['"]\s*\)\s*,\s*['"]([A-Za-z_\\]+)@([^'"]+)['"]\s*\)/gi;
+const ROUTE_CONTROLLER_STRING_WRAPPED =
+  /Route::(get|post|put|patch|delete|any)\(\s*([A-Za-z_][A-Za-z0-9_]*)\(\s*['"]([^'"]+)['"]\s*\)\s*,\s*['"]([A-Za-z_\\]+)@([^'"]+)['"]\s*\)/gi;
 
 /**
  * Matches: Route::get(pathLookup('/path'), function()
  * Capture groups: 1=method, 2=helper, 3=path
  */
-const ROUTE_CLOSURE_WRAPPED = /Route::(get|post|put|patch|delete|any)\(\s*([A-Za-z_][A-Za-z0-9_]*)\(\s*['"]([^'"]+)['"]\s*\)\s*,\s*function\s*\(/gi;
+const ROUTE_CLOSURE_WRAPPED =
+  /Route::(get|post|put|patch|delete|any)\(\s*([A-Za-z_][A-Za-z0-9_]*)\(\s*['"]([^'"]+)['"]\s*\)\s*,\s*function\s*\(/gi;
 
 // ---------------------------------------------------------------------------
 // LaravelHttpSurfaceDetector
@@ -142,9 +154,8 @@ export class LaravelHttpSurfaceDetector implements CapabilitySurfaceDetector {
             explicitProvider: route.controllerQualifiedName,
             controllerMethod: route.controllerMethod,
             providerKind: route.providerKind,
-            declarationLineage: route.declarationLineage.length > 0
-              ? route.declarationLineage
-              : undefined,
+            declarationLineage:
+              route.declarationLineage.length > 0 ? route.declarationLineage : undefined,
             alternateProviders: route.alternateProviders,
           },
           updated_at: now,
@@ -308,8 +319,14 @@ function collectRouteFileRegistrations(
         const chainChunk = content.slice(Math.max(0, match.index - 500), match.index);
         const routeIdx = chainChunk.lastIndexOf('Route::');
         const chainText = routeIdx >= 0 ? chainChunk.slice(routeIdx) : chainChunk;
-        const prefix = extractLastChainValue(chainText, /(?:^|->|::)prefix\(\s*['"]([^'"]+)['"]\s*\)/g);
-        const namespace = extractLastChainValue(chainText, /(?:^|->|::)namespace\(\s*['"]([^'"]+)['"]\s*\)/g);
+        const prefix = extractLastChainValue(
+          chainText,
+          /(?:^|->|::)prefix\(\s*['"]([^'"]+)['"]\s*\)/g
+        );
+        const namespace = extractLastChainValue(
+          chainText,
+          /(?:^|->|::)namespace\(\s*['"]([^'"]+)['"]\s*\)/g
+        );
         registrations.set(routeFilePath, {
           ...(prefix ? { prefix: normalizePathFragment(prefix) } : {}),
           ...(namespace ? { namespace: namespace.replace(/^\\/, '') } : {}),
@@ -335,8 +352,14 @@ function collectRouteFileRegistrations(
         const chainChunk = content.slice(Math.max(0, match.index - 500), match.index);
         const routeIdx = chainChunk.lastIndexOf('Route::');
         const chainText = routeIdx >= 0 ? chainChunk.slice(routeIdx) : chainChunk;
-        const prefix = extractLastChainValue(chainText, /(?:^|->|::)prefix\(\s*['"]([^'"]+)['"]\s*\)/g);
-        const namespace = extractLastChainValue(chainText, /(?:^|->|::)namespace\(\s*['"]([^'"]+)['"]\s*\)/g);
+        const prefix = extractLastChainValue(
+          chainText,
+          /(?:^|->|::)prefix\(\s*['"]([^'"]+)['"]\s*\)/g
+        );
+        const namespace = extractLastChainValue(
+          chainText,
+          /(?:^|->|::)namespace\(\s*['"]([^'"]+)['"]\s*\)/g
+        );
         registrations.set(routeFilePath, {
           ...(prefix ? { prefix: normalizePathFragment(prefix) } : {}),
           ...(namespace ? { namespace: namespace.replace(/^\\/, '') } : {}),
@@ -609,7 +632,14 @@ function parseBlockContent(
 
   // 3. Parse direct routes from masked content
   routes.push(
-    ...parseDirectRoutes(masked, prefixStack, blockOffset, rootContent, importMap, controllerNamespace)
+    ...parseDirectRoutes(
+      masked,
+      prefixStack,
+      blockOffset,
+      rootContent,
+      importMap,
+      controllerNamespace
+    )
   );
 
   if (helperMethods && helperMethods.size > 0) {
@@ -636,8 +666,7 @@ function parseBlockContent(
   // 4. Recurse into each group block with the composed prefix stack
   for (const group of topLevelGroups) {
     const innerBlock = block.slice(group.innerStart, group.innerEnd);
-    const newPrefixStack =
-      group.prefix ? [...prefixStack, group.prefix] : [...prefixStack];
+    const newPrefixStack = group.prefix ? [...prefixStack, group.prefix] : [...prefixStack];
     const innerRoutes = parseBlockContent(
       innerBlock,
       newPrefixStack,
@@ -712,8 +741,7 @@ function findNextGroupOpener(content: string, fromPos: number): GroupOpenerResul
   const directMatch = findDirectArrayGroupOpener(content, fromPos);
 
   const useChain =
-    chainMatch !== null &&
-    (directMatch === null || chainMatch.index <= directMatch.openerPos);
+    chainMatch !== null && (directMatch === null || chainMatch.index <= directMatch.openerPos);
 
   if (useChain && chainMatch) {
     const parenStart = content.indexOf('(', chainMatch.index);
@@ -737,10 +765,7 @@ function findNextGroupOpener(content: string, fromPos: number): GroupOpenerResul
   return null;
 }
 
-function findDirectArrayGroupOpener(
-  content: string,
-  fromPos: number
-): GroupOpenerResult | null {
+function findDirectArrayGroupOpener(content: string, fromPos: number): GroupOpenerResult | null {
   const routeIdx = content.indexOf('Route::group', fromPos);
   if (routeIdx < 0) return null;
 
@@ -1152,7 +1177,8 @@ function extractPhpImportMap(content: string): Map<string, string> {
 
 function extractPhpMethodBlocks(content: string): Map<string, PhpMethodBlock> {
   const blocks = new Map<string, PhpMethodBlock>();
-  const methodRe = /\b(?:public|protected|private)\s+function\s+([A-Za-z_][A-Za-z0-9_]*)\s*\([^)]*\)\s*(?::\s*[^ {][^{]*)?\s*\{/g;
+  const methodRe =
+    /\b(?:public|protected|private)\s+function\s+([A-Za-z_][A-Za-z0-9_]*)\s*\([^)]*\)\s*(?::\s*[^ {][^{]*)?\s*\{/g;
 
   let match: RegExpExecArray | null;
   while ((match = methodRe.exec(content)) !== null) {
@@ -1200,7 +1226,8 @@ function resolvePhpClassReference(
       ? `${controllerNamespace}\\${reference}`
       : reference;
   }
-  if (prefixLegacyRelativeNamespace && controllerNamespace) return `${controllerNamespace}\\${reference}`;
+  if (prefixLegacyRelativeNamespace && controllerNamespace)
+    return `${controllerNamespace}\\${reference}`;
   return reference;
 }
 
@@ -1275,7 +1302,6 @@ function composeCanonicalPath(prefixStack: string[], localFragment: string): str
 function normalizePathFragment(fragment: string): string {
   return fragment.replace(/^\/+|\/+$/g, '');
 }
-
 
 // ---------------------------------------------------------------------------
 // Existing helpers

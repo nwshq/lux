@@ -123,7 +123,13 @@ describe('structural overlay — nodes', () => {
 
   it('should store all supported node types', () => {
     const types: StructuralNode['node_type'][] = [
-      'file', 'symbol', 'route', 'template', 'contract', 'event', 'artifact',
+      'file',
+      'symbol',
+      'route',
+      'template',
+      'contract',
+      'event',
+      'artifact',
     ];
 
     for (const node_type of types) {
@@ -144,7 +150,9 @@ describe('structural overlay — edges', () => {
     db = makeDb();
     // Seed nodes that edges reference
     db.upsertStructuralNode(makeNode({ id: 'file:src/app.ts' }));
-    db.upsertStructuralNode(makeNode({ id: 'file:src/routes/api.ts', file_path: 'src/routes/api.ts' }));
+    db.upsertStructuralNode(
+      makeNode({ id: 'file:src/routes/api.ts', file_path: 'src/routes/api.ts' })
+    );
     db.upsertStructuralNode(makeNode({ id: 'file:src/other.ts', file_path: 'src/other.ts' }));
   });
 
@@ -186,7 +194,10 @@ describe('structural overlay — edges', () => {
 
   it('should store all confidence classes', () => {
     const classes: StructuralEdge['confidence_class'][] = [
-      'proven', 'artifact-backed', 'framework-inferred', 'heuristic',
+      'proven',
+      'artifact-backed',
+      'framework-inferred',
+      'heuristic',
     ];
 
     for (const cc of classes) {
@@ -219,7 +230,9 @@ describe('structural overlay — edge evidence', () => {
   beforeEach(() => {
     db = makeDb();
     db.upsertStructuralNode(makeNode({ id: 'file:src/app.ts' }));
-    db.upsertStructuralNode(makeNode({ id: 'file:src/routes/api.ts', file_path: 'src/routes/api.ts' }));
+    db.upsertStructuralNode(
+      makeNode({ id: 'file:src/routes/api.ts', file_path: 'src/routes/api.ts' })
+    );
     db.upsertStructuralEdge(makeEdge());
   });
 
@@ -276,15 +289,19 @@ describe('structural overlay — freshness invalidation', () => {
   beforeEach(() => {
     db = makeDb();
     db.upsertStructuralNode(makeNode({ id: 'file:src/app.ts', file_path: 'src/app.ts' }));
-    db.upsertStructuralNode(makeNode({ id: 'file:src/routes/api.ts', file_path: 'src/routes/api.ts' }));
+    db.upsertStructuralNode(
+      makeNode({ id: 'file:src/routes/api.ts', file_path: 'src/routes/api.ts' })
+    );
     db.upsertStructuralNode(makeNode({ id: 'file:src/other.ts', file_path: 'src/other.ts' }));
     db.upsertStructuralEdge(makeEdge({ id: 'edge:1', freshness_status: 'fresh' }));
-    db.upsertStructuralEdge(makeEdge({
-      id: 'edge:2',
-      source_node_id: 'file:src/other.ts',
-      target_node_id: 'file:src/app.ts',
-      freshness_status: 'fresh',
-    }));
+    db.upsertStructuralEdge(
+      makeEdge({
+        id: 'edge:2',
+        source_node_id: 'file:src/other.ts',
+        target_node_id: 'file:src/app.ts',
+        freshness_status: 'fresh',
+      })
+    );
   });
 
   afterEach(() => {

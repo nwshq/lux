@@ -86,8 +86,13 @@ function upsertEdge(
 describe('getSurfaceFeaturePath()', () => {
   let db: LuxDatabase;
 
-  beforeEach(() => { db = makeDb(); });
-  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+  beforeEach(() => {
+    db = makeDb();
+  });
+  afterEach(() => {
+    db.close();
+    rmSync(testDir, { recursive: true, force: true });
+  });
 
   it('returns null for a surface that does not exist', () => {
     const result = getSurfaceFeaturePath(db, 'surface:http:GET:/api/unknown');
@@ -95,7 +100,13 @@ describe('getSurfaceFeaturePath()', () => {
   });
 
   it('returns a FeaturePath with all empty arrays when no edges exist', () => {
-    upsertSurface(db, 'surface:http:GET:/api/invoices', 'GET /api/invoices', '/api/invoices', 'routes/api.php');
+    upsertSurface(
+      db,
+      'surface:http:GET:/api/invoices',
+      'GET /api/invoices',
+      '/api/invoices',
+      'routes/api.php'
+    );
 
     const path = getSurfaceFeaturePath(db, 'surface:http:GET:/api/invoices');
     expect(path).not.toBeNull();
@@ -113,8 +124,20 @@ describe('getSurfaceFeaturePath()', () => {
     const controllerNodeId = 'symbol:php:InvoiceController@index';
 
     upsertSurface(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php');
-    upsertNode(db, controllerNodeId, 'symbol', 'InvoiceController@index', 'app/Http/Controllers/InvoiceController.php');
-    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+    upsertNode(
+      db,
+      controllerNodeId,
+      'symbol',
+      'InvoiceController@index',
+      'app/Http/Controllers/InvoiceController.php'
+    );
+    upsertEdge(
+      db,
+      `${surfaceId}→${controllerNodeId}:handled_by`,
+      'handled_by',
+      surfaceId,
+      controllerNodeId
+    );
 
     const path = getSurfaceFeaturePath(db, surfaceId);
     expect(path!.providers).toHaveLength(1);
@@ -127,7 +150,13 @@ describe('getSurfaceFeaturePath()', () => {
 
     upsertSurface(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php');
     upsertNode(db, wrapperNodeId, 'symbol', 'fetchInvoices', 'src/api/invoices.ts');
-    upsertEdge(db, `${wrapperNodeId}→${surfaceId}:calls_surface`, 'calls_surface', wrapperNodeId, surfaceId);
+    upsertEdge(
+      db,
+      `${wrapperNodeId}→${surfaceId}:calls_surface`,
+      'calls_surface',
+      wrapperNodeId,
+      surfaceId
+    );
 
     const path = getSurfaceFeaturePath(db, surfaceId);
     expect(path!.consumers).toHaveLength(1);
@@ -139,8 +168,20 @@ describe('getSurfaceFeaturePath()', () => {
     const artifactNodeId = 'file:src/generated/openapi-client.ts';
 
     upsertSurface(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php');
-    upsertNode(db, artifactNodeId, 'file', 'src/generated/openapi-client.ts', 'src/generated/openapi-client.ts');
-    upsertEdge(db, `${artifactNodeId}→${surfaceId}:derived_from`, 'derived_from', artifactNodeId, surfaceId);
+    upsertNode(
+      db,
+      artifactNodeId,
+      'file',
+      'src/generated/openapi-client.ts',
+      'src/generated/openapi-client.ts'
+    );
+    upsertEdge(
+      db,
+      `${artifactNodeId}→${surfaceId}:derived_from`,
+      'derived_from',
+      artifactNodeId,
+      surfaceId
+    );
 
     const path = getSurfaceFeaturePath(db, surfaceId);
     expect(path!.artifacts).toHaveLength(1);
@@ -153,7 +194,13 @@ describe('getSurfaceFeaturePath()', () => {
 
     upsertSurface(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php');
     upsertNode(db, fileNodeId, 'file', 'routes/api.php', 'routes/api.php');
-    upsertEdge(db, `${fileNodeId}→${surfaceId}:declares_surface`, 'declares_surface', fileNodeId, surfaceId);
+    upsertEdge(
+      db,
+      `${fileNodeId}→${surfaceId}:declares_surface`,
+      'declares_surface',
+      fileNodeId,
+      surfaceId
+    );
 
     const path = getSurfaceFeaturePath(db, surfaceId);
     expect(path!.declaringFile).not.toBeNull();
@@ -170,7 +217,13 @@ describe('getSurfaceFeaturePath()', () => {
     upsertNode(db, controllerNodeId, 'symbol', 'InvoiceController@store');
     upsertNode(db, requestNodeId, 'symbol', 'StoreInvoiceRequest');
     upsertNode(db, resourceNodeId, 'symbol', 'InvoiceResource');
-    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+    upsertEdge(
+      db,
+      `${surfaceId}→${controllerNodeId}:handled_by`,
+      'handled_by',
+      surfaceId,
+      controllerNodeId
+    );
     db.upsertStructuralEdge({
       id: `${controllerNodeId}→${requestNodeId}:validates_with:store`,
       source_node_id: controllerNodeId,
@@ -183,14 +236,16 @@ describe('getSurfaceFeaturePath()', () => {
       provenance_summary: 'test',
       updated_at: Math.floor(Date.now() / 1000),
     });
-    db.replaceEdgeEvidence(`${controllerNodeId}→${requestNodeId}:validates_with:store`, [{
-      id: `${controllerNodeId}→${requestNodeId}:validates_with:store:ev:0`,
-      edge_id: `${controllerNodeId}→${requestNodeId}:validates_with:store`,
-      resolver: 'test',
-      evidence_kind: 'php-typed-parameter',
-      note: 'request: StoreInvoiceRequest [method:store]',
-      recorded_at: Math.floor(Date.now() / 1000),
-    }]);
+    db.replaceEdgeEvidence(`${controllerNodeId}→${requestNodeId}:validates_with:store`, [
+      {
+        id: `${controllerNodeId}→${requestNodeId}:validates_with:store:ev:0`,
+        edge_id: `${controllerNodeId}→${requestNodeId}:validates_with:store`,
+        resolver: 'test',
+        evidence_kind: 'php-typed-parameter',
+        note: 'request: StoreInvoiceRequest [method:store]',
+        recorded_at: Math.floor(Date.now() / 1000),
+      },
+    ]);
     db.upsertStructuralEdge({
       id: `${controllerNodeId}→${resourceNodeId}:returns_contract:store`,
       source_node_id: controllerNodeId,
@@ -203,14 +258,16 @@ describe('getSurfaceFeaturePath()', () => {
       provenance_summary: 'test',
       updated_at: Math.floor(Date.now() / 1000),
     });
-    db.replaceEdgeEvidence(`${controllerNodeId}→${resourceNodeId}:returns_contract:store`, [{
-      id: `${controllerNodeId}→${resourceNodeId}:returns_contract:store:ev:0`,
-      edge_id: `${controllerNodeId}→${resourceNodeId}:returns_contract:store`,
-      resolver: 'test',
-      evidence_kind: 'php-return-constructor',
-      note: 'response: InvoiceResource [method:store]',
-      recorded_at: Math.floor(Date.now() / 1000),
-    }]);
+    db.replaceEdgeEvidence(`${controllerNodeId}→${resourceNodeId}:returns_contract:store`, [
+      {
+        id: `${controllerNodeId}→${resourceNodeId}:returns_contract:store:ev:0`,
+        edge_id: `${controllerNodeId}→${resourceNodeId}:returns_contract:store`,
+        resolver: 'test',
+        evidence_kind: 'php-return-constructor',
+        note: 'response: InvoiceResource [method:store]',
+        recorded_at: Math.floor(Date.now() / 1000),
+      },
+    ]);
 
     const path = getSurfaceFeaturePath(db, surfaceId);
     expect(path!.validators).toHaveLength(1);
@@ -236,7 +293,13 @@ describe('getSurfaceFeaturePath()', () => {
     upsertNode(db, artifactNodeId, 'file', 'src/generated/openapi-client.ts');
     upsertNode(db, fileNode, 'file', 'routes/api.php', 'routes/api.php');
 
-    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+    upsertEdge(
+      db,
+      `${surfaceId}→${controllerNodeId}:handled_by`,
+      'handled_by',
+      surfaceId,
+      controllerNodeId
+    );
     db.upsertStructuralEdge({
       id: `${controllerNodeId}→${requestNodeId}:validates_with:index`,
       source_node_id: controllerNodeId,
@@ -249,14 +312,16 @@ describe('getSurfaceFeaturePath()', () => {
       provenance_summary: 'test',
       updated_at: Math.floor(Date.now() / 1000),
     });
-    db.replaceEdgeEvidence(`${controllerNodeId}→${requestNodeId}:validates_with:index`, [{
-      id: `${controllerNodeId}→${requestNodeId}:validates_with:index:ev:0`,
-      edge_id: `${controllerNodeId}→${requestNodeId}:validates_with:index`,
-      resolver: 'test',
-      evidence_kind: 'php-typed-parameter',
-      note: 'request: ListInvoicesRequest [method:index]',
-      recorded_at: Math.floor(Date.now() / 1000),
-    }]);
+    db.replaceEdgeEvidence(`${controllerNodeId}→${requestNodeId}:validates_with:index`, [
+      {
+        id: `${controllerNodeId}→${requestNodeId}:validates_with:index:ev:0`,
+        edge_id: `${controllerNodeId}→${requestNodeId}:validates_with:index`,
+        resolver: 'test',
+        evidence_kind: 'php-typed-parameter',
+        note: 'request: ListInvoicesRequest [method:index]',
+        recorded_at: Math.floor(Date.now() / 1000),
+      },
+    ]);
     db.upsertStructuralEdge({
       id: `${controllerNodeId}→${resourceNodeId}:returns_contract:index`,
       source_node_id: controllerNodeId,
@@ -269,17 +334,37 @@ describe('getSurfaceFeaturePath()', () => {
       provenance_summary: 'test',
       updated_at: Math.floor(Date.now() / 1000),
     });
-    db.replaceEdgeEvidence(`${controllerNodeId}→${resourceNodeId}:returns_contract:index`, [{
-      id: `${controllerNodeId}→${resourceNodeId}:returns_contract:index:ev:0`,
-      edge_id: `${controllerNodeId}→${resourceNodeId}:returns_contract:index`,
-      resolver: 'test',
-      evidence_kind: 'php-return-constructor',
-      note: 'response: InvoiceResource [method:index]',
-      recorded_at: Math.floor(Date.now() / 1000),
-    }]);
-    upsertEdge(db, `${wrapperNodeId}→${surfaceId}:calls_surface`, 'calls_surface', wrapperNodeId, surfaceId);
-    upsertEdge(db, `${artifactNodeId}→${surfaceId}:derived_from`, 'derived_from', artifactNodeId, surfaceId);
-    upsertEdge(db, `${fileNode}→${surfaceId}:declares_surface`, 'declares_surface', fileNode, surfaceId);
+    db.replaceEdgeEvidence(`${controllerNodeId}→${resourceNodeId}:returns_contract:index`, [
+      {
+        id: `${controllerNodeId}→${resourceNodeId}:returns_contract:index:ev:0`,
+        edge_id: `${controllerNodeId}→${resourceNodeId}:returns_contract:index`,
+        resolver: 'test',
+        evidence_kind: 'php-return-constructor',
+        note: 'response: InvoiceResource [method:index]',
+        recorded_at: Math.floor(Date.now() / 1000),
+      },
+    ]);
+    upsertEdge(
+      db,
+      `${wrapperNodeId}→${surfaceId}:calls_surface`,
+      'calls_surface',
+      wrapperNodeId,
+      surfaceId
+    );
+    upsertEdge(
+      db,
+      `${artifactNodeId}→${surfaceId}:derived_from`,
+      'derived_from',
+      artifactNodeId,
+      surfaceId
+    );
+    upsertEdge(
+      db,
+      `${fileNode}→${surfaceId}:declares_surface`,
+      'declares_surface',
+      fileNode,
+      surfaceId
+    );
 
     const path = getSurfaceFeaturePath(db, surfaceId);
     expect(path!.providers).toHaveLength(1);
@@ -298,13 +383,36 @@ describe('getSurfaceFeaturePath()', () => {
 describe('getFeaturePathsForFile()', () => {
   let db: LuxDatabase;
 
-  beforeEach(() => { db = makeDb(); });
-  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+  beforeEach(() => {
+    db = makeDb();
+  });
+  afterEach(() => {
+    db.close();
+    rmSync(testDir, { recursive: true, force: true });
+  });
 
   it('returns paths for all surfaces with matching file_path', () => {
-    upsertSurface(db, 'surface:http:GET:/api/invoices', 'GET /api/invoices', '/api/invoices', 'routes/api.php');
-    upsertSurface(db, 'surface:http:POST:/api/invoices', 'POST /api/invoices', '/api/invoices', 'routes/api.php');
-    upsertSurface(db, 'surface:http:GET:/api/users', 'GET /api/users', '/api/users', 'routes/web.php');
+    upsertSurface(
+      db,
+      'surface:http:GET:/api/invoices',
+      'GET /api/invoices',
+      '/api/invoices',
+      'routes/api.php'
+    );
+    upsertSurface(
+      db,
+      'surface:http:POST:/api/invoices',
+      'POST /api/invoices',
+      '/api/invoices',
+      'routes/api.php'
+    );
+    upsertSurface(
+      db,
+      'surface:http:GET:/api/users',
+      'GET /api/users',
+      '/api/users',
+      'routes/web.php'
+    );
 
     const paths = getFeaturePathsForFile(db, 'routes/api.php');
     expect(paths).toHaveLength(2);
@@ -326,8 +434,13 @@ describe('getFeaturePathsForFile()', () => {
 describe('formatFeaturePath()', () => {
   let db: LuxDatabase;
 
-  beforeEach(() => { db = makeDb(); });
-  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+  beforeEach(() => {
+    db = makeDb();
+  });
+  afterEach(() => {
+    db.close();
+    rmSync(testDir, { recursive: true, force: true });
+  });
 
   it('produces a compact path with consumer → surface → provider → contract tokens', () => {
     const surfaceId = 'surface:http:GET:/api/invoices';
@@ -339,7 +452,13 @@ describe('formatFeaturePath()', () => {
     upsertNode(db, controllerNodeId, 'symbol', 'InvoiceController@index');
     upsertNode(db, resourceNodeId, 'symbol', 'InvoiceResource');
     upsertNode(db, wrapperNodeId, 'symbol', 'fetchInvoices');
-    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+    upsertEdge(
+      db,
+      `${surfaceId}→${controllerNodeId}:handled_by`,
+      'handled_by',
+      surfaceId,
+      controllerNodeId
+    );
     db.upsertStructuralEdge({
       id: `${controllerNodeId}→${resourceNodeId}:returns_contract:index`,
       source_node_id: controllerNodeId,
@@ -352,15 +471,23 @@ describe('formatFeaturePath()', () => {
       provenance_summary: 'test',
       updated_at: Math.floor(Date.now() / 1000),
     });
-    db.replaceEdgeEvidence(`${controllerNodeId}→${resourceNodeId}:returns_contract:index`, [{
-      id: `${controllerNodeId}→${resourceNodeId}:returns_contract:index:ev:0`,
-      edge_id: `${controllerNodeId}→${resourceNodeId}:returns_contract:index`,
-      resolver: 'test',
-      evidence_kind: 'php-return-constructor',
-      note: 'response: InvoiceResource [method:index]',
-      recorded_at: Math.floor(Date.now() / 1000),
-    }]);
-    upsertEdge(db, `${wrapperNodeId}→${surfaceId}:calls_surface`, 'calls_surface', wrapperNodeId, surfaceId);
+    db.replaceEdgeEvidence(`${controllerNodeId}→${resourceNodeId}:returns_contract:index`, [
+      {
+        id: `${controllerNodeId}→${resourceNodeId}:returns_contract:index:ev:0`,
+        edge_id: `${controllerNodeId}→${resourceNodeId}:returns_contract:index`,
+        resolver: 'test',
+        evidence_kind: 'php-return-constructor',
+        note: 'response: InvoiceResource [method:index]',
+        recorded_at: Math.floor(Date.now() / 1000),
+      },
+    ]);
+    upsertEdge(
+      db,
+      `${wrapperNodeId}→${surfaceId}:calls_surface`,
+      'calls_surface',
+      wrapperNodeId,
+      surfaceId
+    );
 
     const path = getSurfaceFeaturePath(db, surfaceId)!;
     const formatted = formatFeaturePath(path);
@@ -373,7 +500,13 @@ describe('formatFeaturePath()', () => {
   });
 
   it('handles surface-only path (no edges) gracefully', () => {
-    upsertSurface(db, 'surface:http:GET:/api/health', 'GET /api/health', '/api/health', 'routes/api.php');
+    upsertSurface(
+      db,
+      'surface:http:GET:/api/health',
+      'GET /api/health',
+      '/api/health',
+      'routes/api.php'
+    );
 
     const path = getSurfaceFeaturePath(db, 'surface:http:GET:/api/health')!;
     const formatted = formatFeaturePath(path);
@@ -482,8 +615,13 @@ describe('formatFeaturePath()', () => {
 describe('formatFeaturePathBlock()', () => {
   let db: LuxDatabase;
 
-  beforeEach(() => { db = makeDb(); });
-  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+  beforeEach(() => {
+    db = makeDb();
+  });
+  afterEach(() => {
+    db.close();
+    rmSync(testDir, { recursive: true, force: true });
+  });
 
   it('includes surface handle, provider, validator, and contract in block output', () => {
     const surfaceId = 'surface:http:POST:/api/invoices';
@@ -492,12 +630,25 @@ describe('formatFeaturePathBlock()', () => {
     const resourceNodeId = 'symbol:php:InvoiceResource';
     const fileNodeId = 'file:routes/api.php';
 
-    upsertSurface(db, surfaceId, 'POST /api/invoices', '/api/invoices', 'routes/api.php', 'invoices.store');
+    upsertSurface(
+      db,
+      surfaceId,
+      'POST /api/invoices',
+      '/api/invoices',
+      'routes/api.php',
+      'invoices.store'
+    );
     upsertNode(db, controllerNodeId, 'symbol', 'InvoiceController@store');
     upsertNode(db, requestNodeId, 'symbol', 'StoreInvoiceRequest');
     upsertNode(db, resourceNodeId, 'symbol', 'InvoiceResource');
     upsertNode(db, fileNodeId, 'file', 'routes/api.php', 'routes/api.php');
-    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+    upsertEdge(
+      db,
+      `${surfaceId}→${controllerNodeId}:handled_by`,
+      'handled_by',
+      surfaceId,
+      controllerNodeId
+    );
     db.upsertStructuralEdge({
       id: `${controllerNodeId}→${requestNodeId}:validates_with:store`,
       source_node_id: controllerNodeId,
@@ -510,14 +661,16 @@ describe('formatFeaturePathBlock()', () => {
       provenance_summary: 'test',
       updated_at: Math.floor(Date.now() / 1000),
     });
-    db.replaceEdgeEvidence(`${controllerNodeId}→${requestNodeId}:validates_with:store`, [{
-      id: `${controllerNodeId}→${requestNodeId}:validates_with:store:ev:0`,
-      edge_id: `${controllerNodeId}→${requestNodeId}:validates_with:store`,
-      resolver: 'test',
-      evidence_kind: 'php-typed-parameter',
-      note: 'request: StoreInvoiceRequest [method:store]',
-      recorded_at: Math.floor(Date.now() / 1000),
-    }]);
+    db.replaceEdgeEvidence(`${controllerNodeId}→${requestNodeId}:validates_with:store`, [
+      {
+        id: `${controllerNodeId}→${requestNodeId}:validates_with:store:ev:0`,
+        edge_id: `${controllerNodeId}→${requestNodeId}:validates_with:store`,
+        resolver: 'test',
+        evidence_kind: 'php-typed-parameter',
+        note: 'request: StoreInvoiceRequest [method:store]',
+        recorded_at: Math.floor(Date.now() / 1000),
+      },
+    ]);
     db.upsertStructuralEdge({
       id: `${controllerNodeId}→${resourceNodeId}:returns_contract:store`,
       source_node_id: controllerNodeId,
@@ -530,15 +683,23 @@ describe('formatFeaturePathBlock()', () => {
       provenance_summary: 'test',
       updated_at: Math.floor(Date.now() / 1000),
     });
-    db.replaceEdgeEvidence(`${controllerNodeId}→${resourceNodeId}:returns_contract:store`, [{
-      id: `${controllerNodeId}→${resourceNodeId}:returns_contract:store:ev:0`,
-      edge_id: `${controllerNodeId}→${resourceNodeId}:returns_contract:store`,
-      resolver: 'test',
-      evidence_kind: 'php-return-constructor',
-      note: 'response: InvoiceResource [method:store]',
-      recorded_at: Math.floor(Date.now() / 1000),
-    }]);
-    upsertEdge(db, `${fileNodeId}→${surfaceId}:declares_surface`, 'declares_surface', fileNodeId, surfaceId);
+    db.replaceEdgeEvidence(`${controllerNodeId}→${resourceNodeId}:returns_contract:store`, [
+      {
+        id: `${controllerNodeId}→${resourceNodeId}:returns_contract:store:ev:0`,
+        edge_id: `${controllerNodeId}→${resourceNodeId}:returns_contract:store`,
+        resolver: 'test',
+        evidence_kind: 'php-return-constructor',
+        note: 'response: InvoiceResource [method:store]',
+        recorded_at: Math.floor(Date.now() / 1000),
+      },
+    ]);
+    upsertEdge(
+      db,
+      `${fileNodeId}→${surfaceId}:declares_surface`,
+      'declares_surface',
+      fileNodeId,
+      surfaceId
+    );
 
     const path = getSurfaceFeaturePath(db, surfaceId)!;
     const block = formatFeaturePathBlock(path);
@@ -589,14 +750,16 @@ describe('formatFeaturePathBlock()', () => {
       provenance_summary: 'test',
       updated_at: Math.floor(Date.now() / 1000),
     });
-    db.replaceEdgeEvidence(`${providerId}→${storeRequestId}:validates_with:store`, [{
-      id: `${providerId}→${storeRequestId}:validates_with:store:ev:0`,
-      edge_id: `${providerId}→${storeRequestId}:validates_with:store`,
-      resolver: 'test',
-      evidence_kind: 'php-typed-parameter',
-      note: 'request: App\\Http\\Requests\\StoreEventMessageRequest [method:store]',
-      recorded_at: Math.floor(Date.now() / 1000),
-    }]);
+    db.replaceEdgeEvidence(`${providerId}→${storeRequestId}:validates_with:store`, [
+      {
+        id: `${providerId}→${storeRequestId}:validates_with:store:ev:0`,
+        edge_id: `${providerId}→${storeRequestId}:validates_with:store`,
+        resolver: 'test',
+        evidence_kind: 'php-typed-parameter',
+        note: 'request: App\\Http\\Requests\\StoreEventMessageRequest [method:store]',
+        recorded_at: Math.floor(Date.now() / 1000),
+      },
+    ]);
 
     db.upsertStructuralEdge({
       id: `${providerId}→${indexRequestId}:validates_with:index`,
@@ -610,14 +773,16 @@ describe('formatFeaturePathBlock()', () => {
       provenance_summary: 'test',
       updated_at: Math.floor(Date.now() / 1000),
     });
-    db.replaceEdgeEvidence(`${providerId}→${indexRequestId}:validates_with:index`, [{
-      id: `${providerId}→${indexRequestId}:validates_with:index:ev:0`,
-      edge_id: `${providerId}→${indexRequestId}:validates_with:index`,
-      resolver: 'test',
-      evidence_kind: 'php-typed-parameter',
-      note: 'request: App\\Http\\Requests\\IndexEventMessageRequest [method:index]',
-      recorded_at: Math.floor(Date.now() / 1000),
-    }]);
+    db.replaceEdgeEvidence(`${providerId}→${indexRequestId}:validates_with:index`, [
+      {
+        id: `${providerId}→${indexRequestId}:validates_with:index:ev:0`,
+        edge_id: `${providerId}→${indexRequestId}:validates_with:index`,
+        resolver: 'test',
+        evidence_kind: 'php-typed-parameter',
+        note: 'request: App\\Http\\Requests\\IndexEventMessageRequest [method:index]',
+        recorded_at: Math.floor(Date.now() / 1000),
+      },
+    ]);
 
     const featurePath = getSurfaceFeaturePath(db, surfaceId)!;
     expect(featurePath.validators.map((v) => v.id)).toEqual([storeRequestId]);
@@ -676,8 +841,13 @@ describe('formatFeaturePathBlock()', () => {
 describe('formatFileFeaturePathBlock()', () => {
   let db: LuxDatabase;
 
-  beforeEach(() => { db = makeDb(); });
-  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+  beforeEach(() => {
+    db = makeDb();
+  });
+  afterEach(() => {
+    db.close();
+    rmSync(testDir, { recursive: true, force: true });
+  });
 
   it('returns null when no surfaces are associated with the file', () => {
     const result = formatFileFeaturePathBlock(db, 'routes/api.php');
@@ -685,8 +855,20 @@ describe('formatFileFeaturePathBlock()', () => {
   });
 
   it('returns a block containing all surfaces for the file', () => {
-    upsertSurface(db, 'surface:http:GET:/api/invoices', 'GET /api/invoices', '/api/invoices', 'routes/api.php');
-    upsertSurface(db, 'surface:http:POST:/api/invoices', 'POST /api/invoices', '/api/invoices', 'routes/api.php');
+    upsertSurface(
+      db,
+      'surface:http:GET:/api/invoices',
+      'GET /api/invoices',
+      '/api/invoices',
+      'routes/api.php'
+    );
+    upsertSurface(
+      db,
+      'surface:http:POST:/api/invoices',
+      'POST /api/invoices',
+      '/api/invoices',
+      'routes/api.php'
+    );
 
     const block = formatFileFeaturePathBlock(db, 'routes/api.php');
     expect(block).not.toBeNull();
@@ -736,8 +918,13 @@ function upsertSurfaceWithKind(
 describe('getSurfaceFeaturePath() — providerKind propagation', () => {
   let db: LuxDatabase;
 
-  beforeEach(() => { db = makeDb(); });
-  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+  beforeEach(() => {
+    db = makeDb();
+  });
+  afterEach(() => {
+    db.close();
+    rmSync(testDir, { recursive: true, force: true });
+  });
 
   it('propagates providerKind=closure and sets isClosureBacked=true', () => {
     const surfaceId = 'surface:http:GET:/health';
@@ -750,7 +937,14 @@ describe('getSurfaceFeaturePath() — providerKind propagation', () => {
 
   it('propagates providerKind=controller and sets isClosureBacked=false', () => {
     const surfaceId = 'surface:http:GET:/api/invoices';
-    upsertSurfaceWithKind(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php', 'controller');
+    upsertSurfaceWithKind(
+      db,
+      surfaceId,
+      'GET /api/invoices',
+      '/api/invoices',
+      'routes/api.php',
+      'controller'
+    );
 
     const path = getSurfaceFeaturePath(db, surfaceId)!;
     expect(path.providerKind).toBe('controller');
@@ -770,8 +964,13 @@ describe('getSurfaceFeaturePath() — providerKind propagation', () => {
 describe('formatFeaturePath() — closure-backed surfaces', () => {
   let db: LuxDatabase;
 
-  beforeEach(() => { db = makeDb(); });
-  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+  beforeEach(() => {
+    db = makeDb();
+  });
+  afterEach(() => {
+    db.close();
+    rmSync(testDir, { recursive: true, force: true });
+  });
 
   it('emits the closure-handler token in the provider slot for a closure-backed surface', () => {
     const surfaceId = 'surface:http:GET:/health';
@@ -791,7 +990,13 @@ describe('formatFeaturePath() — closure-backed surfaces', () => {
 
     upsertSurfaceWithKind(db, surfaceId, 'GET /health', '/health', 'routes/api.php', 'closure');
     upsertNode(db, consumerId, 'symbol', 'pingHealth');
-    upsertEdge(db, `${consumerId}→${surfaceId}:calls_surface`, 'calls_surface', consumerId, surfaceId);
+    upsertEdge(
+      db,
+      `${consumerId}→${surfaceId}:calls_surface`,
+      'calls_surface',
+      consumerId,
+      surfaceId
+    );
 
     const path = getSurfaceFeaturePath(db, surfaceId)!;
     const formatted = formatFeaturePath(path);
@@ -805,7 +1010,14 @@ describe('formatFeaturePath() — closure-backed surfaces', () => {
     // signal of "truly missing" is preserved — we only synthesize a handler
     // token when the detector classified the surface as closure-backed.
     const surfaceId = 'surface:http:GET:/api/invoices';
-    upsertSurfaceWithKind(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php', 'controller');
+    upsertSurfaceWithKind(
+      db,
+      surfaceId,
+      'GET /api/invoices',
+      '/api/invoices',
+      'routes/api.php',
+      'controller'
+    );
 
     const path = getSurfaceFeaturePath(db, surfaceId)!;
     const formatted = formatFeaturePath(path);
@@ -818,9 +1030,22 @@ describe('formatFeaturePath() — closure-backed surfaces', () => {
     const surfaceId = 'surface:http:GET:/api/invoices';
     const controllerNodeId = 'symbol:php:InvoiceController@index';
 
-    upsertSurfaceWithKind(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php', 'controller');
+    upsertSurfaceWithKind(
+      db,
+      surfaceId,
+      'GET /api/invoices',
+      '/api/invoices',
+      'routes/api.php',
+      'controller'
+    );
     upsertNode(db, controllerNodeId, 'symbol', 'InvoiceController@index');
-    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+    upsertEdge(
+      db,
+      `${surfaceId}→${controllerNodeId}:handled_by`,
+      'handled_by',
+      surfaceId,
+      controllerNodeId
+    );
 
     const path = getSurfaceFeaturePath(db, surfaceId)!;
     const formatted = formatFeaturePath(path);
@@ -833,8 +1058,13 @@ describe('formatFeaturePath() — closure-backed surfaces', () => {
 describe('formatFeaturePathBlock() — closure-backed surfaces', () => {
   let db: LuxDatabase;
 
-  beforeEach(() => { db = makeDb(); });
-  afterEach(() => { db.close(); rmSync(testDir, { recursive: true, force: true }); });
+  beforeEach(() => {
+    db = makeDb();
+  });
+  afterEach(() => {
+    db.close();
+    rmSync(testDir, { recursive: true, force: true });
+  });
 
   it('renders a "Handler: closure (inline)" line for closure-backed surfaces', () => {
     const surfaceId = 'surface:http:GET:/health';
@@ -856,7 +1086,14 @@ describe('formatFeaturePathBlock() — closure-backed surfaces', () => {
     // An unresolved controller-backed surface stays silent in the block — the
     // absence of Provider(s) is itself a meaningful signal of the miss.
     const surfaceId = 'surface:http:GET:/api/invoices';
-    upsertSurfaceWithKind(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php', 'controller');
+    upsertSurfaceWithKind(
+      db,
+      surfaceId,
+      'GET /api/invoices',
+      '/api/invoices',
+      'routes/api.php',
+      'controller'
+    );
 
     const path = getSurfaceFeaturePath(db, surfaceId)!;
     const block = formatFeaturePathBlock(path);
@@ -869,9 +1106,22 @@ describe('formatFeaturePathBlock() — closure-backed surfaces', () => {
     const surfaceId = 'surface:http:GET:/api/invoices';
     const controllerNodeId = 'symbol:php:InvoiceController@index';
 
-    upsertSurfaceWithKind(db, surfaceId, 'GET /api/invoices', '/api/invoices', 'routes/api.php', 'controller');
+    upsertSurfaceWithKind(
+      db,
+      surfaceId,
+      'GET /api/invoices',
+      '/api/invoices',
+      'routes/api.php',
+      'controller'
+    );
     upsertNode(db, controllerNodeId, 'symbol', 'InvoiceController@index');
-    upsertEdge(db, `${surfaceId}→${controllerNodeId}:handled_by`, 'handled_by', surfaceId, controllerNodeId);
+    upsertEdge(
+      db,
+      `${surfaceId}→${controllerNodeId}:handled_by`,
+      'handled_by',
+      surfaceId,
+      controllerNodeId
+    );
 
     const path = getSurfaceFeaturePath(db, surfaceId)!;
     const block = formatFeaturePathBlock(path);

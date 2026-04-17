@@ -7,7 +7,12 @@
 import type { StructuralNode, EdgeType, ConfidenceClass } from '../../db/types.js';
 
 // Re-export node type alias for convenience
-export type { StructuralNodeType, EdgeType, ConfidenceClass, FreshnessStatus } from '../../db/types.js';
+export type {
+  StructuralNodeType,
+  EdgeType,
+  ConfidenceClass,
+  FreshnessStatus,
+} from '../../db/types.js';
 
 // ---------------------------------------------------------------------------
 // Association context

@@ -14,7 +14,11 @@
 //
 // Those responsibilities belong to propagation passes.
 
-import type { AssociationContext, CapabilitySurfaceNode, StructuralRelationEdge } from '../types.js';
+import type {
+  AssociationContext,
+  CapabilitySurfaceNode,
+  StructuralRelationEdge,
+} from '../types.js';
 
 // ---------------------------------------------------------------------------
 // Detector contract
