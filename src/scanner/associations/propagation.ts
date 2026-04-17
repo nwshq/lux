@@ -14,7 +14,7 @@
 
 import type { LuxDatabase } from '../../db/index.js';
 import type { StructuralNode } from '../../db/types.js';
-import type { AssociationContext, TransportContractMetadata } from './types.js';
+import type { AssociationContext, EdgeType, TransportContractMetadata } from './types.js';
 import { AssociationEngine } from './engine.js';
 
 // ---------------------------------------------------------------------------
@@ -34,13 +34,13 @@ export interface PropagationResult {
  * @param context - AssociationContext from the overlay rebuild.
  * @returns Counts of edges added per propagation type.
  */
-export async function propagateSurfaces(
+export function propagateSurfaces(
   db: LuxDatabase,
   context: AssociationContext
 ): Promise<PropagationResult> {
   const surfaces = db.getCapabilitySurfaces();
   if (surfaces.length === 0) {
-    return { providerEdgesAdded: 0, consumerEdgesAdded: 0, artifactEdgesAdded: 0 };
+    return Promise.resolve({ providerEdgesAdded: 0, consumerEdgesAdded: 0, artifactEdgesAdded: 0 });
   }
 
   let providerEdgesAdded = 0;
@@ -54,7 +54,7 @@ export async function propagateSurfaces(
     artifactEdgesAdded += runArtifactPropagation(db, surface, context);
   }
 
-  return { providerEdgesAdded, consumerEdgesAdded, artifactEdgesAdded };
+  return Promise.resolve({ providerEdgesAdded, consumerEdgesAdded, artifactEdgesAdded });
 }
 
 // ---------------------------------------------------------------------------
@@ -119,11 +119,11 @@ function runProviderPropagation(
       }
       if (!resolved) continue;
 
-      const edgeType = candidate.role === 'request' ? 'validates_with' : 'returns_contract';
+      const edgeType: EdgeType = candidate.role === 'request' ? 'validates_with' : 'returns_contract';
       const edgeId = `${controllerNodeId}→${resolved.nodeId}:${edgeType}:propagated${methodScope ? `:${methodScope}` : ''}`;
       const propEdge = {
         id: edgeId,
-        edgeType: edgeType as 'validates_with' | 'returns_contract',
+        edgeType,
         sourceNodeId: controllerNodeId,
         targetNodeId: resolved.nodeId,
         sourceLanguage: 'php',
@@ -485,8 +485,13 @@ function findScriptTransportEvidence(
   matches.sort((a, b) => b.confidence - a.confidence || a.sortLine - b.sortLine);
   if (matches.length === 0) return null;
 
-  const { sortLine: _sortLine, ...best } = matches[0];
-  return best;
+  const best = matches[0];
+  return {
+    confidence: best.confidence,
+    evidenceKind: best.evidenceKind,
+    note: best.note,
+    line: best.line,
+  };
 }
 
 /**
@@ -576,8 +581,13 @@ function findBladeTransportEvidence(
   matches.sort((a, b) => b.confidence - a.confidence || a.sortLine - b.sortLine);
   if (matches.length === 0) return null;
 
-  const { sortLine: _sortLine, ...best } = matches[0];
-  return best;
+  const best = matches[0];
+  return {
+    confidence: best.confidence,
+    evidenceKind: best.evidenceKind,
+    note: best.note,
+    ...(best.line ? { line: best.line } : {}),
+  };
 }
 
 function extractTransportMethod(expr: string): string | null {

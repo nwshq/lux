@@ -243,14 +243,14 @@ export class TypeScriptLspEnricher implements LspEnricher {
     return definitions;
   }
 
-  private async getDiagnostics(uri: string) {
+  private getDiagnostics(uri: string) {
     // typescript-language-server pushes diagnostics asynchronously via
     // textDocument/publishDiagnostics notifications. For now we return an
     // empty array — callers that need diagnostics can listen to the
     // notification stream directly.
     // Future enhancement: buffer published diagnostics during enrichment.
     void uri;
-    return [];
+    return Promise.resolve([]);
   }
 
   // -------------------------------------------------------------------------

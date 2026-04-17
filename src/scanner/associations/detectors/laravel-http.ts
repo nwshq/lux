@@ -95,11 +95,11 @@ export class LaravelHttpSurfaceDetector implements CapabilitySurfaceDetector {
     return context.entries.some((e) => isEligibleRouteSource(e));
   }
 
-  async detect(context: AssociationContext): Promise<DetectedSurfaceBatch> {
+  detect(context: AssociationContext): Promise<DetectedSurfaceBatch> {
     try {
-      return this.detectSync(context);
+      return Promise.resolve(this.detectSync(context));
     } catch {
-      return emptyBatch();
+      return Promise.resolve(emptyBatch());
     }
   }
 
@@ -1152,7 +1152,7 @@ function extractPhpImportMap(content: string): Map<string, string> {
 
 function extractPhpMethodBlocks(content: string): Map<string, PhpMethodBlock> {
   const blocks = new Map<string, PhpMethodBlock>();
-  const methodRe = /\b(?:public|protected|private)\s+function\s+([A-Za-z_][A-Za-z0-9_]*)\s*\([^)]*\)\s*(?::\s*[^\{]+)?\{/g;
+  const methodRe = /\b(?:public|protected|private)\s+function\s+([A-Za-z_][A-Za-z0-9_]*)\s*\([^)]*\)\s*(?::\s*[^ {][^{]*)?\s*\{/g;
 
   let match: RegExpExecArray | null;
   while ((match = methodRe.exec(content)) !== null) {

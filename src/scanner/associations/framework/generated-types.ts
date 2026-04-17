@@ -46,14 +46,14 @@ export class GeneratedTypesResolver implements AssociationResolver {
     return hasPhp && hasTs;
   }
 
-  async resolve(context: AssociationContext): Promise<StructuralRelationEdge[]> {
+  resolve(context: AssociationContext): Promise<StructuralRelationEdge[]> {
     const edges: StructuralRelationEdge[] = [];
     const now = Math.floor(Date.now() / 1000);
 
     // 1. Find generated TS declaration files
     const generatedArtifacts = findGeneratedArtifacts(context);
 
-    if (generatedArtifacts.length === 0) return edges;
+    if (generatedArtifacts.length === 0) return Promise.resolve(edges);
 
     // 2. Find PHP DTOs/resources that likely produced those artifacts
     const phpSources = findPhpTypeSources(context);
@@ -110,7 +110,7 @@ export class GeneratedTypesResolver implements AssociationResolver {
       });
     }
 
-    return edges;
+    return Promise.resolve(edges);
   }
 }
 

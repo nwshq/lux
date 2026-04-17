@@ -2,7 +2,17 @@ import eslint from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
 
+const ignorePatterns = [
+  'dist/**',
+  'node_modules/**',
+  '*.config.js',
+  '*.config.mjs',
+];
+
 export default [
+  {
+    ignores: ignorePatterns,
+  },
   eslint.configs.recommended,
   {
     files: ['**/*.ts'],
@@ -52,8 +62,5 @@ export default [
       '@typescript-eslint/unbound-method': 'off',
       '@typescript-eslint/only-throw-error': 'off',
     },
-  },
-  {
-    ignores: ['dist/**', 'node_modules/**'],
   },
 ];

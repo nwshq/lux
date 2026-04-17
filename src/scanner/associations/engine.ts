@@ -213,7 +213,7 @@ export class AssociationEngine {
       (targetNode !== null && dirtySet.has(targetNode));
 
     const dirtyCount = [sourceNode, targetNode].filter(
-      (fp) => fp !== null && dirtySet.has(fp!)
+      (fp): fp is string => fp !== null && dirtySet.has(fp)
     ).length;
 
     return {

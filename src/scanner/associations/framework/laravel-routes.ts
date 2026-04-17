@@ -42,7 +42,7 @@ export class LaravelRoutesResolver implements AssociationResolver {
     return hasPhp && hasTs;
   }
 
-  async resolve(context: AssociationContext): Promise<StructuralRelationEdge[]> {
+  resolve(context: AssociationContext): Promise<StructuralRelationEdge[]> {
     const edges: StructuralRelationEdge[] = [];
     const now = Math.floor(Date.now() / 1000);
 
@@ -86,7 +86,7 @@ export class LaravelRoutesResolver implements AssociationResolver {
       });
     }
 
-    return edges;
+    return Promise.resolve(edges);
   }
 }
 

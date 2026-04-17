@@ -63,7 +63,7 @@ function mockResolver(
   return {
     name,
     supports: (_ctx) => supportsResult,
-    resolve: async (_ctx) => edges,
+    resolve: (_ctx) => Promise.resolve(edges),
   };
 }
 
@@ -233,9 +233,7 @@ describe('AssociationEngine', () => {
       const throwing: AssociationResolver = {
         name: 'thrower',
         supports: () => true,
-        resolve: async () => {
-          throw new Error('resolver exploded');
-        },
+        resolve: () => Promise.reject(new Error('resolver exploded')),
       };
       const good = mockResolver('good', [makeEdge()]);
 
