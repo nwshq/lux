@@ -17,12 +17,43 @@ const DEFAULT_MODEL = 'claude-sonnet-4-20250514';
 const ANALYSIS_TIMEOUT_MS = 180_000;
 const ANALYSIS_MAX_ATTEMPTS = 2;
 const DISCOVERY_PROMPT_CHAR_BUDGET = 120_000;
+const DISCOVERY_FALLBACK_PROMPT_CHAR_BUDGET = 45_000;
 const MAX_FILE_COUNT_DIRS_IN_PROMPT = 200;
 const MAX_SYMBOL_SUMMARY_DIRS_IN_PROMPT = 150;
 const MAX_SYMBOLS_PER_DIR_IN_PROMPT = 8;
 const MAX_CROSS_REFERENCES_IN_PROMPT = 150;
 const MAX_EXISTING_EXPERTS_IN_PROMPT = 50;
 const MAX_OVERLAY_NEIGHBORHOODS_IN_PROMPT = 20;
+
+interface PromptBudgetProfile {
+  totalChars: number;
+  maxFileCountDirs: number;
+  maxSymbolSummaryDirs: number;
+  maxSymbolsPerDir: number;
+  maxCrossReferences: number;
+  maxExistingExperts: number;
+  maxOverlayNeighborhoods: number;
+}
+
+const DEFAULT_PROMPT_PROFILE: PromptBudgetProfile = {
+  totalChars: DISCOVERY_PROMPT_CHAR_BUDGET,
+  maxFileCountDirs: MAX_FILE_COUNT_DIRS_IN_PROMPT,
+  maxSymbolSummaryDirs: MAX_SYMBOL_SUMMARY_DIRS_IN_PROMPT,
+  maxSymbolsPerDir: MAX_SYMBOLS_PER_DIR_IN_PROMPT,
+  maxCrossReferences: MAX_CROSS_REFERENCES_IN_PROMPT,
+  maxExistingExperts: MAX_EXISTING_EXPERTS_IN_PROMPT,
+  maxOverlayNeighborhoods: MAX_OVERLAY_NEIGHBORHOODS_IN_PROMPT,
+};
+
+const FALLBACK_PROMPT_PROFILE: PromptBudgetProfile = {
+  totalChars: DISCOVERY_FALLBACK_PROMPT_CHAR_BUDGET,
+  maxFileCountDirs: 60,
+  maxSymbolSummaryDirs: 40,
+  maxSymbolsPerDir: 5,
+  maxCrossReferences: 30,
+  maxExistingExperts: 20,
+  maxOverlayNeighborhoods: 8,
+};
 
 // ── Prompt ────────────────────────────────────────────────
 
@@ -47,7 +78,10 @@ const OUTPUT_SCHEMA = `{
  * Build the analysis prompt from discovery context.
  * Exported for testing.
  */
-export function buildAnalysisPrompt(context: DiscoveryContext): string {
+export function buildAnalysisPrompt(
+  context: DiscoveryContext,
+  profile: PromptBudgetProfile = DEFAULT_PROMPT_PROFILE
+): string {
   const hasOverlay =
     context.overlayTrustState &&
     context.overlayTrustState !== 'no-overlay' &&
@@ -91,41 +125,36 @@ export function buildAnalysisPrompt(context: DiscoveryContext): string {
     context.tree,
   ];
 
+  appendOptionalBlock(lines, profile.totalChars, tailLines, buildFileCountsBlock(context, profile));
   appendOptionalBlock(
     lines,
-    DISCOVERY_PROMPT_CHAR_BUDGET,
+    profile.totalChars,
     tailLines,
-    buildFileCountsBlock(context)
+    buildSymbolSummariesBlock(context, profile)
   );
   appendOptionalBlock(
     lines,
-    DISCOVERY_PROMPT_CHAR_BUDGET,
+    profile.totalChars,
     tailLines,
-    buildSymbolSummariesBlock(context)
+    buildCrossReferencesBlock(context, profile)
   );
   appendOptionalBlock(
     lines,
-    DISCOVERY_PROMPT_CHAR_BUDGET,
+    profile.totalChars,
     tailLines,
-    buildCrossReferencesBlock(context)
+    buildExistingExpertsBlock(context, profile)
   );
-  appendOptionalBlock(
-    lines,
-    DISCOVERY_PROMPT_CHAR_BUDGET,
-    tailLines,
-    buildExistingExpertsBlock(context)
-  );
-  appendOptionalBlock(lines, DISCOVERY_PROMPT_CHAR_BUDGET, tailLines, buildOverlayBlock(context));
+  appendOptionalBlock(lines, profile.totalChars, tailLines, buildOverlayBlock(context, profile));
 
   lines.push(...tailLines);
 
   return lines.join('\n');
 }
 
-function buildFileCountsBlock(context: DiscoveryContext): string[] {
+function buildFileCountsBlock(context: DiscoveryContext, profile: PromptBudgetProfile): string[] {
   const fileCounts = Object.entries(context.fileCountsByDirectory)
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .slice(0, MAX_FILE_COUNT_DIRS_IN_PROMPT);
+    .slice(0, profile.maxFileCountDirs);
 
   if (fileCounts.length === 0) {
     return [];
@@ -142,14 +171,17 @@ function buildFileCountsBlock(context: DiscoveryContext): string[] {
   ];
 }
 
-function buildSymbolSummariesBlock(context: DiscoveryContext): string[] {
+function buildSymbolSummariesBlock(
+  context: DiscoveryContext,
+  profile: PromptBudgetProfile
+): string[] {
   if (!context.symbolSummaries) {
     return [];
   }
 
   const symbols = Object.entries(context.symbolSummaries)
     .sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]))
-    .slice(0, MAX_SYMBOL_SUMMARY_DIRS_IN_PROMPT);
+    .slice(0, profile.maxSymbolSummaryDirs);
 
   if (symbols.length === 0) {
     return [];
@@ -160,7 +192,7 @@ function buildSymbolSummariesBlock(context: DiscoveryContext): string[] {
     '',
     '### Symbol Summaries',
     ...symbols.map(([dir, names]) => {
-      const included = names.slice(0, MAX_SYMBOLS_PER_DIR_IN_PROMPT);
+      const included = names.slice(0, profile.maxSymbolsPerDir);
       const omittedSymbols = names.length - included.length;
       return `  ${dir}: ${included.join(', ')}${omittedSymbols > 0 ? ` (+${omittedSymbols} more symbols)` : ''}`;
     }),
@@ -170,12 +202,15 @@ function buildSymbolSummariesBlock(context: DiscoveryContext): string[] {
   ];
 }
 
-function buildCrossReferencesBlock(context: DiscoveryContext): string[] {
+function buildCrossReferencesBlock(
+  context: DiscoveryContext,
+  profile: PromptBudgetProfile
+): string[] {
   if (!context.crossReferences || context.crossReferences.length === 0) {
     return [];
   }
 
-  const refs = context.crossReferences.slice(0, MAX_CROSS_REFERENCES_IN_PROMPT);
+  const refs = context.crossReferences.slice(0, profile.maxCrossReferences);
   const omittedCount = context.crossReferences.length - refs.length;
   return [
     '',
@@ -187,12 +222,15 @@ function buildCrossReferencesBlock(context: DiscoveryContext): string[] {
   ];
 }
 
-function buildExistingExpertsBlock(context: DiscoveryContext): string[] {
+function buildExistingExpertsBlock(
+  context: DiscoveryContext,
+  profile: PromptBudgetProfile
+): string[] {
   if (context.existingExperts.length === 0) {
     return ['', '### Already Registered Experts', '  None'];
   }
 
-  const experts = context.existingExperts.slice(0, MAX_EXISTING_EXPERTS_IN_PROMPT);
+  const experts = context.existingExperts.slice(0, profile.maxExistingExperts);
   const omittedCount = context.existingExperts.length - experts.length;
   return [
     '',
@@ -207,7 +245,7 @@ function buildExistingExpertsBlock(context: DiscoveryContext): string[] {
   ];
 }
 
-function buildOverlayBlock(context: DiscoveryContext): string[] {
+function buildOverlayBlock(context: DiscoveryContext, profile: PromptBudgetProfile): string[] {
   if (!context.overlayTrustState || context.overlayTrustState === 'no-overlay') {
     return [];
   }
@@ -216,7 +254,7 @@ function buildOverlayBlock(context: DiscoveryContext): string[] {
 
   if (context.overlayNeighborhoods && context.overlayNeighborhoods.length > 0) {
     lines.push('', '### Structural Neighborhoods (from overlay)');
-    for (const nbhd of context.overlayNeighborhoods.slice(0, MAX_OVERLAY_NEIGHBORHOODS_IN_PROMPT)) {
+    for (const nbhd of context.overlayNeighborhoods.slice(0, profile.maxOverlayNeighborhoods)) {
       lines.push(`  Neighborhood: ${nbhd.label}`);
       lines.push(`    Directories: ${nbhd.dominantDirectories.join(', ') || '(none)'}`);
       lines.push(
@@ -230,7 +268,7 @@ function buildOverlayBlock(context: DiscoveryContext): string[] {
       }
     }
 
-    const omittedCount = context.overlayNeighborhoods.length - MAX_OVERLAY_NEIGHBORHOODS_IN_PROMPT;
+    const omittedCount = context.overlayNeighborhoods.length - profile.maxOverlayNeighborhoods;
     if (omittedCount > 0) {
       lines.push(`  ... ${omittedCount} more neighborhoods omitted for prompt budget`);
     }
@@ -278,11 +316,15 @@ export async function analyze(
   options: DiscoveryOptions
 ): Promise<DiscoveryProposal> {
   const model = options.model ?? DEFAULT_MODEL;
-  const prompt = buildAnalysisPrompt(context);
 
   let lastError: Error | undefined;
 
   for (let attempt = 1; attempt <= ANALYSIS_MAX_ATTEMPTS; attempt++) {
+    const prompt = buildAnalysisPrompt(
+      context,
+      attempt === 1 ? DEFAULT_PROMPT_PROFILE : FALLBACK_PROMPT_PROFILE
+    );
+
     try {
       const raw = await spawnClaude(prompt, model);
       const proposal = parseProposalResponse(raw);

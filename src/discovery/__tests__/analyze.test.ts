@@ -185,6 +185,39 @@ describe('buildAnalysisPrompt', () => {
     expect(prompt).toContain('more directories omitted for prompt budget');
     expect(prompt).toContain('more cross-references omitted for prompt budget');
   });
+
+  it('can build a materially smaller fallback prompt', () => {
+    const largeContext = makeContext({
+      fileCountsByDirectory: Object.fromEntries(
+        Array.from({ length: 600 }, (_, i) => [`dir-${i.toString().padStart(4, '0')}`, 600 - i])
+      ),
+      symbolSummaries: Object.fromEntries(
+        Array.from({ length: 300 }, (_, i) => [
+          `symbols-${i.toString().padStart(4, '0')}`,
+          Array.from({ length: 15 }, (_, j) => `Symbol${i}_${j}`),
+        ])
+      ),
+      crossReferences: Array.from({ length: 300 }, (_, i) => ({
+        sourceDir: `src-${i}`,
+        targetDir: `dst-${i}`,
+        referenceCount: 300 - i,
+      })),
+    });
+
+    const defaultPrompt = buildAnalysisPrompt(largeContext);
+    const fallbackPrompt = buildAnalysisPrompt(largeContext, {
+      totalChars: 45000,
+      maxFileCountDirs: 60,
+      maxSymbolSummaryDirs: 40,
+      maxSymbolsPerDir: 5,
+      maxCrossReferences: 30,
+      maxExistingExperts: 20,
+      maxOverlayNeighborhoods: 8,
+    });
+
+    expect(fallbackPrompt.length).toBeLessThan(defaultPrompt.length);
+    expect(fallbackPrompt.length).toBeLessThan(45000);
+  });
 });
 
 // ══════════════════════════════════════════════════════════════
