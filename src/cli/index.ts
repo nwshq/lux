@@ -43,6 +43,12 @@ const program = new Command();
 const DEFAULT_DB_PATH = join(homedir(), '.lux', 'lux.db');
 const DEFAULT_CORPUS_PATH = join(homedir(), 'CORPUS');
 
+interface ProgressReporter {
+  start: (label: string) => void;
+  log: (message: string) => void;
+  finish: (label: string) => void;
+}
+
 program
   .name('lux')
   .description('Lux Knowledge Platform - semantic search and knowledge retrieval')
@@ -60,7 +66,7 @@ indexCmd
       '  Default: overlay-complete rebuild with structural overlay and trust summary.\n' +
       '  Use --content-only for a faster fallback that skips overlay materialization.'
   )
-  .option('--quiet', 'Suppress output')
+  .option('--quiet', 'Reduce output to phase progress and final status')
   .option(
     '--content-only',
     'Run a content-only rebuild: knowledge index only, no structural overlay.'
@@ -96,10 +102,12 @@ indexCmd
       }
 
       const scanner = new GeneralScanner(corpusPath);
+      const progress = createProgressReporter(options.quiet === true);
 
-      if (!options.quiet) {
-        console.log(`Scanning content directory: ${corpusPath}`);
-      }
+      progress.start(
+        `index rebuild (${options.contentOnly ? 'content-only' : 'overlay-complete'})`
+      );
+      progress.log(`Scanning content directory: ${corpusPath}`);
 
       let generalResult;
       let overlayResult: RebuildResult | undefined;
@@ -109,7 +117,7 @@ indexCmd
         // Content-only path: scan + enrich, no structural overlay
         try {
           const { scanResult } = await rebuildContentOnly(corpusPath, {
-            onProgress: options.quiet ? undefined : (msg) => console.log(`  ${msg}`),
+            onProgress: (msg) => progress.log(msg),
           });
           generalResult = scanResult;
         } catch (error) {
@@ -122,7 +130,7 @@ indexCmd
         // Overlay-complete path: default rebuild mode
         try {
           const { result, scanResult } = await rebuildWithOverlay(db, corpusPath, {
-            onProgress: options.quiet ? undefined : (msg) => console.log(`  ${msg}`),
+            onProgress: (msg) => progress.log(msg),
           });
           overlayResult = result;
           generalResult = scanResult;
@@ -161,9 +169,9 @@ indexCmd
         if (generalResult.dependencies.length > 0) {
           console.log(`  Detected ${generalResult.dependencies.length} module dependencies`);
         }
-        if (options.contentOnly) {
-          console.log(`\nClearing existing index...`);
-        }
+      }
+      if (options.contentOnly) {
+        progress.log('Clearing existing index...');
       }
 
       if (options.contentOnly) {
@@ -177,9 +185,7 @@ indexCmd
           process.exit(1);
         }
 
-        if (!options.quiet) {
-          console.log('Indexing...');
-        }
+        progress.log('Indexing...');
 
         // Index with comprehensive error handling
         try {
@@ -258,6 +264,7 @@ indexCmd
         });
       }
 
+      progress.finish('index rebuild complete');
       if (!options.quiet) {
         if (overlayResult) {
           printRebuildTrustSummary(overlayResult);
@@ -268,6 +275,14 @@ indexCmd
           );
         }
         console.log('\n✓ Index rebuilt successfully');
+      } else {
+        if (overlayResult) {
+          console.log(
+            `✓ Index rebuilt successfully (${overlayResult.mode}, ${overlayResult.surfaceCount} surfaces, ${overlayResult.symbolNodeCount} symbols)`
+          );
+        } else {
+          console.log('✓ Index rebuilt successfully (content-only)');
+        }
       }
 
       db.close();
@@ -731,6 +746,32 @@ program.parse();
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+function createProgressReporter(quiet: boolean): ProgressReporter {
+  const startedAt = Date.now();
+  let lastPhaseAt = startedAt;
+
+  const formatElapsed = (ms: number): string => `${(ms / 1000).toFixed(1)}s`;
+  const prefix = quiet ? '' : '  ';
+
+  return {
+    start(label: string) {
+      console.log(`${prefix}▶ ${label}`);
+      lastPhaseAt = Date.now();
+    },
+    log(message: string) {
+      const now = Date.now();
+      console.log(
+        `${prefix}[+${formatElapsed(now - lastPhaseAt)} | total ${formatElapsed(now - startedAt)}] ${message}`
+      );
+      lastPhaseAt = now;
+    },
+    finish(label: string) {
+      const totalMs = Date.now() - startedAt;
+      console.log(`${prefix}✓ ${label} in ${formatElapsed(totalMs)}`);
+    },
+  };
+}
 
 function printRebuildTrustSummary(r: RebuildResult): void {
   console.log(`\nMode: ${r.mode}`);

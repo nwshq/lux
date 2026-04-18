@@ -182,6 +182,11 @@ describe('overlay CLI trust surface', () => {
   it('canonical rebuild reaches real overlay-complete state when symbols materialize', () => {
     const rebuild = runCli(repoDir, dbPath, ['index', 'rebuild', '--quiet']);
     expect(rebuild.status).toBe(0);
+    expect(rebuild.stdout).toContain('▶ index rebuild (overlay-complete)');
+    expect(rebuild.stdout).toContain('Scanning content directory:');
+    expect(rebuild.stdout).toContain('Rebuilding structural overlay...');
+    expect(rebuild.stdout).toContain('✓ index rebuild complete in ');
+    expect(rebuild.stdout).toContain('✓ Index rebuilt successfully (overlay-complete, ');
 
     const db = new LuxDatabase(dbPath);
     const trustState = loadOverlayTrustState(db);
