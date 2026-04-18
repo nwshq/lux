@@ -16,6 +16,20 @@ export interface IncrementalPlan {
   unchanged: number; // Count of files not affected
 }
 
+/** Relative source-code paths whose changes can invalidate the structural overlay. */
+export function collectOverlayRelevantPaths(diff: GitDiffResult): string[] {
+  const allChanged = [...diff.added, ...diff.modified, ...diff.deleted];
+  return allChanged.filter((filePath) => {
+    const ext = extname(filePath);
+    return SOURCE_CODE_EXTENSIONS.includes(ext) && !isExcludedPath(filePath);
+  });
+}
+
+/** Whether a diff contains source changes that require canonical overlay rebuild. */
+export function hasOverlayRelevantChanges(diff: GitDiffResult): boolean {
+  return collectOverlayRelevantPaths(diff).length > 0;
+}
+
 /** Set of indexable extensions (markdown + source code). */
 const INDEXABLE_EXTENSIONS = new Set(['.md', ...SOURCE_CODE_EXTENSIONS]);
 

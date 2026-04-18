@@ -6,6 +6,7 @@
 
 import type { Command } from 'commander';
 import { LuxDatabase } from '../db/index.js';
+import { inspectOverlayTrustState } from '../scanner/overlay-trust-state.js';
 
 export function addOverlayCommands(program: Command): void {
   const overlayCmd = program
@@ -24,70 +25,47 @@ export function addOverlayCommands(program: Command): void {
       const opts = program.opts();
       const db = new LuxDatabase(opts.db as string);
 
-      const surfaces = db.getCapabilitySurfaces();
-      const fileNodes = db.getStructuralNodesByType('file');
-      const symbolNodes = db.getStructuralNodesByType('symbol');
-
-      let controllerBacked = 0;
-      let closureBacked = 0;
-      let unknownKind = 0;
-
-      for (const surface of surfaces) {
-        if (surface.metadata) {
-          try {
-            const meta = JSON.parse(surface.metadata) as Record<string, unknown>;
-            if (meta.providerKind === 'controller') controllerBacked++;
-            else if (meta.providerKind === 'closure') closureBacked++;
-            else unknownKind++;
-          } catch {
-            unknownKind++;
-          }
-        } else {
-          unknownKind++;
-        }
-      }
-
-      const warnings: string[] = [];
-      if (surfaces.length > 0 && symbolNodes.length === 0) {
-        warnings.push(
-          'Surface nodes exist but no symbol nodes are present — overlay may lack provider resolution.'
-        );
-      }
-
-      const mode =
-        surfaces.length === 0 && fileNodes.length === 0
-          ? 'no-overlay'
-          : symbolNodes.length === 0 && surfaces.length > 0
-            ? 'degraded-overlay'
-            : 'overlay-present';
+      const inspection = inspectOverlayTrustState(db);
+      const overlay = inspection.state;
 
       if (options.json) {
         console.log(
           JSON.stringify(
-            {
-              mode,
-              surfaceCount: surfaces.length,
-              fileNodeCount: fileNodes.length,
-              symbolNodeCount: symbolNodes.length,
-              controllerBackedCount: controllerBacked,
-              closureBackedCount: closureBacked,
-              unknownProviderKindCount: unknownKind,
-              warnings,
-            },
+            overlay
+              ? {
+                  ...overlay,
+                  trustSource: inspection.source,
+                }
+              : {
+                  mode: 'none',
+                  trustSource: inspection.source,
+                  warnings: [
+                    'No overlay trust state recorded. Run "lux index rebuild" to build the canonical overlay path.',
+                  ],
+                },
             null,
             2
           )
         );
+      } else if (!overlay) {
+        console.log('\nOverlay Status: none');
+        console.log('No overlay trust state recorded.');
+        console.log('Run "lux index rebuild" to build the canonical overlay path.');
       } else {
-        console.log(`\nOverlay Status: ${mode}`);
-        console.log(`Surfaces: ${surfaces.length}`);
-        if (surfaces.length > 0) {
-          console.log(
-            `Provider kinds: ${controllerBacked} controller-backed, ${closureBacked} closure-backed, ${unknownKind} unknown`
-          );
+        console.log(`\nOverlay Status: ${overlay.mode}`);
+        console.log(`Surfaces: ${overlay.surfaceCount}`);
+        console.log(
+          `Provider kinds: ${overlay.controllerBackedCount} controller-backed, ${overlay.closureBackedCount} closure-backed, ${overlay.unknownProviderKindCount} unknown`
+        );
+        console.log(`Nodes: ${overlay.fileNodeCount} files, ${overlay.symbolNodeCount} symbols`);
+        console.log(`Trust source: ${inspection.source}`);
+        if (overlay.lastIndexedCommit) {
+          console.log(`Indexed commit: ${overlay.lastIndexedCommit.slice(0, 8)}`);
         }
-        console.log(`Nodes: ${fileNodes.length} files, ${symbolNodes.length} symbols`);
-        for (const w of warnings) {
+        if (overlay.recordedAt) {
+          console.log(`Trust recorded: ${overlay.recordedAt}`);
+        }
+        for (const w of overlay.warnings) {
           console.warn(`Warning: ${w}`);
         }
       }
@@ -111,28 +89,29 @@ export function addOverlayCommands(program: Command): void {
       const opts = program.opts();
       const db = new LuxDatabase(opts.db as string);
 
-      const surfaces = db.getCapabilitySurfaces();
-      const fileNodes = db.getStructuralNodesByType('file');
-      const symbolNodes = db.getStructuralNodesByType('symbol');
+      const inspection = inspectOverlayTrustState(db);
+      const overlay = inspection.state;
 
       db.close();
 
-      if (surfaces.length === 0 && fileNodes.length === 0) {
-        console.error('Error: No structural overlay found in database.');
+      if (!overlay) {
+        console.error('Error: No structural overlay trust state found in database.');
         console.error('  Run "lux index rebuild" to build the canonical overlay-complete index.');
         process.exit(1);
       }
 
-      if (symbolNodes.length === 0) {
-        console.error('Error: Overlay is degraded — no symbol nodes are present.');
-        console.error('  Provider propagation trust is reduced without symbol materialization.');
-        console.error('  Run "lux index rebuild" with LSP enrichment enabled.');
+      if (overlay.mode !== 'overlay-complete') {
+        console.error(`Error: Overlay is ${overlay.mode}, not overlay-complete.`);
+        for (const warning of overlay.warnings) {
+          console.error(`  Warning: ${warning}`);
+        }
+        console.error('  Run "lux index rebuild" to restore the canonical overlay-complete state.');
         process.exit(1);
       }
 
       console.log(
-        `Overlay check passed: ${surfaces.length} surface(s), ` +
-          `${fileNodes.length} file node(s), ${symbolNodes.length} symbol node(s).`
+        `Overlay check passed: ${overlay.surfaceCount} surface(s), ` +
+          `${overlay.fileNodeCount} file node(s), ${overlay.symbolNodeCount} symbol node(s).`
       );
     });
 }

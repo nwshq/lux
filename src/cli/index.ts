@@ -10,8 +10,17 @@ import { GeneralScanner } from '../scanner/index.js';
 import { attachEnrichment } from '../scanner/general.js';
 import { rebuildWithOverlay, rebuildContentOnly } from '../scanner/rebuild-orchestrator.js';
 import type { RebuildResult } from '../scanner/rebuild-orchestrator.js';
+import {
+  inspectOverlayTrustState,
+  persistRebuildTrustState,
+  markOverlayTrustAfterSync,
+} from '../scanner/overlay-trust-state.js';
 import { isGitRepository, getHeadCommit, getGitDiff, commitExists } from '../scanner/git.js';
-import { buildIncrementalPlan } from '../scanner/incremental.js';
+import {
+  buildIncrementalPlan,
+  collectOverlayRelevantPaths,
+  hasOverlayRelevantChanges,
+} from '../scanner/incremental.js';
 import { addSearchCommand } from './search.js';
 import { addHooksCommand } from './hooks.js';
 import { addMigrateCommands } from './migrate.js';
@@ -94,6 +103,7 @@ indexCmd
 
       let generalResult;
       let overlayResult: RebuildResult | undefined;
+      let headCommitForTrustState: string | undefined;
 
       if (options.contentOnly) {
         // Content-only path: scan + enrich, no structural overlay
@@ -230,6 +240,7 @@ indexCmd
       if (isGitRepository(corpusPath)) {
         try {
           const headCommit = getHeadCommit(corpusPath);
+          headCommitForTrustState = headCommit;
           db.setIndexMetadata('last_indexed_commit', headCommit);
           if (!options.quiet) {
             console.log(`Stored commit hash: ${headCommit.slice(0, 8)}`);
@@ -239,6 +250,12 @@ indexCmd
             console.warn('Warning: Failed to store git commit hash');
           }
         }
+      }
+
+      if (overlayResult) {
+        persistRebuildTrustState(db, overlayResult, {
+          lastIndexedCommit: headCommitForTrustState,
+        });
       }
 
       if (!options.quiet) {
@@ -418,10 +435,56 @@ indexCmd
         }
       }
 
+      const overlayRelevantPaths = collectOverlayRelevantPaths(diff);
+      const requiresOverlayRebuild = hasOverlayRelevantChanges(diff);
+
+      if (requiresOverlayRebuild) {
+        if (!options.quiet) {
+          console.log(
+            `Sync path: canonical overlay rebuild (${overlayRelevantPaths.length} structural source file(s) changed).`
+          );
+        }
+        try {
+          const { result } = await rebuildWithOverlay(db, corpusPath, {
+            onProgress: options.quiet ? undefined : (msg) => console.log(`  ${msg}`),
+          });
+          db.setIndexMetadata('last_indexed_commit', headCommit);
+          persistRebuildTrustState(db, result, {
+            lastIndexedCommit: headCommit,
+          });
+
+          try {
+            db.insertEvent({
+              source: 'cli',
+              event_type: 'index_sync',
+              summary: `Sync escalated to overlay rebuild: ${overlayRelevantPaths.length} structural source file(s) changed`,
+            });
+          } catch {
+            // Non-fatal
+          }
+
+          if (!options.quiet) {
+            printRebuildTrustSummary(result);
+            console.log(
+              `\n✓ Sync escalated to full overlay rebuild (${result.surfaceCount} surfaces, commit ${headCommit.slice(0, 8)})`
+            );
+          }
+
+          db.close();
+          return;
+        } catch (error) {
+          console.error('Error: Failed to run overlay rebuild during sync');
+          console.error(`  ${error instanceof Error ? error.message : String(error)}`);
+          db.close();
+          process.exit(1);
+        }
+      }
+
       // Build incremental plan
       const plan = buildIncrementalPlan(corpusPath, diff);
 
       if (!options.quiet) {
+        console.log('Sync path: incremental content sync (no structural source changes detected).');
         console.log(
           `Changes: +${diff.added.length} added, ~${diff.modified.length} modified, -${diff.deleted.length} deleted`
         );
@@ -549,6 +612,16 @@ indexCmd
       // Store new commit hash
       db.setIndexMetadata('last_indexed_commit', headCommit);
 
+      const syncTrustState = markOverlayTrustAfterSync(db, {
+        lastIndexedCommit: headCommit,
+        overlayRelevantPaths,
+        addedCount: diff.added.length,
+        modifiedCount: diff.modified.length,
+        deletedCount: diff.deleted.length,
+        indexedCount: plan.toIndex.length,
+        deletedEntryCount: plan.toDelete.length,
+      });
+
       // Log event
       try {
         db.insertEvent({
@@ -561,6 +634,9 @@ indexCmd
       }
 
       if (!options.quiet) {
+        console.log(
+          `Overlay trust after sync: ${syncTrustState.mode} (${syncTrustState.fileNodeCount} files, ${syncTrustState.symbolNodeCount} symbols)`
+        );
         console.log(
           `✓ Synced: +${plan.toIndex.length} indexed, -${plan.toDelete.length} deleted (commit ${headCommit.slice(0, 8)})`
         );
@@ -588,24 +664,38 @@ indexCmd
     const opts = program.opts();
     const db = new LuxDatabase(opts.db as string);
     const stats = db.getStats();
+    const inspection = inspectOverlayTrustState(db);
 
     console.log('\nIndex Statistics:\n');
     console.log(`  Knowledge Entries: ${stats.knowledge_entries}`);
     console.log(`  Events: ${stats.events}`);
 
-    const surfaces = db.getCapabilitySurfaces();
-    const fileNodes = db.getStructuralNodesByType('file');
-    const symbolNodes = db.getStructuralNodesByType('symbol');
-
     console.log('\nStructural Overlay:');
-    if (surfaces.length === 0 && fileNodes.length === 0) {
-      console.log('  No overlay — run "lux index rebuild" to build the canonical overlay path.');
+    if (!inspection.state) {
+      console.log(
+        '  No overlay trust state recorded — run "lux index rebuild" to build the canonical overlay path.'
+      );
     } else {
-      const overlayMode =
-        symbolNodes.length === 0 && surfaces.length > 0 ? 'degraded-overlay' : 'overlay-present';
-      console.log(`  Mode: ${overlayMode}`);
-      console.log(`  Surfaces: ${surfaces.length}`);
-      console.log(`  Nodes: ${fileNodes.length} files, ${symbolNodes.length} symbols`);
+      const overlay = inspection.state;
+      console.log(`  Mode: ${overlay.mode}`);
+      console.log(`  Surfaces: ${overlay.surfaceCount}`);
+      console.log(`  Nodes: ${overlay.fileNodeCount} files, ${overlay.symbolNodeCount} symbols`);
+      console.log(
+        `  Provider kinds: ${overlay.controllerBackedCount} controller-backed, ` +
+          `${overlay.closureBackedCount} closure-backed, ${overlay.unknownProviderKindCount} unknown`
+      );
+      console.log(`  Trust source: ${inspection.source}`);
+      if (overlay.lastIndexedCommit) {
+        console.log(`  Indexed commit: ${overlay.lastIndexedCommit.slice(0, 8)}`);
+      }
+      if (overlay.recordedAt) {
+        console.log(`  Trust recorded: ${overlay.recordedAt}`);
+      }
+      if (overlay.warnings.length > 0) {
+        for (const warning of overlay.warnings) {
+          console.warn(`Warning: ${warning}`);
+        }
+      }
     }
     console.log();
 

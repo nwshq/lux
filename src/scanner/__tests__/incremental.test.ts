@@ -2,7 +2,11 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { join } from 'path';
 import { mkdirSync, rmSync, existsSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
-import { buildIncrementalPlan } from '../incremental.js';
+import {
+  buildIncrementalPlan,
+  collectOverlayRelevantPaths,
+  hasOverlayRelevantChanges,
+} from '../incremental.js';
 import type { GitDiffResult } from '../git.js';
 
 describe('buildIncrementalPlan', () => {
@@ -116,5 +120,27 @@ describe('buildIncrementalPlan', () => {
 
     expect(plan.toIndex).toHaveLength(0);
     expect(plan.unchanged).toBe(1);
+  });
+
+  it('should detect overlay-relevant source changes', () => {
+    const diff: GitDiffResult = {
+      added: ['src/app.ts', 'docs/readme.md'],
+      modified: ['routes/api.php'],
+      deleted: [],
+    };
+
+    expect(collectOverlayRelevantPaths(diff)).toEqual(['src/app.ts', 'routes/api.php']);
+    expect(hasOverlayRelevantChanges(diff)).toBe(true);
+  });
+
+  it('should ignore non-structural changes for overlay relevance', () => {
+    const diff: GitDiffResult = {
+      added: ['docs/readme.md'],
+      modified: ['notes/plan.md'],
+      deleted: [],
+    };
+
+    expect(collectOverlayRelevantPaths(diff)).toEqual([]);
+    expect(hasOverlayRelevantChanges(diff)).toBe(false);
   });
 });
