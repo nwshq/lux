@@ -157,6 +157,34 @@ describe('buildAnalysisPrompt', () => {
     const prompt = buildAnalysisPrompt(makeContext());
     expect(prompt).toContain('Respond with ONLY valid JSON');
   });
+
+  it('caps prompt growth for very large enrichment contexts', () => {
+    const largeContext = makeContext({
+      fileCountsByDirectory: Object.fromEntries(
+        Array.from({ length: 2500 }, (_, i) => [`dir-${i.toString().padStart(4, '0')}`, 2500 - i])
+      ),
+      symbolSummaries: Object.fromEntries(
+        Array.from({ length: 1200 }, (_, i) => [
+          `symbols-${i.toString().padStart(4, '0')}`,
+          Array.from({ length: 20 }, (_, j) => `Symbol${i}_${j}`),
+        ])
+      ),
+      crossReferences: Array.from({ length: 900 }, (_, i) => ({
+        sourceDir: `src-${i}`,
+        targetDir: `dst-${i}`,
+        referenceCount: 900 - i,
+      })),
+      existingExperts: Array.from({ length: 80 }, (_, i) => ({
+        slug: `expert-${i}`,
+        mountPath: `mount-${i}`,
+      })),
+    });
+
+    const prompt = buildAnalysisPrompt(largeContext);
+    expect(prompt.length).toBeLessThan(120000);
+    expect(prompt).toContain('more directories omitted for prompt budget');
+    expect(prompt).toContain('more cross-references omitted for prompt budget');
+  });
 });
 
 // ══════════════════════════════════════════════════════════════
@@ -302,6 +330,12 @@ describe('parseProposalResponse: markdown fences', () => {
 describe('parseProposalResponse: error handling', () => {
   it('throws on invalid JSON', () => {
     expect(() => parseProposalResponse('not json at all')).toThrow('Failed to parse AI response');
+  });
+
+  it('throws on plain-text Claude failures like prompt length rejection', () => {
+    expect(() => parseProposalResponse('Prompt is too long')).toThrow(
+      'Failed to parse AI response'
+    );
   });
 
   it('throws on null response', () => {

@@ -16,6 +16,13 @@ import type {
 const DEFAULT_MODEL = 'claude-sonnet-4-20250514';
 const ANALYSIS_TIMEOUT_MS = 180_000;
 const ANALYSIS_MAX_ATTEMPTS = 2;
+const DISCOVERY_PROMPT_CHAR_BUDGET = 120_000;
+const MAX_FILE_COUNT_DIRS_IN_PROMPT = 200;
+const MAX_SYMBOL_SUMMARY_DIRS_IN_PROMPT = 150;
+const MAX_SYMBOLS_PER_DIR_IN_PROMPT = 8;
+const MAX_CROSS_REFERENCES_IN_PROMPT = 150;
+const MAX_EXISTING_EXPERTS_IN_PROMPT = 50;
+const MAX_OVERLAY_NEIGHBORHOODS_IN_PROMPT = 20;
 
 // ── Prompt ────────────────────────────────────────────────
 
@@ -41,76 +48,6 @@ const OUTPUT_SCHEMA = `{
  * Exported for testing.
  */
 export function buildAnalysisPrompt(context: DiscoveryContext): string {
-  const sections: string[] = [
-    `You are analyzing a codebase to propose domain expert boundaries for a multi-expert AI panel system. Each expert manages a subdirectory of the content root and specializes in a specific domain.`,
-    '',
-    '## Context',
-    '',
-    '### Directory Tree',
-    context.tree,
-  ];
-
-  // File counts by directory
-  const fileCounts = Object.entries(context.fileCountsByDirectory);
-  if (fileCounts.length > 0) {
-    sections.push('', '### File Counts by Directory');
-    for (const [dir, count] of fileCounts) {
-      sections.push(`  ${dir}: ${count}`);
-    }
-  }
-
-  // Symbol summaries (optional, Phase 3+)
-  if (context.symbolSummaries) {
-    const symbols = Object.entries(context.symbolSummaries);
-    if (symbols.length > 0) {
-      sections.push('', '### Symbol Summaries');
-      for (const [dir, names] of symbols) {
-        sections.push(`  ${dir}: ${names.join(', ')}`);
-      }
-    }
-  }
-
-  // Cross-references (optional, Phase 3+)
-  if (context.crossReferences && context.crossReferences.length > 0) {
-    sections.push('', '### Cross-References');
-    for (const ref of context.crossReferences) {
-      sections.push(`  ${ref.sourceDir} → ${ref.targetDir} (${ref.referenceCount} refs)`);
-    }
-  }
-
-  // Existing experts
-  if (context.existingExperts.length > 0) {
-    sections.push('', '### Already Registered Experts');
-    for (const expert of context.existingExperts) {
-      const basisNote = expert.boundaryBasis ? ` [${expert.boundaryBasis}]` : '';
-      sections.push(`  - ${expert.slug} (${expert.mountPath})${basisNote}`);
-    }
-  } else {
-    sections.push('', '### Already Registered Experts', '  None');
-  }
-
-  // Overlay structural evidence — only when available
-  if (context.overlayTrustState && context.overlayTrustState !== 'no-overlay') {
-    sections.push('', `### Overlay Trust Level`, `  ${context.overlayTrustState}`);
-
-    if (context.overlayNeighborhoods && context.overlayNeighborhoods.length > 0) {
-      sections.push('', '### Structural Neighborhoods (from overlay)');
-      for (const nbhd of context.overlayNeighborhoods.slice(0, 20)) {
-        sections.push(`  Neighborhood: ${nbhd.label}`);
-        sections.push(`    Directories: ${nbhd.dominantDirectories.join(', ') || '(none)'}`);
-        sections.push(
-          `    Anchor files: ${nbhd.anchorFiles.slice(0, 4).join(', ')}${nbhd.anchorFiles.length > 4 ? ` (+${nbhd.anchorFiles.length - 4} more)` : ''}`
-        );
-        sections.push(
-          `    Cohesion: ${nbhd.cohesionScore.toFixed(2)}, External coupling: ${nbhd.externalCouplingScore.toFixed(2)}, Trust: ${nbhd.trustState}`
-        );
-        if (nbhd.evidenceSummary.length > 0) {
-          sections.push(`    Evidence: ${nbhd.evidenceSummary.slice(0, 3).join('; ')}`);
-        }
-      }
-    }
-  }
-
   const hasOverlay =
     context.overlayTrustState &&
     context.overlayTrustState !== 'no-overlay' &&
@@ -118,7 +55,7 @@ export function buildAnalysisPrompt(context: DiscoveryContext): string {
     context.overlayNeighborhoods &&
     context.overlayNeighborhoods.length > 0;
 
-  sections.push(
+  const tailLines = [
     '',
     '## Instructions',
     '',
@@ -127,11 +64,11 @@ export function buildAnalysisPrompt(context: DiscoveryContext): string {
     '2. Group tightly-coupled directories under one expert when they share a domain (e.g., models + controllers + views for "invoicing")',
     '3. Avoid overlapping mount paths',
     '4. Do not duplicate already-registered experts',
-    '5. Include a brief domain description for each proposed expert'
-  );
+    '5. Include a brief domain description for each proposed expert',
+  ];
 
   if (hasOverlay) {
-    sections.push(
+    tailLines.push(
       '',
       'Structural overlay evidence is available. When using it:',
       '- Prefer overlay-led or hybrid boundaries when structural neighborhoods are materially stronger than folder layout alone',
@@ -143,9 +80,189 @@ export function buildAnalysisPrompt(context: DiscoveryContext): string {
     );
   }
 
-  sections.push('', `Respond with ONLY valid JSON matching this schema:`, OUTPUT_SCHEMA);
+  tailLines.push('', `Respond with ONLY valid JSON matching this schema:`, OUTPUT_SCHEMA);
 
-  return sections.join('\n');
+  const lines: string[] = [
+    `You are analyzing a codebase to propose domain expert boundaries for a multi-expert AI panel system. Each expert manages a subdirectory of the content root and specializes in a specific domain.`,
+    '',
+    '## Context',
+    '',
+    '### Directory Tree',
+    context.tree,
+  ];
+
+  appendOptionalBlock(
+    lines,
+    DISCOVERY_PROMPT_CHAR_BUDGET,
+    tailLines,
+    buildFileCountsBlock(context)
+  );
+  appendOptionalBlock(
+    lines,
+    DISCOVERY_PROMPT_CHAR_BUDGET,
+    tailLines,
+    buildSymbolSummariesBlock(context)
+  );
+  appendOptionalBlock(
+    lines,
+    DISCOVERY_PROMPT_CHAR_BUDGET,
+    tailLines,
+    buildCrossReferencesBlock(context)
+  );
+  appendOptionalBlock(
+    lines,
+    DISCOVERY_PROMPT_CHAR_BUDGET,
+    tailLines,
+    buildExistingExpertsBlock(context)
+  );
+  appendOptionalBlock(lines, DISCOVERY_PROMPT_CHAR_BUDGET, tailLines, buildOverlayBlock(context));
+
+  lines.push(...tailLines);
+
+  return lines.join('\n');
+}
+
+function buildFileCountsBlock(context: DiscoveryContext): string[] {
+  const fileCounts = Object.entries(context.fileCountsByDirectory)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, MAX_FILE_COUNT_DIRS_IN_PROMPT);
+
+  if (fileCounts.length === 0) {
+    return [];
+  }
+
+  const omittedCount = Object.keys(context.fileCountsByDirectory).length - fileCounts.length;
+  return [
+    '',
+    '### File Counts by Directory',
+    ...fileCounts.map(([dir, count]) => `  ${dir}: ${count}`),
+    ...(omittedCount > 0
+      ? [`  ... ${omittedCount} more directories omitted for prompt budget`]
+      : []),
+  ];
+}
+
+function buildSymbolSummariesBlock(context: DiscoveryContext): string[] {
+  if (!context.symbolSummaries) {
+    return [];
+  }
+
+  const symbols = Object.entries(context.symbolSummaries)
+    .sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]))
+    .slice(0, MAX_SYMBOL_SUMMARY_DIRS_IN_PROMPT);
+
+  if (symbols.length === 0) {
+    return [];
+  }
+
+  const omittedCount = Object.keys(context.symbolSummaries).length - symbols.length;
+  return [
+    '',
+    '### Symbol Summaries',
+    ...symbols.map(([dir, names]) => {
+      const included = names.slice(0, MAX_SYMBOLS_PER_DIR_IN_PROMPT);
+      const omittedSymbols = names.length - included.length;
+      return `  ${dir}: ${included.join(', ')}${omittedSymbols > 0 ? ` (+${omittedSymbols} more symbols)` : ''}`;
+    }),
+    ...(omittedCount > 0
+      ? [`  ... ${omittedCount} more directories omitted for prompt budget`]
+      : []),
+  ];
+}
+
+function buildCrossReferencesBlock(context: DiscoveryContext): string[] {
+  if (!context.crossReferences || context.crossReferences.length === 0) {
+    return [];
+  }
+
+  const refs = context.crossReferences.slice(0, MAX_CROSS_REFERENCES_IN_PROMPT);
+  const omittedCount = context.crossReferences.length - refs.length;
+  return [
+    '',
+    '### Cross-References',
+    ...refs.map((ref) => `  ${ref.sourceDir} → ${ref.targetDir} (${ref.referenceCount} refs)`),
+    ...(omittedCount > 0
+      ? [`  ... ${omittedCount} more cross-references omitted for prompt budget`]
+      : []),
+  ];
+}
+
+function buildExistingExpertsBlock(context: DiscoveryContext): string[] {
+  if (context.existingExperts.length === 0) {
+    return ['', '### Already Registered Experts', '  None'];
+  }
+
+  const experts = context.existingExperts.slice(0, MAX_EXISTING_EXPERTS_IN_PROMPT);
+  const omittedCount = context.existingExperts.length - experts.length;
+  return [
+    '',
+    '### Already Registered Experts',
+    ...experts.map((expert) => {
+      const basisNote = expert.boundaryBasis ? ` [${expert.boundaryBasis}]` : '';
+      return `  - ${expert.slug} (${expert.mountPath})${basisNote}`;
+    }),
+    ...(omittedCount > 0
+      ? [`  ... ${omittedCount} more existing experts omitted for prompt budget`]
+      : []),
+  ];
+}
+
+function buildOverlayBlock(context: DiscoveryContext): string[] {
+  if (!context.overlayTrustState || context.overlayTrustState === 'no-overlay') {
+    return [];
+  }
+
+  const lines = ['', `### Overlay Trust Level`, `  ${context.overlayTrustState}`];
+
+  if (context.overlayNeighborhoods && context.overlayNeighborhoods.length > 0) {
+    lines.push('', '### Structural Neighborhoods (from overlay)');
+    for (const nbhd of context.overlayNeighborhoods.slice(0, MAX_OVERLAY_NEIGHBORHOODS_IN_PROMPT)) {
+      lines.push(`  Neighborhood: ${nbhd.label}`);
+      lines.push(`    Directories: ${nbhd.dominantDirectories.join(', ') || '(none)'}`);
+      lines.push(
+        `    Anchor files: ${nbhd.anchorFiles.slice(0, 4).join(', ')}${nbhd.anchorFiles.length > 4 ? ` (+${nbhd.anchorFiles.length - 4} more)` : ''}`
+      );
+      lines.push(
+        `    Cohesion: ${nbhd.cohesionScore.toFixed(2)}, External coupling: ${nbhd.externalCouplingScore.toFixed(2)}, Trust: ${nbhd.trustState}`
+      );
+      if (nbhd.evidenceSummary.length > 0) {
+        lines.push(`    Evidence: ${nbhd.evidenceSummary.slice(0, 3).join('; ')}`);
+      }
+    }
+
+    const omittedCount = context.overlayNeighborhoods.length - MAX_OVERLAY_NEIGHBORHOODS_IN_PROMPT;
+    if (omittedCount > 0) {
+      lines.push(`  ... ${omittedCount} more neighborhoods omitted for prompt budget`);
+    }
+  }
+
+  return lines;
+}
+
+function appendOptionalBlock(
+  lines: string[],
+  budget: number,
+  tailLines: string[],
+  block: string[]
+): void {
+  if (block.length === 0) {
+    return;
+  }
+
+  const currentLength = joinedLength(lines);
+  const blockLength = joinedLength(block);
+  const tailLength = joinedLength(tailLines);
+  if (currentLength + blockLength + tailLength <= budget) {
+    lines.push(...block);
+  }
+}
+
+function joinedLength(lines: string[]): number {
+  if (lines.length === 0) {
+    return 0;
+  }
+
+  return lines.reduce((sum, line) => sum + line.length, 0) + (lines.length - 1);
 }
 
 // ── Public API ────────────────────────────────────────────
@@ -235,7 +352,9 @@ function spawnClaude(prompt: string, model: string): Promise<string> {
       const stderr = Buffer.concat(stderrChunks).toString('utf-8');
 
       if (code !== 0) {
-        const detail = stderr.trim() || `Process exited with code ${code}`;
+        const stdoutTrimmed = stdout.trim();
+        const stderrTrimmed = stderr.trim();
+        const detail = stdoutTrimmed || stderrTrimmed || `Process exited with code ${code}`;
         reject(new Error(`Claude CLI failed: ${detail}`));
         return;
       }
