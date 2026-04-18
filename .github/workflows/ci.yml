@@ -10,7 +10,24 @@ permissions:
   contents: read
 
 jobs:
+  pr-title:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Enforce conventional PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          echo "PR title: $PR_TITLE"
+          if [[ ! "$PR_TITLE" =~ ^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([[:alnum:]_.\/-]+\))?(!)?:\ .+ ]]; then
+            echo "PR title must follow Conventional Commits, e.g. feat(experts): add overlay routing"
+            exit 1
+          fi
+
   ci:
+    needs: pr-title
+    if: always() && (github.event_name != 'pull_request' || needs.pr-title.result == 'success')
     runs-on: ubuntu-latest
 
     steps:
