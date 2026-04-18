@@ -67,8 +67,12 @@ npm run build
 # Link for global CLI usage
 npm link
 
-# Index your CORPUS
+# Index your CORPUS with the canonical overlay-complete path
 lux index rebuild
+
+# Inspect overlay trust state
+lux overlay status
+lux overlay check
 
 # Check index status
 lux index status
@@ -142,6 +146,24 @@ deps:
 ```
 
 ## Common Workflows
+
+### Overlay Trust and Rebuild Modes
+
+Lux distinguishes between the content index and the structural overlay trust state.
+
+- `lux index rebuild` is the canonical `overlay-complete` path
+- `lux index rebuild --content-only` is the fallback path when you only want content indexing
+- `lux index sync` incrementally updates the index and may either stay incremental or escalate to a full overlay rebuild when structural files changed
+- `lux overlay status` reports the current trust state
+- `lux overlay check` exits non-zero unless the DB is in canonical `overlay-complete` state
+
+Trust modes:
+- `overlay-complete`: canonical structural truth is present
+- `degraded-overlay`: overlay exists but trust is reduced or stale
+- `content-only`: knowledge index exists without canonical structural overlay
+
+Use `lux overlay check` in scripts and benchmark gates when structural completeness matters.
+
 
 ### Log a Communication
 

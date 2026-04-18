@@ -68,11 +68,13 @@ LSP Enricher           Search Results
 ```
 
 **Index lifecycle:**
-1. `lux index rebuild` or git post-commit hook triggers `GeneralScanner.scan()`
-2. Scanner globs `knowledge/10_clients/` for clients, projects, communications, knowledge entries
-3. YAML frontmatter parsed via `gray-matter`, content extracted
-4. `LuxDatabase` clears and re-indexes all entities
-5. FTS5 triggers auto-populate virtual tables for search
+1. `lux index rebuild` triggers the canonical overlay-complete rebuild path, while `lux index rebuild --content-only` runs the fallback content-only path
+2. `lux index sync` performs incremental updates from git state and escalates to canonical overlay rebuild when structural files changed
+3. Scanner globs `knowledge/10_clients/` for clients, projects, communications, knowledge entries
+4. YAML frontmatter parsed via `gray-matter`, content extracted
+5. `LuxDatabase` clears and re-indexes all entities, then persists overlay trust state when structural rebuilds run
+6. FTS5 triggers auto-populate virtual tables for search
+7. `lux overlay status` and `lux overlay check` consume the same trust model used by rebuild and sync
 
 ## Design Principles
 

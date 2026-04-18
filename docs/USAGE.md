@@ -19,17 +19,43 @@ npm link
 
 Rebuild the index by scanning CORPUS:
 ```bash
+# Canonical path: rebuild content index + structural overlay
 lux index rebuild
 lux index rebuild --corpus /path/to/CORPUS
 
-# Quiet mode (for git hooks)
+# Quiet mode
 lux index rebuild --quiet
+
+# Fallback path: content index only, no structural overlay materialization
+lux index rebuild --content-only
+```
+
+Incrementally update the index from git changes:
+```bash
+lux index sync
+```
+
+Inspect overlay trust state:
+```bash
+lux overlay status
+lux overlay status --json
+lux overlay check
 ```
 
 Check index statistics:
 ```bash
 lux index status
 ```
+
+#### Overlay trust modes
+
+Lux now reports one operator-facing trust mode for the structural overlay:
+
+- `overlay-complete` - canonical rebuild state, structural overlay present and trusted
+- `degraded-overlay` - overlay exists, but trust is reduced or stale, usually after structural sync drift
+- `content-only` - fallback content index with no canonical structural overlay
+
+Use `lux overlay check` as a gate in benchmarks, CI, or validation scripts when you need canonical structural truth.
 
 ### Client Commands
 
@@ -212,7 +238,7 @@ git commit -m "Update README [skip lux]"
 export LUX_SKIP_REBUILD=1
 # ... make multiple commits ...
 unset LUX_SKIP_REBUILD
-lux index rebuild  # Manual rebuild when done
+lux index rebuild  # Manual canonical rebuild when done
 ```
 
 **Debug hook issues:**
@@ -313,7 +339,7 @@ Read a CORPUS file.
 ```
 
 #### lux_rebuild_index
-Rebuild the entire index.
+Rebuild the entire index using the canonical overlay-complete path.
 
 ```json
 {}
