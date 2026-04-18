@@ -190,12 +190,16 @@ describe('overlay CLI trust surface', () => {
 
     const db = new LuxDatabase(dbPath);
     const trustState = loadOverlayTrustState(db);
+    const stats = db.getStats();
+    const guide = db.getKnowledgeEntryByPath(join(repoDir, 'docs', 'guide.md'));
     db.close();
 
     expect(trustState).not.toBeNull();
     expect(trustState?.mode).toBe('overlay-complete');
     expect(trustState?.symbolNodeCount).toBeGreaterThan(0);
     expect(trustState?.sourceAction).toBe('index-rebuild');
+    expect(stats.knowledge_entries).toBeGreaterThan(0);
+    expect(guide?.content).toContain('Guide');
 
     const status = runCli(repoDir, dbPath, ['overlay', 'status', '--json']);
     const check = runCli(repoDir, dbPath, ['overlay', 'check']);

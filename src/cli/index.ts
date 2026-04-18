@@ -170,40 +170,7 @@ indexCmd
           console.log(`  Detected ${generalResult.dependencies.length} module dependencies`);
         }
       }
-      if (options.contentOnly) {
-        progress.log('Clearing existing index...');
-      }
-
-      if (options.contentOnly) {
-        // Clear database with error handling
-        try {
-          db.clearAll();
-        } catch (error) {
-          console.error('Error: Failed to clear existing index');
-          console.error(`  ${error instanceof Error ? error.message : String(error)}`);
-          db.close();
-          process.exit(1);
-        }
-
-        progress.log('Indexing...');
-
-        // Index with comprehensive error handling
-        try {
-          await scanner.index(db, result);
-        } catch (error) {
-          console.error('Error: Failed to index content');
-          if (error instanceof Error) {
-            console.error(`  ${error.message}`);
-            if (error.message.includes('UNIQUE constraint')) {
-              console.error('  This suggests duplicate entries in your content directory');
-            }
-          } else {
-            console.error(`  ${String(error)}`);
-          }
-          db.close();
-          process.exit(1);
-        }
-      }
+      await persistKnowledgeIndex(db, scanner, result, progress);
 
       // Write module dependencies
       if (generalResult.dependencies.length > 0) {
@@ -353,11 +320,27 @@ indexCmd
           }
         }
         try {
-          const { result } = await rebuildWithOverlay(db, corpusPath, {
-            onProgress: options.quiet ? undefined : (msg) => console.log(`  ${msg}`),
+          const scanner = new GeneralScanner(corpusPath);
+          const progress = createProgressReporter(options.quiet === true);
+          progress.start('index rebuild (overlay-complete)');
+          progress.log(`Scanning content directory: ${corpusPath}`);
+
+          const { result, scanResult } = await rebuildWithOverlay(db, corpusPath, {
+            onProgress: (msg) => progress.log(msg),
           });
+          const indexedScan = {
+            ...scanResult.scan,
+            knowledge: scanResult.scan.knowledge.map((entry) =>
+              attachEnrichment(entry, scanResult.enrichments)
+            ),
+          };
+          await persistKnowledgeIndex(db, scanner, indexedScan, progress);
           const headCommit = getHeadCommit(corpusPath);
           db.setIndexMetadata('last_indexed_commit', headCommit);
+          persistRebuildTrustState(db, result, {
+            lastIndexedCommit: headCommit,
+          });
+          progress.finish('index rebuild complete');
 
           if (!options.quiet) {
             printRebuildTrustSummary(result);
@@ -384,11 +367,27 @@ indexCmd
           );
         }
         try {
-          const { result } = await rebuildWithOverlay(db, corpusPath, {
-            onProgress: options.quiet ? undefined : (msg) => console.log(`  ${msg}`),
+          const scanner = new GeneralScanner(corpusPath);
+          const progress = createProgressReporter(options.quiet === true);
+          progress.start('index rebuild (overlay-complete)');
+          progress.log(`Scanning content directory: ${corpusPath}`);
+
+          const { result, scanResult } = await rebuildWithOverlay(db, corpusPath, {
+            onProgress: (msg) => progress.log(msg),
           });
+          const indexedScan = {
+            ...scanResult.scan,
+            knowledge: scanResult.scan.knowledge.map((entry) =>
+              attachEnrichment(entry, scanResult.enrichments)
+            ),
+          };
+          await persistKnowledgeIndex(db, scanner, indexedScan, progress);
           const headCommit = getHeadCommit(corpusPath);
           db.setIndexMetadata('last_indexed_commit', headCommit);
+          persistRebuildTrustState(db, result, {
+            lastIndexedCommit: headCommit,
+          });
+          progress.finish('index rebuild complete');
 
           if (!options.quiet) {
             printRebuildTrustSummary(result);
@@ -432,10 +431,26 @@ indexCmd
           console.warn('Warning: git diff failed, running full rebuild...');
         }
         try {
-          const { result } = await rebuildWithOverlay(db, corpusPath, {
-            onProgress: options.quiet ? undefined : (msg) => console.log(`  ${msg}`),
+          const scanner = new GeneralScanner(corpusPath);
+          const progress = createProgressReporter(options.quiet === true);
+          progress.start('index rebuild (overlay-complete)');
+          progress.log(`Scanning content directory: ${corpusPath}`);
+
+          const { result, scanResult } = await rebuildWithOverlay(db, corpusPath, {
+            onProgress: (msg) => progress.log(msg),
           });
+          const indexedScan = {
+            ...scanResult.scan,
+            knowledge: scanResult.scan.knowledge.map((entry) =>
+              attachEnrichment(entry, scanResult.enrichments)
+            ),
+          };
+          await persistKnowledgeIndex(db, scanner, indexedScan, progress);
           db.setIndexMetadata('last_indexed_commit', headCommit);
+          persistRebuildTrustState(db, result, {
+            lastIndexedCommit: headCommit,
+          });
+          progress.finish('index rebuild complete');
           if (!options.quiet) {
             printRebuildTrustSummary(result);
             console.log(`\n✓ Full rebuild complete (${result.surfaceCount} surfaces)`);
@@ -460,13 +475,26 @@ indexCmd
           );
         }
         try {
-          const { result } = await rebuildWithOverlay(db, corpusPath, {
-            onProgress: options.quiet ? undefined : (msg) => console.log(`  ${msg}`),
+          const scanner = new GeneralScanner(corpusPath);
+          const progress = createProgressReporter(options.quiet === true);
+          progress.start('index rebuild (overlay-complete)');
+          progress.log(`Scanning content directory: ${corpusPath}`);
+
+          const { result, scanResult } = await rebuildWithOverlay(db, corpusPath, {
+            onProgress: (msg) => progress.log(msg),
           });
+          const indexedScan = {
+            ...scanResult.scan,
+            knowledge: scanResult.scan.knowledge.map((entry) =>
+              attachEnrichment(entry, scanResult.enrichments)
+            ),
+          };
+          await persistKnowledgeIndex(db, scanner, indexedScan, progress);
           db.setIndexMetadata('last_indexed_commit', headCommit);
           persistRebuildTrustState(db, result, {
             lastIndexedCommit: headCommit,
           });
+          progress.finish('index rebuild complete');
 
           try {
             db.insertEvent({
@@ -746,6 +774,42 @@ program.parse();
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+async function persistKnowledgeIndex(
+  db: LuxDatabase,
+  scanner: GeneralScanner,
+  result: Parameters<GeneralScanner['index']>[1],
+  progress: ProgressReporter
+): Promise<void> {
+  progress.log('Clearing existing index...');
+
+  try {
+    db.clearAll();
+  } catch (error) {
+    console.error('Error: Failed to clear existing index');
+    console.error(`  ${error instanceof Error ? error.message : String(error)}`);
+    db.close();
+    process.exit(1);
+  }
+
+  progress.log('Indexing...');
+
+  try {
+    await scanner.index(db, result);
+  } catch (error) {
+    console.error('Error: Failed to index content');
+    if (error instanceof Error) {
+      console.error(`  ${error.message}`);
+      if (error.message.includes('UNIQUE constraint')) {
+        console.error('  This suggests duplicate entries in your content directory');
+      }
+    } else {
+      console.error(`  ${String(error)}`);
+    }
+    db.close();
+    process.exit(1);
+  }
+}
 
 function createProgressReporter(quiet: boolean): ProgressReporter {
   const startedAt = Date.now();
