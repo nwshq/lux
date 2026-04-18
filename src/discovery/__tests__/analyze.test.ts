@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildAnalysisPrompt,
+  buildClaudeArgs,
   parseProposalResponse,
+  extractJsonObject,
   attachStructuralSignatures,
 } from '../analyze.js';
 import type { DiscoveryContext, ProposedExpert } from '../types.js';
@@ -36,8 +38,22 @@ function makeValidResponse(overrides: Record<string, unknown> = {}): string {
 }
 
 // ══════════════════════════════════════════════════════════════
-// buildAnalysisPrompt
+// buildClaudeArgs / buildAnalysisPrompt
 // ══════════════════════════════════════════════════════════════
+
+describe('buildClaudeArgs', () => {
+  it('uses Claude Code print mode with bypassPermissions', () => {
+    const args = buildClaudeArgs('prompt text', 'claude-sonnet-4-20250514');
+    expect(args).toEqual([
+      '--print',
+      '--permission-mode',
+      'bypassPermissions',
+      '--model',
+      'claude-sonnet-4-20250514',
+      'prompt text',
+    ]);
+  });
+});
 
 describe('buildAnalysisPrompt', () => {
   it('includes the directory tree', () => {
@@ -242,6 +258,18 @@ describe('parseProposalResponse: valid input', () => {
   });
 });
 
+describe('extractJsonObject', () => {
+  it('extracts a JSON object from wrapped prose', () => {
+    expect(extractJsonObject('Here you go\n{"experts":[],"rationale":"ok"}\nThanks')).toBe(
+      '{"experts":[],"rationale":"ok"}'
+    );
+  });
+
+  it('returns null when no JSON object is present', () => {
+    expect(extractJsonObject('no object here')).toBeNull();
+  });
+});
+
 describe('parseProposalResponse: markdown fences', () => {
   it('strips ```json fences', () => {
     const json = makeValidResponse();
@@ -260,6 +288,12 @@ describe('parseProposalResponse: markdown fences', () => {
   it('handles fences with trailing whitespace', () => {
     const json = makeValidResponse();
     const wrapped = '```json\n' + json + '\n```  ';
+    const result = parseProposalResponse(wrapped);
+    expect(result.experts).toHaveLength(1);
+  });
+
+  it('parses valid JSON wrapped in extra prose', () => {
+    const wrapped = `Analysis complete\n${makeValidResponse()}\nDone`;
     const result = parseProposalResponse(wrapped);
     expect(result.experts).toHaveLength(1);
   });

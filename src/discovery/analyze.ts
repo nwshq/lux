@@ -14,7 +14,8 @@ import type {
 // ── Constants ──────────────────────────────────────────────
 
 const DEFAULT_MODEL = 'claude-sonnet-4-20250514';
-const ANALYSIS_TIMEOUT_MS = 120_000;
+const ANALYSIS_TIMEOUT_MS = 180_000;
+const ANALYSIS_MAX_ATTEMPTS = 2;
 
 // ── Prompt ────────────────────────────────────────────────
 
@@ -161,12 +162,27 @@ export async function analyze(
 ): Promise<DiscoveryProposal> {
   const model = options.model ?? DEFAULT_MODEL;
   const prompt = buildAnalysisPrompt(context);
-  const raw = await spawnClaude(prompt, model);
-  const proposal = parseProposalResponse(raw);
-  if (context.overlayNeighborhoods && context.overlayNeighborhoods.length > 0) {
-    attachStructuralSignatures(proposal.experts, context.overlayNeighborhoods);
+
+  let lastError: Error | undefined;
+
+  for (let attempt = 1; attempt <= ANALYSIS_MAX_ATTEMPTS; attempt++) {
+    try {
+      const raw = await spawnClaude(prompt, model);
+      const proposal = parseProposalResponse(raw);
+      if (context.overlayNeighborhoods && context.overlayNeighborhoods.length > 0) {
+        attachStructuralSignatures(proposal.experts, context.overlayNeighborhoods);
+      }
+      return proposal;
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      lastError = err;
+      if (attempt >= ANALYSIS_MAX_ATTEMPTS || !isRetryableAnalysisError(err)) {
+        throw err;
+      }
+    }
   }
-  return proposal;
+
+  throw lastError ?? new Error('Expert discovery analysis failed');
 }
 
 // ── Claude CLI Subprocess ─────────────────────────────────
@@ -175,9 +191,13 @@ export async function analyze(
  * Spawn the Claude CLI in print mode and return stdout.
  * Exported for testing.
  */
+export function buildClaudeArgs(prompt: string, model: string): string[] {
+  return ['--print', '--permission-mode', 'bypassPermissions', '--model', model, prompt];
+}
+
 function spawnClaude(prompt: string, model: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const child = spawn('claude', ['--print', '--model', model, prompt], {
+    const child = spawn('claude', buildClaudeArgs(prompt, model), {
       stdio: ['ignore', 'pipe', 'pipe'],
       env: buildCleanEnv(),
     });
@@ -238,19 +258,26 @@ function spawnClaude(prompt: string, model: string): Promise<string> {
  * Exported for testing.
  */
 export function parseProposalResponse(raw: string): DiscoveryProposal {
-  // Strip markdown code fences if present
-  let cleaned = raw.trim();
-  if (cleaned.startsWith('```')) {
-    cleaned = cleaned.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
-  }
+  const cleaned = stripJsonFences(raw.trim());
 
   let parsed: unknown;
   try {
     parsed = JSON.parse(cleaned);
   } catch (error) {
-    throw new Error(
-      `Failed to parse AI response as JSON: ${error instanceof Error ? error.message : String(error)}`
-    );
+    const extracted = extractJsonObject(cleaned);
+    if (!extracted) {
+      throw new Error(
+        `Failed to parse AI response as JSON: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+
+    try {
+      parsed = JSON.parse(extracted);
+    } catch (nestedError) {
+      throw new Error(
+        `Failed to parse AI response as JSON: ${nestedError instanceof Error ? nestedError.message : String(nestedError)}`
+      );
+    }
   }
 
   if (parsed === null || typeof parsed !== 'object') {
@@ -329,6 +356,28 @@ export function parseProposalResponse(raw: string): DiscoveryProposal {
     experts,
     rationale: obj.rationale,
   };
+}
+
+function isRetryableAnalysisError(error: Error): boolean {
+  return (
+    error.message.includes('timed out') ||
+    error.message.includes('returned empty output') ||
+    error.message.includes('Failed to parse AI response as JSON')
+  );
+}
+
+function stripJsonFences(raw: string): string {
+  if (!raw.startsWith('```')) return raw;
+  return raw.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
+}
+
+export function extractJsonObject(raw: string): string | null {
+  const start = raw.indexOf('{');
+  const end = raw.lastIndexOf('}');
+  if (start === -1 || end === -1 || end <= start) {
+    return null;
+  }
+  return raw.slice(start, end + 1);
 }
 
 // ── Structural signature attachment ──────────────────────────
