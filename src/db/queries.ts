@@ -165,8 +165,8 @@ export class PreparedQueries {
 
     // Expert queries
     this.insertExpert = db.prepare(`
-      INSERT INTO experts (slug, name, mount_path, model, claude_md_path, memory_path, status)
-      VALUES (@slug, @name, @mount_path, @model, @claude_md_path, @memory_path, @status)
+      INSERT INTO experts (slug, name, mount_path, model, claude_md_path, memory_path, status, boundary_basis, structural_signature, structural_rationale)
+      VALUES (@slug, @name, @mount_path, @model, @claude_md_path, @memory_path, @status, @boundary_basis, @structural_signature, @structural_rationale)
     `);
 
     this.getExpert = db.prepare(`
@@ -189,6 +189,9 @@ export class PreparedQueries {
         claude_md_path = COALESCE(@claude_md_path, claude_md_path),
         memory_path = COALESCE(@memory_path, memory_path),
         status = COALESCE(@status, status),
+        boundary_basis = COALESCE(@boundary_basis, boundary_basis),
+        structural_signature = COALESCE(@structural_signature, structural_signature),
+        structural_rationale = COALESCE(@structural_rationale, structural_rationale),
         updated_at = unixepoch()
       WHERE slug = @slug
     `);

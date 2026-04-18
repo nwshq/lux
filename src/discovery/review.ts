@@ -88,6 +88,12 @@ export function formatProposalDetail(proposal: ProposedExpert, index: number): s
   }
   lines.push(`  Description: ${proposal.description}`);
   lines.push(`  Confidence: ${proposal.confidence.toFixed(2)}`);
+  if (proposal.boundaryBasis) {
+    lines.push(`  Boundary basis: ${proposal.boundaryBasis}`);
+  }
+  if (proposal.structuralRationale) {
+    lines.push(`  Structural rationale: ${proposal.structuralRationale}`);
+  }
   return lines.join('\n');
 }
 

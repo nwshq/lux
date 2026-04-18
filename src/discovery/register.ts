@@ -84,7 +84,7 @@ export function register(
     const memoryMdPath = join(mountPath, 'memory.md');
     const detectedMemory = existsSync(memoryMdPath) ? memoryMdPath : undefined;
 
-    // Insert expert record
+    // Insert expert record, persisting structural metadata when present
     db.insertExpert({
       slug: proposal.slug,
       name: proposal.name,
@@ -92,6 +92,11 @@ export function register(
       model: options.model ?? DEFAULT_MODEL,
       claude_md_path: claudeMdPath,
       memory_path: detectedMemory,
+      ...(proposal.boundaryBasis && { boundary_basis: proposal.boundaryBasis }),
+      ...(proposal.structuralSignature && {
+        structural_signature: JSON.stringify(proposal.structuralSignature),
+      }),
+      ...(proposal.structuralRationale && { structural_rationale: proposal.structuralRationale }),
     });
 
     registered.push({

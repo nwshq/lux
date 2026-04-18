@@ -225,6 +225,9 @@ export class LuxDatabase {
         claude_md_path: expert.claude_md_path ?? null,
         memory_path: expert.memory_path ?? null,
         status: expert.status ?? 'active',
+        boundary_basis: expert.boundary_basis ?? null,
+        structural_signature: expert.structural_signature ?? null,
+        structural_rationale: expert.structural_rationale ?? null,
       });
       return result.lastInsertRowid as number;
     } catch (error) {
@@ -253,6 +256,9 @@ export class LuxDatabase {
       claude_md_path: updates.claude_md_path ?? null,
       memory_path: updates.memory_path ?? null,
       status: updates.status ?? null,
+      boundary_basis: updates.boundary_basis ?? null,
+      structural_signature: updates.structural_signature ?? null,
+      structural_rationale: updates.structural_rationale ?? null,
     });
   }
 

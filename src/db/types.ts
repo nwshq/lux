@@ -51,6 +51,12 @@ export interface Expert {
   status: string;
   created_at: number;
   updated_at: number;
+  /** Whether this expert's boundary is directory-led, overlay-led, or hybrid. */
+  boundary_basis?: string;
+  /** JSON-serialized ExpertStructuralSignature. */
+  structural_signature?: string;
+  /** Human-readable structural rationale from the proposal that created this expert. */
+  structural_rationale?: string;
 }
 
 export interface ExpertInsert {
@@ -61,6 +67,12 @@ export interface ExpertInsert {
   claude_md_path?: string;
   memory_path?: string;
   status?: string;
+  /** Whether this expert's boundary is directory-led, overlay-led, or hybrid. */
+  boundary_basis?: string;
+  /** JSON-serialized ExpertStructuralSignature. */
+  structural_signature?: string;
+  /** Human-readable structural rationale from the proposal that created this expert. */
+  structural_rationale?: string;
 }
 
 export interface ExpertSession {

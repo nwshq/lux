@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { buildAnalysisPrompt, parseProposalResponse } from '../analyze.js';
-import type { DiscoveryContext } from '../types.js';
+import {
+  buildAnalysisPrompt,
+  parseProposalResponse,
+  attachStructuralSignatures,
+} from '../analyze.js';
+import type { DiscoveryContext, ProposedExpert } from '../types.js';
+import type { OverlayNeighborhood } from '../../experts/structural-analysis.js';
 
 // ── Fixtures ──────────────────────────────────────────────
 
@@ -498,5 +503,127 @@ describe('parseProposalResponse: error handling', () => {
         })
       )
     ).toThrow('Expert at index 1');
+  });
+});
+
+// ══════════════════════════════════════════════════════════════
+// attachStructuralSignatures
+// ══════════════════════════════════════════════════════════════
+
+function makeProposal(mountPath: string): ProposedExpert {
+  return {
+    slug: 'test',
+    name: 'Test',
+    mountPath,
+    description: '',
+    reasoning: '',
+    confidence: 0.9,
+  };
+}
+
+function makeNeighborhood(overrides: Partial<OverlayNeighborhood> = {}): OverlayNeighborhood {
+  return {
+    id: 'nbhd-1',
+    kind: 'surface-family',
+    label: 'test neighborhood',
+    anchorFiles: [],
+    memberFiles: [],
+    dominantDirectories: [],
+    cohesionScore: 1,
+    externalCouplingScore: 0,
+    trustState: 'overlay-complete',
+    trustWeight: 1.0,
+    evidenceSummary: [],
+    ...overrides,
+  };
+}
+
+describe('attachStructuralSignatures', () => {
+  it('attaches a signature when a neighborhood dominant directory matches the mount path', () => {
+    const proposals = [makeProposal('src/billing')];
+
+    const neighborhoods = [
+      makeNeighborhood({
+        id: 'billing-nbhd',
+        dominantDirectories: ['src/billing'],
+        anchorFiles: ['src/billing/BillingService.ts', 'src/billing/routes.ts'],
+        surfaceIds: ['svc::BillingService'],
+        providerIds: ['src/billing/BillingService.ts'],
+      }),
+    ];
+
+    attachStructuralSignatures(proposals, neighborhoods);
+
+    expect(proposals[0].structuralSignature).toBeDefined();
+    expect(proposals[0].structuralSignature?.version).toBe(1);
+    expect(proposals[0].structuralSignature?.anchorFiles).toContain(
+      'src/billing/BillingService.ts'
+    );
+    expect(proposals[0].structuralSignature?.dominantDirectories).toContain('src/billing');
+    expect(proposals[0].structuralSignature?.dominantSurfaces).toContain('svc::BillingService');
+  });
+
+  it('merges multiple neighborhoods under the same mount path', () => {
+    const proposals = [makeProposal('src/billing')];
+
+    const neighborhoods = [
+      makeNeighborhood({
+        id: 'billing-core',
+        dominantDirectories: ['src/billing'],
+        anchorFiles: ['src/billing/BillingService.ts'],
+      }),
+      makeNeighborhood({
+        id: 'billing-sub',
+        dominantDirectories: ['src/billing/subscription'],
+        anchorFiles: ['src/billing/subscription/SubscriptionService.ts'],
+      }),
+    ];
+
+    attachStructuralSignatures(proposals, neighborhoods);
+
+    const sig = proposals[0].structuralSignature!;
+    expect(sig).toBeDefined();
+    expect(sig.anchorFiles).toContain('src/billing/BillingService.ts');
+    expect(sig.anchorFiles).toContain('src/billing/subscription/SubscriptionService.ts');
+    expect(sig.dominantDirectories).toContain('src/billing');
+    expect(sig.dominantDirectories).toContain('src/billing/subscription');
+  });
+
+  it('does not attach a signature when no neighborhood matches', () => {
+    const proposals = [makeProposal('src/billing')];
+
+    const neighborhoods = [
+      makeNeighborhood({
+        dominantDirectories: ['src/payments'],
+        anchorFiles: ['src/payments/PaymentService.ts'],
+      }),
+    ];
+
+    attachStructuralSignatures(proposals, neighborhoods);
+
+    expect(proposals[0].structuralSignature).toBeUndefined();
+  });
+
+  it('does nothing when neighborhoods array is empty', () => {
+    const proposals = [makeProposal('src/billing')];
+
+    attachStructuralSignatures(proposals, []);
+
+    expect(proposals[0].structuralSignature).toBeUndefined();
+  });
+
+  it('normalizes trailing slash on mount path before matching', () => {
+    const proposals = [makeProposal('src/billing/')];
+
+    const neighborhoods = [
+      makeNeighborhood({
+        dominantDirectories: ['src/billing'],
+        anchorFiles: ['src/billing/BillingService.ts'],
+      }),
+    ];
+
+    attachStructuralSignatures(proposals, neighborhoods);
+
+    expect(proposals[0].structuralSignature).toBeDefined();
   });
 });

@@ -14,6 +14,10 @@ import type {
   EnrichContextFn,
 } from './types.js';
 import { computeClusters } from '../db/clustering.js';
+import {
+  deriveOverlayTrustLevel,
+  extractOverlayNeighborhoods,
+} from '../experts/structural-analysis.js'; // @architecture-ignore intentional shared overlay substrate
 
 // ---------------------------------------------------------------------------
 // Types (internal)
@@ -71,10 +75,15 @@ export const enrichContext: EnrichContextFn = (
   const contentRoot = options.rootPath;
   const entries = db.getAllKnowledgeEntries();
 
-  const existingExperts = db.getAllExperts().map((e) => ({
-    slug: e.slug,
-    mountPath: e.mount_path,
-  }));
+  const existingExperts = db.getAllExperts().map((e) => {
+    const parsed = parseExpertStructuralFields(e.boundary_basis, e.structural_signature);
+    return {
+      slug: e.slug,
+      mountPath: e.mount_path,
+      ...(parsed.boundaryBasis && { boundaryBasis: parsed.boundaryBasis }),
+      ...(parsed.structuralSignature && { structuralSignature: parsed.structuralSignature }),
+    };
+  });
 
   const symbolSummaries = extractSymbolSummaries(entries, contentRoot);
   const crossReferences = extractCrossReferences(entries, contentRoot);
@@ -92,6 +101,13 @@ export const enrichContext: EnrichContextFn = (
     // Module dependencies not available — skip
   }
 
+  // Add overlay-native structural evidence when available
+  const overlayTrustState = deriveOverlayTrustLevel(db);
+  const overlayNeighborhoods =
+    overlayTrustState !== 'no-overlay' && overlayTrustState !== 'content-only'
+      ? extractOverlayNeighborhoods(db)
+      : undefined;
+
   return {
     tree,
     fileCountsByDirectory: aggregateFileCountsByDirectory(entries, contentRoot),
@@ -100,6 +116,8 @@ export const enrichContext: EnrichContextFn = (
     existingExperts,
     ...(moduleCoupling && moduleCoupling.length > 0 && { moduleCoupling }),
     ...(clusters && clusters.length > 0 && { clusters }),
+    ...(overlayTrustState !== 'no-overlay' && { overlayTrustState }),
+    ...(overlayNeighborhoods && overlayNeighborhoods.length > 0 && { overlayNeighborhoods }),
   };
 };
 
@@ -288,4 +306,35 @@ function parseLspMetadata(metadataJson: string | undefined): LspMetadata | null 
   } catch {
     return null;
   }
+}
+
+/**
+ * Parse optional structural fields from persisted expert DB columns.
+ * Returns empty fields for legacy experts that predate structural metadata.
+ */
+function parseExpertStructuralFields(
+  boundaryBasisRaw: string | undefined,
+  structuralSignatureRaw: string | undefined
+): {
+  boundaryBasis?: 'directory-led' | 'overlay-led' | 'hybrid';
+  structuralSignature?: import('./types.js').ExpertStructuralSignature;
+} {
+  const validBases = new Set(['directory-led', 'overlay-led', 'hybrid']);
+  const boundaryBasis =
+    boundaryBasisRaw && validBases.has(boundaryBasisRaw)
+      ? (boundaryBasisRaw as 'directory-led' | 'overlay-led' | 'hybrid')
+      : undefined;
+
+  let structuralSignature: import('./types.js').ExpertStructuralSignature | undefined;
+  if (structuralSignatureRaw) {
+    try {
+      structuralSignature = JSON.parse(
+        structuralSignatureRaw
+      ) as import('./types.js').ExpertStructuralSignature;
+    } catch {
+      // Corrupted signature — treat as absent
+    }
+  }
+
+  return { boundaryBasis, structuralSignature };
 }

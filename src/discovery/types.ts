@@ -1,6 +1,13 @@
 import type { LuxDatabase } from '../db/index.js';
 import type { ModuleDependency } from '../db/types.js';
 import type { ModuleCluster } from '../db/clustering.js';
+import type {
+  OverlayNeighborhood,
+  ExpertStructuralSignature,
+  OverlayTrustLevel,
+} from '../experts/structural-analysis.js'; // @architecture-ignore intentional shared overlay substrate
+
+export type { OverlayNeighborhood, ExpertStructuralSignature, OverlayTrustLevel };
 
 // ── Discovery Options ──────────────────────────────────────
 
@@ -49,6 +56,10 @@ export interface DiscoveryContext {
   moduleCoupling?: ModuleDependency[];
   /** Module clusters computed from dependency graph. */
   clusters?: ModuleCluster[];
+  /** Current overlay trust level. Present when overlay data exists. */
+  overlayTrustState?: OverlayTrustLevel;
+  /** Overlay-native structural neighborhoods. Present when trust is sufficient. */
+  overlayNeighborhoods?: OverlayNeighborhood[];
 }
 
 export interface CrossReference {
@@ -60,6 +71,10 @@ export interface CrossReference {
 export interface ExistingExpert {
   slug: string;
   mountPath: string;
+  /** Structural signature when available (structurally enriched experts only). */
+  structuralSignature?: ExpertStructuralSignature;
+  /** How the expert boundary was originally determined. */
+  boundaryBasis?: 'directory-led' | 'overlay-led' | 'hybrid';
 }
 
 // ── AI Analysis (Stage 3 output) ───────────────────────────
@@ -86,6 +101,12 @@ export interface ProposedExpert {
   reasoning: string;
   /** 0.0 to 1.0 — how confident the AI is in this proposal. */
   confidence: number;
+  /** Whether the boundary is driven by directory layout, overlay structure, or both. */
+  boundaryBasis?: 'directory-led' | 'overlay-led' | 'hybrid';
+  /** Structural rationale explaining overlay-derived boundary evidence. */
+  structuralRationale?: string;
+  /** Structural signature for persistence (populated from overlay analysis). */
+  structuralSignature?: ExpertStructuralSignature;
 }
 
 // ── Interactive Review (Stage 4 output) ────────────────────

@@ -17,6 +17,7 @@ import type {
   SessionInfo,
 } from '../session-manager.js';
 import type { Expert, ExpertSession, KnowledgeEntryInsert } from '../../db/types.js';
+import { persistRebuildTrustState } from '../../scanner/overlay-trust-state.js';
 
 // Mock child_process so selectExpertWithLlm doesn't call real claude binary
 vi.mock('child_process', async () => {
@@ -747,6 +748,111 @@ describe('routeQuery', () => {
     expect(result.routingMethod).toBe('llm');
     expect(result.matchedExperts[0].expert.slug).toBe('llm-b');
     expect(result.responses[0].response).toBe('B answer');
+  });
+
+  it('uses structural ownership as tiebreaker when FTS5 hit counts are equal', async () => {
+    // Two experts with equal FTS5 coverage; one has a structurally aligned signature.
+    // The structurally aligned expert should rank first after enrichWithStructuralOwnership.
+    const alphaDir = join(contentDir, 'alpha-domain');
+    const betaDir = join(contentDir, 'beta-domain');
+    mkdirSync(alphaDir, { recursive: true });
+    mkdirSync(betaDir, { recursive: true });
+
+    const alphaFile = join(alphaDir, 'alpha-guide.md');
+    const betaFile = join(betaDir, 'beta-guide.md');
+    writeFileSync(alphaFile, '# Alpha\nalpha delta routing payments', 'utf-8');
+    writeFileSync(betaFile, '# Beta\nalpha delta routing payments', 'utf-8');
+
+    // Expert-A: has a structural signature whose anchorFiles match the indexed hit files
+    db.insertExpert({
+      slug: 'alpha-expert',
+      name: 'Alpha Expert',
+      mount_path: alphaDir,
+      status: 'active',
+      structural_signature: JSON.stringify({
+        version: 1,
+        anchorFiles: [alphaFile, betaFile], // matches all hit files → high overlap
+        dominantDirectories: [alphaDir],
+      }),
+    });
+
+    // Expert-B: has a structural signature that does NOT match the hit files
+    db.insertExpert({
+      slug: 'beta-expert',
+      name: 'Beta Expert',
+      mount_path: betaDir,
+      status: 'active',
+      structural_signature: JSON.stringify({
+        version: 1,
+        anchorFiles: ['packages/completely-unrelated/Service.ts'],
+        dominantDirectories: ['packages/completely-unrelated'],
+      }),
+    });
+
+    // Index one file under each expert so FTS5 hits are equal (1 each)
+    db.insertKnowledgeEntry(
+      makeKnowledgeEntry({
+        type: 'doc',
+        title: 'Alpha Guide',
+        file_path: alphaFile,
+        content: 'alpha delta routing payments',
+      })
+    );
+    db.insertKnowledgeEntry(
+      makeKnowledgeEntry({
+        type: 'doc',
+        title: 'Beta Guide',
+        file_path: betaFile,
+        content: 'alpha delta routing payments',
+      })
+    );
+
+    // Set overlay-complete trust state so structural scoring is active
+    persistRebuildTrustState(
+      db,
+      {
+        mode: 'overlay-complete',
+        repoPath: contentDir,
+        configSource: 'lux.yaml',
+        configLspEnabled: false,
+        surfaceCount: 1,
+        detectorEdgeCount: 1,
+        propagatedEdgeCount: 1,
+        fileNodeCount: 2,
+        symbolNodeCount: 2,
+        controllerBackedCount: 1,
+        closureBackedCount: 0,
+        unknownProviderKindCount: 0,
+        enrichmentStatus: 'active',
+        propagationStatus: 'ran',
+        warnings: [],
+      },
+      { sourceAction: 'index-rebuild' }
+    );
+
+    const sessionManager = createMockSessionManager({
+      'alpha-expert': 'Alpha answer',
+      'beta-expert': 'Beta answer',
+    });
+
+    const result = await routeQuery('alpha delta routing payments', db, sessionManager, {
+      useLlmRouting: false,
+      maxExperts: 2,
+    });
+
+    // Both experts should appear in results
+    expect(result.matchedExperts.length).toBeGreaterThanOrEqual(2);
+
+    // Alpha should be ranked first — it has higher structural ownership score
+    expect(result.matchedExperts[0].expert.slug).toBe('alpha-expert');
+    // Alpha's structural ownership should be populated and have non-zero score
+    expect(result.matchedExperts[0].structuralOwnership?.trustAdjustedScore).toBeGreaterThan(0);
+    // Beta's score should be lower than alpha's
+    const alphaTrust = result.matchedExperts[0].structuralOwnership?.trustAdjustedScore ?? 0;
+    const betaTrust =
+      result.matchedExperts.find((s) => s.expert.slug === 'beta-expert')?.structuralOwnership
+        ?.trustAdjustedScore ?? 0;
+    expect(alphaTrust).toBeGreaterThan(betaTrust);
   });
 });
 

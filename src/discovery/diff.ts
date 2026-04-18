@@ -3,11 +3,16 @@
 // Compares discovery proposals against registered experts to surface
 // only meaningful changes: new proposals, stale experts, and boundary
 // changes. Used by `lux expert discover --diff`.
+//
+// Three-tier structural drift model:
+//   incidental       — anchor file renames, minor directory reshuffles; may auto-refresh
+//   evolutionary     — neighborhood grows/contracts but domain ownership story is intact
+//   boundary-changing — dominant surfaces moved to a different region; re-approval needed
 
 import { existsSync, readdirSync, statSync } from 'fs';
 import { join, relative, resolve } from 'path';
 import type { Expert } from '../db/types.js';
-import type { ProposedExpert } from './types.js';
+import type { ProposedExpert, ExpertStructuralSignature } from './types.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -15,6 +20,15 @@ import type { ProposedExpert } from './types.js';
 
 /** Classification of a proposed expert relative to registered experts. */
 export type ProposalStatus = 'new' | 'updated' | 'duplicate';
+
+/**
+ * Structural drift tier when comparing signatures.
+ *
+ *   incidental        — minor rename or reshuffle; auto-refresh candidate
+ *   evolutionary      — domain intact but neighborhood grew or contracted meaningfully
+ *   boundary-changing — dominant structural ownership moved; re-approval recommended
+ */
+export type SignatureDriftTier = 'incidental' | 'evolutionary' | 'boundary-changing';
 
 /** A proposal annotated with its diff classification. */
 export interface ClassifiedProposal {
@@ -26,6 +40,10 @@ export interface ClassifiedProposal {
   matchedExpert?: Expert;
   /** Why this classification was assigned. */
   reason: string;
+  /** Structural drift tier when both proposal and matched expert have signatures. */
+  signatureDriftTier?: SignatureDriftTier;
+  /** Human-readable description of the structural drift (when tier is present). */
+  signatureDriftReason?: string;
 }
 
 /** An existing expert whose mount path appears stale. */
@@ -150,11 +168,13 @@ function classifyProposals(
     const slugMatch = experts.find((e) => e.slug === proposal.slug);
 
     if (slugMatch) {
+      const drift = maybeClassifyDrift(slugMatch, proposal);
       return {
         proposal,
         status: 'updated' as const,
         matchedExpert: slugMatch,
         reason: `Same slug '${slugMatch.slug}' but different mount path (${slugMatch.mount_path} → ${proposal.mountPath})`,
+        ...drift,
       };
     }
 
@@ -285,6 +305,107 @@ function containsFiles(dirPath: string): boolean {
   } catch {
     return false;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Structural signature drift classification
+// ---------------------------------------------------------------------------
+
+/**
+ * Attempt to classify structural drift between a registered expert and a proposal.
+ * Returns drift tier and reason when both have structural signatures; returns
+ * empty object otherwise (legacy experts remain comparable by mount path only).
+ */
+function maybeClassifyDrift(
+  expert: Expert,
+  proposal: ProposedExpert
+): Pick<ClassifiedProposal, 'signatureDriftTier' | 'signatureDriftReason'> {
+  const existingSig = parseSignatureFromExpert(expert);
+  const proposedSig = proposal.structuralSignature;
+  if (!existingSig || !proposedSig) return {};
+
+  const tier = classifySignatureDrift(existingSig, proposedSig);
+  const reason = buildDriftReason(tier, existingSig, proposedSig);
+  return { signatureDriftTier: tier, signatureDriftReason: reason };
+}
+
+/**
+ * Classify the drift between two structural signatures into the three-tier model.
+ *
+ * Conservative and split-biased: leans toward boundary-changing when ambiguous.
+ */
+export function classifySignatureDrift(
+  existing: ExpertStructuralSignature,
+  proposed: ExpertStructuralSignature
+): SignatureDriftTier {
+  const anchorOverlap = jaccardArrays(existing.anchorFiles, proposed.anchorFiles);
+  const dirOverlap = jaccardArrays(existing.dominantDirectories, proposed.dominantDirectories);
+
+  // Surface and provider overlap (when available)
+  const surfaceOverlap =
+    existing.dominantSurfaces && proposed.dominantSurfaces
+      ? jaccardArrays(existing.dominantSurfaces, proposed.dominantSurfaces)
+      : null;
+  const providerOverlap =
+    existing.dominantProviders && proposed.dominantProviders
+      ? jaccardArrays(existing.dominantProviders, proposed.dominantProviders)
+      : null;
+
+  // Boundary-changing: dominant directories have shifted materially
+  // OR structural ownership (surfaces/providers) has moved to a different region
+  if (dirOverlap < 0.25) return 'boundary-changing';
+  if (surfaceOverlap !== null && surfaceOverlap < 0.2) return 'boundary-changing';
+  if (providerOverlap !== null && providerOverlap < 0.2) return 'boundary-changing';
+
+  // Evolutionary: directory story is intact but anchor files changed substantially
+  if (anchorOverlap < 0.5 || dirOverlap < 0.6) return 'evolutionary';
+  if (surfaceOverlap !== null && surfaceOverlap < 0.5) return 'evolutionary';
+
+  // Incidental: anchor files and directories largely stable
+  return 'incidental';
+}
+
+function buildDriftReason(
+  tier: SignatureDriftTier,
+  existing: ExpertStructuralSignature,
+  proposed: ExpertStructuralSignature
+): string {
+  const anchorOverlap = jaccardArrays(existing.anchorFiles, proposed.anchorFiles);
+  const dirOverlap = jaccardArrays(existing.dominantDirectories, proposed.dominantDirectories);
+
+  switch (tier) {
+    case 'incidental':
+      return `anchor file overlap ${pct(anchorOverlap)}, directory overlap ${pct(dirOverlap)} — minor drift, auto-refresh candidate`;
+    case 'evolutionary':
+      return `anchor file overlap ${pct(anchorOverlap)}, directory overlap ${pct(dirOverlap)} — domain intact but neighborhood changed; review recommended`;
+    case 'boundary-changing':
+      return `anchor file overlap ${pct(anchorOverlap)}, directory overlap ${pct(dirOverlap)} — structural ownership has shifted; re-approval recommended`;
+  }
+}
+
+function parseSignatureFromExpert(expert: Expert): ExpertStructuralSignature | null {
+  if (!expert.structural_signature) return null;
+  try {
+    return JSON.parse(expert.structural_signature) as ExpertStructuralSignature;
+  } catch {
+    return null;
+  }
+}
+
+function jaccardArrays(a: string[], b: string[]): number {
+  if (a.length === 0 && b.length === 0) return 0;
+  const setA = new Set(a);
+  const setB = new Set(b);
+  let intersection = 0;
+  for (const item of setA) {
+    if (setB.has(item)) intersection++;
+  }
+  const union = setA.size + setB.size - intersection;
+  return union === 0 ? 0 : intersection / union;
+}
+
+function pct(n: number): string {
+  return `${Math.round(n * 100)}%`;
 }
 
 /**

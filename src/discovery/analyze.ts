@@ -1,6 +1,15 @@
 import { spawn } from 'child_process';
 import { buildCleanEnv } from '../utils/subprocess-env.js';
-import type { DiscoveryContext, DiscoveryOptions, DiscoveryProposal } from './types.js';
+import type {
+  DiscoveryContext,
+  DiscoveryOptions,
+  DiscoveryProposal,
+  ProposedExpert,
+} from './types.js';
+import type {
+  OverlayNeighborhood,
+  ExpertStructuralSignature,
+} from '../experts/structural-analysis.js'; // @architecture-ignore intentional shared overlay substrate
 
 // ── Constants ──────────────────────────────────────────────
 
@@ -18,7 +27,9 @@ const OUTPUT_SCHEMA = `{
       "additionalPaths": ["string (optional additional paths)"],
       "description": "string (one-paragraph domain description)",
       "reasoning": "string (why this boundary was chosen)",
-      "confidence": "number (0.0 to 1.0)"
+      "confidence": "number (0.0 to 1.0)",
+      "boundaryBasis": "string (one of: directory-led, overlay-led, hybrid) — omit if no overlay data",
+      "structuralRationale": "string (brief explanation of structural evidence used) — omit if directory-led"
     }
   ],
   "rationale": "string (brief rationale for the overall proposed structure)"
@@ -70,11 +81,41 @@ export function buildAnalysisPrompt(context: DiscoveryContext): string {
   if (context.existingExperts.length > 0) {
     sections.push('', '### Already Registered Experts');
     for (const expert of context.existingExperts) {
-      sections.push(`  - ${expert.slug} (${expert.mountPath})`);
+      const basisNote = expert.boundaryBasis ? ` [${expert.boundaryBasis}]` : '';
+      sections.push(`  - ${expert.slug} (${expert.mountPath})${basisNote}`);
     }
   } else {
     sections.push('', '### Already Registered Experts', '  None');
   }
+
+  // Overlay structural evidence — only when available
+  if (context.overlayTrustState && context.overlayTrustState !== 'no-overlay') {
+    sections.push('', `### Overlay Trust Level`, `  ${context.overlayTrustState}`);
+
+    if (context.overlayNeighborhoods && context.overlayNeighborhoods.length > 0) {
+      sections.push('', '### Structural Neighborhoods (from overlay)');
+      for (const nbhd of context.overlayNeighborhoods.slice(0, 20)) {
+        sections.push(`  Neighborhood: ${nbhd.label}`);
+        sections.push(`    Directories: ${nbhd.dominantDirectories.join(', ') || '(none)'}`);
+        sections.push(
+          `    Anchor files: ${nbhd.anchorFiles.slice(0, 4).join(', ')}${nbhd.anchorFiles.length > 4 ? ` (+${nbhd.anchorFiles.length - 4} more)` : ''}`
+        );
+        sections.push(
+          `    Cohesion: ${nbhd.cohesionScore.toFixed(2)}, External coupling: ${nbhd.externalCouplingScore.toFixed(2)}, Trust: ${nbhd.trustState}`
+        );
+        if (nbhd.evidenceSummary.length > 0) {
+          sections.push(`    Evidence: ${nbhd.evidenceSummary.slice(0, 3).join('; ')}`);
+        }
+      }
+    }
+  }
+
+  const hasOverlay =
+    context.overlayTrustState &&
+    context.overlayTrustState !== 'no-overlay' &&
+    context.overlayTrustState !== 'content-only' &&
+    context.overlayNeighborhoods &&
+    context.overlayNeighborhoods.length > 0;
 
   sections.push(
     '',
@@ -85,11 +126,23 @@ export function buildAnalysisPrompt(context: DiscoveryContext): string {
     '2. Group tightly-coupled directories under one expert when they share a domain (e.g., models + controllers + views for "invoicing")',
     '3. Avoid overlapping mount paths',
     '4. Do not duplicate already-registered experts',
-    '5. Include a brief domain description for each proposed expert',
-    '',
-    `Respond with ONLY valid JSON matching this schema:`,
-    OUTPUT_SCHEMA
+    '5. Include a brief domain description for each proposed expert'
   );
+
+  if (hasOverlay) {
+    sections.push(
+      '',
+      'Structural overlay evidence is available. When using it:',
+      '- Prefer overlay-led or hybrid boundaries when structural neighborhoods are materially stronger than folder layout alone',
+      '- Do NOT over-merge weakly related neighborhoods into one vague expert — when in doubt, keep regions separate',
+      '- Always keep experts operator-legible: mount paths must be human-readable directory paths',
+      '- Set "boundaryBasis" to "overlay-led" if the boundary is primarily explained by structural neighborhoods,',
+      '  "directory-led" if it follows folder layout, or "hybrid" if both matter equally',
+      '- Add "structuralRationale" to explain the overlay evidence when the basis is overlay-led or hybrid'
+    );
+  }
+
+  sections.push('', `Respond with ONLY valid JSON matching this schema:`, OUTPUT_SCHEMA);
 
   return sections.join('\n');
 }
@@ -109,7 +162,11 @@ export async function analyze(
   const model = options.model ?? DEFAULT_MODEL;
   const prompt = buildAnalysisPrompt(context);
   const raw = await spawnClaude(prompt, model);
-  return parseProposalResponse(raw);
+  const proposal = parseProposalResponse(raw);
+  if (context.overlayNeighborhoods && context.overlayNeighborhoods.length > 0) {
+    attachStructuralSignatures(proposal.experts, context.overlayNeighborhoods);
+  }
+  return proposal;
 }
 
 // ── Claude CLI Subprocess ─────────────────────────────────
@@ -243,6 +300,18 @@ export function parseProposalResponse(raw: string): DiscoveryProposal {
       additionalPaths = expert.additionalPaths;
     }
 
+    // Optional structural fields
+    const validBases = new Set(['directory-led', 'overlay-led', 'hybrid']);
+    const boundaryBasis =
+      typeof expert.boundaryBasis === 'string' && validBases.has(expert.boundaryBasis)
+        ? (expert.boundaryBasis as 'directory-led' | 'overlay-led' | 'hybrid')
+        : undefined;
+
+    const structuralRationale =
+      typeof expert.structuralRationale === 'string' && expert.structuralRationale.length > 0
+        ? expert.structuralRationale
+        : undefined;
+
     return {
       slug: expert.slug as string,
       name: expert.name as string,
@@ -251,6 +320,8 @@ export function parseProposalResponse(raw: string): DiscoveryProposal {
       description: expert.description as string,
       reasoning: expert.reasoning as string,
       confidence: expert.confidence,
+      ...(boundaryBasis && { boundaryBasis }),
+      ...(structuralRationale && { structuralRationale }),
     };
   });
 
@@ -258,4 +329,48 @@ export function parseProposalResponse(raw: string): DiscoveryProposal {
     experts,
     rationale: obj.rationale,
   };
+}
+
+// ── Structural signature attachment ──────────────────────────
+
+/**
+ * Populate `structuralSignature` on each proposal by matching overlay
+ * neighborhoods whose dominant directories fall under the proposal's
+ * mount path.  Multiple matching neighborhoods are merged into one
+ * signature so the proposal carries the full structural picture for
+ * its boundary region.
+ *
+ * Exported for unit testing.
+ */
+export function attachStructuralSignatures(
+  proposals: ProposedExpert[],
+  neighborhoods: OverlayNeighborhood[]
+): void {
+  for (const proposal of proposals) {
+    const mount = proposal.mountPath.replace(/\/+$/, '');
+
+    const matching = neighborhoods.filter((nbhd) =>
+      nbhd.dominantDirectories.some((dir) => dir === mount || dir.startsWith(mount + '/'))
+    );
+
+    if (matching.length === 0) continue;
+
+    const anchorFiles = [...new Set(matching.flatMap((n) => n.anchorFiles))].sort();
+    const dominantDirectories = [...new Set(matching.flatMap((n) => n.dominantDirectories))];
+    const dominantSurfaces = [...new Set(matching.flatMap((n) => n.surfaceIds ?? []))].slice(0, 5);
+    const dominantProviders = [...new Set(matching.flatMap((n) => n.providerIds ?? []))].slice(
+      0,
+      5
+    );
+
+    const sig: ExpertStructuralSignature = {
+      version: 1,
+      anchorFiles,
+      dominantDirectories,
+      ...(dominantSurfaces.length > 0 && { dominantSurfaces }),
+      ...(dominantProviders.length > 0 && { dominantProviders }),
+    };
+
+    proposal.structuralSignature = sig;
+  }
 }

@@ -8,6 +8,13 @@ import { computeClusters } from '../scanner/imports/clustering.js';
 import { formatEdgeBlock } from '../scanner/associations/evidence.js';
 import { fileNodeId } from '../scanner/associations/types.js';
 import { formatFileFeaturePathBlock } from '../scanner/associations/surface-retrieval.js';
+import {
+  extractOverlayNeighborhoods,
+  deriveOverlayTrustLevel,
+  trustLevelToWeight,
+  scoreOwnershipMatch,
+} from './structural-analysis.js';
+import type { ExpertStructuralSignature, StructuralOwnershipMatch } from './structural-analysis.js';
 
 /** An expert matched by FTS5 search with a relevance score. */
 export interface ScoredExpert {
@@ -16,6 +23,8 @@ export interface ScoredExpert {
   hits: number;
   /** Sum of FTS5 rank scores (lower is more relevant in SQLite FTS5). */
   score: number;
+  /** Structural ownership match when overlay data is available. */
+  structuralOwnership?: StructuralOwnershipMatch;
 }
 
 /** Result from routing a query to one or more experts. */
@@ -28,6 +37,15 @@ export interface RouteResult {
   responses: QueryResult[];
   /** How the expert was selected: 'llm' or 'fts5'. */
   routingMethod: 'llm' | 'fts5';
+  /** Structural routing warnings when overlay trust affects ownership confidence. */
+  structuralWarnings?: StructuralRoutingWarning[];
+}
+
+/** Warning surfaced when overlay trust materially affects routing confidence. */
+export interface StructuralRoutingWarning {
+  /** 'debug-only' warnings are for status surfaces; 'user-visible' warnings surface in routing UX. */
+  level: 'debug-only' | 'user-visible';
+  message: string;
 }
 
 export interface RouterOptions {
@@ -115,6 +133,22 @@ export async function routeQuery(
   // Stage 1: FTS5 search for context enrichment
   const { scored, hitsByExpert } = scoreExperts(query, db, activeExperts);
 
+  // Enrich FTS5 scores with structural ownership signals when overlay is available
+  const allHitFiles = [...new Set([...hitsByExpert.values()].flat().map((h) => h.filePath))];
+  const structuralWarnings = enrichWithStructuralOwnership(scored, allHitFiles, db);
+
+  // Re-sort: structural ownership score breaks ties when FTS5 hit counts are equal.
+  // Experts with materially higher trustAdjustedScore rise above weaker FTS5 matches.
+  if (scored.some((s) => s.structuralOwnership)) {
+    scored.sort((a, b) => {
+      if (b.hits !== a.hits) return b.hits - a.hits;
+      const aStruct = a.structuralOwnership?.trustAdjustedScore ?? 0;
+      const bStruct = b.structuralOwnership?.trustAdjustedScore ?? 0;
+      if (Math.abs(bStruct - aStruct) > 0.1) return bStruct - aStruct;
+      return a.score - b.score; // lower FTS5 rank sum = more relevant
+    });
+  }
+
   // FTS5 top candidates for telemetry comparison
   const ftsTopN = scored.slice(0, 5).map((s) => ({
     slug: s.expert.slug,
@@ -171,7 +205,13 @@ export async function routeQuery(
       const fallback = activeExperts.slice(0, maxExperts);
       const matchedExperts = fallback.map((e) => ({ expert: e, hits: 0, score: 0 }));
       const responses = await queryExperts(fallback, query, sessionManager, queryOpts);
-      const result: RouteResult = { query, matchedExperts, responses, routingMethod: 'fts5' };
+      const result: RouteResult = {
+        query,
+        matchedExperts,
+        responses,
+        routingMethod: 'fts5',
+        ...(structuralWarnings.length > 0 && { structuralWarnings }),
+      };
       logRouteEvent(db, query, result, ftsTopN, llmResult);
       return result;
     }
@@ -199,6 +239,7 @@ export async function routeQuery(
         matchedExperts: qualified,
         responses,
         routingMethod: 'fts5',
+        ...(structuralWarnings.length > 0 && { structuralWarnings }),
       };
       logRouteEvent(db, query, result, ftsTopN, llmResult);
       return result;
@@ -230,7 +271,13 @@ export async function routeQuery(
     }
   }
 
-  const result: RouteResult = { query, matchedExperts, responses, routingMethod };
+  const result: RouteResult = {
+    query,
+    matchedExperts,
+    responses,
+    routingMethod,
+    ...(structuralWarnings.length > 0 && { structuralWarnings }),
+  };
   logRouteEvent(db, query, result, ftsTopN, llmResult);
   return result;
 }
@@ -482,6 +529,71 @@ function collectFtsHits(ftsQuery: string, db: LuxDatabase): FtsHit[] {
   }
 
   return hits;
+}
+
+// ---------------------------------------------------------------------------
+// Structural ownership enrichment
+// ---------------------------------------------------------------------------
+
+/**
+ * Compute trust-adjusted structural ownership scores for each scored expert
+ * and mutate the `structuralOwnership` field in-place.
+ *
+ * Returns an array of routing warnings collected across all experts.
+ * Empty when overlay is unavailable or all experts lack structural signatures.
+ */
+function enrichWithStructuralOwnership(
+  scored: ScoredExpert[],
+  hitFiles: string[],
+  db: LuxDatabase
+): StructuralRoutingWarning[] {
+  const warnings: StructuralRoutingWarning[] = [];
+
+  if (hitFiles.length === 0) return warnings;
+
+  const trustLevel = deriveOverlayTrustLevel(db);
+  const trustWeight = trustLevelToWeight(trustLevel);
+
+  // Emit a debug warning whenever overlay trust is reduced
+  if (trustLevel !== 'overlay-complete' && trustLevel !== 'no-overlay') {
+    warnings.push({
+      level: 'debug-only',
+      message: `Overlay trust level is '${trustLevel}' (weight ${trustWeight.toFixed(2)}); structural ownership scores are reduced.`,
+    });
+  }
+
+  // Nothing to score against when overlay is absent
+  if (trustWeight === 0) return warnings;
+
+  const allNeighborhoods = extractOverlayNeighborhoods(db);
+
+  for (const se of scored) {
+    const sig = parseExpertSignature(se.expert);
+    if (!sig) continue;
+
+    const match = scoreOwnershipMatch(hitFiles, sig, allNeighborhoods, trustWeight, se.expert.slug);
+
+    se.structuralOwnership = match;
+
+    // Collect user-visible warnings from individual match scores
+    if (match.warningLevel === 'user-visible' && match.warningReason) {
+      warnings.push({
+        level: 'user-visible',
+        message: `${se.expert.slug}: ${match.warningReason}`,
+      });
+    }
+  }
+
+  return warnings;
+}
+
+function parseExpertSignature(expert: Expert): ExpertStructuralSignature | null {
+  if (!expert.structural_signature) return null;
+  try {
+    return JSON.parse(expert.structural_signature) as ExpertStructuralSignature;
+  } catch {
+    return null;
+  }
 }
 
 /**
