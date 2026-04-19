@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   buildAnalysisPrompt,
   buildClaudeArgs,
+  buildClaudeSpawnOptions,
   parseProposalResponse,
   extractJsonObject,
   attachStructuralSignatures,
@@ -52,6 +53,22 @@ describe('buildClaudeArgs', () => {
       'claude-sonnet-4-20250514',
       'prompt text',
     ]);
+  });
+});
+
+describe('buildClaudeSpawnOptions', () => {
+  it('pins Claude subprocess cwd to the discovery root when provided', () => {
+    const options = buildClaudeSpawnOptions('/tmp/example-root');
+    expect(options.cwd).toBe('/tmp/example-root');
+    expect(options.stdio).toEqual(['ignore', 'pipe', 'pipe']);
+    expect(options.env).toBeDefined();
+  });
+
+  it('omits cwd when no root path is provided', () => {
+    const options = buildClaudeSpawnOptions();
+    expect(options.cwd).toBeUndefined();
+    expect(options.stdio).toEqual(['ignore', 'pipe', 'pipe']);
+    expect(options.env).toBeDefined();
   });
 });
 

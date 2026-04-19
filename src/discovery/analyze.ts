@@ -1,4 +1,5 @@
-import { spawn } from 'child_process';
+import { spawn, type SpawnOptions } from 'child_process';
+import { resolve as resolvePath } from 'path';
 import { buildCleanEnv } from '../utils/subprocess-env.js';
 import type {
   DiscoveryContext,
@@ -326,7 +327,7 @@ export async function analyze(
     );
 
     try {
-      const raw = await spawnClaude(prompt, model);
+      const raw = await spawnClaude(prompt, model, options.rootPath);
       const proposal = parseProposalResponse(raw);
       if (context.overlayNeighborhoods && context.overlayNeighborhoods.length > 0) {
         attachStructuralSignatures(proposal.experts, context.overlayNeighborhoods);
@@ -354,12 +355,21 @@ export function buildClaudeArgs(prompt: string, model: string): string[] {
   return ['--print', '--permission-mode', 'bypassPermissions', '--model', model, prompt];
 }
 
-function spawnClaude(prompt: string, model: string): Promise<string> {
+export function buildClaudeSpawnOptions(rootPath?: string): SpawnOptions {
+  return {
+    stdio: ['ignore', 'pipe', 'pipe'] as const,
+    env: buildCleanEnv(),
+    ...(rootPath ? { cwd: resolvePath(rootPath) } : {}),
+  };
+}
+
+function spawnClaude(prompt: string, model: string, rootPath?: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const child = spawn('claude', buildClaudeArgs(prompt, model), {
-      stdio: ['ignore', 'pipe', 'pipe'],
-      env: buildCleanEnv(),
-    });
+    const child = spawn(
+      'claude',
+      buildClaudeArgs(prompt, model),
+      buildClaudeSpawnOptions(rootPath)
+    );
 
     const stdoutChunks: Buffer[] = [];
     const stderrChunks: Buffer[] = [];
