@@ -97,4 +97,76 @@ describe('analyze Claude subprocess cwd pinning', () => {
       cwd: resolvePath('fixtures/example-app'),
     });
   });
+
+  it('keeps the Claude prompt stable when only rootPath changes', async () => {
+    mockSpawn
+      .mockImplementationOnce(() =>
+        createMockClaudeProcess(JSON.stringify({ experts: [], rationale: 'ok' }))
+      )
+      .mockImplementationOnce(() =>
+        createMockClaudeProcess(JSON.stringify({ experts: [], rationale: 'ok' }))
+      );
+
+    const context = makeContext({
+      fileCountsByDirectory: {
+        'app/Pipeline': 26,
+        'app/Services': 18,
+      },
+      symbolSummaries: {
+        'app/Pipeline': ['RunPipeline', 'ScoreStage'],
+      },
+    });
+
+    await analyze(context, makeOptions({ rootPath: '/tmp/corpus-a' }));
+    await analyze(context, makeOptions({ rootPath: '/tmp/corpus-b' }));
+
+    expect(mockSpawn).toHaveBeenCalledTimes(2);
+
+    const firstPrompt = mockSpawn.mock.calls[0]?.[1]?.[5];
+    const secondPrompt = mockSpawn.mock.calls[1]?.[1]?.[5];
+
+    expect(firstPrompt).toBe(secondPrompt);
+    expect(firstPrompt).not.toContain('/tmp/corpus-a');
+    expect(firstPrompt).not.toContain('/tmp/corpus-b');
+    expect(mockSpawn.mock.calls[0]?.[2]).toMatchObject({ cwd: '/tmp/corpus-a' });
+    expect(mockSpawn.mock.calls[1]?.[2]).toMatchObject({ cwd: '/tmp/corpus-b' });
+  });
+
+  it('retries with a smaller prompt while keeping cwd pinned to rootPath', async () => {
+    mockSpawn
+      .mockImplementationOnce(() => createMockClaudeProcess('not json'))
+      .mockImplementationOnce(() =>
+        createMockClaudeProcess(JSON.stringify({ experts: [], rationale: 'ok' }))
+      );
+
+    const largeContext = makeContext({
+      fileCountsByDirectory: Object.fromEntries(
+        Array.from({ length: 500 }, (_, i) => [`dir-${i.toString().padStart(4, '0')}`, 500 - i])
+      ),
+      symbolSummaries: Object.fromEntries(
+        Array.from({ length: 200 }, (_, i) => [
+          `symbols-${i.toString().padStart(4, '0')}`,
+          Array.from({ length: 12 }, (_, j) => `Symbol${i}_${j}`),
+        ])
+      ),
+      crossReferences: Array.from({ length: 250 }, (_, i) => ({
+        sourceDir: `src-${i}`,
+        targetDir: `dst-${i}`,
+        referenceCount: 250 - i,
+      })),
+    });
+
+    await analyze(largeContext, makeOptions({ rootPath: '/tmp/retry-corpus' }));
+
+    expect(mockSpawn).toHaveBeenCalledTimes(2);
+
+    const firstPrompt = mockSpawn.mock.calls[0]?.[1]?.[5];
+    const secondPrompt = mockSpawn.mock.calls[1]?.[1]?.[5];
+
+    expect(typeof firstPrompt).toBe('string');
+    expect(typeof secondPrompt).toBe('string');
+    expect(secondPrompt.length).toBeLessThan(firstPrompt.length);
+    expect(mockSpawn.mock.calls[0]?.[2]).toMatchObject({ cwd: '/tmp/retry-corpus' });
+    expect(mockSpawn.mock.calls[1]?.[2]).toMatchObject({ cwd: '/tmp/retry-corpus' });
+  });
 });
