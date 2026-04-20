@@ -834,6 +834,45 @@ describe('enrichContext', () => {
     expect(result.fileCountsByDirectory['src/lib']).toBe(1);
   });
 
+  it('should ignore knowledge entries outside the active content root', () => {
+    db.insertKnowledgeEntry(
+      makeEntry({
+        type: 'source',
+        title: 'Inside',
+        file_path: '/project/app/Inside.ts',
+      })
+    );
+    db.insertKnowledgeEntry(
+      makeEntry({
+        type: 'source',
+        title: 'Outside',
+        file_path: '/other-project/app/Outside.ts',
+      })
+    );
+
+    const result = enrichContext('tree/', db, { rootPath: contentRoot });
+
+    expect(result.fileCountsByDirectory['app']).toBe(1);
+    expect(result.fileCountsByDirectory['../../other-project/app']).toBeUndefined();
+  });
+
+  it('should ignore experts outside the active content root', () => {
+    db.insertExpert({
+      slug: 'inside-expert',
+      name: 'Inside Expert',
+      mount_path: '/project/app/Auth',
+    });
+    db.insertExpert({
+      slug: 'outside-expert',
+      name: 'Outside Expert',
+      mount_path: '/other-project/app/Billing',
+    });
+
+    const result = enrichContext('tree/', db, { rootPath: contentRoot });
+
+    expect(result.existingExperts.map((e) => e.slug)).toEqual(['inside-expert']);
+  });
+
   // Adapted from enrichDiscoveryContext integration tests
 
   it('should combine file counts, symbol summaries, and cross-references', () => {

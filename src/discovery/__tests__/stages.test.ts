@@ -330,7 +330,7 @@ describe('Stage 2: enrichContext', () => {
     db.insertExpert({
       slug: 'auth',
       name: 'Auth Expert',
-      mount_path: '/corpus/modules/Auth',
+      mount_path: '/test/root/modules/Auth',
     });
 
     const context = stages.enrichContext('tree', db, baseOptions);
@@ -338,7 +338,7 @@ describe('Stage 2: enrichContext', () => {
     expect(context.existingExperts).toHaveLength(1);
     expect(context.existingExperts[0]).toEqual({
       slug: 'auth',
-      mountPath: '/corpus/modules/Auth',
+      mountPath: '/test/root/modules/Auth',
     });
   });
 
@@ -346,17 +346,17 @@ describe('Stage 2: enrichContext', () => {
     db.insertExpert({
       slug: 'auth',
       name: 'Auth',
-      mount_path: '/corpus/modules/Auth',
+      mount_path: '/test/root/modules/Auth',
     });
     db.insertExpert({
       slug: 'invoicing',
       name: 'Invoicing',
-      mount_path: '/corpus/modules/Invoicing',
+      mount_path: '/test/root/modules/Invoicing',
     });
     db.insertExpert({
       slug: 'reporting',
       name: 'Reporting',
-      mount_path: '/corpus/modules/Reporting',
+      mount_path: '/test/root/modules/Reporting',
     });
 
     const context = stages.enrichContext('tree', db, baseOptions);
@@ -370,23 +370,23 @@ describe('Stage 2: enrichContext', () => {
     db.insertExpert({
       slug: 'test',
       name: 'Test',
-      mount_path: '/corpus/some/deep/path',
+      mount_path: '/test/root/some/deep/path',
     });
 
     const context = stages.enrichContext('tree', db, baseOptions);
 
-    expect(context.existingExperts[0].mountPath).toBe('/corpus/some/deep/path');
+    expect(context.existingExperts[0].mountPath).toBe('/test/root/some/deep/path');
   });
 
   it('only includes slug and mountPath from experts (not model, status, etc.)', () => {
     db.insertExpert({
       slug: 'full',
       name: 'Full Expert',
-      mount_path: '/corpus/full',
+      mount_path: '/test/root/full',
       model: 'claude-opus-4-20250514',
       status: 'active',
-      claude_md_path: '/corpus/full/claude.md',
-      memory_path: '/corpus/full/memory.md',
+      claude_md_path: '/test/root/full/claude.md',
+      memory_path: '/test/root/full/memory.md',
     });
 
     const context = stages.enrichContext('tree', db, baseOptions);
@@ -399,13 +399,13 @@ describe('Stage 2: enrichContext', () => {
     db.insertExpert({
       slug: 'active',
       name: 'Active',
-      mount_path: '/corpus/active',
+      mount_path: '/test/root/active',
       status: 'active',
     });
     db.insertExpert({
       slug: 'inactive',
       name: 'Inactive',
-      mount_path: '/corpus/inactive',
+      mount_path: '/test/root/inactive',
       status: 'inactive',
     });
 

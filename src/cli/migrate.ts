@@ -1,5 +1,6 @@
 import type { Command } from 'commander';
 import { LuxDatabase } from '../db/index.js';
+import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
 
 /**
  * Add migration commands to the CLI program.
@@ -12,7 +13,11 @@ export function addMigrateCommands(program: Command) {
     .description('Show migration status')
     .action(() => {
       const opts = program.opts();
-      const db = new LuxDatabase(opts.db as string, false); // Don't auto-migrate
+      const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
+      const db = new LuxDatabase(
+        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined }),
+        false
+      ); // Don't auto-migrate
       const status = db.getMigrationStatus();
 
       console.log('\nDatabase Migration Status:\n');
@@ -47,7 +52,11 @@ export function addMigrateCommands(program: Command) {
     .description('Run all pending migrations')
     .action(() => {
       const opts = program.opts();
-      const db = new LuxDatabase(opts.db as string, false); // Don't auto-migrate
+      const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
+      const db = new LuxDatabase(
+        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined }),
+        false
+      ); // Don't auto-migrate
 
       const status = db.getMigrationStatus();
 

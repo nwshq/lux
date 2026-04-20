@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { LuxDatabase } from '../db/index.js';
 import { detectModuleBoundaries, resolveModule } from '../scanner/imports/module-boundary.js';
+import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
 
 export function addSearchCommand(program: Command) {
   program
@@ -21,7 +22,10 @@ export function addSearchCommand(program: Command) {
         }
       ) => {
         const opts = program.opts();
-        const db = new LuxDatabase(opts.db as string);
+        const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
+        const db = new LuxDatabase(
+          resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
+        );
 
         const limit = parseInt(options.limit, 10);
         const results: Array<{
@@ -99,7 +103,6 @@ export function addSearchCommand(program: Command) {
         }
 
         // Detect module boundaries once for all results
-        const corpusPath = opts.corpus as string;
         const patterns = detectModuleBoundaries(corpusPath);
         const moduleCache = new Map<string, string | null>();
 

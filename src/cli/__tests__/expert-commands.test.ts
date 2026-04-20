@@ -457,7 +457,7 @@ describe('Expert CLI Commands', () => {
       db.insertExpert({
         slug: 'existing-expert',
         name: 'Existing',
-        mount_path: '/test/existing',
+        mount_path: join(contentDir, 'existing'),
       });
 
       const context = stages.enrichContext('tree string', db, { rootPath: contentDir });
@@ -465,7 +465,7 @@ describe('Expert CLI Commands', () => {
       expect(context.tree).toBe('tree string');
       expect(context.existingExperts).toHaveLength(1);
       expect(context.existingExperts[0].slug).toBe('existing-expert');
-      expect(context.existingExperts[0].mountPath).toBe('/test/existing');
+      expect(context.existingExperts[0].mountPath).toBe(join(contentDir, 'existing'));
     });
 
     it('should wire the analyze stage from the analyze module', () => {

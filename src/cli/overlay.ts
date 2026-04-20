@@ -6,6 +6,7 @@
 
 import type { Command } from 'commander';
 import { LuxDatabase } from '../db/index.js';
+import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
 import {
   describeOverlayTrustInspection,
   deriveOverlayTrustLevelFromState,
@@ -27,7 +28,10 @@ export function addOverlayCommands(program: Command): void {
     .option('--json', 'Emit machine-readable JSON instead of human-readable text')
     .action((options: { json?: boolean }) => {
       const opts = program.opts();
-      const db = new LuxDatabase(opts.db as string);
+      const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
+      const db = new LuxDatabase(
+        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
+      );
 
       const inspection = inspectOverlayTrustState(db);
       const overlay = inspection.state;
@@ -91,7 +95,10 @@ export function addOverlayCommands(program: Command): void {
     )
     .action(() => {
       const opts = program.opts();
-      const db = new LuxDatabase(opts.db as string);
+      const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
+      const db = new LuxDatabase(
+        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
+      );
 
       const inspection = inspectOverlayTrustState(db);
       const overlay = inspection.state;

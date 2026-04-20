@@ -2,7 +2,6 @@
 
 import { Command } from 'commander';
 import { dirname, join } from 'path';
-import { homedir } from 'os';
 import { existsSync, readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { LuxDatabase } from '../db/index.js';
@@ -32,6 +31,7 @@ import { addExpertCommands } from './expert.js';
 import { addAskCommand } from './ask.js';
 import { addDepsCommand } from './deps.js';
 import { addOverlayCommands } from './overlay.js';
+import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const version: string = (
@@ -41,10 +41,6 @@ const version: string = (
 ).version;
 
 const program = new Command();
-
-// Global options
-const DEFAULT_DB_PATH = join(homedir(), '.lux', 'lux.db');
-const DEFAULT_CORPUS_PATH = join(homedir(), 'CORPUS');
 
 interface ProgressReporter {
   start: (label: string) => void;
@@ -56,11 +52,21 @@ program
   .name('lux')
   .description('Lux Knowledge Platform - semantic search and knowledge retrieval')
   .version(version)
-  .option('--db <path>', 'Database path', DEFAULT_DB_PATH)
-  .option('--corpus <path>', 'Content root directory path', DEFAULT_CORPUS_PATH);
+  .option('--db <path>', 'Database path (defaults to <corpus>/.lux/lux.db)')
+  .option('--corpus <path>', 'Content root directory path (defaults to current working directory)');
 
 // Index commands
 const indexCmd = program.command('index').description('Manage index');
+
+function getRuntimePaths(cmd: Command): { corpusPath: string; dbPath: string } {
+  const opts = cmd.opts();
+  const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
+  const dbPath = resolveDbPath({
+    corpus: corpusPath,
+    db: opts.db as string | undefined,
+  });
+  return { corpusPath, dbPath };
+}
 
 indexCmd
   .command('rebuild')
@@ -75,8 +81,7 @@ indexCmd
     'Run a content-only rebuild: knowledge index only, no structural overlay.'
   )
   .action(async (options: { quiet?: boolean; contentOnly?: boolean }) => {
-    const opts = program.opts();
-    const corpusPath = opts.corpus as string;
+    const { corpusPath, dbPath } = getRuntimePaths(program);
     let db: LuxDatabase | undefined;
 
     try {
@@ -89,9 +94,9 @@ indexCmd
 
       // Initialize database with error handling
       try {
-        db = new LuxDatabase(opts.db as string);
+        db = new LuxDatabase(dbPath);
       } catch (error) {
-        console.error(`Error: Failed to initialize database: ${opts.db}`);
+        console.error(`Error: Failed to initialize database: ${dbPath}`);
         console.error(`  ${error instanceof Error ? error.message : String(error)}`);
         process.exit(1);
       }
@@ -290,8 +295,7 @@ indexCmd
   .option('--quiet', 'Suppress output')
   .option('--force', 'Ignore stored commit, do full rebuild')
   .action(async (options: { quiet?: boolean; force?: boolean }) => {
-    const opts = program.opts();
-    const corpusPath = opts.corpus as string;
+    const { corpusPath, dbPath } = getRuntimePaths(program);
     let db: LuxDatabase | undefined;
 
     try {
@@ -310,9 +314,9 @@ indexCmd
 
       // Initialize database
       try {
-        db = new LuxDatabase(opts.db as string);
+        db = new LuxDatabase(dbPath);
       } catch (error) {
-        console.error(`Error: Failed to initialize database: ${opts.db}`);
+        console.error(`Error: Failed to initialize database: ${dbPath}`);
         console.error(`  ${error instanceof Error ? error.message : String(error)}`);
         process.exit(1);
       }
@@ -724,8 +728,8 @@ indexCmd
   .command('status')
   .description('Show index statistics and overlay state')
   .action(() => {
-    const opts = program.opts();
-    const db = new LuxDatabase(opts.db as string);
+    const { dbPath } = getRuntimePaths(program);
+    const db = new LuxDatabase(dbPath);
     const stats = db.getStats();
     const inspection = inspectOverlayTrustState(db);
     const diagnostics = describeOverlayTrustInspection(inspection);

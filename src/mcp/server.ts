@@ -12,15 +12,13 @@ import { GeneralScanner } from '../scanner/index.js';
 import { SubprocessSessionManager } from '../experts/subprocess-manager.js';
 import { routeQuery } from '../experts/router.js';
 import { readFileSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
-import { homedir } from 'os';
-import { mkdirSync } from 'fs';
+import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
 
-const DEFAULT_DB_PATH = process.env.LUX_DB_PATH || join(homedir(), '.lux', 'lux.db');
-const DEFAULT_CORPUS_PATH = process.env.LUX_CORPUS_PATH || join(homedir(), 'CORPUS');
-
-// Ensure .lux directory exists
-mkdirSync(dirname(DEFAULT_DB_PATH), { recursive: true });
+const DEFAULT_CORPUS_PATH = resolveCorpusPath({ corpus: process.env.LUX_CORPUS_PATH });
+const DEFAULT_DB_PATH = resolveDbPath({
+  corpus: DEFAULT_CORPUS_PATH,
+  db: process.env.LUX_DB_PATH,
+});
 
 const db = new LuxDatabase(DEFAULT_DB_PATH);
 const sessionManager = new SubprocessSessionManager(db);

@@ -4,6 +4,7 @@ import { join, relative } from 'path';
 import { LuxDatabase } from '../db/index.js';
 import { computeClusters } from '../scanner/imports/clustering.js';
 import { resolveModule, detectModuleBoundaries } from '../scanner/imports/module-boundary.js';
+import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
 
 export function addDepsCommand(program: Command) {
   const deps = program.command('deps').description('Module dependency analysis');
@@ -15,7 +16,10 @@ export function addDepsCommand(program: Command) {
     .option('--json', 'Output as JSON')
     .action((options: { module?: string; json?: boolean }) => {
       const opts = program.opts();
-      const db = new LuxDatabase(opts.db as string);
+      const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
+      const db = new LuxDatabase(
+        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
+      );
 
       try {
         if (options.module) {
@@ -34,7 +38,10 @@ export function addDepsCommand(program: Command) {
     .option('--json', 'Output as JSON')
     .action((options: { json?: boolean }) => {
       const opts = program.opts();
-      const db = new LuxDatabase(opts.db as string);
+      const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
+      const db = new LuxDatabase(
+        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
+      );
 
       try {
         const allDeps = db.getAllModuleDependencies();
@@ -72,8 +79,10 @@ export function addDepsCommand(program: Command) {
     .option('--json', 'Output as JSON')
     .action((filePath: string, options: { json?: boolean }) => {
       const opts = program.opts();
-      const db = new LuxDatabase(opts.db as string);
-      const corpusPath = opts.corpus as string;
+      const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
+      const db = new LuxDatabase(
+        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
+      );
 
       try {
         const patterns = detectModuleBoundaries(corpusPath);
@@ -137,8 +146,10 @@ export function addDepsCommand(program: Command) {
     .option('--json', 'Output as JSON')
     .action((options: { json?: boolean }) => {
       const opts = program.opts();
-      const db = new LuxDatabase(opts.db as string);
-      const corpusPath = opts.corpus as string;
+      const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
+      const db = new LuxDatabase(
+        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
+      );
 
       try {
         const allDeps = db.getAllModuleDependencies();

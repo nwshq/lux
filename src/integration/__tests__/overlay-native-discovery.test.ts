@@ -88,12 +88,12 @@ function declaresSurfaceEdge(fileId: string, surfaceId: string): StructuralEdge 
   };
 }
 
-function persistCompleteOverlay(db: LuxDatabase): void {
+function persistCompleteOverlay(db: LuxDatabase, repoPath = '/test'): void {
   persistRebuildTrustState(
     db,
     {
       mode: 'overlay-complete',
-      repoPath: '/test',
+      repoPath,
       configSource: 'lux.yaml',
       configLspEnabled: true,
       surfaceCount: 10,
@@ -242,7 +242,7 @@ describe('Auctic-pattern: cross-directory feature family neighborhoods', () => {
   });
 
   it('enriches DiscoveryContext with overlay neighborhoods via enrichContext', () => {
-    persistCompleteOverlay(db);
+    persistCompleteOverlay(db, tmpRoot);
 
     // Insert a minimal surface
     const s = surfaceNode('surface:GET /api/invoices', 'routes/api.php', 'GET /api/invoices');

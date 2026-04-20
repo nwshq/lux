@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import { copyFileSync, chmodSync, existsSync, readFileSync, unlinkSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { resolveCorpusPath } from '../utils/runtime-paths.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -12,10 +13,13 @@ export function addHooksCommand(program: Command) {
   hooksCmd
     .command('install')
     .description('Install post-commit hook for content directory git repository')
-    .option('--corpus <path>', 'Content directory path (default: from --corpus global option)')
+    .option(
+      '--corpus <path>',
+      'Content directory path (defaults to current working directory or LUX_CORPUS_PATH)'
+    )
     .action((options: { corpus?: string }) => {
       const opts = program.opts();
-      const corpusPath = options.corpus || (opts.corpus as string);
+      const corpusPath = resolveCorpusPath({ corpus: options.corpus || (opts.corpus as string) });
 
       const gitDir = join(corpusPath, '.git');
       if (!existsSync(gitDir)) {
@@ -61,10 +65,13 @@ export function addHooksCommand(program: Command) {
   hooksCmd
     .command('uninstall')
     .description('Uninstall post-commit hook')
-    .option('--corpus <path>', 'Content directory path (default: from --corpus global option)')
+    .option(
+      '--corpus <path>',
+      'Content directory path (defaults to current working directory or LUX_CORPUS_PATH)'
+    )
     .action((options: { corpus?: string }) => {
       const opts = program.opts();
-      const corpusPath = options.corpus || (opts.corpus as string);
+      const corpusPath = resolveCorpusPath({ corpus: options.corpus || (opts.corpus as string) });
 
       const gitDir = join(corpusPath, '.git');
       if (!existsSync(gitDir)) {

@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import { existsSync } from 'fs';
 import { join, resolve, isAbsolute, relative } from 'path';
 import { LuxDatabase } from '../db/index.js';
+import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
 import { runDiscoveryPipeline, createDefaultStages } from '../discovery/index.js';
 import type {
   DiscoveryOptions,
@@ -62,7 +63,10 @@ export function addExpertCommands(program: Command) {
     .option('--json', 'Output as JSON')
     .action((options: { status: string; json?: boolean }) => {
       const opts = program.opts();
-      const db = new LuxDatabase(opts.db as string);
+      const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
+      const db = new LuxDatabase(
+        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
+      );
 
       let experts;
       if (options.status === 'all') {
@@ -112,7 +116,10 @@ export function addExpertCommands(program: Command) {
     .option('--json', 'Output as JSON')
     .action((slug: string, options: { json?: boolean }) => {
       const opts = program.opts();
-      const db = new LuxDatabase(opts.db as string);
+      const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
+      const db = new LuxDatabase(
+        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
+      );
 
       const expert = db.getExpert(slug);
       if (!expert) {
@@ -160,8 +167,10 @@ export function addExpertCommands(program: Command) {
     .option('--model <model>', 'Model to use', 'claude-sonnet-4-20250514')
     .action((slug: string, options: { mount: string; name?: string; model: string }) => {
       const opts = program.opts();
-      const corpusPath = opts.corpus as string;
-      const db = new LuxDatabase(opts.db as string);
+      const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
+      const db = new LuxDatabase(
+        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
+      );
 
       // Resolve and validate mount path
       const mountResult = validateMountPath(options.mount, corpusPath);
@@ -216,7 +225,10 @@ export function addExpertCommands(program: Command) {
     .option('--yes', 'Skip confirmation prompt')
     .action((slug: string, options: { yes?: boolean }) => {
       const opts = program.opts();
-      const db = new LuxDatabase(opts.db as string);
+      const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
+      const db = new LuxDatabase(
+        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
+      );
 
       const expert = db.getExpert(slug);
       if (!expert) {
@@ -260,7 +272,7 @@ export function addExpertCommands(program: Command) {
         minConfidence: string;
       }) => {
         const opts = program.opts();
-        const corpusPath = opts.corpus as string;
+        const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
 
         if (!existsSync(corpusPath)) {
           console.error(`Content root not found: ${corpusPath}`);
@@ -268,7 +280,9 @@ export function addExpertCommands(program: Command) {
           process.exit(1);
         }
 
-        const db = new LuxDatabase(opts.db as string);
+        const db = new LuxDatabase(
+          resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
+        );
 
         const discoveryOptions: DiscoveryOptions = {
           rootPath: corpusPath,

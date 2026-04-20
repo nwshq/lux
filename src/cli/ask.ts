@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { LuxDatabase } from '../db/index.js';
 import { SubprocessSessionManager } from '../experts/subprocess-manager.js';
+import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
 import type { ExpertSessionManager } from '../experts/session-manager.js';
 import { routeQuery } from '../experts/router.js';
 import type { RouteResult } from '../experts/router.js';
@@ -20,20 +21,17 @@ export function addAskCommand(program: Command) {
         options: { expert?: string; verbose?: boolean; json?: boolean; stream?: boolean }
       ) => {
         const opts = program.opts();
-        const db = new LuxDatabase(opts.db as string);
+        const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
+        const db = new LuxDatabase(
+          resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
+        );
         const sessionManager = new SubprocessSessionManager(db);
 
         try {
           if (options.expert) {
             await askSpecificExpert(db, sessionManager, question, options.expert, options);
           } else {
-            await askPanel(
-              db,
-              sessionManager,
-              question,
-              options,
-              opts.corpus as string | undefined
-            );
+            await askPanel(db, sessionManager, question, options, corpusPath);
           }
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);

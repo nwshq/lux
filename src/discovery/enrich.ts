@@ -4,9 +4,9 @@
 // data from indexed knowledge entries. Produces structured enrichment data that
 // Stage 3 (AI analysis) uses to propose expert boundaries.
 
-import { dirname, relative } from 'path';
+import { dirname, isAbsolute, relative, resolve } from 'path';
 import type { LuxDatabase } from '../db/index.js';
-import type { KnowledgeEntry } from '../db/types.js';
+import type { KnowledgeEntry, ModuleDependency } from '../db/types.js';
 import type {
   DiscoveryContext,
   DiscoveryOptions,
@@ -15,9 +15,10 @@ import type {
 } from './types.js';
 import { computeClusters } from '../db/clustering.js';
 import {
-  deriveOverlayTrustLevel,
-  extractOverlayNeighborhoods,
-} from '../experts/structural-analysis.js'; // @architecture-ignore intentional shared overlay substrate
+  deriveOverlayTrustLevelFromState,
+  inspectOverlayTrustState,
+} from '../scanner/overlay-trust-state.js'; // @architecture-ignore intentional shared overlay substrate
+import { extractOverlayNeighborhoods } from '../experts/structural-analysis.js'; // @architecture-ignore intentional shared overlay substrate
 
 // ---------------------------------------------------------------------------
 // Types (internal)
@@ -73,17 +74,22 @@ export const enrichContext: EnrichContextFn = (
   options: DiscoveryOptions
 ): DiscoveryContext => {
   const contentRoot = options.rootPath;
-  const entries = db.getAllKnowledgeEntries();
+  const allEntries = db.getAllKnowledgeEntries();
+  const entries = allEntries.filter((entry) => isPathWithinRoot(entry.file_path, contentRoot));
+  const dbAppearsScopedToRoot = allEntries.length === entries.length;
 
-  const existingExperts = db.getAllExperts().map((e) => {
-    const parsed = parseExpertStructuralFields(e.boundary_basis, e.structural_signature);
-    return {
-      slug: e.slug,
-      mountPath: e.mount_path,
-      ...(parsed.boundaryBasis && { boundaryBasis: parsed.boundaryBasis }),
-      ...(parsed.structuralSignature && { structuralSignature: parsed.structuralSignature }),
-    };
-  });
+  const existingExperts = db
+    .getAllExperts()
+    .filter((expert) => isPathWithinRoot(expert.mount_path, contentRoot))
+    .map((e) => {
+      const parsed = parseExpertStructuralFields(e.boundary_basis, e.structural_signature);
+      return {
+        slug: e.slug,
+        mountPath: e.mount_path,
+        ...(parsed.boundaryBasis && { boundaryBasis: parsed.boundaryBasis }),
+        ...(parsed.structuralSignature && { structuralSignature: parsed.structuralSignature }),
+      };
+    });
 
   const symbolSummaries = extractSymbolSummaries(entries, contentRoot);
   const crossReferences = extractCrossReferences(entries, contentRoot);
@@ -93,19 +99,31 @@ export const enrichContext: EnrichContextFn = (
   let clusters;
   try {
     const allDeps = db.getAllModuleDependencies();
-    if (allDeps.length > 0) {
-      moduleCoupling = allDeps;
-      clusters = computeClusters(allDeps);
+    const scopedDeps = allDeps.filter((dep) => {
+      const touchesRoot = moduleDependencyTouchesRoot(dep, contentRoot);
+      return touchesRoot === true || (touchesRoot === null && dbAppearsScopedToRoot);
+    });
+    if (scopedDeps.length > 0) {
+      moduleCoupling = scopedDeps;
+      clusters = computeClusters(scopedDeps);
     }
   } catch {
     // Module dependencies not available — skip
   }
 
   // Add overlay-native structural evidence when available
-  const overlayTrustState = deriveOverlayTrustLevel(db);
+  const overlayInspection = inspectOverlayTrustState(db);
+  const overlayState = overlayInspection.state;
+  const persistedRepoPath = overlayState?.repoPath;
+  const overlayStateSafe =
+    overlayInspection.source === 'persisted'
+      ? persistedRepoPath !== undefined && sameResolvedPath(persistedRepoPath, contentRoot)
+      : dbAppearsScopedToRoot;
+  const overlayTrustState =
+    overlayStateSafe && overlayState ? deriveOverlayTrustLevelFromState(overlayState) : undefined;
   const overlayNeighborhoods =
     overlayTrustState !== 'no-overlay' && overlayTrustState !== 'content-only'
-      ? extractOverlayNeighborhoods(db)
+      ? extractOverlayNeighborhoods(db).filter((nbhd) => neighborhoodTouchesRoot(nbhd, contentRoot))
       : undefined;
 
   return {
@@ -116,7 +134,7 @@ export const enrichContext: EnrichContextFn = (
     existingExperts,
     ...(moduleCoupling && moduleCoupling.length > 0 && { moduleCoupling }),
     ...(clusters && clusters.length > 0 && { clusters }),
-    ...(overlayTrustState !== 'no-overlay' && { overlayTrustState }),
+    ...(overlayTrustState !== undefined && { overlayTrustState }),
     ...(overlayNeighborhoods && overlayNeighborhoods.length > 0 && { overlayNeighborhoods }),
   };
 };
@@ -268,8 +286,46 @@ export function extractCrossReferences(
  * Returns '.' for files at the content root level.
  */
 function toRelativeDir(filePath: string, contentRoot: string): string {
-  const rel = relative(contentRoot, dirname(filePath));
+  const rel = relative(resolve(contentRoot), dirname(resolveAgainstRoot(filePath, contentRoot)));
   return rel || '.';
+}
+
+function resolveAgainstRoot(targetPath: string, contentRoot: string): string {
+  return resolve(isAbsolute(targetPath) ? targetPath : resolve(contentRoot, targetPath));
+}
+
+function sameResolvedPath(a: string, b: string): boolean {
+  return resolve(a) === resolve(b);
+}
+
+function isPathWithinRoot(targetPath: string, contentRoot: string): boolean {
+  const rel = relative(resolve(contentRoot), resolveAgainstRoot(targetPath, contentRoot));
+  return rel === '' || (!rel.startsWith('..') && !isAbsolute(rel));
+}
+
+function moduleDependencyTouchesRoot(dep: ModuleDependency, contentRoot: string): boolean | null {
+  if (!dep.sample_files) return null;
+
+  try {
+    const sampleFiles = JSON.parse(dep.sample_files) as unknown;
+    if (!Array.isArray(sampleFiles)) return false;
+    return sampleFiles.some(
+      (file) => typeof file === 'string' && isPathWithinRoot(file, contentRoot)
+    );
+  } catch {
+    return false;
+  }
+}
+
+function neighborhoodTouchesRoot(
+  neighborhood: import('../experts/structural-analysis.js').OverlayNeighborhood,
+  contentRoot: string
+): boolean {
+  return [
+    ...neighborhood.anchorFiles,
+    ...neighborhood.memberFiles,
+    ...neighborhood.dominantDirectories,
+  ].some((path) => isPathWithinRoot(path, contentRoot));
 }
 
 /**

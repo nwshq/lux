@@ -90,7 +90,7 @@ describe('Discovery Enrichment with Module Dependencies', () => {
       source_module: 'A',
       target_module: 'B',
       reference_count: 1,
-      sample_files: null,
+      sample_files: JSON.stringify([join(testDir, 'src', 'test.php')]),
     });
 
     const context = enrichContext('tree output', db, { rootPath: testDir });
@@ -99,5 +99,33 @@ describe('Discovery Enrichment with Module Dependencies', () => {
     expect(context.fileCountsByDirectory).toBeDefined();
     expect(context.existingExperts).toBeDefined();
     expect(context.moduleCoupling).toBeDefined();
+  });
+
+  it('should ignore module dependencies whose sample files are outside the active root when the db is mixed', () => {
+    db.insertKnowledgeEntry({
+      type: 'source-code',
+      title: 'inside.php',
+      file_path: join(testDir, 'src', 'inside.php'),
+      content: 'test',
+    });
+
+    db.insertModuleDependency({
+      source_module: 'Inside',
+      target_module: 'Shared',
+      reference_count: 3,
+      sample_files: JSON.stringify([join(testDir, 'src', 'inside.php')]),
+    });
+    db.insertModuleDependency({
+      source_module: 'Outside',
+      target_module: 'Shared',
+      reference_count: 9,
+      sample_files: JSON.stringify(['/elsewhere/outside.php']),
+    });
+
+    const context = enrichContext('tree output', db, { rootPath: testDir });
+
+    expect(context.moduleCoupling).toBeDefined();
+    expect(context.moduleCoupling).toHaveLength(1);
+    expect(context.moduleCoupling![0].source_module).toBe('Inside');
   });
 });
