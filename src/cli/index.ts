@@ -11,6 +11,9 @@ import { attachEnrichment } from '../scanner/general.js';
 import { rebuildWithOverlay, rebuildContentOnly } from '../scanner/rebuild-orchestrator.js';
 import type { RebuildResult } from '../scanner/rebuild-orchestrator.js';
 import {
+  describeOverlayTrustInspection,
+  deriveOverlayTrustLevelFromMode,
+  deriveOverlayTrustLevelFromState,
   inspectOverlayTrustState,
   persistRebuildTrustState,
   markOverlayTrustAfterSync,
@@ -236,10 +239,23 @@ indexCmd
         if (overlayResult) {
           printRebuildTrustSummary(overlayResult);
         } else {
-          console.log('\nMode: content-only');
-          console.log(
-            '  (This is the fallback path. Run plain "lux index rebuild" for the canonical overlay-complete rebuild.)'
-          );
+          printRebuildTrustSummary({
+            mode: 'content-only',
+            repoPath: corpusPath,
+            configSource: 'lux.yaml',
+            configLspEnabled: false,
+            surfaceCount: 0,
+            detectorEdgeCount: 0,
+            propagatedEdgeCount: 0,
+            fileNodeCount: 0,
+            symbolNodeCount: 0,
+            controllerBackedCount: 0,
+            closureBackedCount: 0,
+            unknownProviderKindCount: 0,
+            enrichmentStatus: 'inactive',
+            propagationStatus: 'skipped',
+            warnings: [],
+          });
         }
         console.log('\n✓ Index rebuilt successfully');
       } else {
@@ -677,9 +693,13 @@ indexCmd
       }
 
       if (!options.quiet) {
+        const syncTrustLevel = deriveOverlayTrustLevelFromState(syncTrustState);
         console.log(
-          `Overlay trust after sync: ${syncTrustState.mode} (${syncTrustState.fileNodeCount} files, ${syncTrustState.symbolNodeCount} symbols)`
+          `Overlay trust after sync: ${syncTrustLevel} (persisted mode: ${syncTrustState.mode}, ${syncTrustState.fileNodeCount} files, ${syncTrustState.symbolNodeCount} symbols)`
         );
+        for (const warning of syncTrustState.warnings) {
+          console.warn(`Warning: ${warning}`);
+        }
         console.log(
           `✓ Synced: +${plan.toIndex.length} indexed, -${plan.toDelete.length} deleted (commit ${headCommit.slice(0, 8)})`
         );
@@ -708,6 +728,7 @@ indexCmd
     const db = new LuxDatabase(opts.db as string);
     const stats = db.getStats();
     const inspection = inspectOverlayTrustState(db);
+    const diagnostics = describeOverlayTrustInspection(inspection);
 
     console.log('\nIndex Statistics:\n');
     console.log(`  Knowledge Entries: ${stats.knowledge_entries}`);
@@ -715,27 +736,29 @@ indexCmd
 
     console.log('\nStructural Overlay:');
     if (!inspection.state) {
-      console.log(
-        '  No overlay trust state recorded — run "lux index rebuild" to build the canonical overlay path.'
-      );
+      console.log(`  Trust Level: ${diagnostics.trustLevel}`);
+      for (const warning of diagnostics.warnings) {
+        console.log(`  ${warning}`);
+      }
     } else {
       const overlay = inspection.state;
       console.log(`  Mode: ${overlay.mode}`);
+      console.log(`  Trust Level: ${diagnostics.trustLevel}`);
       console.log(`  Surfaces: ${overlay.surfaceCount}`);
       console.log(`  Nodes: ${overlay.fileNodeCount} files, ${overlay.symbolNodeCount} symbols`);
       console.log(
         `  Provider kinds: ${overlay.controllerBackedCount} controller-backed, ` +
           `${overlay.closureBackedCount} closure-backed, ${overlay.unknownProviderKindCount} unknown`
       );
-      console.log(`  Trust source: ${inspection.source}`);
+      console.log(`  Trust source: ${diagnostics.trustSource}`);
       if (overlay.lastIndexedCommit) {
         console.log(`  Indexed commit: ${overlay.lastIndexedCommit.slice(0, 8)}`);
       }
       if (overlay.recordedAt) {
         console.log(`  Trust recorded: ${overlay.recordedAt}`);
       }
-      if (overlay.warnings.length > 0) {
-        for (const warning of overlay.warnings) {
+      if (diagnostics.warnings.length > 0) {
+        for (const warning of diagnostics.warnings) {
           console.warn(`Warning: ${warning}`);
         }
       }
@@ -838,7 +861,10 @@ function createProgressReporter(quiet: boolean): ProgressReporter {
 }
 
 function printRebuildTrustSummary(r: RebuildResult): void {
+  const trustLevel = deriveOverlayTrustLevelFromMode(r.mode, 'index-rebuild');
+
   console.log(`\nMode: ${r.mode}`);
+  console.log(`Trust Level: ${trustLevel}`);
 
   if (r.mode === 'overlay-complete' || r.mode === 'degraded-overlay') {
     console.log(`Surfaces: ${r.surfaceCount}`);
@@ -858,6 +884,10 @@ function printRebuildTrustSummary(r: RebuildResult): void {
             ? 'configured but unavailable'
             : 'inactive'
       }`
+    );
+  } else {
+    console.log(
+      'This is the fallback path. Run plain "lux index rebuild" for the canonical overlay-complete rebuild.'
     );
   }
 

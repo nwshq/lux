@@ -13,6 +13,7 @@ const CLI_ENTRY = join(PROJECT_ROOT, 'src', 'cli', 'index.ts');
 
 interface OverlayStatusPayload {
   mode: string;
+  trustLevel?: string;
   trustSource: string;
   sourceAction: string;
   warnings: string[];
@@ -145,7 +146,10 @@ describe('index sync CLI', () => {
     expect(result.stdout).toContain(
       'Sync path: incremental content sync (no structural source changes detected).'
     );
-    expect(result.stdout).toContain('Overlay trust after sync:');
+    expect(result.stdout).toContain(
+      'Overlay trust after sync: stale-overlay (persisted mode: degraded-overlay,'
+    );
+    expect(result.stderr).toContain('Warning:');
     expect(result.stdout).toContain('✓ Synced:');
 
     const db = new LuxDatabase(dbPath);
@@ -166,11 +170,14 @@ describe('index sync CLI', () => {
     expect(status.status).toBe(0);
     const payload: OverlayStatusPayload = JSON.parse(status.stdout) as OverlayStatusPayload;
     expect(payload.mode).toBe('degraded-overlay');
+    expect(payload.trustLevel).toBe('stale-overlay');
     expect(payload.trustSource).toBe('persisted');
     expect(payload.sourceAction).toBe('index-sync');
 
     expect(check.status).toBe(1);
-    expect(check.stderr).toContain('Error: Overlay is degraded-overlay, not overlay-complete.');
+    expect(check.stderr).toContain(
+      'Error: Overlay trust level is stale-overlay (persisted mode: degraded-overlay), not overlay-complete.'
+    );
   });
 
   it('escalates to overlay rebuild for structural source changes', () => {
@@ -196,6 +203,7 @@ describe('index sync CLI', () => {
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('Sync path: canonical overlay rebuild (');
     expect(result.stdout).toContain('structural source file(s) changed).');
+    expect(result.stdout).toContain('Trust Level: overlay-complete');
     expect(result.stdout).toContain('✓ Sync escalated to full overlay rebuild');
     expect(result.stdout).not.toContain('✓ Synced:');
 
@@ -219,6 +227,7 @@ describe('index sync CLI', () => {
     expect(status.status).toBe(0);
     const payload: OverlayStatusPayload = JSON.parse(status.stdout) as OverlayStatusPayload;
     expect(payload.mode).toBe('overlay-complete');
+    expect(payload.trustLevel).toBe('overlay-complete');
     expect(payload.trustSource).toBe('persisted');
     expect(payload.sourceAction).toBe('index-rebuild');
     expect(payload.symbolNodeCount).toBeGreaterThan(0);

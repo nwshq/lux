@@ -12,7 +12,7 @@
 
 import { dirname, basename, extname } from 'path';
 import type { LuxDatabase } from '../db/index.js';
-import { inspectOverlayTrustState } from '../scanner/overlay-trust-state.js';
+import { deriveOverlayTrustLevel as deriveOverlayTrustLevelFromInspectionDb } from '../scanner/overlay-trust-state.js';
 import { getSurfaceFeaturePath } from '../scanner/associations/surface-retrieval.js';
 import type { FeaturePath } from '../scanner/associations/surface-retrieval.js';
 
@@ -40,18 +40,7 @@ export type OverlayTrustLevel =
  *  - degraded mode from rebuild or derived state → 'degraded-overlay'
  */
 export function deriveOverlayTrustLevel(db: LuxDatabase): OverlayTrustLevel {
-  const inspection = inspectOverlayTrustState(db);
-  if (!inspection.state || inspection.source === 'none') return 'no-overlay';
-
-  const { mode, sourceAction } = inspection.state;
-
-  if (mode === 'content-only') return 'content-only';
-  if (mode === 'overlay-complete') return 'overlay-complete';
-
-  // degraded-overlay: distinguish sync-induced staleness from original degradation
-  if (mode === 'degraded-overlay' && sourceAction === 'index-sync') return 'stale-overlay';
-
-  return 'degraded-overlay';
+  return deriveOverlayTrustLevelFromInspectionDb(db);
 }
 
 /**

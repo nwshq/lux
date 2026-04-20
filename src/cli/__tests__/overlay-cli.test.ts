@@ -16,6 +16,7 @@ const CLI_ENTRY = join(PROJECT_ROOT, 'src', 'cli', 'index.ts');
 
 interface OverlayStatusPayload {
   mode: string;
+  trustLevel?: string;
   trustSource: string;
   warnings: string[];
   symbolNodeCount?: number;
@@ -135,6 +136,7 @@ describe('overlay CLI trust surface', () => {
 
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('Mode: content-only');
+    expect(result.stdout).toContain('Trust Level: content-only');
     expect(result.stdout).toContain('fallback path');
 
     const db = new LuxDatabase(dbPath);
@@ -149,6 +151,22 @@ describe('overlay CLI trust surface', () => {
     expect(inspection.state?.mode).toBe('content-only');
   });
 
+  it('overlay status reports no-overlay diagnostics before any rebuild', () => {
+    const db = new LuxDatabase(dbPath);
+    db.close();
+
+    const result = runCli(repoDir, dbPath, ['overlay', 'status', '--json']);
+
+    expect(result.status).toBe(0);
+    const payload: OverlayStatusPayload = JSON.parse(result.stdout) as OverlayStatusPayload;
+    expect(payload.mode).toBe('none');
+    expect(payload.trustLevel).toBe('no-overlay');
+    expect(payload.trustSource).toBe('none');
+    expect(payload.warnings).toContain(
+      'No overlay trust state recorded. Run "lux index rebuild" to build the canonical overlay path.'
+    );
+  });
+
   it('overlay status reports derived content-only state after content-only rebuild', () => {
     const rebuild = runCli(repoDir, dbPath, ['index', 'rebuild', '--content-only', '--quiet']);
     expect(rebuild.status).toBe(0);
@@ -158,12 +176,24 @@ describe('overlay CLI trust surface', () => {
     expect(result.status).toBe(0);
     const payload: OverlayStatusPayload = JSON.parse(result.stdout) as OverlayStatusPayload;
     expect(payload.mode).toBe('content-only');
+    expect(payload.trustLevel).toBe('content-only');
     expect(payload.trustSource).toBe('derived');
     expect(
       payload.warnings.some((warning) =>
         warning.includes('No structural overlay nodes are present')
       )
     ).toBe(true);
+  });
+
+  it('overlay check fails with no-overlay diagnostics before any rebuild', () => {
+    const db = new LuxDatabase(dbPath);
+    db.close();
+
+    const result = runCli(repoDir, dbPath, ['overlay', 'check']);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('Error: No structural overlay trust state found in database.');
+    expect(result.stderr).toContain('Trust level: no-overlay');
   });
 
   it('overlay check fails against content-only state', () => {
@@ -173,7 +203,9 @@ describe('overlay CLI trust surface', () => {
     const result = runCli(repoDir, dbPath, ['overlay', 'check']);
 
     expect(result.status).toBe(1);
-    expect(result.stderr).toContain('Error: Overlay is content-only, not overlay-complete.');
+    expect(result.stderr).toContain(
+      'Error: Overlay trust level is content-only (persisted mode: content-only), not overlay-complete.'
+    );
     expect(result.stderr).toContain(
       'Run "lux index rebuild" to restore the canonical overlay-complete state.'
     );
@@ -207,6 +239,7 @@ describe('overlay CLI trust surface', () => {
     expect(status.status).toBe(0);
     const payload: OverlayStatusPayload = JSON.parse(status.stdout) as OverlayStatusPayload;
     expect(payload.mode).toBe('overlay-complete');
+    expect(payload.trustLevel).toBe('overlay-complete');
     expect(payload.trustSource).toBe('persisted');
     expect(payload.symbolNodeCount).toBeGreaterThan(0);
     expect(payload.enrichmentStatus).toBe('active');

@@ -16,6 +16,20 @@ export interface OverlayTrustInspection {
   source: 'persisted' | 'derived' | 'none';
 }
 
+export interface OverlayTrustDiagnostics {
+  mode: RebuildMode | 'none';
+  trustLevel: OverlayTrustLevel;
+  trustSource: OverlayTrustInspection['source'];
+  warnings: string[];
+}
+
+export type OverlayTrustLevel =
+  | 'no-overlay'
+  | 'content-only'
+  | 'stale-overlay'
+  | 'degraded-overlay'
+  | 'overlay-complete';
+
 export interface OverlaySyncMutationDetails {
   lastIndexedCommit?: string;
   overlayRelevantPaths: string[];
@@ -109,6 +123,54 @@ export function inspectOverlayTrustState(db: LuxDatabase): OverlayTrustInspectio
   }
 
   return { state: null, source: 'none' };
+}
+
+export function deriveOverlayTrustLevelFromMode(
+  mode: RebuildMode | 'none',
+  sourceAction?: OverlayTrustStateSource
+): OverlayTrustLevel {
+  if (mode === 'none') return 'no-overlay';
+  if (mode === 'content-only') return 'content-only';
+  if (mode === 'overlay-complete') return 'overlay-complete';
+  if (mode === 'degraded-overlay' && sourceAction === 'index-sync') {
+    return 'stale-overlay';
+  }
+  return 'degraded-overlay';
+}
+
+export function deriveOverlayTrustLevelFromState(
+  state: PersistedOverlayTrustState | null
+): OverlayTrustLevel {
+  return deriveOverlayTrustLevelFromMode(state?.mode ?? 'none', state?.sourceAction);
+}
+
+export function deriveOverlayTrustLevel(db: LuxDatabase): OverlayTrustLevel {
+  return deriveOverlayTrustLevelFromState(inspectOverlayTrustState(db).state);
+}
+
+export function describeOverlayTrustInspection(
+  inspection: OverlayTrustInspection
+): OverlayTrustDiagnostics {
+  if (!inspection.state) {
+    return {
+      mode: 'none',
+      trustLevel: 'no-overlay',
+      trustSource: inspection.source,
+      warnings: [
+        'No overlay trust state recorded. Run "lux index rebuild" to build the canonical overlay path.',
+      ],
+    };
+  }
+
+  return {
+    mode: inspection.state.mode,
+    trustLevel: deriveOverlayTrustLevelFromMode(
+      inspection.state.mode,
+      inspection.state.sourceAction
+    ),
+    trustSource: inspection.source,
+    warnings: [...inspection.state.warnings],
+  };
 }
 
 export function markOverlayTrustAfterSync(

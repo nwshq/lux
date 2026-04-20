@@ -18,6 +18,7 @@ import {
   computeStructuralSignature,
   scoreOwnershipMatch,
 } from '../structural-analysis.js';
+import { deriveOverlayTrustLevelFromState } from '../../scanner/overlay-trust-state.js';
 import type { ExpertStructuralSignature, OverlayNeighborhood } from '../structural-analysis.js';
 import { classifySignatureDrift } from '../../discovery/diff.js';
 import type { StructuralNode, StructuralEdge } from '../../db/types.js';
@@ -160,6 +161,44 @@ describe('deriveOverlayTrustLevel', () => {
       { sourceAction: 'index-rebuild' }
     );
     expect(deriveOverlayTrustLevel(db)).toBe('content-only');
+  });
+
+  it('maps sync-degraded persisted state to stale-overlay trust level', () => {
+    persistRebuildTrustState(
+      db,
+      {
+        mode: 'degraded-overlay',
+        repoPath: '/test',
+        configSource: 'lux.yaml',
+        configLspEnabled: true,
+        surfaceCount: 5,
+        detectorEdgeCount: 5,
+        propagatedEdgeCount: 5,
+        fileNodeCount: 5,
+        symbolNodeCount: 5,
+        controllerBackedCount: 3,
+        closureBackedCount: 2,
+        unknownProviderKindCount: 0,
+        enrichmentStatus: 'active',
+        propagationStatus: 'ran',
+        warnings: ['stale after sync'],
+      },
+      { sourceAction: 'index-rebuild' }
+    );
+
+    const persisted = db.getIndexMetadata('overlay_trust_state');
+    expect(persisted).toBeTruthy();
+    const parsed = JSON.parse(persisted as string) as { sourceAction: string };
+    parsed.sourceAction = 'index-sync';
+    db.setIndexMetadata('overlay_trust_state', JSON.stringify(parsed));
+
+    expect(deriveOverlayTrustLevel(db)).toBe('stale-overlay');
+  });
+});
+
+describe('deriveOverlayTrustLevelFromState', () => {
+  it('returns no-overlay for null state', () => {
+    expect(deriveOverlayTrustLevelFromState(null)).toBe('no-overlay');
   });
 });
 

@@ -6,7 +6,11 @@
 
 import type { Command } from 'commander';
 import { LuxDatabase } from '../db/index.js';
-import { inspectOverlayTrustState } from '../scanner/overlay-trust-state.js';
+import {
+  describeOverlayTrustInspection,
+  deriveOverlayTrustLevelFromState,
+  inspectOverlayTrustState,
+} from '../scanner/overlay-trust-state.js';
 
 export function addOverlayCommands(program: Command): void {
   const overlayCmd = program
@@ -27,6 +31,7 @@ export function addOverlayCommands(program: Command): void {
 
       const inspection = inspectOverlayTrustState(db);
       const overlay = inspection.state;
+      const diagnostics = describeOverlayTrustInspection(inspection);
 
       if (options.json) {
         console.log(
@@ -34,25 +39,24 @@ export function addOverlayCommands(program: Command): void {
             overlay
               ? {
                   ...overlay,
-                  trustSource: inspection.source,
+                  trustLevel: diagnostics.trustLevel,
+                  trustSource: diagnostics.trustSource,
+                  warnings: diagnostics.warnings,
                 }
-              : {
-                  mode: 'none',
-                  trustSource: inspection.source,
-                  warnings: [
-                    'No overlay trust state recorded. Run "lux index rebuild" to build the canonical overlay path.',
-                  ],
-                },
+              : diagnostics,
             null,
             2
           )
         );
       } else if (!overlay) {
         console.log('\nOverlay Status: none');
-        console.log('No overlay trust state recorded.');
-        console.log('Run "lux index rebuild" to build the canonical overlay path.');
+        console.log(`Trust Level: ${diagnostics.trustLevel}`);
+        for (const warning of diagnostics.warnings) {
+          console.log(warning);
+        }
       } else {
         console.log(`\nOverlay Status: ${overlay.mode}`);
+        console.log(`Trust Level: ${diagnostics.trustLevel}`);
         console.log(`Surfaces: ${overlay.surfaceCount}`);
         console.log(
           `Provider kinds: ${overlay.controllerBackedCount} controller-backed, ${overlay.closureBackedCount} closure-backed, ${overlay.unknownProviderKindCount} unknown`
@@ -91,17 +95,21 @@ export function addOverlayCommands(program: Command): void {
 
       const inspection = inspectOverlayTrustState(db);
       const overlay = inspection.state;
+      const trustLevel = deriveOverlayTrustLevelFromState(overlay);
 
       db.close();
 
       if (!overlay) {
         console.error('Error: No structural overlay trust state found in database.');
+        console.error('  Trust level: no-overlay');
         console.error('  Run "lux index rebuild" to build the canonical overlay-complete index.');
         process.exit(1);
       }
 
-      if (overlay.mode !== 'overlay-complete') {
-        console.error(`Error: Overlay is ${overlay.mode}, not overlay-complete.`);
+      if (trustLevel !== 'overlay-complete') {
+        console.error(
+          `Error: Overlay trust level is ${trustLevel} (persisted mode: ${overlay.mode}), not overlay-complete.`
+        );
         for (const warning of overlay.warnings) {
           console.error(`  Warning: ${warning}`);
         }
