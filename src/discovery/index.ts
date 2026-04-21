@@ -13,6 +13,7 @@ export {
   IGNORE_DIRS,
 } from './collect-tree.js';
 export { analyze, buildAnalysisPrompt, parseProposalResponse } from './analyze.js';
+export { deriveCandidateRegions } from './derive-candidate-regions.js';
 export {
   review,
   formatProposalTable as formatReviewTable,
@@ -33,8 +34,10 @@ export type {
   TreeOptions,
   CrossReference,
   ExistingExpert,
+  CandidateRegion,
   CollectTreeFn,
   EnrichContextFn,
+  DeriveCandidateRegionsFn,
   AnalyzeFn,
   ReviewFn,
   RegisterFn,

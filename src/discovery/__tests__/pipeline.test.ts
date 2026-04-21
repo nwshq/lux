@@ -40,6 +40,9 @@ function makeStages(overrides: Partial<PipelineStages> = {}): PipelineStages {
   return {
     collectTree: vi.fn().mockReturnValue('root/\n├── src/\n└── docs/'),
     enrichContext: vi.fn().mockReturnValue(makeContext()),
+    deriveCandidateRegions: vi
+      .fn<(context: DiscoveryContext) => DiscoveryContext>()
+      .mockImplementation((context: DiscoveryContext): DiscoveryContext => context),
     analyze: vi.fn().mockResolvedValue({
       experts: [
         makeProposal(),
@@ -100,7 +103,7 @@ afterEach(() => {
 describe('runDiscoveryPipeline', () => {
   const baseOptions: DiscoveryOptions = { rootPath: '/fake/root' };
 
-  it('runs all five stages in sequence and returns results', async () => {
+  it('runs all six stages in sequence and returns results', async () => {
     const stages = makeStages();
     const result = await runDiscoveryPipeline(db, baseOptions, stages);
 
@@ -111,6 +114,7 @@ describe('runDiscoveryPipeline', () => {
       db,
       baseOptions
     );
+    expect(stages.deriveCandidateRegions).toHaveBeenCalledWith(makeContext(), baseOptions);
     expect(stages.analyze).toHaveBeenCalledWith(makeContext(), baseOptions);
     expect(stages.review).toHaveBeenCalledWith(expect.any(Array));
     expect(stages.register).toHaveBeenCalledWith(
@@ -141,6 +145,10 @@ describe('runDiscoveryPipeline', () => {
         callOrder.push('enrichContext');
         return makeContext();
       }),
+      deriveCandidateRegions: vi.fn((context: DiscoveryContext): DiscoveryContext => {
+        callOrder.push('deriveCandidateRegions');
+        return context;
+      }),
       analyze: vi.fn(() => {
         callOrder.push('analyze');
         return Promise.resolve({
@@ -160,7 +168,14 @@ describe('runDiscoveryPipeline', () => {
 
     await runDiscoveryPipeline(db, baseOptions, stages);
 
-    expect(callOrder).toEqual(['collectTree', 'enrichContext', 'analyze', 'review', 'register']);
+    expect(callOrder).toEqual([
+      'collectTree',
+      'enrichContext',
+      'deriveCandidateRegions',
+      'analyze',
+      'review',
+      'register',
+    ]);
   });
 
   // ── Empty Tree ─────────────────────────────────────────
@@ -175,6 +190,7 @@ describe('runDiscoveryPipeline', () => {
     expect(result.proposed).toHaveLength(0);
     expect(result.rationale).toContain('empty');
     expect(stages.enrichContext).not.toHaveBeenCalled();
+    expect(stages.deriveCandidateRegions).not.toHaveBeenCalled();
     expect(stages.analyze).not.toHaveBeenCalled();
   });
 
@@ -533,6 +549,7 @@ describe('runDiscoveryPipeline', () => {
     await runDiscoveryPipeline(db, opts, stages);
 
     expect(stages.enrichContext).toHaveBeenCalledWith(expect.any(String), db, opts);
+    expect(stages.deriveCandidateRegions).toHaveBeenCalledWith(expect.any(Object), opts);
     expect(stages.analyze).toHaveBeenCalledWith(expect.any(Object), opts);
   });
 });
@@ -593,6 +610,6 @@ describe('resolveModel', () => {
   });
 
   it('returns default model when not specified', () => {
-    expect(resolveModel({ rootPath: '/' })).toBe('claude-sonnet-4-20250514');
+    expect(resolveModel({ rootPath: '/' })).toBe('gpt-5.4');
   });
 });

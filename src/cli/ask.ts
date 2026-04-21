@@ -15,10 +15,26 @@ export function addAskCommand(program: Command) {
     .option('--json', 'Output as JSON')
     .option('--stream', 'Stream response tokens as they arrive (default for TTY)')
     .option('--no-stream', 'Buffer complete response before outputting')
+    .option('--routing-model <model>', 'Model to use for panel routing')
+    .option('--routing-backend <backend>', 'Routing backend (claude|pi)')
+    .option('--routing-provider <provider>', 'Provider for Pi-backed routing (for example openai)')
+    .option(
+      '--routing-thinking <level>',
+      'Pi thinking level for routing (off|minimal|low|medium|high|xhigh)'
+    )
     .action(
       async (
         question: string,
-        options: { expert?: string; verbose?: boolean; json?: boolean; stream?: boolean }
+        options: {
+          expert?: string;
+          verbose?: boolean;
+          json?: boolean;
+          stream?: boolean;
+          routingModel?: string;
+          routingBackend?: 'claude' | 'pi';
+          routingProvider?: string;
+          routingThinking?: 'off' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh';
+        }
       ) => {
         const opts = program.opts();
         const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
@@ -124,7 +140,15 @@ export async function askPanel(
   db: LuxDatabase,
   sessionManager: ExpertSessionManager,
   question: string,
-  options: { verbose?: boolean; json?: boolean; stream?: boolean },
+  options: {
+    verbose?: boolean;
+    json?: boolean;
+    stream?: boolean;
+    routingModel?: string;
+    routingBackend?: 'claude' | 'pi';
+    routingProvider?: string;
+    routingThinking?: 'off' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh';
+  },
   corpusPath?: string
 ): Promise<void> {
   if (options.verbose && !options.json) {
@@ -143,6 +167,10 @@ export async function askPanel(
   const routerOpts = {
     ...(shouldStream ? { onChunk: (chunk: string) => process.stdout.write(chunk) } : {}),
     ...(corpusPath ? { corpusPath } : {}),
+    ...(options.routingModel ? { routingModel: options.routingModel } : {}),
+    ...(options.routingBackend ? { routingBackend: options.routingBackend } : {}),
+    ...(options.routingProvider ? { routingProvider: options.routingProvider } : {}),
+    ...(options.routingThinking ? { routingThinking: options.routingThinking } : {}),
   };
 
   const routeResult = await routeQuery(question, db, sessionManager, routerOpts);

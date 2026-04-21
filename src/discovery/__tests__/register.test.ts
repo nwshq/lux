@@ -169,7 +169,10 @@ describe('register: database insertion', () => {
     register([makeProposal({ slug: 'test', mountPath: 'test/' })], db, baseOptions);
 
     const expert = db.getExpert('test');
-    expect(expert!.model).toBe('claude-sonnet-4-20250514');
+    expect(expert!.model).toBe('gpt-5.4');
+    expect(expert!.backend).toBe('pi');
+    expect(expert!.provider).toBe('openai');
+    expect(expert!.thinking).toBe('high');
   });
 
   it('uses model from options when specified', () => {

@@ -10,6 +10,7 @@ import type {
   ProposedExpert,
   DiffResult,
 } from '../discovery/index.js';
+import { resolveAiDefaults, resolveSynthesisDefaults } from '../utils/ai-defaults.js';
 
 /**
  * Resolve and validate a mount path for expert registration.
@@ -54,6 +55,8 @@ function detectClaudeMd(mountPath: string): string | undefined {
 }
 
 export function addExpertCommands(program: Command) {
+  const AI_DEFAULTS = resolveAiDefaults();
+  const SYNTHESIS_DEFAULTS = resolveSynthesisDefaults();
   const expertCmd = program.command('expert').description('Manage expert panel');
 
   expertCmd
@@ -164,60 +167,93 @@ export function addExpertCommands(program: Command) {
     .description('Register a new expert')
     .requiredOption('--mount <path>', 'Mount path (relative to content root or absolute)')
     .option('--name <name>', 'Expert name (defaults to slug)')
-    .option('--model <model>', 'Model to use', 'claude-sonnet-4-20250514')
-    .action((slug: string, options: { mount: string; name?: string; model: string }) => {
-      const opts = program.opts();
-      const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
-      const db = new LuxDatabase(
-        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
-      );
+    .option('--model <model>', 'Model to use', AI_DEFAULTS.model)
+    .option('--backend <backend>', 'Execution backend (claude|pi)', AI_DEFAULTS.backend)
+    .option(
+      '--provider <provider>',
+      'Provider for Pi-backed experts (for example openai)',
+      AI_DEFAULTS.provider ?? 'openai'
+    )
+    .option(
+      '--thinking <level>',
+      'Pi thinking level (off|minimal|low|medium|high|xhigh)',
+      AI_DEFAULTS.thinking ?? 'high'
+    )
+    .action(
+      (
+        slug: string,
+        options: {
+          mount: string;
+          name?: string;
+          model: string;
+          backend: 'claude' | 'pi';
+          provider?: string;
+          thinking?: 'off' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh';
+        }
+      ) => {
+        const opts = program.opts();
+        const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
+        const db = new LuxDatabase(
+          resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
+        );
 
-      // Resolve and validate mount path
-      const mountResult = validateMountPath(options.mount, corpusPath);
-      if (!mountResult.ok) {
-        console.error(mountResult.error);
+        // Resolve and validate mount path
+        const mountResult = validateMountPath(options.mount, corpusPath);
+        if (!mountResult.ok) {
+          console.error(mountResult.error);
+          db.close();
+          process.exit(1);
+        }
+        const mountPath = mountResult.path;
+
+        // Check for duplicate slug
+        const existing = db.getExpert(slug);
+        if (existing) {
+          console.error(`Expert already exists: ${slug}`);
+          db.close();
+          process.exit(1);
+        }
+
+        // Auto-detect claude.md (or CLAUDE.md) and memory.md
+        const detectedClaudeMd = detectClaudeMd(mountPath);
+        const memoryMdPath = join(mountPath, 'memory.md');
+        const detectedMemory = existsSync(memoryMdPath) ? memoryMdPath : undefined;
+
+        const expertName = options.name ?? slug;
+
+        db.insertExpert({
+          slug,
+          name: expertName,
+          mount_path: mountPath,
+          model: options.model,
+          backend: options.backend,
+          provider: options.backend === 'pi' ? options.provider : undefined,
+          thinking: options.backend === 'pi' ? options.thinking : undefined,
+          claude_md_path: detectedClaudeMd,
+          memory_path: detectedMemory,
+        });
+
+        console.log(`Expert registered: ${slug}`);
+        console.log(`  Name: ${expertName}`);
+        console.log(`  Mount: ${mountPath}`);
+        console.log(`  Backend: ${options.backend}`);
+        if (options.backend === 'pi' && options.provider) {
+          console.log(`  Provider: ${options.provider}`);
+        }
+        if (options.backend === 'pi' && options.thinking) {
+          console.log(`  Thinking: ${options.thinking}`);
+        }
+        console.log(`  Model: ${options.model}`);
+        if (detectedClaudeMd) {
+          console.log(`  Claude MD: ${detectedClaudeMd} (auto-detected)`);
+        }
+        if (detectedMemory) {
+          console.log(`  Memory: ${detectedMemory} (auto-detected)`);
+        }
+
         db.close();
-        process.exit(1);
       }
-      const mountPath = mountResult.path;
-
-      // Check for duplicate slug
-      const existing = db.getExpert(slug);
-      if (existing) {
-        console.error(`Expert already exists: ${slug}`);
-        db.close();
-        process.exit(1);
-      }
-
-      // Auto-detect claude.md (or CLAUDE.md) and memory.md
-      const detectedClaudeMd = detectClaudeMd(mountPath);
-      const memoryMdPath = join(mountPath, 'memory.md');
-      const detectedMemory = existsSync(memoryMdPath) ? memoryMdPath : undefined;
-
-      const expertName = options.name ?? slug;
-
-      db.insertExpert({
-        slug,
-        name: expertName,
-        mount_path: mountPath,
-        model: options.model,
-        claude_md_path: detectedClaudeMd,
-        memory_path: detectedMemory,
-      });
-
-      console.log(`Expert registered: ${slug}`);
-      console.log(`  Name: ${expertName}`);
-      console.log(`  Mount: ${mountPath}`);
-      console.log(`  Model: ${options.model}`);
-      if (detectedClaudeMd) {
-        console.log(`  Claude MD: ${detectedClaudeMd} (auto-detected)`);
-      }
-      if (detectedMemory) {
-        console.log(`  Memory: ${detectedMemory} (auto-detected)`);
-      }
-
-      db.close();
-    });
+    );
 
   expertCmd
     .command('remove <slug>')
@@ -254,7 +290,38 @@ export function addExpertCommands(program: Command) {
   expertCmd
     .command('discover')
     .description('Discover and propose expert boundaries from directory structure')
-    .option('--model <model>', 'AI model for analysis', 'claude-sonnet-4-20250514')
+    .option('--model <model>', 'AI model for analysis', AI_DEFAULTS.model)
+    .option(
+      '--provider <provider>',
+      'Provider for Pi-backed analysis (for example openai)',
+      AI_DEFAULTS.provider ?? 'openai'
+    )
+    .option('--backend <backend>', 'Analysis backend (claude|pi)', AI_DEFAULTS.backend)
+    .option(
+      '--synthesis-backend <backend>',
+      'Optional synthesis backend override (claude|pi)',
+      SYNTHESIS_DEFAULTS.backend
+    )
+    .option(
+      '--synthesis-provider <provider>',
+      'Optional provider override for Pi-backed synthesis',
+      SYNTHESIS_DEFAULTS.provider
+    )
+    .option(
+      '--synthesis-model <model>',
+      'Optional synthesis model override',
+      SYNTHESIS_DEFAULTS.model
+    )
+    .option(
+      '--thinking <level>',
+      'Pi thinking level (off|minimal|low|medium|high|xhigh)',
+      AI_DEFAULTS.thinking
+    )
+    .option(
+      '--analysis-timeout-ms <ms>',
+      'Timeout per analysis subprocess in milliseconds',
+      '180000'
+    )
     .option('--dry-run', 'Show proposals without registering')
     .option('--accept-all', 'Accept all proposals without interactive review')
     .option('--diff', 'Only show proposals that differ from current experts')
@@ -264,6 +331,13 @@ export function addExpertCommands(program: Command) {
     .action(
       async (options: {
         model: string;
+        provider?: string;
+        backend: 'claude' | 'pi';
+        synthesisBackend?: 'claude' | 'pi';
+        synthesisProvider?: string;
+        synthesisModel?: string;
+        thinking?: 'off' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh';
+        analysisTimeoutMs: string;
         dryRun?: boolean;
         acceptAll?: boolean;
         diff?: boolean;
@@ -287,6 +361,13 @@ export function addExpertCommands(program: Command) {
         const discoveryOptions: DiscoveryOptions = {
           rootPath: corpusPath,
           model: options.model,
+          provider: options.provider,
+          backend: options.backend,
+          synthesisBackend: options.synthesisBackend,
+          synthesisProvider: options.synthesisProvider,
+          synthesisModel: options.synthesisModel,
+          thinking: options.thinking,
+          analysisTimeoutMs: parseInt(options.analysisTimeoutMs, 10),
           dryRun: options.dryRun,
           acceptAll: options.acceptAll,
           diff: options.diff,
@@ -307,6 +388,14 @@ export function addExpertCommands(program: Command) {
           discoveryOptions.minConfidence! > 1
         ) {
           console.error('--min-confidence must be a number between 0.0 and 1.0');
+          db.close();
+          process.exit(1);
+        }
+        if (
+          isNaN(discoveryOptions.analysisTimeoutMs!) ||
+          discoveryOptions.analysisTimeoutMs! <= 0
+        ) {
+          console.error('--analysis-timeout-ms must be a positive number of milliseconds');
           db.close();
           process.exit(1);
         }

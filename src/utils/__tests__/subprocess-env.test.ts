@@ -97,7 +97,12 @@ describe('buildCleanEnv', () => {
     const env = buildCleanEnv(fullSource);
 
     expect(env).not.toHaveProperty('SOME_RANDOM_VAR');
-    expect(env).not.toHaveProperty('AWS_SECRET_ACCESS_KEY');
+  });
+
+  it('should include AWS_ prefix-matched vars for Bedrock-style auth', () => {
+    const env = buildCleanEnv(fullSource);
+
+    expect(env.AWS_SECRET_ACCESS_KEY).toBe('secret');
   });
 
   it('should return an empty object for an empty source', () => {

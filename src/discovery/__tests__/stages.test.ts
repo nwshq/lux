@@ -791,6 +791,7 @@ describe('createDefaultStages', () => {
   it('returns an object implementing PipelineStages', () => {
     expect(stages).toHaveProperty('collectTree');
     expect(stages).toHaveProperty('enrichContext');
+    expect(stages).toHaveProperty('deriveCandidateRegions');
     expect(stages).toHaveProperty('analyze');
     expect(stages).toHaveProperty('review');
     expect(stages).toHaveProperty('register');
@@ -801,6 +802,8 @@ describe('createDefaultStages', () => {
     expect(stages.collectTree.length).toBeGreaterThanOrEqual(1);
     // enrichContext takes (tree, db, options)
     expect(stages.enrichContext.length).toBeGreaterThanOrEqual(2);
+    // deriveCandidateRegions is a function (real impl has arity 2)
+    expect(typeof stages.deriveCandidateRegions).toBe('function');
     // analyze is a function (mocked in tests, real impl has arity 2)
     expect(typeof stages.analyze).toBe('function');
     // review is a function (mocked in tests, real impl has arity 1+)
@@ -842,8 +845,13 @@ describe('createDefaultStages', () => {
     expect(context.tree).toBe(tree);
     expect(context.existingExperts).toEqual([]);
 
-    // Stage 3: analyze (mocked)
-    const proposal = await stages.analyze(context, { rootPath: testDir });
+    // Stage 3: derive candidate regions
+    const prepared = stages.deriveCandidateRegions(context, { rootPath: testDir });
+    expect(prepared.tree).toBe(tree);
+    expect(prepared.existingExperts).toEqual([]);
+
+    // Stage 4: analyze (mocked)
+    const proposal = await stages.analyze(prepared, { rootPath: testDir });
     expect(proposal.experts).toHaveLength(1);
     expect(proposal.experts[0].slug).toBe('modules');
 

@@ -60,7 +60,9 @@ function makeContext(overrides: Partial<DiscoveryContext> = {}): DiscoveryContex
 function makeOptions(overrides: Partial<DiscoveryOptions> = {}): DiscoveryOptions {
   return {
     rootPath: '/tmp/target-corpus',
-    model: 'claude-sonnet-4-20250514',
+    model: 'gpt-5.4',
+    backend: 'claude',
+    analysisTimeoutMs: 180000,
     ...overrides,
   };
 }

@@ -431,11 +431,12 @@ describe('Expert CLI Commands', () => {
   });
 
   describe('expert discover: default stages', () => {
-    it('should create default stages with all five functions', () => {
+    it('should create default stages with all six functions', () => {
       const stages = createDefaultStages();
 
       expect(stages.collectTree).toBeTypeOf('function');
       expect(stages.enrichContext).toBeTypeOf('function');
+      expect(stages.deriveCandidateRegions).toBeTypeOf('function');
       expect(stages.analyze).toBeTypeOf('function');
       expect(stages.review).toBeTypeOf('function');
       expect(stages.register).toBeTypeOf('function');

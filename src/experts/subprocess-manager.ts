@@ -1,7 +1,8 @@
 import { spawn, type ChildProcess } from 'child_process';
 import { randomUUID } from 'crypto';
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync, mkdirSync } from 'fs';
 import type { LuxDatabase } from '../db/index.js';
+import { join } from 'path';
 import type {
   ExpertSessionManager,
   QueryOptions,
@@ -9,8 +10,10 @@ import type {
   SessionInfo,
 } from './session-manager.js';
 import { buildCleanEnv } from '../utils/subprocess-env.js';
+import { inferBackendFromModel, resolveAiDefaults } from '../utils/ai-defaults.js';
+import type { AiBackend } from '../utils/ai-defaults.js';
 
-/** Tracks a running Claude CLI subprocess. */
+/** Tracks a running expert-runtime subprocess. */
 interface ActiveProcess {
   process: ChildProcess;
   sessionId: number;
@@ -19,7 +22,7 @@ interface ActiveProcess {
 }
 
 /**
- * Manages Claude CLI subprocesses with proper lifecycle control.
+ * Manages backend-aware expert subprocesses with proper lifecycle control.
  *
  * Unlike ExpertSessionManagerImpl which uses execFile (fire-and-forget),
  * SubprocessSessionManager tracks spawned processes, prevents concurrent
@@ -85,8 +88,12 @@ export class SubprocessSessionManager implements ExpertSessionManager {
         session.id,
         expert.mount_path,
         expert.model,
+        expert.backend,
+        expert.provider,
+        expert.thinking,
         expert.claude_md_path,
-        isExisting ? session.session_ref : undefined,
+        session.session_ref,
+        isExisting ?? false,
         question,
         expertSlug,
         options?.onChunk
@@ -183,31 +190,39 @@ export class SubprocessSessionManager implements ExpertSessionManager {
     return false;
   }
 
-  /** Spawns a Claude CLI process and collects its output. */
+  /** Spawns an expert runtime process and collects its output. */
   private spawnQuery(
     sessionId: number,
     cwd: string,
     model: string,
+    backend: string | undefined,
+    provider: string | undefined,
+    thinking: string | undefined,
     claudeMdPath: string | undefined,
-    sessionRef: string | undefined,
+    sessionRef: string,
+    isExistingSession: boolean,
     question: string,
     expertSlug: string,
     onChunk?: (chunk: string) => void
   ): Promise<string> {
     return new Promise((resolve, reject) => {
-      const args = ['--print', '--model', model];
-      if (sessionRef) {
-        args.push('--resume', sessionRef);
+      const resolvedBackend = this.resolveBackend(backend, model);
+      const { command, args } = this.buildCommandArgs({
+        backend: resolvedBackend,
+        model,
+        provider,
+        thinking,
+        claudeMdPath,
+        sessionRef,
+        isExistingSession,
+        question,
+      });
+
+      if (resolvedBackend === 'pi') {
+        this.ensurePiSessionDir(cwd);
       }
 
-      if (claudeMdPath && existsSync(claudeMdPath)) {
-        const systemPrompt = readFileSync(claudeMdPath, 'utf-8');
-        args.push('--system-prompt', systemPrompt);
-      }
-
-      args.push(question);
-
-      const child = spawn('claude', args, {
+      const child = spawn(command, args, {
         cwd,
         stdio: ['ignore', 'pipe', 'pipe'],
         env: buildCleanEnv(),
@@ -275,6 +290,112 @@ export class SubprocessSessionManager implements ExpertSessionManager {
         resolve(stdout);
       });
     });
+  }
+
+  private resolveBackend(backend: string | undefined, model: string): AiBackend {
+    if (backend === 'claude' || backend === 'pi') {
+      return backend;
+    }
+
+    return inferBackendFromModel(model);
+  }
+
+  private buildCommandArgs(params: {
+    backend: AiBackend;
+    model: string;
+    provider?: string;
+    thinking?: string;
+    claudeMdPath?: string;
+    sessionRef: string;
+    isExistingSession: boolean;
+    question: string;
+  }): { command: string; args: string[] } {
+    if (params.backend === 'claude') {
+      return {
+        command: 'claude',
+        args: this.buildClaudeArgs(
+          params.model,
+          params.claudeMdPath,
+          params.sessionRef,
+          params.isExistingSession,
+          params.question
+        ),
+      };
+    }
+
+    return {
+      command: 'pi',
+      args: this.buildPiArgs(
+        params.model,
+        params.provider,
+        params.thinking,
+        params.claudeMdPath,
+        params.sessionRef,
+        params.question
+      ),
+    };
+  }
+
+  private buildClaudeArgs(
+    model: string,
+    claudeMdPath: string | undefined,
+    sessionRef: string,
+    isExistingSession: boolean,
+    question: string
+  ): string[] {
+    const args = ['--print', '--model', model];
+    if (isExistingSession) {
+      args.push('--resume', sessionRef);
+    }
+
+    if (claudeMdPath && existsSync(claudeMdPath)) {
+      const systemPrompt = readFileSync(claudeMdPath, 'utf-8');
+      args.push('--system-prompt', systemPrompt);
+    }
+
+    args.push(question);
+    return args;
+  }
+
+  private buildPiArgs(
+    model: string,
+    provider: string | undefined,
+    thinking: string | undefined,
+    claudeMdPath: string | undefined,
+    sessionRef: string,
+    question: string
+  ): string[] {
+    const args = [
+      '--provider',
+      provider ?? resolveAiDefaults().provider ?? 'openai',
+      '--model',
+      model,
+      '--thinking',
+      thinking ?? resolveAiDefaults().thinking ?? 'high',
+      '--mode',
+      'text',
+      '--print',
+      '--no-tools',
+    ];
+
+    args.push('--session', this.sessionFilePath(sessionRef));
+
+    if (claudeMdPath && existsSync(claudeMdPath)) {
+      const systemPrompt = readFileSync(claudeMdPath, 'utf-8');
+      args.push('--system-prompt', systemPrompt);
+    }
+
+    args.push(question);
+    return args;
+  }
+
+  private sessionFilePath(sessionRef: string): string {
+    const safe = sessionRef.replace(/[^a-zA-Z0-9._-]+/g, '-').slice(0, 120) || 'session';
+    return join('.lux', 'expert-sessions', `${safe}.jsonl`);
+  }
+
+  private ensurePiSessionDir(cwd: string): void {
+    mkdirSync(join(cwd, '.lux', 'expert-sessions'), { recursive: true });
   }
 
   /** Kills a tracked subprocess, escalating from SIGTERM to SIGKILL. */

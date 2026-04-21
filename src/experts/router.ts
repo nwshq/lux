@@ -4,6 +4,8 @@ import type { LuxDatabase } from '../db/index.js';
 import type { Expert } from '../db/types.js';
 import type { ExpertSessionManager, QueryOptions, QueryResult } from './session-manager.js';
 import { buildCleanEnv } from '../utils/subprocess-env.js';
+import { resolveRoutingDefaults } from '../utils/ai-defaults.js';
+import type { AiBackend, AiThinking } from '../utils/ai-defaults.js';
 import { computeClusters } from '../scanner/imports/clustering.js';
 import { formatEdgeBlock } from '../scanner/associations/evidence.js';
 import { fileNodeId } from '../scanner/associations/types.js';
@@ -55,10 +57,16 @@ export interface RouterOptions {
   minHits?: number;
   /** Maximum bytes of context to inject into the augmented query. Defaults to 153600 (~150KB). */
   maxContextBytes?: number;
-  /** Use LLM (Haiku) to select the best expert. Defaults to true. */
+  /** Use LLM to select the best expert. Defaults to true. */
   useLlmRouting?: boolean;
-  /** Model to use for LLM routing. Defaults to claude-haiku-4-5-20251001. */
+  /** Model to use for LLM routing. Defaults to gpt-5.4. */
   routingModel?: string;
+  /** Optional backend for routing selection. Defaults by model inference or pi. */
+  routingBackend?: AiBackend;
+  /** Optional provider for Pi-backed routing selection. */
+  routingProvider?: string;
+  /** Optional thinking level for Pi-backed routing selection. */
+  routingThinking?: AiThinking;
   /** Called with each chunk of expert response as it arrives. */
   onChunk?: (chunk: string) => void;
   /**
@@ -105,8 +113,8 @@ export interface LlmRoutingResult {
  *
  * Three-stage routing:
  * 1. FTS5 search — find relevant documents for context enrichment.
- * 2. LLM routing (Haiku) — pick the single best expert given the question + expert roster.
- * 3. Expert query (Sonnet) — send augmented query to chosen expert.
+ * 2. LLM routing — pick the single best expert given the question + expert roster.
+ * 3. Expert query — send augmented query to chosen expert.
  *
  * FTS5 scoring remains as fallback if LLM routing is disabled or fails.
  */
@@ -162,7 +170,14 @@ export async function routeQuery(
   let llmResult: LlmRoutingResult | null = null;
 
   if (useLlmRouting) {
-    llmResult = await selectExpertWithLlm(query, activeExperts, options.routingModel);
+    llmResult = await selectExpertWithLlm(
+      query,
+      activeExperts,
+      options.routingModel,
+      options.routingBackend,
+      options.routingProvider,
+      options.routingThinking
+    );
 
     // Log LLM routing telemetry (always, even on failure — that's the point)
     try {
@@ -321,7 +336,13 @@ function logRouteEvent(
   }
 }
 
-const DEFAULT_ROUTING_MODEL = 'claude-haiku-4-5-20251001';
+const {
+  model: DEFAULT_ROUTING_MODEL,
+  provider: DEFAULT_ROUTING_PROVIDER,
+  thinking: DEFAULT_ROUTING_THINKING,
+} = resolveRoutingDefaults();
+const DEFAULT_PI_ROUTING_PROVIDER = DEFAULT_ROUTING_PROVIDER ?? 'openai';
+const DEFAULT_PI_ROUTING_THINKING = DEFAULT_ROUTING_THINKING ?? 'high';
 const ROUTING_TIMEOUT_MS = 30_000;
 
 /**
@@ -361,20 +382,24 @@ export function buildExpertRoster(experts: Expert[]): string {
 }
 
 /**
- * Use a lightweight LLM (Haiku) to select the best expert for a question.
+ * Use a lightweight LLM to select the best expert for a question.
  *
- * Calls `claude --print --model <model>` as a stateless subprocess.
+ * Calls either Claude or Pi as a stateless subprocess depending on routing backend.
  * Returns an LlmRoutingResult with the slug (or null on failure) plus
  * full telemetry for after-the-fact analysis.
  */
 export async function selectExpertWithLlm(
   question: string,
   experts: Expert[],
-  model?: string
+  model?: string,
+  backend?: AiBackend,
+  provider?: string,
+  thinking?: 'off' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh'
 ): Promise<LlmRoutingResult> {
   const roster = buildExpertRoster(experts);
   const validSlugs = new Set(experts.map((e) => e.slug));
   const resolvedModel = model ?? DEFAULT_ROUTING_MODEL;
+  const resolvedBackend = backend ?? inferRoutingBackend(resolvedModel);
 
   const prompt = `You are a query router. Given a user's question and a list of domain experts, respond with ONLY the slug of the single best expert to answer the question. Do not explain your choice. Respond with just the slug.
 
@@ -389,8 +414,12 @@ ${question}`;
   const startTime = Date.now();
 
   try {
-    const stdout = await spawnClaude(
-      ['--print', '--model', resolvedModel, prompt],
+    const stdout = await runRoutingPrompt(
+      prompt,
+      resolvedModel,
+      resolvedBackend,
+      provider ?? DEFAULT_PI_ROUTING_PROVIDER,
+      thinking ?? DEFAULT_PI_ROUTING_THINKING,
       ROUTING_TIMEOUT_MS
     );
     const durationMs = Date.now() - startTime;
@@ -416,13 +445,75 @@ ${question}`;
   }
 }
 
+function inferRoutingBackend(model: string): AiBackend {
+  if (model.startsWith('claude-') || model.startsWith('anthropic/')) {
+    return 'claude';
+  }
+  return 'pi';
+}
+
+function runRoutingPrompt(
+  prompt: string,
+  model: string,
+  backend: AiBackend,
+  provider: string,
+  thinking: AiThinking,
+  timeoutMs: number
+): Promise<string> {
+  return backend === 'claude'
+    ? spawnClaude(['--print', '--model', model, prompt], timeoutMs)
+    : spawnPi(
+        [
+          '--provider',
+          provider,
+          '--model',
+          model,
+          '--thinking',
+          thinking,
+          '--mode',
+          'text',
+          '--print',
+          '--no-tools',
+          prompt,
+        ],
+        timeoutMs
+      );
+}
+
 /**
  * Spawn `claude` CLI as a subprocess with stdin closed.
  * Returns stdout on success, rejects on failure/timeout.
  */
 function spawnClaude(args: string[], timeoutMs: number): Promise<string> {
+  return spawnRoutingProcess(
+    'claude',
+    args,
+    timeoutMs,
+    (code, stderr) => stderr || `claude exited with code ${code}`
+  );
+}
+
+/**
+ * Spawn `pi` CLI as a subprocess with stdin closed.
+ * Returns stdout on success, rejects on failure/timeout.
+ */
+function spawnPi(args: string[], timeoutMs: number): Promise<string> {
+  return spawnRoutingProcess(
+    'pi',
+    args,
+    timeoutMs,
+    (code, stderr) => stderr || `pi exited with code ${code}`
+  );
+}
+
+function spawnRoutingProcess(
+  command: string,
+  args: string[],
+  timeoutMs: number,
+  describeExit: (code: number | null, stderr: string) => string
+): Promise<string> {
   return new Promise((resolve, reject) => {
-    const child = spawn('claude', args, {
+    const child = spawn(command, args, {
       stdio: ['ignore', 'pipe', 'pipe'],
       env: buildCleanEnv(),
     });
@@ -447,7 +538,7 @@ function spawnClaude(args: string[], timeoutMs: number): Promise<string> {
       clearTimeout(timer);
       if (code !== 0) {
         const stderr = Buffer.concat(stderrChunks).toString('utf-8').trim();
-        reject(new Error(stderr || `claude exited with code ${code}`));
+        reject(new Error(describeExit(code, stderr)));
         return;
       }
       resolve(Buffer.concat(stdoutChunks).toString('utf-8'));

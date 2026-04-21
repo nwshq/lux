@@ -1,6 +1,7 @@
 import type { LuxDatabase } from '../db/index.js';
 import type { ModuleDependency } from '../db/types.js';
 import type { ModuleCluster } from '../db/clustering.js';
+import type { AiBackend, AiThinking } from '../utils/ai-defaults.js';
 import type {
   OverlayNeighborhood,
   ExpertStructuralSignature,
@@ -8,14 +9,29 @@ import type {
 } from '../experts/structural-analysis.js'; // @architecture-ignore intentional shared overlay substrate
 
 export type { OverlayNeighborhood, ExpertStructuralSignature, OverlayTrustLevel };
+export type { AiBackend, AiThinking };
 
 // ── Discovery Options ──────────────────────────────────────
 
 export interface DiscoveryOptions {
   /** Absolute path to the content root directory. */
   rootPath: string;
-  /** AI model for analysis (default: claude-sonnet-4-20250514). */
+  /** AI model for analysis (default: gpt-5.4). */
   model?: string;
+  /** Optional provider for Pi-backed analysis calls. */
+  provider?: string;
+  /** Analysis backend for discovery calls. */
+  backend?: 'claude' | 'pi';
+  /** Optional separate backend for synthesis. */
+  synthesisBackend?: 'claude' | 'pi';
+  /** Optional separate provider for synthesis. */
+  synthesisProvider?: string;
+  /** Optional separate model for synthesis. */
+  synthesisModel?: string;
+  /** Optional Pi thinking level for Pi-backed calls. */
+  thinking?: AiThinking;
+  /** Optional timeout for each analysis subprocess in milliseconds. */
+  analysisTimeoutMs?: number;
   /** Show proposals without registering. */
   dryRun?: boolean;
   /** Output proposals as JSON and skip interactive review. */
@@ -60,6 +76,8 @@ export interface DiscoveryContext {
   overlayTrustState?: OverlayTrustLevel;
   /** Overlay-native structural neighborhoods. Present when trust is sufficient. */
   overlayNeighborhoods?: OverlayNeighborhood[];
+  /** Structurally ranked candidate expert regions prepared for AI synthesis. */
+  candidateRegions?: CandidateRegion[];
 }
 
 export interface CrossReference {
@@ -75,6 +93,20 @@ export interface ExistingExpert {
   structuralSignature?: ExpertStructuralSignature;
   /** How the expert boundary was originally determined. */
   boundaryBasis?: 'directory-led' | 'overlay-led' | 'hybrid';
+}
+
+export interface CandidateRegion {
+  id: string;
+  label: string;
+  anchorPaths: string[];
+  dominantDirectories: string[];
+  supportingPaths?: string[];
+  basis: 'overlay-led' | 'dependency-led' | 'reference-led' | 'hybrid';
+  salienceScore: number;
+  cohesionScore?: number;
+  externalCouplingScore?: number;
+  trustWeight?: number;
+  evidence: string[];
 }
 
 // ── AI Analysis (Stage 3 output) ───────────────────────────
@@ -95,7 +127,7 @@ export interface ProposedExpert {
   mountPath: string;
   /** Additional paths this expert should have visibility into. */
   additionalPaths?: string[];
-  /** One-paragraph domain description for the claude.md stub. */
+  /** One-paragraph domain description for the expert instruction stub. */
   description: string;
   /** Why this boundary was chosen. */
   reasoning: string;
@@ -157,16 +189,22 @@ export type EnrichContextFn = (
   options: DiscoveryOptions
 ) => DiscoveryContext;
 
-/** Stage 3: Send context to AI for expert boundary proposals. */
+/** Stage 3: Derive candidate expert regions from structural signals. */
+export type DeriveCandidateRegionsFn = (
+  context: DiscoveryContext,
+  options: DiscoveryOptions
+) => DiscoveryContext;
+
+/** Stage 4: Send context to AI for expert boundary proposals. */
 export type AnalyzeFn = (
   context: DiscoveryContext,
   options: DiscoveryOptions
 ) => Promise<DiscoveryProposal>;
 
-/** Stage 4: Present proposals for interactive human review. */
+/** Stage 5: Present proposals for interactive human review. */
 export type ReviewFn = (proposals: ProposedExpert[]) => Promise<ReviewResult>;
 
-/** Stage 5: Register accepted experts in the database. */
+/** Stage 6: Register accepted experts in the database. */
 export type RegisterFn = (
   accepted: ProposedExpert[],
   db: LuxDatabase,
@@ -177,6 +215,7 @@ export type RegisterFn = (
 export interface PipelineStages {
   collectTree: CollectTreeFn;
   enrichContext: EnrichContextFn;
+  deriveCandidateRegions: DeriveCandidateRegionsFn;
   analyze: AnalyzeFn;
   review: ReviewFn;
   register: RegisterFn;

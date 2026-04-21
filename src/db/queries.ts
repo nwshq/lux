@@ -165,8 +165,36 @@ export class PreparedQueries {
 
     // Expert queries
     this.insertExpert = db.prepare(`
-      INSERT INTO experts (slug, name, mount_path, model, claude_md_path, memory_path, status, boundary_basis, structural_signature, structural_rationale)
-      VALUES (@slug, @name, @mount_path, @model, @claude_md_path, @memory_path, @status, @boundary_basis, @structural_signature, @structural_rationale)
+      INSERT INTO experts (
+        slug,
+        name,
+        mount_path,
+        model,
+        backend,
+        provider,
+        thinking,
+        claude_md_path,
+        memory_path,
+        status,
+        boundary_basis,
+        structural_signature,
+        structural_rationale
+      )
+      VALUES (
+        @slug,
+        @name,
+        @mount_path,
+        @model,
+        @backend,
+        @provider,
+        @thinking,
+        @claude_md_path,
+        @memory_path,
+        @status,
+        @boundary_basis,
+        @structural_signature,
+        @structural_rationale
+      )
     `);
 
     this.getExpert = db.prepare(`
@@ -186,6 +214,9 @@ export class PreparedQueries {
         name = COALESCE(@name, name),
         mount_path = COALESCE(@mount_path, mount_path),
         model = COALESCE(@model, model),
+        backend = COALESCE(@backend, backend),
+        provider = COALESCE(@provider, provider),
+        thinking = COALESCE(@thinking, thinking),
         claude_md_path = COALESCE(@claude_md_path, claude_md_path),
         memory_path = COALESCE(@memory_path, memory_path),
         status = COALESCE(@status, status),

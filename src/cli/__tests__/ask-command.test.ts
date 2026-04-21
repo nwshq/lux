@@ -13,7 +13,7 @@ import type {
 import type { Expert, ExpertSession } from '../../db/types.js';
 import type { RouteResult } from '../../experts/router.js';
 
-// Mock child_process.spawn so LLM routing doesn't call the real claude binary
+// Mock child_process.spawn so LLM routing doesn't call a real routing binary
 vi.mock('child_process', async () => {
   const actual = await vi.importActual<typeof import('child_process')>('child_process');
   const { EventEmitter } = await import('events');

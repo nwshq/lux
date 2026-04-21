@@ -3,6 +3,7 @@ import { mkdirSync } from 'fs';
 import { dirname } from 'path';
 import { PreparedQueries } from './queries.js';
 import { MigrationRunner } from './migrations.js';
+import { resolveAiDefaults } from '../utils/ai-defaults.js';
 import type {
   KnowledgeEntry,
   Event,
@@ -221,7 +222,10 @@ export class LuxDatabase {
         slug: expert.slug,
         name: expert.name,
         mount_path: expert.mount_path,
-        model: expert.model ?? 'claude-sonnet-4-20250514',
+        model: expert.model ?? resolveAiDefaults().model,
+        backend: expert.backend ?? null,
+        provider: expert.provider ?? null,
+        thinking: expert.thinking ?? null,
         claude_md_path: expert.claude_md_path ?? null,
         memory_path: expert.memory_path ?? null,
         status: expert.status ?? 'active',
@@ -253,6 +257,9 @@ export class LuxDatabase {
       name: updates.name ?? null,
       mount_path: updates.mount_path ?? null,
       model: updates.model ?? null,
+      backend: updates.backend ?? null,
+      provider: updates.provider ?? null,
+      thinking: updates.thinking ?? null,
       claude_md_path: updates.claude_md_path ?? null,
       memory_path: updates.memory_path ?? null,
       status: updates.status ?? null,

@@ -19,7 +19,7 @@ import type {
 import type { Expert, ExpertSession, KnowledgeEntryInsert } from '../../db/types.js';
 import { persistRebuildTrustState } from '../../scanner/overlay-trust-state.js';
 
-// Mock child_process so selectExpertWithLlm doesn't call real claude binary
+// Mock child_process so selectExpertWithLlm doesn't call a real routing binary
 vi.mock('child_process', async () => {
   const actual = await vi.importActual<typeof import('child_process')>('child_process');
   return {
@@ -1015,7 +1015,7 @@ describe('selectExpertWithLlm', () => {
     expect(result.durationMs).toBeGreaterThanOrEqual(0);
   });
 
-  it('should pass the routing model to claude CLI', async () => {
+  it('should pass the routing model to the routing CLI', async () => {
     let capturedArgs: string[] = [];
     mockSpawn.mockImplementation((_cmd, args) => {
       capturedArgs = args as string[];

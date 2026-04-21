@@ -9,6 +9,7 @@ Minimal accurate doc set.
 - `./USAGE.md`: CLI reference
 - `./MCP-CONFIGURATION.md`: MCP setup and path behavior
 - `./MCP-TOOLS.md`: live MCP tools only
+- `./ai-config.md`: shared AI backend/model/provider/thinking env defaults
 
 If any of these diverge from code, trust:
 - `src/cli/*.ts`

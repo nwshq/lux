@@ -46,6 +46,12 @@ export interface Expert {
   name: string;
   mount_path: string;
   model: string;
+  /** Runtime backend used to execute this expert. Legacy rows may leave this unset. */
+  backend?: string;
+  /** Runtime provider for Pi-backed experts. */
+  provider?: string;
+  /** Runtime thinking level for Pi-backed experts. */
+  thinking?: string;
   claude_md_path?: string;
   memory_path?: string;
   status: string;
@@ -64,6 +70,9 @@ export interface ExpertInsert {
   name: string;
   mount_path: string;
   model?: string;
+  backend?: string;
+  provider?: string;
+  thinking?: string;
   claude_md_path?: string;
   memory_path?: string;
   status?: string;

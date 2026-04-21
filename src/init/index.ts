@@ -4,6 +4,7 @@ import { join, basename } from 'path';
 import { z } from 'zod';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { buildCleanEnv } from '../utils/subprocess-env.js';
+import { inferBackendFromModel, resolveAiDefaults } from '../utils/ai-defaults.js';
 
 // ── Config Schema ──────────────────────────────────────────
 
@@ -50,7 +51,11 @@ export interface InitResult {
 // ── Constants ──────────────────────────────────────────────
 
 const CONFIG_FILENAME = 'lux.yaml';
-const DEFAULT_MODEL = 'claude-haiku-4-5-20251001';
+const {
+  model: DEFAULT_MODEL,
+  provider: DEFAULT_PROVIDER,
+  thinking: DEFAULT_THINKING,
+} = resolveAiDefaults();
 const INIT_TIMEOUT_MS = 60_000;
 const MAX_TREE_DEPTH = 5;
 const MAX_TREE_ENTRIES = 200;
@@ -76,7 +81,7 @@ const IGNORE_DIRS = new Set([
 /**
  * Initialize a lux.yaml config for a content directory.
  *
- * When AI is enabled (default), spawns Claude CLI to analyze the directory
+ * When AI is enabled (default), spawns the configured AI backend to analyze the directory
  * structure and generate appropriate type_rules for document classification.
  * Falls back to sensible defaults if AI is skipped or fails.
  */
@@ -214,13 +219,13 @@ Directory tree:
 `;
 
 /**
- * Spawn Claude CLI to generate config based on directory structure analysis.
+ * Spawn the configured AI backend to generate config based on directory structure analysis.
  */
 async function generateConfigWithAi(directoryTree: string, model?: string): Promise<LuxConfig> {
   const prompt = AI_PROMPT + directoryTree;
   const effectiveModel = model ?? DEFAULT_MODEL;
 
-  const raw = await spawnClaude(['--print', '--model', effectiveModel, prompt], INIT_TIMEOUT_MS);
+  const raw = await runInitPrompt(prompt, effectiveModel, INIT_TIMEOUT_MS);
 
   return parseAndValidateYaml(raw);
 }
@@ -262,15 +267,39 @@ export function parseAndValidateYaml(raw: string): LuxConfig {
   return result.data;
 }
 
-// ── Claude CLI Subprocess ──────────────────────────────────
+// ── AI Backend Subprocess ──────────────────────────────────
+
+function runInitPrompt(prompt: string, model: string, timeoutMs: number): Promise<string> {
+  const backend = inferBackendFromModel(model);
+
+  return backend === 'claude'
+    ? spawnAiProcess('claude', ['--print', '--model', model, prompt], timeoutMs)
+    : spawnAiProcess(
+        'pi',
+        [
+          '--provider',
+          DEFAULT_PROVIDER ?? 'openai',
+          '--model',
+          model,
+          '--thinking',
+          DEFAULT_THINKING ?? 'high',
+          '--mode',
+          'text',
+          '--print',
+          '--no-tools',
+          prompt,
+        ],
+        timeoutMs
+      );
+}
 
 /**
- * Spawn a Claude CLI process and return its stdout.
+ * Spawn an AI CLI process and return its stdout.
  * Uses clean environment isolation and proper timeout handling.
  */
-function spawnClaude(args: string[], timeoutMs: number): Promise<string> {
+function spawnAiProcess(command: string, args: string[], timeoutMs: number): Promise<string> {
   return new Promise((resolve, reject) => {
-    const child = spawn('claude', args, {
+    const child = spawn(command, args, {
       stdio: ['ignore', 'pipe', 'pipe'],
       env: buildCleanEnv(),
     });
@@ -280,13 +309,12 @@ function spawnClaude(args: string[], timeoutMs: number): Promise<string> {
 
     const timeout = setTimeout(() => {
       child.kill('SIGTERM');
-      // Escalate to SIGKILL after 5s
       setTimeout(() => {
         if (child.exitCode === null && !child.killed) {
           child.kill('SIGKILL');
         }
       }, 5_000);
-      reject(new Error(`Claude CLI timed out after ${timeoutMs}ms`));
+      reject(new Error(`${command} timed out after ${timeoutMs}ms`));
     }, timeoutMs);
 
     child.stdout?.on('data', (chunk: Buffer) => {
@@ -299,7 +327,7 @@ function spawnClaude(args: string[], timeoutMs: number): Promise<string> {
 
     child.on('error', (err) => {
       clearTimeout(timeout);
-      reject(new Error(`Failed to spawn Claude CLI: ${err.message}`));
+      reject(new Error(`Failed to spawn ${command}: ${err.message}`));
     });
 
     child.on('close', (code) => {
@@ -310,12 +338,12 @@ function spawnClaude(args: string[], timeoutMs: number): Promise<string> {
 
       if (code !== 0) {
         const detail = stderr.trim() || `Process exited with code ${code}`;
-        reject(new Error(`Claude CLI failed: ${detail}`));
+        reject(new Error(`${command} failed: ${detail}`));
         return;
       }
 
       if (!stdout.trim()) {
-        reject(new Error('Claude CLI returned empty output'));
+        reject(new Error(`${command} returned empty output`));
         return;
       }
 

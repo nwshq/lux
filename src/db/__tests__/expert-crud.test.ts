@@ -57,7 +57,7 @@ describe('Expert CRUD Operations', () => {
 
       const expert = db.getExpert('default-model');
       expect(expert).toBeDefined();
-      expect(expert!.model).toBe('claude-sonnet-4-20250514');
+      expect(expert!.model).toBe('gpt-5.4');
     });
 
     it('should apply default active status when not specified', () => {

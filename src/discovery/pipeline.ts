@@ -4,7 +4,7 @@ import { diffProposals } from './diff.js';
 
 // ── Constants ──────────────────────────────────────────────
 
-const DEFAULT_MODEL = 'claude-sonnet-4-20250514';
+const DEFAULT_MODEL = 'gpt-5.4';
 const DEFAULT_MAX_EXPERTS = 20;
 const DEFAULT_MIN_CONFIDENCE = 0.5;
 
@@ -16,9 +16,10 @@ const DEFAULT_MIN_CONFIDENCE = 0.5;
  * Orchestrates five stages in sequence:
  *   1. Collect directory tree from the content root
  *   2. Enrich the tree with FTS5/LSP signals (when available)
- *   3. Send context to AI for expert boundary proposals
- *   4. Present proposals for interactive human review
- *   5. Register accepted experts in the database
+ *   3. Derive structurally salient candidate expert regions
+ *   4. Send context to AI for expert boundary proposals
+ *   5. Present proposals for interactive human review
+ *   6. Register accepted experts in the database
  *
  * Stages are injected via `stages` to support testing and
  * incremental implementation. Each stage is a pure function
@@ -40,9 +41,12 @@ export async function runDiscoveryPipeline(
   }
 
   // Stage 2: Enrich with database signals
-  const context = stages.enrichContext(tree, db, options);
+  const enrichedContext = stages.enrichContext(tree, db, options);
 
-  // Stage 3: AI analysis
+  // Stage 3: Derive structurally salient candidate regions
+  const context = stages.deriveCandidateRegions(enrichedContext, options);
+
+  // Stage 4: AI analysis
   const proposal = await stages.analyze(context, options);
 
   if (proposal.experts.length === 0) {
@@ -99,7 +103,7 @@ export async function runDiscoveryPipeline(
     if (options.acceptAll) {
       reviewed = { accepted: actionable, skipped: [] as ProposedExpert[] };
     } else {
-      // Stage 4: Interactive review (only actionable proposals)
+      // Stage 5: Interactive review (only actionable proposals)
       reviewed = await stages.review(actionable);
     }
 
@@ -114,7 +118,7 @@ export async function runDiscoveryPipeline(
       };
     }
 
-    // Stage 5: Registration
+    // Stage 6: Registration
     const registered = await stages.register(reviewed.accepted, db, options);
 
     return {
@@ -143,7 +147,7 @@ export async function runDiscoveryPipeline(
   if (options.acceptAll) {
     reviewed = { accepted: candidates, skipped: [] as ProposedExpert[] };
   } else {
-    // Stage 4: Interactive review
+    // Stage 5: Interactive review
     reviewed = await stages.review(candidates);
   }
 
@@ -157,7 +161,7 @@ export async function runDiscoveryPipeline(
     };
   }
 
-  // Stage 5: Registration
+  // Stage 6: Registration
   const registered = await stages.register(reviewed.accepted, db, options);
 
   return {

@@ -3,6 +3,7 @@ import {
   buildAnalysisPrompt,
   buildClaudeArgs,
   buildClaudeSpawnOptions,
+  buildPiArgs,
   parseProposalResponse,
   extractJsonObject,
   attachStructuralSignatures,
@@ -51,6 +52,25 @@ describe('buildClaudeArgs', () => {
       'bypassPermissions',
       '--model',
       'claude-sonnet-4-20250514',
+      'prompt text',
+    ]);
+  });
+});
+
+describe('buildPiArgs', () => {
+  it('uses Pi print mode with provider, model, thinking, and no tools', () => {
+    const args = buildPiArgs('prompt text', 'gpt-5.4', 'openai', 'high');
+    expect(args).toEqual([
+      '--provider',
+      'openai',
+      '--model',
+      'gpt-5.4',
+      '--thinking',
+      'high',
+      '--mode',
+      'text',
+      '--print',
+      '--no-tools',
       'prompt text',
     ]);
   });
@@ -160,6 +180,7 @@ describe('buildAnalysisPrompt', () => {
     expect(prompt).toContain('Cover distinct functional domains');
     expect(prompt).toContain('Avoid overlapping mount paths');
     expect(prompt).toContain('Do not duplicate already-registered experts');
+    expect(prompt).toContain('Prefer the ranked candidate regions as the primary substrate');
   });
 
   it('includes the JSON schema', () => {
@@ -203,6 +224,68 @@ describe('buildAnalysisPrompt', () => {
     expect(prompt).toContain('more cross-references omitted for prompt budget');
   });
 
+  it('includes candidate regions when present', () => {
+    const prompt = buildAnalysisPrompt(
+      makeContext({
+        candidateRegions: [
+          {
+            id: 'candidate-01-billing',
+            label: 'Billing',
+            anchorPaths: ['app/Services/Billing/InvoiceService.ts'],
+            dominantDirectories: ['app/Services/Billing'],
+            supportingPaths: ['app/Http/Controllers/Billing'],
+            basis: 'hybrid',
+            salienceScore: 0.91,
+            cohesionScore: 0.82,
+            externalCouplingScore: 0.21,
+            trustWeight: 1,
+            evidence: ['overlay neighborhood Billing', 'strong inbound reference flow'],
+          },
+        ],
+      })
+    );
+    expect(prompt).toContain('### Candidate Regions (ranked structural salience)');
+    expect(prompt).toContain('Billing [hybrid] score=0.91');
+    expect(prompt).toContain('Directories: app/Services/Billing');
+  });
+
+  it('omits broad enrichment sections when candidate regions are present', () => {
+    const prompt = buildAnalysisPrompt(
+      makeContext({
+        candidateRegions: [
+          {
+            id: 'candidate-01-billing',
+            label: 'Billing',
+            anchorPaths: ['app/Services/Billing/InvoiceService.ts'],
+            dominantDirectories: ['app/Services/Billing'],
+            basis: 'hybrid',
+            salienceScore: 0.91,
+            evidence: ['overlay neighborhood Billing'],
+          },
+        ],
+        fileCountsByDirectory: { 'app/Services/Billing': 12 },
+        symbolSummaries: { 'app/Services/Billing': ['InvoiceService'] },
+        crossReferences: [
+          {
+            sourceDir: 'app/Services/Billing',
+            targetDir: 'app/Http/Controllers/Billing',
+            referenceCount: 5,
+          },
+        ],
+      })
+    );
+
+    expect(prompt).not.toContain('### File Counts by Directory');
+    expect(prompt).not.toContain('### Symbol Summaries');
+    expect(prompt).not.toContain('### Cross-References');
+  });
+
+  it('keeps the full directory tree for normal analysis prompts', () => {
+    const prompt = buildAnalysisPrompt(makeContext({ tree: 'myproject/\n├── src/' }));
+    expect(prompt).toContain('### Directory Tree');
+    expect(prompt).toContain('myproject/\n├── src/');
+  });
+
   it('can build a materially smaller fallback prompt', () => {
     const largeContext = makeContext({
       fileCountsByDirectory: Object.fromEntries(
@@ -230,10 +313,42 @@ describe('buildAnalysisPrompt', () => {
       maxCrossReferences: 30,
       maxExistingExperts: 20,
       maxOverlayNeighborhoods: 8,
+      maxCandidateRegions: 6,
     });
 
     expect(fallbackPrompt.length).toBeLessThan(defaultPrompt.length);
     expect(fallbackPrompt.length).toBeLessThan(45000);
+  });
+
+  it('does not include broad enrichment sections when candidate regions are present', () => {
+    const prompt = buildAnalysisPrompt(
+      makeContext({
+        candidateRegions: [
+          {
+            id: 'candidate-01-billing',
+            label: 'Billing',
+            anchorPaths: ['app/Services/Billing/InvoiceService.ts'],
+            dominantDirectories: ['app/Services/Billing'],
+            basis: 'hybrid',
+            salienceScore: 0.91,
+            evidence: ['overlay neighborhood Billing'],
+          },
+        ],
+        fileCountsByDirectory: { 'app/Services/Billing': 12 },
+        symbolSummaries: { 'app/Services/Billing': ['InvoiceService'] },
+        crossReferences: [
+          {
+            sourceDir: 'app/Services/Billing',
+            targetDir: 'app/Http/Controllers/Billing',
+            referenceCount: 5,
+          },
+        ],
+      })
+    );
+
+    expect(prompt).not.toContain('### File Counts by Directory');
+    expect(prompt).not.toContain('### Symbol Summaries');
+    expect(prompt).not.toContain('### Cross-References');
   });
 });
 

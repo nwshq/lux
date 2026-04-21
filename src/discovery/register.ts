@@ -2,10 +2,16 @@ import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 import type { LuxDatabase } from '../db/index.js';
 import type { ProposedExpert, DiscoveryOptions, RegisteredExpert } from './types.js';
+import { resolveAiDefaults } from '../utils/ai-defaults.js';
 
 // ── Constants ──────────────────────────────────────────────
 
-const DEFAULT_MODEL = 'claude-sonnet-4-20250514';
+const {
+  model: DEFAULT_MODEL,
+  backend: DEFAULT_BACKEND,
+  provider: DEFAULT_PROVIDER,
+  thinking: DEFAULT_THINKING,
+} = resolveAiDefaults();
 
 // ── Claude MD Stub ────────────────────────────────────────
 
@@ -90,6 +96,15 @@ export function register(
       name: proposal.name,
       mount_path: mountPath,
       model: options.model ?? DEFAULT_MODEL,
+      backend: options.backend ?? DEFAULT_BACKEND,
+      provider:
+        (options.backend ?? DEFAULT_BACKEND) === 'pi'
+          ? (options.provider ?? DEFAULT_PROVIDER)
+          : undefined,
+      thinking:
+        (options.backend ?? DEFAULT_BACKEND) === 'pi'
+          ? (options.thinking ?? DEFAULT_THINKING)
+          : undefined,
       claude_md_path: claudeMdPath,
       memory_path: detectedMemory,
       ...(proposal.boundaryBasis && { boundary_basis: proposal.boundaryBasis }),
