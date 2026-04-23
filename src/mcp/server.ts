@@ -205,39 +205,17 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             }
           }
         } catch (error) {
-          // If FTS5 fails (e.g., schema not migrated), fall back to legacy search
-          console.error(
-            'FTS5 search failed, falling back to legacy search:',
-            (error as Error).message
-          );
+          const message = [
+            'FTS5 search unavailable.',
+            `Cause: ${(error as Error).message}`,
+            'Run `lux migrate up` and `lux index rebuild`, then try again.',
+          ].join(' ');
 
-          const searchQuery = query.toLowerCase();
-
-          // Legacy search - knowledge
-          if (type === 'all' || type === 'knowledge') {
-            const types = [
-              'methodology',
-              'spec',
-              'architecture',
-              'exploration',
-              'implementation-payload',
-              'general',
-            ];
-            const allKnowledge = types.flatMap((t) => db.getKnowledgeEntriesByType(t));
-            for (const entry of allKnowledge) {
-              if (
-                entry.title.toLowerCase().includes(searchQuery) ||
-                entry.type.toLowerCase().includes(searchQuery)
-              ) {
-                results.push({
-                  type: 'knowledge',
-                  title: entry.title,
-                  path: entry.file_path,
-                  context: entry.type,
-                });
-              }
-            }
-          }
+          console.error(message);
+          return {
+            content: [{ type: 'text', text: message }],
+            isError: true,
+          };
         }
 
         // Log search event

@@ -29,7 +29,6 @@ lux search "prov*"
 lux search "provider AND photos"
 lux search "query" --type knowledge
 lux search "query" --content
-lux search "query" --legacy
 ```
 
 Implemented search type values:
