@@ -58,7 +58,11 @@ export function resolveModule(
   rootPath: string,
   patterns: string[]
 ): string | null {
-  const rel = relative(rootPath, filePath).split(sep).join('/');
+  const normalizedFilePath = filePath.split(sep).join('/');
+  const normalizedRootPath = rootPath.split(sep).join('/');
+  const rel = normalizedFilePath.startsWith(normalizedRootPath)
+    ? relative(rootPath, filePath).split(sep).join('/')
+    : filePath.split(sep).join('/').replace(/^\.\//, '').replace(/^\//, '');
 
   for (const pattern of patterns) {
     const nameIndex = pattern.indexOf('{name}');

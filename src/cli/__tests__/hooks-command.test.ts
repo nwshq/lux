@@ -90,4 +90,16 @@ describe('hooks command runtime path resolution', () => {
       rmSync(otherRepoDir, { recursive: true, force: true });
     }
   });
+
+  it('hook script watches generic indexable docs, not only knowledge paths', () => {
+    const result = runCli(repoDir, ['hooks', 'install']);
+    const hookPath = join(repoDir, '.git', 'hooks', 'post-commit');
+
+    expect(result.status).toBe(0);
+
+    const hook = readFileSync(hookPath, 'utf-8');
+    expect(hook).toContain('indexable content changes detected');
+    expect(hook).toContain('\\.(md|mdx|txt|rst|php|ts|tsx|js|jsx|py|go|rs|java)$');
+    expect(hook).toContain('index sync --quiet');
+  });
 });

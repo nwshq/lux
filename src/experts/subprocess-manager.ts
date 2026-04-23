@@ -94,7 +94,7 @@ export class SubprocessSessionManager implements ExpertSessionManager {
         expert.claude_md_path,
         session.session_ref,
         isExisting ?? false,
-        question,
+        this.composeExpertPrompt(expert.mount_path, question),
         expertSlug,
         options?.onChunk
       );
@@ -343,7 +343,7 @@ export class SubprocessSessionManager implements ExpertSessionManager {
     isExistingSession: boolean,
     question: string
   ): string[] {
-    const args = ['--print', '--model', model];
+    const args = ['--print', '--permission-mode', 'bypassPermissions', '--model', model];
     if (isExistingSession) {
       args.push('--resume', sessionRef);
     }
@@ -375,7 +375,6 @@ export class SubprocessSessionManager implements ExpertSessionManager {
       '--mode',
       'text',
       '--print',
-      '--no-tools',
     ];
 
     args.push('--session', this.sessionFilePath(sessionRef));
@@ -387,6 +386,16 @@ export class SubprocessSessionManager implements ExpertSessionManager {
 
     args.push(question);
     return args;
+  }
+
+  private composeExpertPrompt(mountPath: string, question: string): string {
+    return [
+      `You are operating inside the expert mount path: ${mountPath}.`,
+      'Use the local files in this directory as your primary source of truth.',
+      'If the answer depends on repository files, inspect them directly before answering.',
+      '',
+      question,
+    ].join('\n');
   }
 
   private sessionFilePath(sessionRef: string): string {

@@ -159,9 +159,12 @@ describe('SubprocessSessionManager', () => {
       const args = spawnCall[1] as string[];
 
       expect(args).toContain('--print');
+      expect(args).toContain('--permission-mode');
+      expect(args).toContain('bypassPermissions');
       expect(args).toContain('--model');
       expect(args).toContain('claude-sonnet-4-20250514');
-      expect(args).toContain('Hello');
+      expect(args[args.length - 1]).toContain('Hello');
+      expect(args[args.length - 1]).toContain(mountPath);
       expect(args).not.toContain('--resume');
 
       expect(mockSpawn).toHaveBeenCalledWith(
@@ -192,6 +195,33 @@ describe('SubprocessSessionManager', () => {
         expect.arrayContaining(['--system-prompt', 'You are a TypeScript expert.']),
         expect.anything()
       );
+
+      resolveProcess(mockProc, 'response');
+      await promise;
+    });
+
+    it('should let pi runtime keep tools enabled and include mount-aware prompt context', async () => {
+      db.insertExpert({
+        slug: 'pi-expert',
+        name: 'Pi Expert',
+        mount_path: mountPath,
+        model: 'gpt-5.4',
+        backend: 'pi',
+        provider: 'openai',
+        thinking: 'high',
+      });
+
+      const mockProc = createMockProcess();
+      mockSpawn.mockReturnValue(mockProc);
+
+      const promise = manager.query('pi-expert', 'Inspect local files');
+
+      const spawnCall = mockSpawn.mock.calls[0];
+      expect(spawnCall[0]).toBe('pi');
+      const args = spawnCall[1] as string[];
+      expect(args).not.toContain('--no-tools');
+      expect(args[args.length - 1]).toContain(mountPath);
+      expect(args[args.length - 1]).toContain('Inspect local files');
 
       resolveProcess(mockProc, 'response');
       await promise;

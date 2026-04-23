@@ -108,5 +108,12 @@ describe('Module Boundary Detection', () => {
       ]);
       expect(result).toBe('ui');
     });
+
+    it('should resolve repo-relative paths, not just absolute paths', () => {
+      const result = resolveModule('src/Module/Seller/RouteServiceProvider.php', testDir, [
+        'src/Module/{name}',
+      ]);
+      expect(result).toBe('Seller');
+    });
   });
 });

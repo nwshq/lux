@@ -64,21 +64,22 @@ if [ -z "$changed_files" ]; then
     exit 0
 fi
 
-# Check if any relevant files were changed
-# Relevant paths: knowledge/, explorations/, implementation-payloads/
-if ! echo "$changed_files" | grep -qE '^(knowledge/|explorations/|implementation-payloads/)'; then
-    log "INFO" "No CORPUS content changes detected, skipping rebuild"
+# Check if any indexable content changed.
+# Exclude only clearly non-content paths; docs/, notes/, module markdown, etc. should sync.
+indexable_changed=$(echo "$changed_files" | grep -vE '^(\.git/|\.lux/|node_modules/|vendor/|dist/|build/)' | grep -E '\.(md|mdx|txt|rst|php|ts|tsx|js|jsx|py|go|rs|java)$' || true)
+
+if [ -z "$indexable_changed" ]; then
+    log "INFO" "No indexable content changes detected, skipping rebuild"
     exit 0
 fi
 
-# Count changed files
-changed_count=$(echo "$changed_files" | grep -cE '^(knowledge/|explorations/|implementation-payloads/)' || echo 0)
+changed_count=$(echo "$indexable_changed" | sed '/^$/d' | wc -l | tr -d ' ')
 if [ "$changed_count" -eq 0 ]; then
-    log "WARN" "Pattern matched but count is 0, possible parsing error"
+    log "WARN" "Indexable change detection produced zero files, skipping rebuild"
     exit 0
 fi
 
-log "INFO" "Detected $changed_count CORPUS file(s) changed"
+log "INFO" "Detected $changed_count indexable file(s) changed"
 
 # Check if lux CLI is available
 if ! command -v "$LUX_CLI" &> /dev/null; then
@@ -95,15 +96,42 @@ if ! "$LUX_CLI" --version &> /dev/null; then
     exit 0  # Don't fail the commit
 fi
 
-# Attempt to rebuild index with timeout
-log "INFO" "Starting index rebuild (timeout: ${LUX_REBUILD_TIMEOUT}s)..."
+# Attempt to sync index with timeout
+log "INFO" "Starting index sync (timeout: ${LUX_REBUILD_TIMEOUT}s)..."
 
 # Create temporary file for rebuild output
 rebuild_output=$(mktemp)
 trap "rm -f $rebuild_output" EXIT
 
-# Run rebuild with timeout
-if timeout "$LUX_REBUILD_TIMEOUT" "$LUX_CLI" index rebuild --quiet > "$rebuild_output" 2>&1; then
+run_with_timeout() {
+    if command -v timeout >/dev/null 2>&1; then
+        timeout "$LUX_REBUILD_TIMEOUT" "$@"
+        return $?
+    fi
+
+    if command -v gtimeout >/dev/null 2>&1; then
+        gtimeout "$LUX_REBUILD_TIMEOUT" "$@"
+        return $?
+    fi
+
+    if command -v python3 >/dev/null 2>&1; then
+        python3 - "$LUX_REBUILD_TIMEOUT" "$@" <<'PY'
+import subprocess
+import sys
+
+timeout_seconds = int(sys.argv[1])
+command = sys.argv[2:]
+completed = subprocess.run(command, timeout=timeout_seconds)
+sys.exit(completed.returncode)
+PY
+        return $?
+    fi
+
+    "$@"
+}
+
+# Run sync with timeout
+if run_with_timeout "$LUX_CLI" index sync --quiet > "$rebuild_output" 2>&1; then
     rebuild_exit=0
 else
     rebuild_exit=$?
@@ -111,25 +139,25 @@ fi
 
 # Handle different failure scenarios
 if [ $rebuild_exit -eq 0 ]; then
-    log "INFO" "Index rebuilt successfully"
-    echo "✓ Lux index rebuilt ($changed_count file(s) updated)" >&2
+    log "INFO" "Index synced successfully"
+    echo "✓ Lux index synced ($changed_count file(s) updated)" >&2
     exit 0
 elif [ $rebuild_exit -eq 124 ] || [ $rebuild_exit -eq 143 ]; then
     # Timeout (124 from timeout command, 143 from SIGTERM)
-    handle_error "Index rebuild timed out after ${LUX_REBUILD_TIMEOUT}s" $rebuild_exit
+    handle_error "Index sync timed out after ${LUX_REBUILD_TIMEOUT}s" $rebuild_exit
 elif [ $rebuild_exit -eq 1 ]; then
     # Generic error - try to extract meaningful message
     if [ -s "$rebuild_output" ]; then
         error_msg=$(head -5 "$rebuild_output" | tr '\n' ' ')
-        log "ERROR" "Index rebuild failed: $error_msg"
+        log "ERROR" "Index sync failed: $error_msg"
         cat "$rebuild_output" >&2
     else
-        log "ERROR" "Index rebuild failed with no output"
+        log "ERROR" "Index sync failed with no output"
     fi
-    handle_error "Index rebuild failed" $rebuild_exit
+    handle_error "Index sync failed" $rebuild_exit
 else
     # Other error codes
-    log "ERROR" "Index rebuild failed with unexpected exit code $rebuild_exit"
+    log "ERROR" "Index sync failed with unexpected exit code $rebuild_exit"
     [ -s "$rebuild_output" ] && cat "$rebuild_output" >&2
-    handle_error "Index rebuild failed unexpectedly" $rebuild_exit
+    handle_error "Index sync failed unexpectedly" $rebuild_exit
 fi
