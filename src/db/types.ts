@@ -157,7 +157,26 @@ export type EdgeType =
   | 'validates_with'
   | 'derived_from'
   | 'calls'
-  | 'references';
+  | 'references'
+  // Module-boundary evidence expansion edges
+  | 'dispatches_job'
+  | 'handles_job'
+  | 'listens_event'
+  | 'resolves_service'
+  | 'binds_service'
+  | 'provides_capability'
+  | 'imports_pipeline_artifact'
+  | 'exports_pipeline_artifact'
+  | 'syncs_external_record'
+  | 'consumes_reporting_source'
+  | 'transforms_model'
+  | 'uses_contract_family'
+  | 'emits_resource_family'
+  | 'validates_contract_family'
+  | 'shares_contract_family'
+  | 'shares_schema_family'
+  | 'projects_through_glue'
+  | 'transits_shared_entrypoint';
 
 export type ConfidenceClass = 'proven' | 'artifact-backed' | 'framework-inferred' | 'heuristic';
 

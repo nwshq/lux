@@ -90,6 +90,11 @@ export async function rebuildWithOverlay(
   options: RebuildOptions = {}
 ): Promise<{ result: RebuildResult; scanResult: GeneralScanResult }> {
   const config = loadLspConfig(rootPath);
+  options.onProgress?.('Clearing existing content index and structural overlay...');
+  db.clearRebuildTrustState();
+  db.clearOverlay();
+  db.clearKnowledgeIndex();
+
   const scanResult = await generalScan(rootPath, {
     config,
     onProgress: options.onProgress,
@@ -113,9 +118,16 @@ export async function rebuildWithOverlay(
  */
 export async function rebuildContentOnly(
   rootPath: string,
-  options: RebuildOptions = {}
+  options: RebuildOptions & { db?: LuxDatabase } = {}
 ): Promise<{ result: RebuildResult; scanResult: GeneralScanResult }> {
   const config = loadLspConfig(rootPath);
+  if (options.db) {
+    options.onProgress?.('Clearing existing content index and structural overlay...');
+    options.db.clearRebuildTrustState();
+    options.db.clearOverlay();
+    options.db.clearKnowledgeIndex();
+  }
+
   const scanResult = await generalScan(rootPath, {
     config,
     onProgress: options.onProgress,

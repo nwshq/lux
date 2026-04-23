@@ -110,9 +110,36 @@ lux deps coverage
 lux overlay status
 lux overlay status --json
 lux overlay check
+lux overlay boundaries show
+lux overlay boundaries show --focus Listing --include-paths
+lux overlay boundaries explore
+lux overlay boundaries list-regions
+lux overlay boundaries list-families
+lux overlay boundaries neighborhood Listing
 ```
 
 Current operator-facing overlay states:
 - `overlay-complete`
 - `degraded-overlay`
 - `content-only`
+
+### Boundary exploration
+
+Boundary exploration exposes the module-boundary map through three different lenses:
+
+- `regions`: the places in the map, for example `Listing`, `Billing`, or `Checkout`
+- `families`: the structural reason a relationship exists, for example `surface-bridge`, `service-container`, or `async-workflow`
+- `neighborhood`: the local view around one region, meaning all relationships that touch that region
+
+Use them for different jobs:
+
+- `lux overlay boundaries list-regions` to discover the main domains Lux sees
+- `lux overlay boundaries list-families` to understand which evidence patterns are shaping the graph
+- `lux overlay boundaries neighborhood <region>` to inspect one domain before drilling into exact relationships
+- `lux overlay boundaries show` to inspect the actual aggregated region-to-region relationships
+
+Practical framing:
+
+- region answers: what parts of the system exist as meaningful domains?
+- family answers: what structural patterns are creating the connections?
+- neighborhood answers: what is this specific domain connected to right now?

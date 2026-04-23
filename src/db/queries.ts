@@ -58,6 +58,7 @@ export class PreparedQueries {
   // Index metadata queries
   readonly getIndexMetadata: Database.Statement;
   readonly setIndexMetadata: Database.Statement;
+  readonly deleteIndexMetadata: Database.Statement;
 
   // Delete knowledge entry by path
   readonly deleteKnowledgeEntryByPath: Database.Statement;
@@ -293,6 +294,10 @@ export class PreparedQueries {
       INSERT INTO index_metadata (key, value, updated_at)
       VALUES (@key, @value, unixepoch())
       ON CONFLICT(key) DO UPDATE SET value = @value, updated_at = unixepoch()
+    `);
+
+    this.deleteIndexMetadata = db.prepare(`
+      DELETE FROM index_metadata WHERE key = ?
     `);
 
     // Delete knowledge entry by file path

@@ -343,6 +343,10 @@ export class LuxDatabase {
     this.getQueries().setIndexMetadata.run({ key, value });
   }
 
+  deleteIndexMetadata(key: string): void {
+    this.getQueries().deleteIndexMetadata.run(key);
+  }
+
   // Module dependency operations
   insertModuleDependency(dep: Omit<ModuleDependency, 'id' | 'created_at'>): void {
     this.getQueries().insertModuleDependency.run({
@@ -561,16 +565,30 @@ export class LuxDatabase {
   }
 
   // Utility operations
-  clearAll() {
+  clearKnowledgeIndex(): void {
+    const queries = this.getQueries();
+    queries.clearKnowledgeEntries.run();
+    queries.clearModuleDependencies.run();
+  }
+
+  clearOverlay(): void {
     const queries = this.getQueries();
     queries.clearEdgeEvidence.run();
     queries.clearStructuralEdges.run();
     queries.clearStructuralNodes.run();
-    queries.clearModuleDependencies.run();
+  }
+
+  clearRebuildTrustState(): void {
+    this.deleteIndexMetadata('overlay_trust_state');
+  }
+
+  clearAll() {
+    const queries = this.getQueries();
+    this.clearOverlay();
+    this.clearKnowledgeIndex();
     queries.clearExpertSessions.run();
     queries.clearExperts.run();
     queries.clearEvents.run();
-    queries.clearKnowledgeEntries.run();
   }
 
   getStats() {

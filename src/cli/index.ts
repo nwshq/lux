@@ -125,6 +125,7 @@ indexCmd
         // Content-only path: scan + enrich, no structural overlay
         try {
           const { scanResult } = await rebuildContentOnly(corpusPath, {
+            db,
             onProgress: (msg) => progress.log(msg),
           });
           generalResult = scanResult;
@@ -808,17 +809,6 @@ async function persistKnowledgeIndex(
   result: Parameters<GeneralScanner['index']>[1],
   progress: ProgressReporter
 ): Promise<void> {
-  progress.log('Clearing existing index...');
-
-  try {
-    db.clearAll();
-  } catch (error) {
-    console.error('Error: Failed to clear existing index');
-    console.error(`  ${error instanceof Error ? error.message : String(error)}`);
-    db.close();
-    process.exit(1);
-  }
-
   progress.log('Indexing...');
 
   try {

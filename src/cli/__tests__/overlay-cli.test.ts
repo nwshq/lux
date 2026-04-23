@@ -47,6 +47,39 @@ function runCli(repoPath: string, dbPath: string, args: string[]) {
   );
 }
 
+function writeLaravelHttpFixture(repoDir: string) {
+  mkdirSync(join(repoDir, 'routes'), { recursive: true });
+  mkdirSync(join(repoDir, 'app', 'Http', 'Controllers'), { recursive: true });
+
+  writeFileSync(
+    join(repoDir, 'app', 'Http', 'Controllers', 'InvoiceController.php'),
+    '<?php\n' +
+      '\n' +
+      'namespace App\\Http\\Controllers;\n' +
+      '\n' +
+      'class InvoiceController\n' +
+      '{\n' +
+      '    public function index(): array\n' +
+      '    {\n' +
+      "        return ['ok' => true];\n" +
+      '    }\n' +
+      '}\n'
+  );
+
+  writeFileSync(
+    join(repoDir, 'routes', 'api.php'),
+    '<?php\n' +
+      '\n' +
+      'use App\\Http\\Controllers\\InvoiceController;\n' +
+      'use Illuminate\\Support\\Facades\\Route;\n' +
+      '\n' +
+      "Route::prefix('api')->group(function () {\n" +
+      "    Route::get('/invoices', [InvoiceController::class, 'index'])->name('api.invoices.index');\n" +
+      "    Route::get('/health', function () { return ['ok' => true]; })->name('api.health');\n" +
+      '});\n'
+  );
+}
+
 describe('overlay CLI trust surface', () => {
   let repoDir: string;
   let dbDir: string;
@@ -224,6 +257,9 @@ describe('overlay CLI trust surface', () => {
     const trustState = loadOverlayTrustState(db);
     const stats = db.getStats();
     const guide = db.getKnowledgeEntryByPath(join(repoDir, 'docs', 'guide.md'));
+    const fileNodes = db.getStructuralNodesByType('file');
+    const symbolNodes = db.getStructuralNodesByType('symbol');
+    const surfaces = db.getCapabilitySurfaces();
     db.close();
 
     expect(trustState).not.toBeNull();
@@ -232,6 +268,9 @@ describe('overlay CLI trust surface', () => {
     expect(trustState?.sourceAction).toBe('index-rebuild');
     expect(stats.knowledge_entries).toBeGreaterThan(0);
     expect(guide?.content).toContain('Guide');
+    expect(fileNodes.length).toBeGreaterThan(0);
+    expect(symbolNodes.length).toBeGreaterThan(0);
+    expect(surfaces.length).toBe(0);
 
     const status = runCli(repoDir, dbPath, ['overlay', 'status', '--json']);
     const check = runCli(repoDir, dbPath, ['overlay', 'check']);
@@ -247,5 +286,61 @@ describe('overlay CLI trust surface', () => {
 
     expect(check.status).toBe(0);
     expect(check.stdout).toContain('Overlay check passed:');
+  });
+
+  it('canonical rebuild preserves detected Laravel HTTP surfaces and detector edges', () => {
+    writeLaravelHttpFixture(repoDir);
+
+    const rebuild = runCli(repoDir, dbPath, ['index', 'rebuild', '--quiet']);
+    expect(rebuild.status).toBe(0);
+    expect(rebuild.stdout).toContain('Detector "laravel-http-surfaces": 2 surface(s), 3 edge(s).');
+
+    const db = new LuxDatabase(dbPath);
+    const trustState = loadOverlayTrustState(db);
+    const surfaces = db.getCapabilitySurfaces();
+    const invoiceSurface = surfaces.find((surface) => surface.symbol_name === 'GET /api/invoices');
+    const healthSurface = surfaces.find((surface) => surface.symbol_name === 'GET /api/health');
+    const invoiceContext = invoiceSurface ? db.getSurfaceCenteredContext(invoiceSurface.id) : null;
+    const healthContext = healthSurface ? db.getSurfaceCenteredContext(healthSurface.id) : null;
+    db.close();
+
+    expect(trustState).not.toBeNull();
+    expect(trustState?.surfaceCount).toBeGreaterThanOrEqual(2);
+    expect(trustState?.detectorEdgeCount).toBeGreaterThanOrEqual(3);
+    expect(invoiceSurface).toBeDefined();
+    expect(healthSurface).toBeDefined();
+
+    const invoiceMeta = JSON.parse(invoiceSurface?.metadata ?? '{}') as Record<string, unknown>;
+    const healthMeta = JSON.parse(healthSurface?.metadata ?? '{}') as Record<string, unknown>;
+
+    expect(invoiceMeta.path).toBe('/api/invoices');
+    expect(invoiceMeta.routeName).toBe('api.invoices.index');
+    expect(invoiceMeta.explicitProvider).toBe('App\\Http\\Controllers\\InvoiceController');
+    expect(invoiceMeta.controllerMethod).toBe('index');
+    expect(invoiceMeta.providerKind).toBe('controller');
+    expect(healthMeta.path).toBe('/api/health');
+    expect(healthMeta.providerKind).toBe('closure');
+
+    expect(invoiceContext).not.toBeNull();
+    expect(healthContext).not.toBeNull();
+    expect(invoiceContext?.edges.some(({ edge }) => edge.edge_type === 'declares_surface')).toBe(
+      true
+    );
+    expect(invoiceContext?.edges.some(({ edge }) => edge.edge_type === 'handled_by')).toBe(true);
+    expect(healthContext?.edges.some(({ edge }) => edge.edge_type === 'declares_surface')).toBe(
+      true
+    );
+    expect(healthContext?.edges.some(({ edge }) => edge.edge_type === 'handled_by')).toBe(false);
+
+    const handledByEdge = invoiceContext?.edges.find(({ edge }) => edge.edge_type === 'handled_by');
+    const declaresSurfaceEdge = invoiceContext?.edges.find(
+      ({ edge }) => edge.edge_type === 'declares_surface'
+    );
+
+    expect(handledByEdge?.edge.target_node_id).toBe(
+      'symbol:php:App\\Http\\Controllers\\InvoiceController'
+    );
+    expect(handledByEdge?.evidence[0]?.note).toContain('InvoiceController::class');
+    expect(declaresSurfaceEdge?.evidence[0]?.file_path).toBe('routes/api.php');
   });
 });
