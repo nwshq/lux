@@ -11,6 +11,31 @@ import { LaravelCommandExtractor } from '../framework/laravel/commands.js';
 import { LaravelSchedulerExtractor } from '../framework/laravel/scheduler.js';
 import { LaravelJobDispatchExtractor } from '../framework/laravel/jobs.js';
 import { LaravelEventListenerExtractor } from '../framework/laravel/events.js';
+export {
+  formatFileOperationalBoundaryBlock,
+  formatOperationalNeighborhoodSummary,
+  getOperationalBoundaryHandlers,
+  getOperationalDispatchSourcesForJob,
+  getOperationalDispatchedJobs,
+  getOperationalEventListeners,
+  getOperationalUpstreamTriggers,
+  getTrustAwareOperationalNeighborhood,
+} from './retrieval.js';
+export type {
+  BoundaryHandlerLink,
+  OperationalBoundaryHandlersResult,
+  OperationalDispatchSource,
+  OperationalDispatchSourcesResult,
+  OperationalDispatchedJob,
+  OperationalDispatchedJobsResult,
+  OperationalEventListener,
+  OperationalEventListenersResult,
+  OperationalNeighborhoodEdge,
+  OperationalNeighborhoodNode,
+  OperationalNeighborhoodResult,
+  OperationalUpstreamTrigger,
+  OperationalUpstreamTriggersResult,
+} from './retrieval.js';
 
 export type {
   OperationalBoundaryDescriptor,

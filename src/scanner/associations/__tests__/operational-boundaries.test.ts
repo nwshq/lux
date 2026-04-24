@@ -68,7 +68,7 @@ describe('operational boundary extractors', () => {
           'namespace App\\Console\\Commands;',
           'use Illuminate\\Console\\Command;',
           'class SyncInvoices extends Command {',
-          "    protected $signature = 'invoices:sync {account}';",
+          "    protected $signature = 'invoices:sync {account} {--queue=} {--F|force}';",
           '}',
         ].join('\n'),
       },
@@ -84,7 +84,16 @@ describe('operational boundary extractors', () => {
     });
     expect(batch.handlers[0].symbol_id).toBe('symbol:php:App\\Console\\Commands\\SyncInvoices');
     expect(batch.edges[0].edge_type).toBe('HANDLED_BY');
-    expect(batch.contracts[0].payload_schema).toContain('invoices:sync {account}');
+    const commandContract = JSON.parse(batch.contracts[0].payload_schema ?? '{}') as {
+      command?: string;
+      tokens?: Array<{ kind: string; name: string }>;
+    };
+    expect(commandContract.command).toBe('invoices:sync');
+    expect(commandContract.tokens?.map((token) => token.name)).toEqual([
+      'account',
+      'queue',
+      'force',
+    ]);
   });
 
   it('extracts scheduler boundaries and trigger edges', async () => {
@@ -116,6 +125,14 @@ describe('operational boundary extractors', () => {
     expect(triggerEdges).toHaveLength(2);
     expect(triggerEdges.some((edge) => edge.transport === 'sync')).toBe(true);
     expect(triggerEdges.some((edge) => edge.transport === 'queue')).toBe(true);
+    const cadenceContract = batch.contracts.find((contract) =>
+      contract.id.includes('opb:schedule:command:invoices:sync')
+    );
+    const cadence = JSON.parse(cadenceContract?.payload_schema ?? '{}') as {
+      cadence?: { methods?: string[]; chain?: Array<{ method: string; arguments: string[] }> };
+    };
+    expect(cadence.cadence?.methods).toContain('dailyAt');
+    expect(cadence.cadence?.chain?.[0]).toEqual({ method: 'dailyAt', arguments: ['01:00'] });
   });
 
   it('extracts job dispatch edges from the current structural context', async () => {
@@ -147,6 +164,16 @@ describe('operational boundary extractors', () => {
     expect(dispatchEdges[0].target_id).toBe('opb:job:App\\Jobs\\RefreshReport');
     expect(dispatchEdges.map((edge) => edge.transport).sort()).toEqual(['async', 'sync']);
     expect(batch.edges.some((edge) => edge.edge_type === 'HANDLED_BY')).toBe(true);
+    const payloadContract = batch.contracts.find((contract) =>
+      contract.id.includes('opb:job:App\\Jobs\\RefreshReport')
+    );
+    const payloadHints = JSON.parse(payloadContract?.payload_schema ?? '{}') as {
+      maxArity?: number;
+      dispatchMethods?: string[];
+      literalArguments?: string[];
+    };
+    expect(payloadHints.maxArity).toBe(0);
+    expect(payloadHints.dispatchMethods).toEqual(['dispatch', 'dispatchSync']);
   });
 
   it('extracts event boundaries and listener handlers', async () => {
@@ -171,6 +198,17 @@ describe('operational boundary extractors', () => {
           '}',
         ].join('\n'),
       },
+      {
+        filePath: 'app/Events/ListingImported.php',
+        languageId: 'php',
+        content: [
+          '<?php',
+          'namespace App\\Events;',
+          'class ListingImported {',
+          '  public function __construct(public int $listingId, public ?string $source = null) {}',
+          '}',
+        ].join('\n'),
+      },
     ]);
 
     const batch = await extractor.extract(ctx);
@@ -179,7 +217,17 @@ describe('operational boundary extractors', () => {
     expect(batch.boundaries[0].name).toBe('App\\Events\\ListingImported');
     expect(batch.handlers).toHaveLength(2);
     expect(batch.edges.every((edge) => edge.edge_type === 'HANDLED_BY')).toBe(true);
-    expect(batch.contracts[0].payload_schema).toContain('App\\\\Events\\\\ListingImported');
+    const eventContract = JSON.parse(batch.contracts[0].payload_schema ?? '{}') as {
+      eventClass?: string;
+      payloadHints?: {
+        constructorParameters?: Array<{ name: string; type?: string; optional: boolean }>;
+      };
+    };
+    expect(eventContract.eventClass).toBe('App\\Events\\ListingImported');
+    expect(eventContract.payloadHints?.constructorParameters?.map((param) => param.name)).toEqual([
+      'listingId',
+      'source',
+    ]);
   });
 
   it('persists operational boundaries during overlay rebuild', async () => {

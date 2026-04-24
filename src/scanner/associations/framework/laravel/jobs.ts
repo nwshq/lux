@@ -2,6 +2,7 @@ import type { AssociationContext } from '../../types.js';
 import {
   emptyOperationalBatch,
   operationalBoundaryId,
+  operationalContractId,
   operationalEdgeId,
   operationalHandlerId,
   type OperationalExtractor,
@@ -30,6 +31,14 @@ export class LaravelJobDispatchExtractor implements OperationalExtractor {
 
   extract(context: AssociationContext): Promise<OperationalExtractionBatch> {
     const batch = emptyOperationalBatch();
+    const payloadHints = new Map<
+      string,
+      {
+        methods: Set<string>;
+        literalArgs: Set<string>;
+        maxArity: number;
+      }
+    >();
 
     for (const entry of getLaravelPhpEntries(context)) {
       const sourceId = inferStructuralContextId(entry);
@@ -45,7 +54,15 @@ export class LaravelJobDispatchExtractor implements OperationalExtractor {
           continue;
         }
 
-        addDispatch(batch, context.rootPath, sourceId, resolvedClass, staticMatch[2]);
+        addDispatch(
+          batch,
+          context.rootPath,
+          sourceId,
+          resolvedClass,
+          staticMatch[2],
+          extractDispatchArgumentsFromStaticDispatch(staticMatch[0]),
+          payloadHints
+        );
       }
 
       FUNCTION_JOB_DISPATCH_RE.lastIndex = 0;
@@ -56,7 +73,9 @@ export class LaravelJobDispatchExtractor implements OperationalExtractor {
           context.rootPath,
           sourceId,
           resolvePhpClassReference(dispatchMatch[2], entry),
-          dispatchMatch[1]
+          dispatchMatch[1],
+          extractDispatchArgumentsFromNewExpression(dispatchMatch[0], dispatchMatch[2]),
+          payloadHints
         );
       }
 
@@ -68,9 +87,25 @@ export class LaravelJobDispatchExtractor implements OperationalExtractor {
           context.rootPath,
           sourceId,
           resolvePhpClassReference(busMatch[2], entry),
-          busMatch[1]
+          busMatch[1],
+          extractDispatchArgumentsFromNewExpression(busMatch[0], busMatch[2]),
+          payloadHints
         );
       }
+    }
+
+    for (const [jobClass, hint] of payloadHints.entries()) {
+      const boundaryId = operationalBoundaryId('job', jobClass);
+      batch.contracts.push({
+        id: operationalContractId(boundaryId, 'payload-hints'),
+        boundary_id: boundaryId,
+        payload_schema: JSON.stringify({
+          dispatchMethods: Array.from(hint.methods).sort(),
+          maxArity: hint.maxArity,
+          literalArguments: Array.from(hint.literalArgs).sort(),
+        }),
+        trust_tier: 4,
+      });
     }
 
     return Promise.resolve(batch);
@@ -82,7 +117,16 @@ function addDispatch(
   repoRoot: string,
   sourceId: string,
   jobClass: string,
-  dispatchMethod: string
+  dispatchMethod: string,
+  dispatchArgs: string[],
+  payloadHints: Map<
+    string,
+    {
+      methods: Set<string>;
+      literalArgs: Set<string>;
+      maxArity: number;
+    }
+  >
 ): void {
   if (!jobClass) return;
 
@@ -119,4 +163,56 @@ function addDispatch(
     transport,
     trust_tier: 4,
   });
+
+  const hint = payloadHints.get(jobClass) ?? {
+    methods: new Set<string>(),
+    literalArgs: new Set<string>(),
+    maxArity: 0,
+  };
+  hint.methods.add(dispatchMethod);
+  hint.maxArity = Math.max(hint.maxArity, dispatchArgs.length);
+  for (const arg of dispatchArgs) {
+    const literal = classifyLiteralArg(arg);
+    if (literal) {
+      hint.literalArgs.add(literal);
+    }
+  }
+  payloadHints.set(jobClass, hint);
+}
+
+function extractDispatchArgumentsFromStaticDispatch(fragment: string): string[] {
+  const match = /::dispatch(?:Sync)?\s*\(([\s\S]*?)\)/.exec(fragment);
+  if (!match) return [];
+  return splitArguments(match[1]);
+}
+
+function extractDispatchArgumentsFromNewExpression(
+  fragment: string,
+  rawClassRef: string
+): string[] {
+  const classPattern = rawClassRef.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = new RegExp(`new\\\\s+${classPattern}\\\\s*\\\\(([^)]*)\\\\)`).exec(fragment);
+  if (!match) return [];
+  return splitArguments(match[1]);
+}
+
+function splitArguments(raw: string): string[] {
+  const trimmed = raw.trim();
+  if (!trimmed) return [];
+  return trimmed
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function classifyLiteralArg(rawArg: string): string | null {
+  const arg = rawArg.trim();
+  if (!arg) return null;
+
+  if (/^['"].*['"]$/.test(arg)) return 'string';
+  if (/^(true|false)$/i.test(arg)) return 'boolean';
+  if (/^\d+(\.\d+)?$/.test(arg)) return 'number';
+  if (/^\[.*\]$/.test(arg)) return 'array';
+  if (/^null$/i.test(arg)) return 'null';
+  return null;
 }

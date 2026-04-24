@@ -10,6 +10,7 @@ import { computeClusters } from '../scanner/imports/clustering.js';
 import { formatEdgeBlock } from '../scanner/associations/evidence.js';
 import { fileNodeId } from '../scanner/associations/types.js';
 import { formatFileFeaturePathBlock } from '../scanner/associations/surface-retrieval.js';
+import { formatFileOperationalBoundaryBlock } from '../scanner/associations/operational/retrieval.js';
 import {
   extractOverlayNeighborhoods,
   deriveOverlayTrustLevel,
@@ -891,6 +892,8 @@ export function enrichHitsWithOverlay(hits: FtsHit[], db: LuxDatabase, rootPath:
       const relPath = toRelativePath(hit.filePath, rootPath);
       const surfaceCtx = formatFileFeaturePathBlock(db, relPath);
       if (surfaceCtx) parts.push(surfaceCtx);
+      const operationalCtx = formatFileOperationalBoundaryBlock(db, rootPath, relPath);
+      if (operationalCtx) parts.push(operationalCtx);
     } catch {
       // Non-fatal — surface retrieval is best-effort
     }

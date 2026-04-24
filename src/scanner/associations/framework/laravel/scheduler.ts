@@ -83,7 +83,7 @@ export class LaravelSchedulerExtractor implements OperationalExtractor {
           payload_schema: JSON.stringify({
             targetKind: 'command',
             targetName: commandName,
-            cadence: extractScheduleCadence(snippet),
+            cadence: describeScheduleCadence(snippet),
           }),
           trust_tier: 5,
         });
@@ -143,7 +143,7 @@ export class LaravelSchedulerExtractor implements OperationalExtractor {
           payload_schema: JSON.stringify({
             targetKind: 'job',
             targetName: resolvedJobClass,
-            cadence: extractScheduleCadence(snippet),
+            cadence: describeScheduleCadence(snippet),
           }),
           trust_tier: 5,
         });
@@ -154,16 +154,43 @@ export class LaravelSchedulerExtractor implements OperationalExtractor {
   }
 }
 
-function extractScheduleCadence(snippet: string): string[] {
-  const cadence: string[] = [];
+function describeScheduleCadence(snippet: string): {
+  methods: string[];
+  chain: Array<{ method: string; arguments: string[] }>;
+  summary: string;
+} {
+  const methods: string[] = [];
+  const chain: Array<{ method: string; arguments: string[] }> = [];
   SCHEDULE_CHAIN_RE.lastIndex = 0;
   let match: RegExpExecArray | null;
 
   while ((match = SCHEDULE_CHAIN_RE.exec(snippet)) !== null) {
     const methodName = match[1];
     if (methodName === 'command' || methodName === 'job') continue;
-    cadence.push(methodName);
+    methods.push(methodName);
+    const args = extractMethodArguments(snippet, match.index + match[0].length);
+    chain.push({
+      method: methodName,
+      arguments: args,
+    });
   }
 
-  return cadence;
+  return {
+    methods,
+    chain,
+    summary: chain.map((item) => `${item.method}(${item.arguments.join(', ')})`).join(' -> '),
+  };
+}
+
+function extractMethodArguments(snippet: string, startIndex: number): string[] {
+  const closeIndex = snippet.indexOf(')', startIndex);
+  if (closeIndex < 0) return [];
+
+  const raw = snippet.slice(startIndex, closeIndex).trim();
+  if (!raw) return [];
+
+  return raw
+    .split(',')
+    .map((arg) => arg.trim().replace(/^['"]|['"]$/g, ''))
+    .filter(Boolean);
 }

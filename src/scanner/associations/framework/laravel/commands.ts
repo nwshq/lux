@@ -60,7 +60,9 @@ export class LaravelCommandExtractor implements OperationalExtractor {
           boundary_id: boundaryId,
           payload_schema: JSON.stringify({
             signature: rawSignature,
+            command: commandName,
             source: rawSignature === commandName ? 'name' : 'signature',
+            tokens: parseCommandSignatureTokens(rawSignature),
           }),
           trust_tier: 5,
         });
@@ -77,4 +79,50 @@ function isLaravelCommandClass(
 ): boolean {
   if (extendsQualifiedName === 'Illuminate\\Console\\Command') return true;
   return extendsName === 'Command';
+}
+
+function parseCommandSignatureTokens(rawSignature: string): Array<Record<string, unknown>> {
+  const braces = Array.from(rawSignature.matchAll(/\{([^}]+)\}/g));
+  if (braces.length === 0) return [];
+
+  const tokens: Array<Record<string, unknown>> = [];
+
+  for (const brace of braces) {
+    const body = brace[1].trim();
+    const [specRaw, descriptionRaw] = body.split(/\s*:\s*/, 2);
+    const spec = specRaw.trim();
+    const description = descriptionRaw?.trim();
+
+    if (spec.startsWith('--')) {
+      const optionMatch =
+        /^--(?:(?<shortcut>[A-Za-z])\|)?(?<name>[A-Za-z0-9_-]+)(?<value>[=?*]*)$/.exec(spec);
+      if (!optionMatch?.groups?.name) continue;
+
+      const valueFlags = optionMatch.groups.value ?? '';
+      tokens.push({
+        kind: 'option',
+        name: optionMatch.groups.name,
+        shortcut: optionMatch.groups.shortcut,
+        takesValue: valueFlags.includes('='),
+        optionalValue: valueFlags.includes('?'),
+        variadic: valueFlags.includes('*'),
+        description,
+      });
+      continue;
+    }
+
+    const argumentMatch = /^(?<name>[A-Za-z0-9_-]+)(?<flags>[?*]*)$/.exec(spec);
+    if (!argumentMatch?.groups?.name) continue;
+
+    const flags = argumentMatch.groups.flags ?? '';
+    tokens.push({
+      kind: 'argument',
+      name: argumentMatch.groups.name,
+      required: !flags.includes('?'),
+      variadic: flags.includes('*'),
+      description,
+    });
+  }
+
+  return tokens;
 }
