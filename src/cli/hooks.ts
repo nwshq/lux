@@ -27,8 +27,8 @@ export function addHooksCommand(program: Command) {
         console.error(`Not a git repository: ${corpusPath}`);
         const nestedRepo = findLikelyNestedGitRoot(corpusPath);
         if (nestedRepo) {
-          console.error(`Hint: found a nested git repository at ${nestedRepo}`);
-          console.error('  Try running the command with --corpus pointed at that repo root.');
+          console.error(`  Hint: found a nested git repository at ${nestedRepo}`);
+          console.error('  Try rerunning with --corpus pointed at that repo root.');
         }
         process.exit(1);
       }
@@ -96,8 +96,8 @@ export function addHooksCommand(program: Command) {
         console.error(`Not a git repository: ${corpusPath}`);
         const nestedRepo = findLikelyNestedGitRoot(corpusPath);
         if (nestedRepo) {
-          console.error(`Hint: found a nested git repository at ${nestedRepo}`);
-          console.error('  Try running the command with --corpus pointed at that repo root.');
+          console.error(`  Hint: found a nested git repository at ${nestedRepo}`);
+          console.error('  Try rerunning with --corpus pointed at that repo root.');
         }
         process.exit(1);
       }

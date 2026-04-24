@@ -41,6 +41,11 @@ Hooks now follow the shared runtime path resolver.
 
 - corpus: `--corpus` -> `LUX_CORPUS_PATH` -> cwd
 - explicit `--corpus` still wins over env and cwd
+- installed post-commit hooks run `lux index sync`
+- hook failures do not block commits; they print recovery guidance instead
+- preferred env vars: `LUX_SKIP_SYNC`, `LUX_SYNC_TIMEOUT`
+- legacy env vars still work: `LUX_SKIP_REBUILD`, `LUX_REBUILD_TIMEOUT`
+- if you point Lux at a parent folder instead of the actual repo root, hooks and `index sync` may suggest a nested repo such as `./vcs`
 
 ```bash
 lux hooks install

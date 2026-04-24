@@ -84,6 +84,28 @@ describe('hooks command runtime path resolution', () => {
       expect(result.status).toBe(1);
       expect(result.stderr).toContain(`Not a git repository: ${parentDir}`);
       expect(result.stderr).toContain(`Hint: found a nested git repository at ${nestedRepoDir}`);
+      expect(result.stderr).toContain('Try rerunning with --corpus pointed at that repo root.');
+    } finally {
+      rmSync(parentDir, { recursive: true, force: true });
+    }
+  });
+
+  it('hints on uninstall when corpus path contains a nested repo like vcs', () => {
+    const parentDir = mkdtempSync(join(tmpdir(), 'lux-hooks-parent-'));
+    const nestedRepoDir = join(parentDir, 'vcs');
+
+    try {
+      mkdirSync(join(nestedRepoDir, '.lux'), { recursive: true });
+      git(nestedRepoDir, 'git init');
+      git(nestedRepoDir, 'git config user.email "test@test.com"');
+      git(nestedRepoDir, 'git config user.name "Test"');
+
+      const result = runCli(outsideDir, ['hooks', 'uninstall', '--corpus', parentDir]);
+
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain(`Not a git repository: ${parentDir}`);
+      expect(result.stderr).toContain(`Hint: found a nested git repository at ${nestedRepoDir}`);
+      expect(result.stderr).toContain('Try rerunning with --corpus pointed at that repo root.');
     } finally {
       rmSync(parentDir, { recursive: true, force: true });
     }
