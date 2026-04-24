@@ -3,6 +3,7 @@ import { copyFileSync, chmodSync, existsSync, readFileSync, unlinkSync } from 'f
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { resolveCorpusPath } from '../utils/runtime-paths.js';
+import { findLikelyNestedGitRoot } from '../scanner/git.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -24,6 +25,11 @@ export function addHooksCommand(program: Command) {
       const gitDir = join(corpusPath, '.git');
       if (!existsSync(gitDir)) {
         console.error(`Not a git repository: ${corpusPath}`);
+        const nestedRepo = findLikelyNestedGitRoot(corpusPath);
+        if (nestedRepo) {
+          console.error(`Hint: found a nested git repository at ${nestedRepo}`);
+          console.error('  Try running the command with --corpus pointed at that repo root.');
+        }
         process.exit(1);
       }
 
@@ -39,11 +45,23 @@ export function addHooksCommand(program: Command) {
         process.exit(1);
       }
 
+      const packagedHook = readFileSync(hookScriptPath, 'utf-8');
+
       // Check if hook already exists
       if (existsSync(postCommitPath)) {
         const existing = readFileSync(postCommitPath, 'utf-8');
         if (existing.includes('Lux Knowledge Platform')) {
-          console.log('✓ Lux post-commit hook already installed');
+          if (existing === packagedHook) {
+            console.log('✓ Lux post-commit hook already installed');
+            return;
+          }
+
+          copyFileSync(hookScriptPath, postCommitPath);
+          chmodSync(postCommitPath, 0o755);
+
+          console.log('✓ Lux post-commit hook updated');
+          console.log(`  Path: ${postCommitPath}`);
+          console.log('  The index will now sync automatically after each commit.');
           return;
         }
 
@@ -59,7 +77,7 @@ export function addHooksCommand(program: Command) {
 
       console.log('✓ Post-commit hook installed successfully');
       console.log(`  Path: ${postCommitPath}`);
-      console.log('  The index will now rebuild automatically after each commit.');
+      console.log('  The index will now sync automatically after each commit.');
     });
 
   hooksCmd
@@ -76,6 +94,11 @@ export function addHooksCommand(program: Command) {
       const gitDir = join(corpusPath, '.git');
       if (!existsSync(gitDir)) {
         console.error(`Not a git repository: ${corpusPath}`);
+        const nestedRepo = findLikelyNestedGitRoot(corpusPath);
+        if (nestedRepo) {
+          console.error(`Hint: found a nested git repository at ${nestedRepo}`);
+          console.error('  Try running the command with --corpus pointed at that repo root.');
+        }
         process.exit(1);
       }
 

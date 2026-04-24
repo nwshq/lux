@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Lux Knowledge Platform - Git post-commit hook
-# Automatically rebuilds index after CORPUS commits
+# Automatically syncs index after corpus commits
 
 # Configuration
 LUX_CLI="${LUX_CLI:-lux}"
-LUX_SKIP_REBUILD="${LUX_SKIP_REBUILD:-}"
+LUX_SKIP_SYNC="${LUX_SKIP_SYNC:-${LUX_SKIP_REBUILD:-}}"
 LUX_LOG_FILE="${LUX_LOG_FILE:-}"
-LUX_REBUILD_TIMEOUT="${LUX_REBUILD_TIMEOUT:-300}"  # 5 minutes default
+LUX_SYNC_TIMEOUT="${LUX_SYNC_TIMEOUT:-${LUX_REBUILD_TIMEOUT:-300}}"  # 5 minutes default
 
 # Logging function
 log() {
@@ -33,21 +33,21 @@ handle_error() {
     local exit_code="${2:-1}"
     log "ERROR" "$msg (exit code: $exit_code)"
     echo "✗ Lux hook error: $msg" >&2
-    echo "  The commit succeeded, but index rebuild failed." >&2
-    echo "  Run 'lux index rebuild' manually to sync the index." >&2
+    echo "  The commit succeeded, but index sync failed." >&2
+    echo "  Run 'lux index sync' manually to catch the index up." >&2
     exit 0  # Never fail the commit
 }
 
-# Check if rebuild should be skipped
-if [ -n "$LUX_SKIP_REBUILD" ]; then
-    log "INFO" "Rebuild skipped (LUX_SKIP_REBUILD is set)"
+# Check if sync should be skipped
+if [ -n "$LUX_SKIP_SYNC" ]; then
+    log "INFO" "Sync skipped (LUX_SKIP_SYNC or legacy LUX_SKIP_REBUILD is set)"
     exit 0
 fi
 
 # Check if commit message indicates skip
 commit_msg=$(git log -1 --pretty=%B)
 if echo "$commit_msg" | grep -qE '\[skip.?lux\]|\[lux.?skip\]|\[no.?index\]'; then
-    log "INFO" "Rebuild skipped (commit message contains skip directive)"
+    log "INFO" "Sync skipped (commit message contains skip directive)"
     exit 0
 fi
 
@@ -60,7 +60,7 @@ fi
 
 # Validate that we got actual file paths (not empty or error message)
 if [ -z "$changed_files" ]; then
-    log "WARN" "No files detected in commit, skipping rebuild"
+    log "WARN" "No files detected in commit, skipping sync"
     exit 0
 fi
 
@@ -69,13 +69,13 @@ fi
 indexable_changed=$(echo "$changed_files" | grep -vE '^(\.git/|\.lux/|node_modules/|vendor/|dist/|build/)' | grep -E '\.(md|mdx|txt|rst|php|ts|tsx|js|jsx|py|go|rs|java)$' || true)
 
 if [ -z "$indexable_changed" ]; then
-    log "INFO" "No indexable content changes detected, skipping rebuild"
+    log "INFO" "No indexable content changes detected, skipping sync"
     exit 0
 fi
 
 changed_count=$(echo "$indexable_changed" | sed '/^$/d' | wc -l | tr -d ' ')
 if [ "$changed_count" -eq 0 ]; then
-    log "WARN" "Indexable change detection produced zero files, skipping rebuild"
+    log "WARN" "Indexable change detection produced zero files, skipping sync"
     exit 0
 fi
 
@@ -83,7 +83,7 @@ log "INFO" "Detected $changed_count indexable file(s) changed"
 
 # Check if lux CLI is available
 if ! command -v "$LUX_CLI" &> /dev/null; then
-    log "ERROR" "lux CLI not found. Cannot rebuild index."
+    log "ERROR" "lux CLI not found. Cannot sync index."
     log "INFO" "Install lux or set LUX_CLI environment variable."
     echo "Warning: lux CLI not found. Run 'npm install -g .' to install." >&2
     exit 0  # Don't fail the commit
@@ -97,25 +97,25 @@ if ! "$LUX_CLI" --version &> /dev/null; then
 fi
 
 # Attempt to sync index with timeout
-log "INFO" "Starting index sync (timeout: ${LUX_REBUILD_TIMEOUT}s)..."
+log "INFO" "Starting index sync (timeout: ${LUX_SYNC_TIMEOUT}s)..."
 
-# Create temporary file for rebuild output
-rebuild_output=$(mktemp)
-trap "rm -f $rebuild_output" EXIT
+# Create temporary file for sync output
+sync_output=$(mktemp)
+trap "rm -f $sync_output" EXIT
 
 run_with_timeout() {
     if command -v timeout >/dev/null 2>&1; then
-        timeout "$LUX_REBUILD_TIMEOUT" "$@"
+        timeout "$LUX_SYNC_TIMEOUT" "$@"
         return $?
     fi
 
     if command -v gtimeout >/dev/null 2>&1; then
-        gtimeout "$LUX_REBUILD_TIMEOUT" "$@"
+        gtimeout "$LUX_SYNC_TIMEOUT" "$@"
         return $?
     fi
 
     if command -v python3 >/dev/null 2>&1; then
-        python3 - "$LUX_REBUILD_TIMEOUT" "$@" <<'PY'
+        python3 - "$LUX_SYNC_TIMEOUT" "$@" <<'PY'
 import subprocess
 import sys
 
@@ -131,33 +131,33 @@ PY
 }
 
 # Run sync with timeout
-if run_with_timeout "$LUX_CLI" index sync --quiet > "$rebuild_output" 2>&1; then
-    rebuild_exit=0
+if run_with_timeout "$LUX_CLI" index sync --quiet > "$sync_output" 2>&1; then
+    sync_exit=0
 else
-    rebuild_exit=$?
+    sync_exit=$?
 fi
 
 # Handle different failure scenarios
-if [ $rebuild_exit -eq 0 ]; then
+if [ $sync_exit -eq 0 ]; then
     log "INFO" "Index synced successfully"
     echo "✓ Lux index synced ($changed_count file(s) updated)" >&2
     exit 0
-elif [ $rebuild_exit -eq 124 ] || [ $rebuild_exit -eq 143 ]; then
+elif [ $sync_exit -eq 124 ] || [ $sync_exit -eq 143 ]; then
     # Timeout (124 from timeout command, 143 from SIGTERM)
-    handle_error "Index sync timed out after ${LUX_REBUILD_TIMEOUT}s" $rebuild_exit
-elif [ $rebuild_exit -eq 1 ]; then
+    handle_error "Index sync timed out after ${LUX_SYNC_TIMEOUT}s" $sync_exit
+elif [ $sync_exit -eq 1 ]; then
     # Generic error - try to extract meaningful message
-    if [ -s "$rebuild_output" ]; then
-        error_msg=$(head -5 "$rebuild_output" | tr '\n' ' ')
+    if [ -s "$sync_output" ]; then
+        error_msg=$(head -5 "$sync_output" | tr '\n' ' ')
         log "ERROR" "Index sync failed: $error_msg"
-        cat "$rebuild_output" >&2
+        cat "$sync_output" >&2
     else
         log "ERROR" "Index sync failed with no output"
     fi
-    handle_error "Index sync failed" $rebuild_exit
+    handle_error "Index sync failed" $sync_exit
 else
     # Other error codes
-    log "ERROR" "Index sync failed with unexpected exit code $rebuild_exit"
-    [ -s "$rebuild_output" ] && cat "$rebuild_output" >&2
-    handle_error "Index sync failed unexpectedly" $rebuild_exit
+    log "ERROR" "Index sync failed with unexpected exit code $sync_exit"
+    [ -s "$sync_output" ] && cat "$sync_output" >&2
+    handle_error "Index sync failed unexpectedly" $sync_exit
 fi

@@ -3,7 +3,7 @@ import { join } from 'path';
 import { mkdirSync, rmSync, existsSync, writeFileSync } from 'fs';
 import { execSync } from 'child_process';
 import { tmpdir } from 'os';
-import { isGitRepository, getHeadCommit, commitExists } from '../git.js';
+import { isGitRepository, getHeadCommit, commitExists, findLikelyNestedGitRoot } from '../git.js';
 
 describe('Git Utilities', () => {
   const testDir = join(tmpdir(), 'lux-git-test-' + Date.now());
@@ -29,6 +29,20 @@ describe('Git Utilities', () => {
     it('should return true for a git repository', () => {
       execSync('git init', { cwd: testDir, stdio: 'pipe' });
       expect(isGitRepository(testDir)).toBe(true);
+    });
+  });
+
+  describe('findLikelyNestedGitRoot', () => {
+    it('should return null when no nested repo candidates exist', () => {
+      expect(findLikelyNestedGitRoot(testDir)).toBe(null);
+    });
+
+    it('should detect a nested vcs repository', () => {
+      const nestedRepo = join(testDir, 'vcs');
+      mkdirSync(nestedRepo, { recursive: true });
+      execSync('git init', { cwd: nestedRepo, stdio: 'pipe' });
+
+      expect(findLikelyNestedGitRoot(testDir)).toBe(nestedRepo);
     });
   });
 

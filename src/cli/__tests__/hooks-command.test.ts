@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, mkdirSync, readFileSync, rmSync } from 'fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { tmpdir } from 'os';
 import { fileURLToPath } from 'url';
@@ -56,6 +56,7 @@ describe('hooks command runtime path resolution', () => {
 
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('Post-commit hook installed successfully');
+    expect(result.stdout).toContain('The index will now sync automatically after each commit.');
     expect(readFileSync(hookPath, 'utf-8')).toContain('Lux Knowledge Platform');
   });
 
@@ -66,6 +67,26 @@ describe('hooks command runtime path resolution', () => {
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('Post-commit hook installed successfully');
     expect(readFileSync(hookPath, 'utf-8')).toContain('Lux Knowledge Platform');
+  });
+
+  it('hints when corpus path contains a nested repo like vcs', () => {
+    const parentDir = mkdtempSync(join(tmpdir(), 'lux-hooks-parent-'));
+    const nestedRepoDir = join(parentDir, 'vcs');
+
+    try {
+      mkdirSync(join(nestedRepoDir, '.lux'), { recursive: true });
+      git(nestedRepoDir, 'git init');
+      git(nestedRepoDir, 'git config user.email "test@test.com"');
+      git(nestedRepoDir, 'git config user.name "Test"');
+
+      const result = runCli(outsideDir, ['hooks', 'install', '--corpus', parentDir]);
+
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain(`Not a git repository: ${parentDir}`);
+      expect(result.stderr).toContain(`Hint: found a nested git repository at ${nestedRepoDir}`);
+    } finally {
+      rmSync(parentDir, { recursive: true, force: true });
+    }
   });
 
   it('still prefers explicit --corpus over env and cwd', () => {
@@ -98,8 +119,44 @@ describe('hooks command runtime path resolution', () => {
     expect(result.status).toBe(0);
 
     const hook = readFileSync(hookPath, 'utf-8');
+    expect(hook).toContain('Automatically syncs index after corpus commits');
+    expect(hook).toContain('LUX_SKIP_SYNC');
+    expect(hook).toContain('LUX_SKIP_REBUILD');
     expect(hook).toContain('indexable content changes detected');
     expect(hook).toContain('\\.(md|mdx|txt|rst|php|ts|tsx|js|jsx|py|go|rs|java)$');
     expect(hook).toContain('index sync --quiet');
+    expect(hook).toContain("Run 'lux index sync' manually to catch the index up.");
+  });
+
+  it('updates an existing stale Lux hook in place', () => {
+    const hookPath = join(repoDir, '.git', 'hooks', 'post-commit');
+    writeFileSync(
+      hookPath,
+      '#!/usr/bin/env bash\n# Lux Knowledge Platform - old hook\necho stale\n',
+      'utf-8'
+    );
+
+    const result = runCli(repoDir, ['hooks', 'install']);
+    const hook = readFileSync(hookPath, 'utf-8');
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('Lux post-commit hook updated');
+    expect(hook).toContain('Automatically syncs index after corpus commits');
+    expect(hook).toContain('index sync --quiet');
+    expect(hook).not.toContain('echo stale');
+  });
+
+  it('keeps an up-to-date Lux hook unchanged', () => {
+    const first = runCli(repoDir, ['hooks', 'install']);
+    const hookPath = join(repoDir, '.git', 'hooks', 'post-commit');
+    const before = readFileSync(hookPath, 'utf-8');
+
+    const second = runCli(repoDir, ['hooks', 'install']);
+    const after = readFileSync(hookPath, 'utf-8');
+
+    expect(first.status).toBe(0);
+    expect(second.status).toBe(0);
+    expect(second.stdout).toContain('Lux post-commit hook already installed');
+    expect(after).toBe(before);
   });
 });

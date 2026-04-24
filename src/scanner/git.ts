@@ -15,6 +15,19 @@ export function isGitRepository(rootPath: string): boolean {
   return existsSync(join(rootPath, '.git'));
 }
 
+export function findLikelyNestedGitRoot(rootPath: string): string | null {
+  const candidates = ['vcs', 'repo', 'repository'];
+
+  for (const candidate of candidates) {
+    const candidatePath = join(rootPath, candidate);
+    if (existsSync(join(candidatePath, '.git'))) {
+      return candidatePath;
+    }
+  }
+
+  return null;
+}
+
 /**
  * Get the current HEAD commit hash.
  */

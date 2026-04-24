@@ -17,7 +17,13 @@ import {
   persistRebuildTrustState,
   markOverlayTrustAfterSync,
 } from '../scanner/overlay-trust-state.js';
-import { isGitRepository, getHeadCommit, getGitDiff, commitExists } from '../scanner/git.js';
+import {
+  isGitRepository,
+  getHeadCommit,
+  getGitDiff,
+  commitExists,
+  findLikelyNestedGitRoot,
+} from '../scanner/git.js';
 import {
   buildIncrementalPlan,
   collectOverlayRelevantPaths,
@@ -309,7 +315,13 @@ indexCmd
       // Check if this is a git repo
       if (!isGitRepository(corpusPath)) {
         console.error('Error: Content directory is not a git repository');
-        console.error('  Use "lux index rebuild" for non-git directories');
+        const nestedRepo = findLikelyNestedGitRoot(corpusPath);
+        if (nestedRepo) {
+          console.error(`  Hint: found a nested git repository at ${nestedRepo}`);
+          console.error('  Try rerunning with --corpus pointed at that repo root.');
+        } else {
+          console.error('  Use "lux index rebuild" for non-git directories');
+        }
         process.exit(1);
       }
 
