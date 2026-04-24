@@ -329,3 +329,125 @@ describe('structural overlay — freshness invalidation', () => {
     expect(count).toBeGreaterThanOrEqual(2);
   });
 });
+
+describe('operational boundary intelligence — persistence', () => {
+  let db: LuxDatabase;
+
+  beforeEach(() => {
+    db = makeDb();
+  });
+
+  afterEach(() => {
+    db.close();
+    rmSync(testDir, { recursive: true, force: true });
+  });
+
+  it('should insert and retrieve operational boundaries by repo root and kind', () => {
+    db.upsertOperationalBoundary({
+      id: 'opb:command:invoices.sync',
+      repo_root: '/app',
+      kind: 'command',
+      name: 'invoices:sync',
+      trust_tier: 5,
+      file_path: 'app/Console/Commands/SyncInvoices.php',
+    });
+    db.upsertOperationalBoundary({
+      id: 'opb:job:refresh-report',
+      repo_root: '/app',
+      kind: 'job',
+      name: 'App\\Jobs\\RefreshReport',
+      trust_tier: 4,
+      file_path: 'app/Jobs/RefreshReport.php',
+    });
+
+    expect(db.getOperationalBoundary('opb:command:invoices.sync')?.name).toBe('invoices:sync');
+    expect(db.getOperationalBoundariesByRepoRoot('/app')).toHaveLength(2);
+    expect(db.getOperationalBoundariesByKind('command')).toHaveLength(1);
+  });
+
+  it('should persist handlers, edges, and contracts for an operational boundary', () => {
+    db.upsertOperationalBoundary({
+      id: 'opb:event:listing-imported',
+      repo_root: '/app',
+      kind: 'event',
+      name: 'App\\Events\\ListingImported',
+      trust_tier: 5,
+      file_path: 'app/Providers/EventServiceProvider.php',
+    });
+
+    db.upsertOperationalHandler({
+      id: 'oph:event-listener:listing-imported',
+      boundary_id: 'opb:event:listing-imported',
+      symbol_id: 'symbol:php:App\\Listeners\\SyncSearchIndex',
+      trust_tier: 5,
+    });
+
+    db.upsertOperationalEdge({
+      id: 'ope:event-listener:listing-imported',
+      source_id: 'opb:event:listing-imported',
+      target_id: 'symbol:php:App\\Listeners\\SyncSearchIndex',
+      edge_type: 'HANDLED_BY',
+      transport: 'event-bus',
+      trust_tier: 5,
+    });
+
+    db.upsertOperationalContract({
+      id: 'opc:event:listing-imported',
+      boundary_id: 'opb:event:listing-imported',
+      payload_schema: JSON.stringify({ event: 'App\\Events\\ListingImported' }),
+      trust_tier: 3,
+    });
+
+    const handlers = db.getOperationalHandlersForBoundary('opb:event:listing-imported');
+    const edges = db.getOperationalEdgesForSource('opb:event:listing-imported');
+    const contracts = db.getOperationalContractsForBoundary('opb:event:listing-imported');
+
+    expect(handlers).toHaveLength(1);
+    expect(handlers[0].symbol_id).toBe('symbol:php:App\\Listeners\\SyncSearchIndex');
+
+    expect(edges).toHaveLength(1);
+    expect(edges[0].edge_type).toBe('HANDLED_BY');
+    expect(edges[0].transport).toBe('event-bus');
+
+    expect(contracts).toHaveLength(1);
+    expect(contracts[0].payload_schema).toContain('ListingImported');
+  });
+
+  it('should clear operational boundary tables as part of clearOverlay()', () => {
+    db.upsertOperationalBoundary({
+      id: 'opb:schedule:nightly-sync',
+      repo_root: '/app',
+      kind: 'schedule',
+      name: 'nightly-sync',
+      trust_tier: 5,
+      file_path: 'app/Console/Kernel.php',
+    });
+    db.upsertOperationalHandler({
+      id: 'oph:schedule:nightly-sync',
+      boundary_id: 'opb:schedule:nightly-sync',
+      symbol_id: 'symbol:php:App\\Console\\Commands\\SyncNightly',
+      trust_tier: 5,
+    });
+    db.upsertOperationalEdge({
+      id: 'ope:schedule:nightly-sync',
+      source_id: 'opb:schedule:nightly-sync',
+      target_id: 'opb:command:sync-nightly',
+      edge_type: 'TRIGGERS',
+      transport: 'sync',
+      trust_tier: 5,
+    });
+    db.upsertOperationalContract({
+      id: 'opc:schedule:nightly-sync',
+      boundary_id: 'opb:schedule:nightly-sync',
+      payload_schema: JSON.stringify({ cron: '0 1 * * *' }),
+      trust_tier: 4,
+    });
+
+    db.clearOverlay();
+
+    expect(db.getOperationalBoundariesByRepoRoot('/app')).toEqual([]);
+    expect(db.getOperationalHandlersForBoundary('opb:schedule:nightly-sync')).toEqual([]);
+    expect(db.getOperationalEdgesForSource('opb:schedule:nightly-sync')).toEqual([]);
+    expect(db.getOperationalContractsForBoundary('opb:schedule:nightly-sync')).toEqual([]);
+  });
+});

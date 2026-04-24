@@ -26,6 +26,10 @@ export class PreparedQueries {
   readonly clearStructuralNodes: Database.Statement;
   readonly clearStructuralEdges: Database.Statement;
   readonly clearEdgeEvidence: Database.Statement;
+  readonly clearOperationalBoundaries: Database.Statement;
+  readonly clearOperationalHandlers: Database.Statement;
+  readonly clearOperationalEdges: Database.Statement;
+  readonly clearOperationalContracts: Database.Statement;
 
   // FTS5 search queries
   readonly searchKnowledgeEntriesFts: Database.Statement;
@@ -98,6 +102,19 @@ export class PreparedQueries {
   readonly getCapabilitySurfaces: Database.Statement;
   readonly searchSurfacesByHandle: Database.Statement;
 
+  // Operational boundary queries
+  readonly upsertOperationalBoundary: Database.Statement;
+  readonly getOperationalBoundary: Database.Statement;
+  readonly getOperationalBoundariesByKind: Database.Statement;
+  readonly getOperationalBoundariesByRepoRoot: Database.Statement;
+  readonly upsertOperationalHandler: Database.Statement;
+  readonly getOperationalHandlersForBoundary: Database.Statement;
+  readonly upsertOperationalEdge: Database.Statement;
+  readonly getOperationalEdgesForSource: Database.Statement;
+  readonly getOperationalEdgesForTarget: Database.Statement;
+  readonly upsertOperationalContract: Database.Statement;
+  readonly getOperationalContractsForBoundary: Database.Statement;
+
   constructor(db: Database.Database) {
     // Knowledge entry queries
     this.insertKnowledgeEntry = db.prepare(`
@@ -146,6 +163,10 @@ export class PreparedQueries {
     this.clearEdgeEvidence = db.prepare(`DELETE FROM edge_evidence`);
     this.clearStructuralEdges = db.prepare(`DELETE FROM structural_edges`);
     this.clearStructuralNodes = db.prepare(`DELETE FROM structural_nodes`);
+    this.clearOperationalContracts = db.prepare(`DELETE FROM operational_contracts`);
+    this.clearOperationalEdges = db.prepare(`DELETE FROM operational_edges`);
+    this.clearOperationalHandlers = db.prepare(`DELETE FROM operational_handlers`);
+    this.clearOperationalBoundaries = db.prepare(`DELETE FROM operational_boundaries`);
 
     // FTS5 search queries
     // Search knowledge entries using FTS5 - returns full knowledge entry records
@@ -454,6 +475,75 @@ export class PreparedQueries {
       WHERE node_type = 'capability-surface'
         AND symbol_name LIKE ?
       ORDER BY updated_at DESC
+    `);
+
+    // Operational boundary queries
+    this.upsertOperationalBoundary = db.prepare(`
+      INSERT INTO operational_boundaries (id, repo_root, kind, name, trust_tier, file_path)
+      VALUES (@id, @repo_root, @kind, @name, @trust_tier, @file_path)
+      ON CONFLICT(id) DO UPDATE SET
+        repo_root = excluded.repo_root,
+        kind = excluded.kind,
+        name = excluded.name,
+        trust_tier = excluded.trust_tier,
+        file_path = excluded.file_path
+    `);
+
+    this.getOperationalBoundary = db.prepare(`
+      SELECT * FROM operational_boundaries WHERE id = ?
+    `);
+
+    this.getOperationalBoundariesByKind = db.prepare(`
+      SELECT * FROM operational_boundaries WHERE kind = ? ORDER BY name ASC
+    `);
+
+    this.getOperationalBoundariesByRepoRoot = db.prepare(`
+      SELECT * FROM operational_boundaries WHERE repo_root = ? ORDER BY kind ASC, name ASC
+    `);
+
+    this.upsertOperationalHandler = db.prepare(`
+      INSERT INTO operational_handlers (id, boundary_id, symbol_id, trust_tier)
+      VALUES (@id, @boundary_id, @symbol_id, @trust_tier)
+      ON CONFLICT(id) DO UPDATE SET
+        boundary_id = excluded.boundary_id,
+        symbol_id = excluded.symbol_id,
+        trust_tier = excluded.trust_tier
+    `);
+
+    this.getOperationalHandlersForBoundary = db.prepare(`
+      SELECT * FROM operational_handlers WHERE boundary_id = ? ORDER BY symbol_id ASC
+    `);
+
+    this.upsertOperationalEdge = db.prepare(`
+      INSERT INTO operational_edges (id, source_id, target_id, edge_type, transport, trust_tier)
+      VALUES (@id, @source_id, @target_id, @edge_type, @transport, @trust_tier)
+      ON CONFLICT(id) DO UPDATE SET
+        source_id = excluded.source_id,
+        target_id = excluded.target_id,
+        edge_type = excluded.edge_type,
+        transport = excluded.transport,
+        trust_tier = excluded.trust_tier
+    `);
+
+    this.getOperationalEdgesForSource = db.prepare(`
+      SELECT * FROM operational_edges WHERE source_id = ? ORDER BY edge_type ASC, target_id ASC
+    `);
+
+    this.getOperationalEdgesForTarget = db.prepare(`
+      SELECT * FROM operational_edges WHERE target_id = ? ORDER BY edge_type ASC, source_id ASC
+    `);
+
+    this.upsertOperationalContract = db.prepare(`
+      INSERT INTO operational_contracts (id, boundary_id, payload_schema, trust_tier)
+      VALUES (@id, @boundary_id, @payload_schema, @trust_tier)
+      ON CONFLICT(id) DO UPDATE SET
+        boundary_id = excluded.boundary_id,
+        payload_schema = excluded.payload_schema,
+        trust_tier = excluded.trust_tier
+    `);
+
+    this.getOperationalContractsForBoundary = db.prepare(`
+      SELECT * FROM operational_contracts WHERE boundary_id = ? ORDER BY id ASC
     `);
   }
 }

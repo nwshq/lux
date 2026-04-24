@@ -18,6 +18,10 @@ import type {
   StructuralNode,
   StructuralEdge,
   EdgeEvidence,
+  OperationalBoundary,
+  OperationalHandler,
+  OperationalEdge,
+  OperationalContract,
 } from './types.js';
 
 export class LuxDatabase {
@@ -564,6 +568,86 @@ export class LuxDatabase {
     };
   }
 
+  // ---------------------------------------------------------------------------
+  // Operational boundary queries
+  // ---------------------------------------------------------------------------
+
+  upsertOperationalBoundary(boundary: OperationalBoundary): void {
+    this.getQueries().upsertOperationalBoundary.run({
+      id: boundary.id,
+      repo_root: boundary.repo_root,
+      kind: boundary.kind,
+      name: boundary.name,
+      trust_tier: boundary.trust_tier,
+      file_path: boundary.file_path ?? null,
+    });
+  }
+
+  getOperationalBoundary(id: string): OperationalBoundary | null {
+    return (
+      (this.getQueries().getOperationalBoundary.get(id) as OperationalBoundary | undefined) ?? null
+    );
+  }
+
+  getOperationalBoundariesByKind(kind: OperationalBoundary['kind']): OperationalBoundary[] {
+    return this.getQueries().getOperationalBoundariesByKind.all(kind) as OperationalBoundary[];
+  }
+
+  getOperationalBoundariesByRepoRoot(repoRoot: string): OperationalBoundary[] {
+    return this.getQueries().getOperationalBoundariesByRepoRoot.all(
+      repoRoot
+    ) as OperationalBoundary[];
+  }
+
+  upsertOperationalHandler(handler: OperationalHandler): void {
+    this.getQueries().upsertOperationalHandler.run({
+      id: handler.id,
+      boundary_id: handler.boundary_id,
+      symbol_id: handler.symbol_id,
+      trust_tier: handler.trust_tier,
+    });
+  }
+
+  getOperationalHandlersForBoundary(boundaryId: string): OperationalHandler[] {
+    return this.getQueries().getOperationalHandlersForBoundary.all(
+      boundaryId
+    ) as OperationalHandler[];
+  }
+
+  upsertOperationalEdge(edge: OperationalEdge): void {
+    this.getQueries().upsertOperationalEdge.run({
+      id: edge.id,
+      source_id: edge.source_id,
+      target_id: edge.target_id,
+      edge_type: edge.edge_type,
+      transport: edge.transport ?? null,
+      trust_tier: edge.trust_tier,
+    });
+  }
+
+  getOperationalEdgesForSource(sourceId: string): OperationalEdge[] {
+    return this.getQueries().getOperationalEdgesForSource.all(sourceId) as OperationalEdge[];
+  }
+
+  getOperationalEdgesForTarget(targetId: string): OperationalEdge[] {
+    return this.getQueries().getOperationalEdgesForTarget.all(targetId) as OperationalEdge[];
+  }
+
+  upsertOperationalContract(contract: OperationalContract): void {
+    this.getQueries().upsertOperationalContract.run({
+      id: contract.id,
+      boundary_id: contract.boundary_id,
+      payload_schema: contract.payload_schema ?? null,
+      trust_tier: contract.trust_tier,
+    });
+  }
+
+  getOperationalContractsForBoundary(boundaryId: string): OperationalContract[] {
+    return this.getQueries().getOperationalContractsForBoundary.all(
+      boundaryId
+    ) as OperationalContract[];
+  }
+
   // Utility operations
   clearKnowledgeIndex(): void {
     const queries = this.getQueries();
@@ -576,6 +660,10 @@ export class LuxDatabase {
     queries.clearEdgeEvidence.run();
     queries.clearStructuralEdges.run();
     queries.clearStructuralNodes.run();
+    queries.clearOperationalContracts.run();
+    queries.clearOperationalEdges.run();
+    queries.clearOperationalHandlers.run();
+    queries.clearOperationalBoundaries.run();
   }
 
   clearRebuildTrustState(): void {

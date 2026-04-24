@@ -35,3 +35,17 @@ export {
   LaravelBoundaryEvidenceResolver,
   GeneratedTypesResolver,
 } from './framework/index.js';
+
+export {
+  createDefaultOperationalExtractors,
+  runOperationalExtractors,
+} from './operational/index.js';
+export type {
+  OperationalBoundaryDescriptor,
+  OperationalContractDescriptor,
+  OperationalEdgeDescriptor,
+  OperationalExtractionBatch,
+  OperationalExtractionResult,
+  OperationalExtractor,
+  OperationalHandlerDescriptor,
+} from './operational/index.js';

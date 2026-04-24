@@ -22,6 +22,11 @@ import { createDefaultResolvers } from './framework/index.js';
 import type { AssociationContext, AssociationResolver } from './types.js';
 import type { CapabilitySurfaceDetector } from './detectors/types.js';
 import { runDetectors } from './detectors/index.js';
+import {
+  createDefaultOperationalExtractors,
+  runOperationalExtractors,
+} from './operational/index.js';
+import type { OperationalExtractor } from './operational/types.js';
 import { propagateSurfaces } from './propagation.js';
 
 // ---------------------------------------------------------------------------
@@ -35,6 +40,8 @@ export interface OverlayRebuildOptions {
   resolvers?: AssociationResolver[];
   /** Override detector pack (default: createDefaultDetectors()). */
   detectors?: CapabilitySurfaceDetector[];
+  /** Override operational extractor pack. */
+  operationalExtractors?: OperationalExtractor[];
   /** Progress callback. */
   onProgress?: (message: string) => void;
 }
@@ -134,6 +141,23 @@ export async function rebuildStructuralOverlay(
   report(
     `Detectors complete: ${detectorResult.surfacesDetected} surface(s) detected, ` +
       `${detectorResult.surfaceEdgesStored} edge(s) stored.`
+  );
+
+  // 6b. Run operational boundary extractors
+  report('Running operational boundary extractors...');
+  const operationalExtractorPack =
+    options.operationalExtractors ?? createDefaultOperationalExtractors();
+  const operationalResult = await runOperationalExtractors(
+    db,
+    context,
+    operationalExtractorPack,
+    report
+  );
+  report(
+    `Operational extraction complete: ${operationalResult.boundariesStored} boundary(s), ` +
+      `${operationalResult.handlersStored} handler(s), ` +
+      `${operationalResult.edgesStored} edge(s), ` +
+      `${operationalResult.contractsStored} contract(s).`
   );
 
   // 7. Run symbolic propagation from detected surfaces outward

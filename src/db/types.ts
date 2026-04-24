@@ -219,3 +219,52 @@ export interface EdgeEvidence {
   payload_json?: string;
   recorded_at: number;
 }
+
+// ---------------------------------------------------------------------------
+// Operational boundary intelligence types (migration 011)
+// ---------------------------------------------------------------------------
+
+export type TrustTier = 1 | 2 | 3 | 4 | 5;
+
+export type OperationalBoundaryKind = 'command' | 'schedule' | 'job' | 'event' | 'http';
+
+export type OperationalEdgeType =
+  | 'TRIGGERS'
+  | 'HANDLED_BY'
+  | 'DISPATCHES'
+  | 'CONSUMES'
+  | 'PRODUCES';
+
+export type OperationalTransport = 'sync' | 'async' | 'queue' | 'event-bus';
+
+export interface OperationalBoundary {
+  id: string;
+  repo_root: string;
+  kind: OperationalBoundaryKind;
+  name: string;
+  trust_tier: TrustTier;
+  file_path?: string;
+}
+
+export interface OperationalHandler {
+  id: string;
+  boundary_id: string;
+  symbol_id: string;
+  trust_tier: TrustTier;
+}
+
+export interface OperationalEdge {
+  id: string;
+  source_id: string;
+  target_id: string;
+  edge_type: OperationalEdgeType;
+  transport?: OperationalTransport;
+  trust_tier: TrustTier;
+}
+
+export interface OperationalContract {
+  id: string;
+  boundary_id: string;
+  payload_schema?: string;
+  trust_tier: TrustTier;
+}
