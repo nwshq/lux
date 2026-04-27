@@ -114,6 +114,8 @@ lux deps coverage
 lux overlay status
 lux overlay status --json
 lux overlay check
+lux overlay operational ask "what dispatches App\\Jobs\\RefreshReport?"
+lux overlay operational ask "what schedules releases:sync?" --json
 lux overlay boundaries show
 lux overlay boundaries show --focus Listing --include-paths
 lux overlay boundaries explore

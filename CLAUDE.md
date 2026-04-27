@@ -26,7 +26,7 @@ Shared resolver: `src/utils/runtime-paths.ts`
 - `lux expert list|show|add|remove|discover`
 - `lux ask`
 - `lux deps graph|clusters|impact|coverage`
-- `lux overlay status|check`
+- `lux overlay status|check|operational ask|boundaries ...`
 
 ## Current MCP surface
 

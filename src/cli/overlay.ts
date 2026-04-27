@@ -7,6 +7,7 @@
 import type { Command } from 'commander';
 import { LuxDatabase } from '../db/index.js';
 import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
+import { runOperationalAsk } from './operational.js';
 import {
   describeOverlayTrustInspection,
   deriveOverlayTrustLevelFromState,
@@ -641,4 +642,45 @@ export function addOverlayCommands(program: Command): void {
     .action((region: string, options: { json?: boolean; top?: number }) => {
       runBoundaryExplore(program, { ...options, focus: region, list: 'overview' });
     });
+
+  // --------------------------------------------------------------------------
+  // overlay operational
+  // --------------------------------------------------------------------------
+
+  const operationalCmd = overlayCmd
+    .command('operational')
+    .description('Ask answer-first questions over persisted operational boundaries.');
+
+  operationalCmd
+    .command('ask <question...>')
+    .description('Answer one operator question about schedules, dispatch, listeners, or evidence.')
+    .option('--json', 'Emit machine-readable JSON instead of human-readable text')
+    .option('--target <name>', 'Boundary name/signature/event/job to answer about')
+    .option('--kind <kind>', 'Disambiguate target kind: command, schedule, job, event, or http')
+    .option(
+      '--max-depth <count>',
+      'Trust-aware neighborhood depth to include for neighborhood questions (default: 2)',
+      (value) => Number.parseInt(value, 10),
+      2
+    )
+    .option(
+      '--min-trust-tier <tier>',
+      'Minimum edge trust tier to include in the neighborhood (default: 1)',
+      (value) => Number.parseInt(value, 10),
+      1
+    )
+    .action(
+      (
+        question: string[],
+        options: {
+          json?: boolean;
+          target?: string;
+          kind?: 'command' | 'schedule' | 'job' | 'event' | 'http';
+          maxDepth?: number;
+          minTrustTier?: number;
+        }
+      ) => {
+        runOperationalAsk(program, question, options);
+      }
+    );
 }
