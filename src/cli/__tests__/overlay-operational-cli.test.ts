@@ -306,13 +306,13 @@ describe('overlay operational CLI', () => {
     expect(result.status).toBe(0);
     expect(result.stdout.split('\n')[0]).toContain('job:App\\Jobs\\RefreshReport can reach');
     expect(result.stdout).toContain('Direct Evidence');
-    expect(result.stdout).toContain('- none persisted');
+    expect(result.stdout).toContain('- none persisted for this answer');
     expect(result.stdout).toContain('Context');
     expect(result.stdout).toContain('schedule:nightly-sync');
     expect(result.stdout).toContain('TRIGGERS queue tier=5');
   });
 
-  it('rejects ambiguous operational targets with candidate guidance', () => {
+  it('resolves basename-exact job targets before looser partial matches', () => {
     const result = runCli(repoDir, dbPath, [
       'overlay',
       'operational',
@@ -320,6 +320,24 @@ describe('overlay operational CLI', () => {
       'what schedules this workflow?',
       '--target',
       'RefreshReport',
+    ]);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout.split('\n')[0]).toContain(
+      'schedule:nightly-sync schedules job:App\\Jobs\\RefreshReport'
+    );
+    expect(result.stdout).toContain('Resolution Match: exact');
+    expect(result.stdout).not.toContain('RefreshReportDaily');
+  });
+
+  it('rejects truly ambiguous operational targets with candidate guidance', () => {
+    const result = runCli(repoDir, dbPath, [
+      'overlay',
+      'operational',
+      'ask',
+      'what schedules this workflow?',
+      '--target',
+      'Refresh',
     ]);
 
     expect(result.status).toBe(1);
@@ -338,6 +356,6 @@ describe('overlay operational CLI', () => {
     ]);
 
     expect(result.status).toBe(1);
-    expect(result.stdout).toContain('No persisted operational boundary matched');
+    expect(result.stdout).toContain('Lux could not resolve');
   });
 });

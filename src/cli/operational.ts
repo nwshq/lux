@@ -194,6 +194,28 @@ function normalize(value: string): string {
     .trim();
 }
 
+function basenameOf(value: string): string {
+  const normalized = normalize(value);
+  const phpTail = normalized.split('\\').at(-1) ?? normalized;
+  return phpTail.split(':').at(-1) ?? phpTail;
+}
+
+function semanticForms(boundary: OperationalBoundary): string[] {
+  const forms = new Set<string>();
+  forms.add(normalize(boundary.id));
+  forms.add(normalize(boundary.name));
+  forms.add(basenameOf(boundary.name));
+  forms.add(basenameOf(boundary.id));
+  return [...forms].filter(Boolean);
+}
+
+function rawNormalizedForms(boundary: OperationalBoundary): string[] {
+  const forms = new Set<string>();
+  forms.add(boundary.id.toLowerCase().trim());
+  forms.add(boundary.name.toLowerCase().trim());
+  return [...forms].filter(Boolean);
+}
+
 function inferIntent(question: string): OperationalQuestionIntent {
   const normalized = question.toLowerCase();
   if (
@@ -256,8 +278,12 @@ function preferredKindsForIntent(
 
 function sortResolutionCandidates(
   boundaries: OperationalBoundary[],
-  preferredKinds?: OperationalBoundaryKind[]
+  preferredKinds?: OperationalBoundaryKind[],
+  query?: string
 ): OperationalBoundary[] {
+  const normalizedQuery = query ? normalize(query) : '';
+  const queryBasename = query ? basenameOf(query) : '';
+
   return [...boundaries].sort((left, right) => {
     const leftKindIndex = preferredKinds ? preferredKinds.indexOf(left.kind) : -1;
     const rightKindIndex = preferredKinds ? preferredKinds.indexOf(right.kind) : -1;
@@ -268,6 +294,20 @@ function sortResolutionCandidates(
     if (normalizedLeftKindIndex !== normalizedRightKindIndex) {
       return normalizedLeftKindIndex - normalizedRightKindIndex;
     }
+
+    const leftForms = semanticForms(left);
+    const rightForms = semanticForms(right);
+    const leftExactSemantic =
+      leftForms.includes(normalizedQuery) || leftForms.includes(queryBasename);
+    const rightExactSemantic =
+      rightForms.includes(normalizedQuery) || rightForms.includes(queryBasename);
+    if (leftExactSemantic !== rightExactSemantic) return leftExactSemantic ? -1 : 1;
+
+    const leftBase = basenameOf(left.name);
+    const rightBase = basenameOf(right.name);
+    const leftBaseDistance = Math.abs(leftBase.length - queryBasename.length);
+    const rightBaseDistance = Math.abs(rightBase.length - queryBasename.length);
+    if (leftBaseDistance !== rightBaseDistance) return leftBaseDistance - rightBaseDistance;
 
     if (left.name.length !== right.name.length) return left.name.length - right.name.length;
     return left.name.localeCompare(right.name);
@@ -301,7 +341,7 @@ function resolveBoundary(
     matchedBy: ResolutionMatchType,
     matches: OperationalBoundary[]
   ): BoundaryResolution | null => {
-    const candidates = dedupeBoundaries(sortResolutionCandidates(matches, kinds));
+    const candidates = dedupeBoundaries(sortResolutionCandidates(matches, kinds, query));
     if (candidates.length === 0) return null;
     if (candidates.length === 1) {
       return {
@@ -319,18 +359,28 @@ function resolveBoundary(
     };
   };
 
+  const rawQuery = query.toLowerCase().trim();
+  const hasLocationHint = /@\S+:\d+$/.test(rawQuery);
+
+  if (hasLocationHint) {
+    const rawExactMatch = classifyMatches(
+      'exact',
+      boundaries.filter((boundary) => rawNormalizedForms(boundary).includes(rawQuery))
+    );
+    if (rawExactMatch) return rawExactMatch;
+  }
+
   const exactMatch = classifyMatches(
     'exact',
-    boundaries.filter(
-      (boundary) =>
-        normalize(boundary.id) === normalizedQuery || normalize(boundary.name) === normalizedQuery
-    )
+    boundaries.filter((boundary) => semanticForms(boundary).includes(normalizedQuery))
   );
   if (exactMatch) return exactMatch;
 
   const prefixMatch = classifyMatches(
     'prefix',
-    boundaries.filter((boundary) => normalize(boundary.name).startsWith(normalizedQuery))
+    boundaries.filter((boundary) =>
+      semanticForms(boundary).some((form) => form.startsWith(normalizedQuery))
+    )
   );
   if (prefixMatch) return prefixMatch;
 
@@ -349,10 +399,11 @@ function resolveBoundary(
   const suggestions = dedupeBoundaries(
     sortResolutionCandidates(
       boundaries.filter((boundary) => {
-        const normalizedName = normalize(boundary.name);
-        return queryTokens.some((token) => normalizedName.includes(token));
+        const forms = semanticForms(boundary);
+        return queryTokens.some((token) => forms.some((form) => form.includes(token)));
       }),
-      kinds
+      kinds,
+      query
     )
   ).slice(0, 5);
 
@@ -457,7 +508,10 @@ function baseAnswer(
     (entry) => !supportKeys.has(evidenceKey(entry))
   );
   const trustEvidence = [...uniqueEvidence, ...uniqueContext];
-  const tiers = trustEvidence.flatMap((entry) => (entry.edge ? [entry.edge.trustTier] : []));
+  const tiers = trustEvidence.flatMap((entry) => {
+    if (entry.edge) return [entry.edge.trustTier];
+    return (entry.contracts ?? []).map((contract) => contract.trustTier);
+  });
   const transport = trustEvidence.flatMap((entry) =>
     entry.edge
       ? [
@@ -536,7 +590,7 @@ function buildScheduleSourcesAnswer(
   }));
   const summary =
     items.length === 0
-      ? `No persisted schedule currently triggers ${nodeLabel(boundaryPayload(target))}.`
+      ? `Lux found no persisted schedule trigger for ${nodeLabel(boundaryPayload(target))}.`
       : `${items.map(nodeLabel).join(', ')} schedules ${nodeLabel(boundaryPayload(target))}.`;
   return baseAnswer(db, question, 'schedule-sources', target, items, evidence, summary, resolution);
 }
@@ -559,7 +613,7 @@ function buildDispatchSourcesAnswer(
   }));
   const summary =
     items.length === 0
-      ? `No persisted dispatcher currently reaches ${nodeLabel(boundaryPayload(target))}.`
+      ? `Lux found no persisted dispatcher for ${nodeLabel(boundaryPayload(target))}.`
       : `${items.map(nodeLabel).join(', ')} dispatches ${nodeLabel(boundaryPayload(target))}.`;
   return baseAnswer(db, question, 'dispatch-sources', target, items, evidence, summary, resolution);
 }
@@ -609,7 +663,7 @@ function buildDispatchedJobsAnswer(
     .filter((entry): entry is OperationalNodePayload => Boolean(entry));
   const summary =
     items.length === 0
-      ? `No persisted command/job target is triggered by ${nodeLabel(boundaryPayload(target))}.`
+      ? `Lux found no persisted triggered command or job for ${nodeLabel(boundaryPayload(target))}.`
       : `${nodeLabel(boundaryPayload(target))} triggers ${items.map(nodeLabel).join(', ')}.`;
   return baseAnswer(db, question, 'dispatched-jobs', target, items, evidence, summary, resolution);
 }
@@ -632,7 +686,7 @@ function buildEventListenersAnswer(
   }));
   const summary =
     items.length === 0
-      ? `No persisted listener currently handles ${nodeLabel(boundaryPayload(target))}.`
+      ? `Lux found no persisted listener for ${nodeLabel(boundaryPayload(target))}.`
       : `${items.map(nodeLabel).join(', ')} handles ${nodeLabel(boundaryPayload(target))}.`;
   return baseAnswer(db, question, 'event-listeners', target, items, evidence, summary, resolution);
 }
@@ -652,8 +706,20 @@ function buildEvidenceAnswer(
       : [];
   const eventListeners =
     target.kind === 'event' ? (getOperationalEventListeners(db, target.id)?.listeners ?? []) : [];
+  const targetContracts = mapContracts(db.getOperationalContractsForBoundary(target.id));
 
   const evidence: OperationalEvidencePayload[] = [
+    ...(targetContracts.length > 0
+      ? [
+          {
+            source: boundaryPayload(target),
+            target: boundaryPayload(target),
+            contracts: targetContracts,
+            filePath: target.file_path ?? null,
+            note: 'persisted boundary contract',
+          },
+        ]
+      : []),
     ...upstream.map((entry) => ({
       edge: mapEdge(entry.edge),
       source: boundaryPayload(entry.sourceBoundary),
@@ -702,7 +768,7 @@ function buildEvidenceAnswer(
     .filter((entry): entry is OperationalNodePayload => Boolean(entry));
   const summary =
     evidence.length === 0
-      ? `No persisted operational evidence is attached to ${nodeLabel(boundaryPayload(target))}.`
+      ? `Lux found no persisted direct operational evidence for ${nodeLabel(boundaryPayload(target))}.`
       : `${nodeLabel(boundaryPayload(target))} is supported by ${evidence.length} persisted operational evidence item(s).`;
   return baseAnswer(db, question, 'evidence', target, items, evidence, summary, resolution);
 }
@@ -734,7 +800,7 @@ function buildNeighborhoodAnswer(
   }));
   const summary =
     items.length === 0
-      ? `No operational neighborhood was found around ${nodeLabel(boundaryPayload(target))}.`
+      ? `Lux found no persisted operational neighborhood around ${nodeLabel(boundaryPayload(target))}.`
       : `${nodeLabel(boundaryPayload(target))} can reach or be reached by ${items
           .map(nodeLabel)
           .join(', ')}.`;
@@ -828,7 +894,9 @@ function renderTextAnswer(payload: OperationalAnswerPayload): string {
     }
   }
 
-  lines.push(...renderEvidenceSection('Direct Evidence', payload.evidence, 'none persisted'));
+  lines.push(
+    ...renderEvidenceSection('Direct Evidence', payload.evidence, 'none persisted for this answer')
+  );
   if (payload.context.length > 0) {
     lines.push(...renderEvidenceSection('Context', payload.context));
   }
@@ -908,7 +976,7 @@ export function runOperationalAsk(
           null,
           resolution.status === 'ambiguous'
             ? `Multiple persisted operational boundaries matched "${targetText}". Use --kind or a more specific --target.`
-            : `No persisted operational boundary matched "${targetText}".`,
+            : `Lux could not resolve "${targetText}" to a persisted operational boundary.`,
           buildResolutionPayload(
             targetText,
             resolution.status,
