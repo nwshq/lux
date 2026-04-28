@@ -86,6 +86,14 @@ describe('overlay operational CLI', () => {
       file_path: 'app/Jobs/RefreshReport.php',
     });
     db.upsertOperationalBoundary({
+      id: 'opb:job:App\\Jobs\\RefreshReportDaily',
+      repo_root: repoDir,
+      kind: 'job',
+      name: 'App\\Jobs\\RefreshReportDaily',
+      trust_tier: 4,
+      file_path: 'app/Jobs/RefreshReportDaily.php',
+    });
+    db.upsertOperationalBoundary({
       id: 'opb:event:App\\Events\\ReportReady',
       repo_root: repoDir,
       kind: 'event',
@@ -186,7 +194,7 @@ describe('overlay operational CLI', () => {
     rmSync(dbDir, { recursive: true, force: true });
   });
 
-  it('answers dispatch-source questions as JSON with a primary answer', () => {
+  it('answers dispatch-source questions as JSON with resolution metadata', () => {
     const result = runCli(repoDir, dbPath, [
       'overlay',
       'operational',
@@ -199,6 +207,7 @@ describe('overlay operational CLI', () => {
     const payload = JSON.parse(result.stdout) as {
       intent: string;
       overlayTrustLevel: string;
+      resolution: { status: string; matchedBy?: string; candidates: Array<{ id: string }> };
       target: { id: string; trustTier: number; filePath: string | null };
       primaryAnswer: {
         summary: string;
@@ -215,10 +224,13 @@ describe('overlay operational CLI', () => {
         source: { id: string; filePath?: string | null };
         target: { id: string };
       }>;
+      context: unknown[];
     };
 
     expect(payload.intent).toBe('dispatch-sources');
     expect(payload.overlayTrustLevel).toBe('overlay-complete');
+    expect(payload.resolution.status).toBe('resolved');
+    expect(payload.resolution.matchedBy).toBe('exact');
     expect(payload.target.id).toBe('opb:job:App\\Jobs\\RefreshReport');
     expect(payload.target.trustTier).toBe(4);
     expect(payload.target.filePath).toBe('app/Jobs/RefreshReport.php');
@@ -236,9 +248,10 @@ describe('overlay operational CLI', () => {
     expect(payload.transport[0].edgeType).toBe('DISPATCHES');
     expect(payload.transport[0].transport).toBe('async');
     expect(payload.evidence[0].source.filePath).toBe('app/Http/Controllers/ReportController.php');
+    expect(payload.context).toEqual([]);
   });
 
-  it('answers schedule questions in answer-first text', () => {
+  it('answers schedule questions with direct evidence called out explicitly', () => {
     const result = runCli(repoDir, dbPath, [
       'overlay',
       'operational',
@@ -252,6 +265,9 @@ describe('overlay operational CLI', () => {
     );
     expect(result.stdout).toContain('Overlay Trust: overlay-complete');
     expect(result.stdout).toContain('Target Trust Tier: 4');
+    expect(result.stdout).toContain('Evidence Trust: tier 5');
+    expect(result.stdout).toContain('Resolution Match: exact');
+    expect(result.stdout).toContain('Direct Evidence');
     expect(result.stdout).toContain('TRIGGERS queue tier=5');
     expect(result.stdout).toContain('file: app/Console/Kernel.php');
     expect(result.stdout).toContain('contracts: opc:schedule-cadence tier=5');
@@ -273,7 +289,7 @@ describe('overlay operational CLI', () => {
     expect(result.stdout).toContain('app/Listeners/SendReportNotification.php');
   });
 
-  it('answers neighborhood questions with an explicit target option', () => {
+  it('answers neighborhood questions with context separated from direct evidence', () => {
     const result = runCli(repoDir, dbPath, [
       'overlay',
       'operational',
@@ -289,8 +305,28 @@ describe('overlay operational CLI', () => {
 
     expect(result.status).toBe(0);
     expect(result.stdout.split('\n')[0]).toContain('job:App\\Jobs\\RefreshReport can reach');
+    expect(result.stdout).toContain('Direct Evidence');
+    expect(result.stdout).toContain('- none persisted');
+    expect(result.stdout).toContain('Context');
     expect(result.stdout).toContain('schedule:nightly-sync');
     expect(result.stdout).toContain('TRIGGERS queue tier=5');
+  });
+
+  it('rejects ambiguous operational targets with candidate guidance', () => {
+    const result = runCli(repoDir, dbPath, [
+      'overlay',
+      'operational',
+      'ask',
+      'what schedules this workflow?',
+      '--target',
+      'RefreshReport',
+    ]);
+
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain('Multiple persisted operational boundaries matched');
+    expect(result.stdout).toContain('Candidates');
+    expect(result.stdout).toContain('job:App\\Jobs\\RefreshReport');
+    expect(result.stdout).toContain('job:App\\Jobs\\RefreshReportDaily');
   });
 
   it('rejects unknown operational question targets', () => {

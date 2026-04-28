@@ -30,6 +30,9 @@ type OperationalQuestionIntent =
   | 'neighborhood'
   | 'evidence';
 
+type ResolutionStatus = 'resolved' | 'unresolved' | 'ambiguous';
+type ResolutionMatchType = 'exact' | 'prefix' | 'contains';
+
 interface OperationalNodePayload {
   id: string;
   kind: 'boundary' | 'structural-symbol' | 'unresolved';
@@ -60,10 +63,18 @@ interface OperationalEvidencePayload {
   note?: string;
 }
 
+interface OperationalResolutionPayload {
+  query: string;
+  status: ResolutionStatus;
+  matchedBy?: ResolutionMatchType;
+  candidates: OperationalNodePayload[];
+}
+
 interface OperationalAnswerPayload {
   question: string;
   intent: OperationalQuestionIntent;
   overlayTrustLevel: string;
+  resolution: OperationalResolutionPayload;
   target: OperationalNodePayload | null;
   primaryAnswer: {
     summary: string;
@@ -82,6 +93,7 @@ interface OperationalAnswerPayload {
     trustTier: TrustTier;
   }>;
   evidence: OperationalEvidencePayload[];
+  context: OperationalEvidencePayload[];
 }
 
 interface AskOptions {
@@ -91,6 +103,23 @@ interface AskOptions {
   maxDepth?: number;
   minTrustTier?: number;
 }
+
+type BoundaryResolution =
+  | {
+      status: 'resolved';
+      matchedBy: ResolutionMatchType;
+      boundary: OperationalBoundary;
+      candidates: OperationalBoundary[];
+    }
+  | {
+      status: 'unresolved';
+      candidates: OperationalBoundary[];
+    }
+  | {
+      status: 'ambiguous';
+      matchedBy: ResolutionMatchType;
+      candidates: OperationalBoundary[];
+    };
 
 function parsePayloadSchema(payloadSchema?: string): unknown {
   if (!payloadSchema) return null;
@@ -225,40 +254,109 @@ function preferredKindsForIntent(
   return undefined;
 }
 
+function sortResolutionCandidates(
+  boundaries: OperationalBoundary[],
+  preferredKinds?: OperationalBoundaryKind[]
+): OperationalBoundary[] {
+  return [...boundaries].sort((left, right) => {
+    const leftKindIndex = preferredKinds ? preferredKinds.indexOf(left.kind) : -1;
+    const rightKindIndex = preferredKinds ? preferredKinds.indexOf(right.kind) : -1;
+    const normalizedLeftKindIndex = leftKindIndex === -1 ? Number.MAX_SAFE_INTEGER : leftKindIndex;
+    const normalizedRightKindIndex =
+      rightKindIndex === -1 ? Number.MAX_SAFE_INTEGER : rightKindIndex;
+
+    if (normalizedLeftKindIndex !== normalizedRightKindIndex) {
+      return normalizedLeftKindIndex - normalizedRightKindIndex;
+    }
+
+    if (left.name.length !== right.name.length) return left.name.length - right.name.length;
+    return left.name.localeCompare(right.name);
+  });
+}
+
+function dedupeBoundaries(boundaries: OperationalBoundary[]): OperationalBoundary[] {
+  const seen = new Set<string>();
+  const result: OperationalBoundary[] = [];
+  for (const boundary of boundaries) {
+    if (seen.has(boundary.id)) continue;
+    seen.add(boundary.id);
+    result.push(boundary);
+  }
+  return result;
+}
+
 function resolveBoundary(
   db: LuxDatabase,
   repoRoot: string,
   query: string,
   kinds?: OperationalBoundaryKind[]
-): OperationalBoundary | null {
+): BoundaryResolution {
   const boundaries = db
     .getOperationalBoundariesByRepoRoot(repoRoot)
-    .filter((boundary) => !kinds || kinds.includes(boundary.kind))
-    .sort((left, right) => {
-      if (!kinds) return 0;
-      return kinds.indexOf(left.kind) - kinds.indexOf(right.kind);
-    });
+    .filter((boundary) => !kinds || kinds.includes(boundary.kind));
   const normalizedQuery = normalize(query);
-  if (!normalizedQuery) return null;
+  if (!normalizedQuery) return { status: 'unresolved', candidates: [] };
 
-  const exact = boundaries.find(
-    (boundary) =>
-      normalize(boundary.id) === normalizedQuery || normalize(boundary.name) === normalizedQuery
-  );
-  if (exact) return exact;
+  const classifyMatches = (
+    matchedBy: ResolutionMatchType,
+    matches: OperationalBoundary[]
+  ): BoundaryResolution | null => {
+    const candidates = dedupeBoundaries(sortResolutionCandidates(matches, kinds));
+    if (candidates.length === 0) return null;
+    if (candidates.length === 1) {
+      return {
+        status: 'resolved',
+        matchedBy,
+        boundary: candidates[0],
+        candidates: candidates.slice(0, 5),
+      };
+    }
 
-  const prefix = boundaries.find((boundary) =>
-    normalize(boundary.name).startsWith(normalizedQuery)
-  );
-  if (prefix) return prefix;
+    return {
+      status: 'ambiguous',
+      matchedBy,
+      candidates: candidates.slice(0, 5),
+    };
+  };
 
-  return (
-    boundaries.find(
+  const exactMatch = classifyMatches(
+    'exact',
+    boundaries.filter(
       (boundary) =>
-        normalize(boundary.name).includes(normalizedQuery) ||
-        normalizedQuery.includes(normalize(boundary.name))
-    ) ?? null
+        normalize(boundary.id) === normalizedQuery || normalize(boundary.name) === normalizedQuery
+    )
   );
+  if (exactMatch) return exactMatch;
+
+  const prefixMatch = classifyMatches(
+    'prefix',
+    boundaries.filter((boundary) => normalize(boundary.name).startsWith(normalizedQuery))
+  );
+  if (prefixMatch) return prefixMatch;
+
+  const containsMatch = classifyMatches(
+    'contains',
+    boundaries.filter((boundary) => {
+      const normalizedName = normalize(boundary.name);
+      return normalizedName.includes(normalizedQuery) || normalizedQuery.includes(normalizedName);
+    })
+  );
+  if (containsMatch) return containsMatch;
+
+  const queryTokens = normalizedQuery
+    .split(/[^a-z0-9_:\\-]+/i)
+    .filter((token) => token.length >= 3);
+  const suggestions = dedupeBoundaries(
+    sortResolutionCandidates(
+      boundaries.filter((boundary) => {
+        const normalizedName = normalize(boundary.name);
+        return queryTokens.some((token) => normalizedName.includes(token));
+      }),
+      kinds
+    )
+  ).slice(0, 5);
+
+  return { status: 'unresolved', candidates: suggestions };
 }
 
 function confidenceFor(
@@ -269,17 +367,33 @@ function confidenceFor(
   return tiers.some((tier) => tier < 4) ? 'medium' : 'high';
 }
 
+function buildResolutionPayload(
+  query: string,
+  status: ResolutionStatus,
+  candidates: OperationalNodePayload[],
+  matchedBy?: ResolutionMatchType
+): OperationalResolutionPayload {
+  return {
+    query,
+    status,
+    matchedBy,
+    candidates,
+  };
+}
+
 function buildEmptyAnswer(
   db: LuxDatabase,
   question: string,
   intent: OperationalQuestionIntent,
   target: OperationalNodePayload | null,
-  reason: string
+  reason: string,
+  resolution: OperationalResolutionPayload
 ): OperationalAnswerPayload {
   return {
     question,
     intent,
     overlayTrustLevel: deriveOverlayTrustLevelFromState(inspectOverlayTrustState(db).state),
+    resolution,
     target,
     primaryAnswer: {
       summary: reason,
@@ -293,6 +407,7 @@ function buildEmptyAnswer(
     },
     transport: [],
     evidence: [],
+    context: [],
   };
 }
 
@@ -301,14 +416,27 @@ function buildOperationalAnswer(
   question: string,
   target: OperationalBoundary,
   intent: OperationalQuestionIntent,
+  resolution: OperationalResolutionPayload,
   options: AskOptions
 ): OperationalAnswerPayload {
-  if (intent === 'event-listeners') return buildEventListenersAnswer(db, question, target);
-  if (intent === 'dispatch-sources') return buildDispatchSourcesAnswer(db, question, target);
-  if (intent === 'dispatched-jobs') return buildDispatchedJobsAnswer(db, question, target);
-  if (intent === 'schedule-sources') return buildScheduleSourcesAnswer(db, question, target);
-  if (intent === 'evidence') return buildEvidenceAnswer(db, question, target);
-  return buildNeighborhoodAnswer(db, question, target, options);
+  if (intent === 'event-listeners') {
+    return buildEventListenersAnswer(db, question, target, resolution);
+  }
+  if (intent === 'dispatch-sources') {
+    return buildDispatchSourcesAnswer(db, question, target, resolution);
+  }
+  if (intent === 'dispatched-jobs') {
+    return buildDispatchedJobsAnswer(db, question, target, resolution);
+  }
+  if (intent === 'schedule-sources') {
+    return buildScheduleSourcesAnswer(db, question, target, resolution);
+  }
+  if (intent === 'evidence') return buildEvidenceAnswer(db, question, target, resolution);
+  return buildNeighborhoodAnswer(db, question, target, resolution, options);
+}
+
+function evidenceKey(item: OperationalEvidencePayload): string {
+  return `${item.edge?.id ?? 'no-edge'}:${item.source?.id ?? 'unknown'}:${item.target?.id ?? 'unknown'}`;
 }
 
 function baseAnswer(
@@ -318,12 +446,19 @@ function baseAnswer(
   target: OperationalBoundary,
   items: OperationalNodePayload[],
   evidence: OperationalEvidencePayload[],
-  summary: string
+  summary: string,
+  resolution: OperationalResolutionPayload,
+  context: OperationalEvidencePayload[] = []
 ): OperationalAnswerPayload {
   const uniqueItems = uniqueNodes(items);
   const uniqueEvidence = uniqueEvidenceItems(evidence);
-  const tiers = uniqueEvidence.flatMap((entry) => (entry.edge ? [entry.edge.trustTier] : []));
-  const transport = uniqueEvidence.flatMap((entry) =>
+  const supportKeys = new Set(uniqueEvidence.map(evidenceKey));
+  const uniqueContext = uniqueEvidenceItems(context).filter(
+    (entry) => !supportKeys.has(evidenceKey(entry))
+  );
+  const trustEvidence = [...uniqueEvidence, ...uniqueContext];
+  const tiers = trustEvidence.flatMap((entry) => (entry.edge ? [entry.edge.trustTier] : []));
+  const transport = trustEvidence.flatMap((entry) =>
     entry.edge
       ? [
           {
@@ -335,10 +470,12 @@ function baseAnswer(
         ]
       : []
   );
+
   return {
     question,
     intent,
     overlayTrustLevel: deriveOverlayTrustLevelFromState(inspectOverlayTrustState(db).state),
+    resolution,
     target: boundaryPayload(target),
     primaryAnswer: {
       summary,
@@ -352,6 +489,7 @@ function baseAnswer(
     },
     transport,
     evidence: uniqueEvidence,
+    context: uniqueContext,
   };
 }
 
@@ -370,7 +508,7 @@ function uniqueEvidenceItems(evidence: OperationalEvidencePayload[]): Operationa
   const seen = new Set<string>();
   const result: OperationalEvidencePayload[] = [];
   for (const item of evidence) {
-    const key = `${item.edge?.id ?? 'no-edge'}:${item.source?.id ?? 'unknown'}:${item.target?.id ?? 'unknown'}`;
+    const key = evidenceKey(item);
     if (seen.has(key)) continue;
     seen.add(key);
     result.push(item);
@@ -381,7 +519,8 @@ function uniqueEvidenceItems(evidence: OperationalEvidencePayload[]): Operationa
 function buildScheduleSourcesAnswer(
   db: LuxDatabase,
   question: string,
-  target: OperationalBoundary
+  target: OperationalBoundary,
+  resolution: OperationalResolutionPayload
 ): OperationalAnswerPayload {
   const upstream = getOperationalUpstreamTriggers(db, target.id);
   const schedules = (upstream?.triggers ?? []).filter(
@@ -399,13 +538,14 @@ function buildScheduleSourcesAnswer(
     items.length === 0
       ? `No persisted schedule currently triggers ${nodeLabel(boundaryPayload(target))}.`
       : `${items.map(nodeLabel).join(', ')} schedules ${nodeLabel(boundaryPayload(target))}.`;
-  return baseAnswer(db, question, 'schedule-sources', target, items, evidence, summary);
+  return baseAnswer(db, question, 'schedule-sources', target, items, evidence, summary, resolution);
 }
 
 function buildDispatchSourcesAnswer(
   db: LuxDatabase,
   question: string,
-  target: OperationalBoundary
+  target: OperationalBoundary,
+  resolution: OperationalResolutionPayload
 ): OperationalAnswerPayload {
   const dispatchSources = getOperationalDispatchSourcesForJob(db, target.id);
   const entries = dispatchSources?.dispatchSources ?? [];
@@ -421,13 +561,14 @@ function buildDispatchSourcesAnswer(
     items.length === 0
       ? `No persisted dispatcher currently reaches ${nodeLabel(boundaryPayload(target))}.`
       : `${items.map(nodeLabel).join(', ')} dispatches ${nodeLabel(boundaryPayload(target))}.`;
-  return baseAnswer(db, question, 'dispatch-sources', target, items, evidence, summary);
+  return baseAnswer(db, question, 'dispatch-sources', target, items, evidence, summary, resolution);
 }
 
 function buildDispatchedJobsAnswer(
   db: LuxDatabase,
   question: string,
-  target: OperationalBoundary
+  target: OperationalBoundary,
+  resolution: OperationalResolutionPayload
 ): OperationalAnswerPayload {
   const dispatched = getOperationalDispatchedJobs(db, target.id);
   const dispatchEvidence = dispatched.dispatchedJobs.map((entry) => ({
@@ -470,13 +611,14 @@ function buildDispatchedJobsAnswer(
     items.length === 0
       ? `No persisted command/job target is triggered by ${nodeLabel(boundaryPayload(target))}.`
       : `${nodeLabel(boundaryPayload(target))} triggers ${items.map(nodeLabel).join(', ')}.`;
-  return baseAnswer(db, question, 'dispatched-jobs', target, items, evidence, summary);
+  return baseAnswer(db, question, 'dispatched-jobs', target, items, evidence, summary, resolution);
 }
 
 function buildEventListenersAnswer(
   db: LuxDatabase,
   question: string,
-  target: OperationalBoundary
+  target: OperationalBoundary,
+  resolution: OperationalResolutionPayload
 ): OperationalAnswerPayload {
   const eventListeners = getOperationalEventListeners(db, target.id);
   const entries = eventListeners?.listeners ?? [];
@@ -492,13 +634,14 @@ function buildEventListenersAnswer(
     items.length === 0
       ? `No persisted listener currently handles ${nodeLabel(boundaryPayload(target))}.`
       : `${items.map(nodeLabel).join(', ')} handles ${nodeLabel(boundaryPayload(target))}.`;
-  return baseAnswer(db, question, 'event-listeners', target, items, evidence, summary);
+  return baseAnswer(db, question, 'event-listeners', target, items, evidence, summary, resolution);
 }
 
 function buildEvidenceAnswer(
   db: LuxDatabase,
   question: string,
-  target: OperationalBoundary
+  target: OperationalBoundary,
+  resolution: OperationalResolutionPayload
 ): OperationalAnswerPayload {
   const handlers = getOperationalBoundaryHandlers(db, target.id)?.handlers ?? [];
   const upstream = getOperationalUpstreamTriggers(db, target.id)?.triggers ?? [];
@@ -561,13 +704,14 @@ function buildEvidenceAnswer(
     evidence.length === 0
       ? `No persisted operational evidence is attached to ${nodeLabel(boundaryPayload(target))}.`
       : `${nodeLabel(boundaryPayload(target))} is supported by ${evidence.length} persisted operational evidence item(s).`;
-  return baseAnswer(db, question, 'evidence', target, items, evidence, summary);
+  return baseAnswer(db, question, 'evidence', target, items, evidence, summary, resolution);
 }
 
 function buildNeighborhoodAnswer(
   db: LuxDatabase,
   question: string,
   target: OperationalBoundary,
+  resolution: OperationalResolutionPayload,
   options: AskOptions
 ): OperationalAnswerPayload {
   const minTrustTier = (options.minTrustTier ?? 1) as TrustTier;
@@ -578,7 +722,7 @@ function buildNeighborhoodAnswer(
   const items = neighborhood.nodes
     .filter((node) => node.id !== target.id)
     .map((node) => getNodePayload(db, node.id));
-  const evidence = neighborhood.edges.map((edge) => ({
+  const context = neighborhood.edges.map((edge) => ({
     edge: {
       id: edge.id,
       edgeType: edge.edgeType,
@@ -591,8 +735,59 @@ function buildNeighborhoodAnswer(
   const summary =
     items.length === 0
       ? `No operational neighborhood was found around ${nodeLabel(boundaryPayload(target))}.`
-      : `${nodeLabel(boundaryPayload(target))} can reach or be reached by ${items.map(nodeLabel).join(', ')}.`;
-  return baseAnswer(db, question, 'neighborhood', target, items, evidence, summary);
+      : `${nodeLabel(boundaryPayload(target))} can reach or be reached by ${items
+          .map(nodeLabel)
+          .join(', ')}.`;
+  return baseAnswer(db, question, 'neighborhood', target, items, [], summary, resolution, context);
+}
+
+function describeEvidenceTrust(tiers: TrustTier[]): string {
+  if (tiers.length === 0) return 'none';
+  const unique = [...new Set(tiers)].sort((left, right) => left - right);
+  if (unique.length === 1) return `tier ${unique[0]}`;
+  return `mixed tiers ${unique.join(', ')}`;
+}
+
+function renderEvidenceSection(
+  title: string,
+  entries: OperationalEvidencePayload[],
+  emptyLabel?: string
+): string[] {
+  const lines: string[] = [`\n${title}`];
+  if (entries.length === 0) {
+    if (emptyLabel) lines.push(`- ${emptyLabel}`);
+    return lines;
+  }
+
+  for (const evidence of entries) {
+    const source = evidence.source ? nodeLabel(evidence.source) : 'unknown';
+    const target = evidence.target ? nodeLabel(evidence.target) : 'unknown';
+    const edge = evidence.edge
+      ? `${evidence.edge.edgeType} ${evidence.edge.transport ?? 'n/a'} tier=${evidence.edge.trustTier}`
+      : 'no edge';
+    lines.push(`- ${source} -> ${target}: ${edge}`);
+    if (evidence.filePath) lines.push(`  file: ${evidence.filePath}`);
+    if (evidence.contracts && evidence.contracts.length > 0) {
+      lines.push(
+        `  contracts: ${evidence.contracts
+          .map((contract) => `${contract.id} tier=${contract.trustTier}`)
+          .join(', ')}`
+      );
+    }
+    if (evidence.note) lines.push(`  ${evidence.note}`);
+  }
+
+  return lines;
+}
+
+function renderCandidateSection(title: string, candidates: OperationalNodePayload[]): string[] {
+  const lines: string[] = [`\n${title}`];
+  for (const candidate of candidates) {
+    lines.push(
+      `- ${nodeLabel(candidate)}${candidate.trustTier ? ` tier=${candidate.trustTier}` : ''}${candidate.filePath ? ` (${candidate.filePath})` : ''}`
+    );
+  }
+  return lines;
 }
 
 function renderTextAnswer(payload: OperationalAnswerPayload): string {
@@ -606,6 +801,24 @@ function renderTextAnswer(payload: OperationalAnswerPayload): string {
     );
     if (payload.target.trustTier) lines.push(`Target Trust Tier: ${payload.target.trustTier}`);
   }
+  lines.push(`Evidence Trust: ${describeEvidenceTrust(payload.trust.evidenceTrustTiers)}`);
+
+  if (payload.resolution.status === 'resolved' && payload.resolution.matchedBy) {
+    lines.push(`Resolution Match: ${payload.resolution.matchedBy}`);
+  }
+
+  if (payload.resolution.status !== 'resolved') {
+    lines.push(`Resolution: ${payload.resolution.status}`);
+    if (payload.resolution.candidates.length > 0) {
+      lines.push(
+        ...renderCandidateSection(
+          payload.resolution.status === 'ambiguous' ? 'Candidates' : 'Closest Candidates',
+          payload.resolution.candidates
+        )
+      );
+    }
+  }
+
   if (payload.transport.length > 0) {
     lines.push('\nTransport');
     for (const transport of payload.transport) {
@@ -614,28 +827,12 @@ function renderTextAnswer(payload: OperationalAnswerPayload): string {
       );
     }
   }
-  lines.push('\nEvidence');
-  if (payload.evidence.length === 0) {
-    lines.push('- none persisted');
-  } else {
-    for (const evidence of payload.evidence) {
-      const source = evidence.source ? nodeLabel(evidence.source) : 'unknown';
-      const target = evidence.target ? nodeLabel(evidence.target) : 'unknown';
-      const edge = evidence.edge
-        ? `${evidence.edge.edgeType} ${evidence.edge.transport ?? 'n/a'} tier=${evidence.edge.trustTier}`
-        : 'no edge';
-      lines.push(`- ${source} -> ${target}: ${edge}`);
-      if (evidence.filePath) lines.push(`  file: ${evidence.filePath}`);
-      if (evidence.contracts && evidence.contracts.length > 0) {
-        lines.push(
-          `  contracts: ${evidence.contracts
-            .map((contract) => `${contract.id} tier=${contract.trustTier}`)
-            .join(', ')}`
-        );
-      }
-      if (evidence.note) lines.push(`  ${evidence.note}`);
-    }
+
+  lines.push(...renderEvidenceSection('Direct Evidence', payload.evidence, 'none persisted'));
+  if (payload.context.length > 0) {
+    lines.push(...renderEvidenceSection('Context', payload.context));
   }
+
   return lines.join('\n');
 }
 
@@ -682,21 +879,43 @@ export function runOperationalAsk(
 
   const intent = inferIntent(question);
   const targetText = options.target ?? extractTargetQuestionFragment(question, intent);
-  const target = resolveBoundary(
+  const resolution = resolveBoundary(
     db,
     corpusPath,
     targetText,
     preferredKindsForIntent(intent, options.kind, targetText)
   );
-  const payload = target
-    ? buildOperationalAnswer(db, question, target, intent, options)
-    : buildEmptyAnswer(
-        db,
-        question,
-        intent,
-        null,
-        `No persisted operational boundary matched "${targetText}".`
-      );
+
+  const payload =
+    resolution.status === 'resolved'
+      ? buildOperationalAnswer(
+          db,
+          question,
+          resolution.boundary,
+          intent,
+          buildResolutionPayload(
+            targetText,
+            'resolved',
+            resolution.candidates.map(boundaryPayload),
+            resolution.matchedBy
+          ),
+          options
+        )
+      : buildEmptyAnswer(
+          db,
+          question,
+          intent,
+          null,
+          resolution.status === 'ambiguous'
+            ? `Multiple persisted operational boundaries matched "${targetText}". Use --kind or a more specific --target.`
+            : `No persisted operational boundary matched "${targetText}".`,
+          buildResolutionPayload(
+            targetText,
+            resolution.status,
+            resolution.candidates.map(boundaryPayload),
+            resolution.status === 'ambiguous' ? resolution.matchedBy : undefined
+          )
+        );
 
   if (options.json) {
     console.log(JSON.stringify(payload, null, 2));
@@ -705,5 +924,5 @@ export function runOperationalAsk(
   }
 
   db.close();
-  if (!target) process.exit(1);
+  if (resolution.status !== 'resolved') process.exit(1);
 }
