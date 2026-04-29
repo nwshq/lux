@@ -149,6 +149,17 @@ describe('overlay feature-path CLI', () => {
     expect(result.stdout).toContain('Direct evidence');
   });
 
+  it('promotes top-level ask route-handler questions into feature-path retrieval', () => {
+    const result = runCli(repoDir, dbPath, ['ask', 'what handles POST /offers?']);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('OfferController@store');
+    expect(result.stdout).toContain('Overlay Trust: overlay-complete');
+    expect(result.stdout).toContain('Resolution Match: contains');
+    expect(result.stdout).toContain('Direct evidence');
+    expect(result.stderr).not.toContain('No experts were able to respond');
+  });
+
   it('resolves a bare "POST /offers" target via semantic-exact when --target is used', () => {
     const result = runCli(repoDir, dbPath, [
       'overlay',

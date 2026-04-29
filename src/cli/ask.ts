@@ -5,6 +5,8 @@ import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
 import type { ExpertSessionManager } from '../experts/session-manager.js';
 import { routeQuery } from '../experts/router.js';
 import type { RouteResult } from '../experts/router.js';
+import { executeFeaturePathAsk } from './feature-path.js';
+import { inferFeaturePathIntent } from '../scanner/associations/feature-path/intents.js';
 
 export function addAskCommand(program: Command) {
   program
@@ -46,6 +48,8 @@ export function addAskCommand(program: Command) {
         try {
           if (options.expert) {
             await askSpecificExpert(db, sessionManager, question, options.expert, options);
+          } else if (tryAskFeaturePath(db, question, options, corpusPath)) {
+            // Promoted retrieval answers are emitted by tryAskFeaturePath.
           } else {
             await askPanel(db, sessionManager, question, options, corpusPath);
           }
@@ -63,6 +67,23 @@ export function addAskCommand(program: Command) {
         db.close();
       }
     );
+}
+
+export function tryAskFeaturePath(
+  db: LuxDatabase,
+  question: string,
+  options: { json?: boolean },
+  corpusPath: string
+): boolean {
+  const intentResolution = inferFeaturePathIntent(question);
+  if (!intentResolution.intent) return false;
+
+  const result = executeFeaturePathAsk(db, question, { json: options.json, corpusPath });
+  console.log(result.rendered);
+  if (result.exitCode !== 0) {
+    process.exitCode = result.exitCode;
+  }
+  return true;
 }
 
 export async function askSpecificExpert(
@@ -166,7 +187,7 @@ export async function askPanel(
 
   const routerOpts = {
     ...(shouldStream ? { onChunk: (chunk: string) => process.stdout.write(chunk) } : {}),
-    ...(corpusPath ? { corpusPath } : {}),
+    ...(corpusPath ? { rootPath: corpusPath } : {}),
     ...(options.routingModel ? { routingModel: options.routingModel } : {}),
     ...(options.routingBackend ? { routingBackend: options.routingBackend } : {}),
     ...(options.routingProvider ? { routingProvider: options.routingProvider } : {}),

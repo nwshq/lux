@@ -16,6 +16,7 @@ import {
 } from '../scanner/associations/feature-path/render.js';
 import { resolveFeaturePathTarget } from '../scanner/associations/feature-path/resolve.js';
 import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
+import type { FeaturePathAnswer } from '../scanner/associations/feature-path/contract.js';
 
 export interface FeaturePathAskOptions {
   json?: boolean;
@@ -25,6 +26,43 @@ export interface FeaturePathAskOptions {
    * trailing `?` and lowercases internally.
    */
   target?: string;
+}
+
+export interface FeaturePathAskExecutionResult {
+  answer: FeaturePathAnswer;
+  rendered: string;
+  exitCode: 0 | 1;
+}
+
+export function executeFeaturePathAsk(
+  db: LuxDatabase,
+  question: string,
+  options: FeaturePathAskOptions & { corpusPath: string }
+): FeaturePathAskExecutionResult {
+  const resolverInput = options.target ?? question;
+  const resolution = resolveFeaturePathTarget(db, resolverInput);
+
+  // Tranche one stays narrow on route- and handler-centered intents (R11).
+  // If the direct overlay seam is invoked with a question that doesn't match a
+  // locked pattern, answer with route-handler so the surface can refuse honestly
+  // through the failures section rather than throwing.
+  const intentResolution = inferFeaturePathIntent(question);
+  const intent = intentResolution.intent ?? 'route-handler';
+
+  const answer = assembleFeaturePathAnswer(db, {
+    question,
+    intent,
+    resolution,
+    repoRoot: options.corpusPath,
+  });
+
+  return {
+    answer,
+    rendered: options.json
+      ? renderFeaturePathAnswerJson(answer)
+      : renderFeaturePathAnswerText(answer),
+    exitCode: resolution.status === 'resolved' ? 0 : 1,
+  };
 }
 
 export function runFeaturePathAsk(
@@ -44,29 +82,10 @@ export function runFeaturePathAsk(
     resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
   );
 
-  const resolverInput = options.target ?? question;
-  const resolution = resolveFeaturePathTarget(db, resolverInput);
+  const result = executeFeaturePathAsk(db, question, { ...options, corpusPath });
 
-  // Tranche one stays narrow on route- and handler-centered intents (R11).
-  // If the question doesn't match a locked pattern we still answer with
-  // route-handler so the answer surface can refuse honestly through the
-  // failures section rather than throwing.
-  const intentResolution = inferFeaturePathIntent(question);
-  const intent = intentResolution.intent ?? 'route-handler';
-
-  const answer = assembleFeaturePathAnswer(db, {
-    question,
-    intent,
-    resolution,
-    repoRoot: corpusPath,
-  });
-
-  if (options.json) {
-    console.log(renderFeaturePathAnswerJson(answer));
-  } else {
-    console.log(renderFeaturePathAnswerText(answer));
-  }
+  console.log(result.rendered);
 
   db.close();
-  if (resolution.status !== 'resolved') process.exit(1);
+  if (result.exitCode !== 0) process.exit(result.exitCode);
 }

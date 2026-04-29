@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { LuxDatabase } from '../../db/index.js';
-import { askSpecificExpert, askPanel, formatRouteResultJson } from '../ask.js';
+import { askSpecificExpert, askPanel, formatRouteResultJson, tryAskFeaturePath } from '../ask.js';
 import type {
   ExpertSessionManager,
   QueryOptions,
@@ -12,6 +12,7 @@ import type {
 } from '../../experts/session-manager.js';
 import type { Expert, ExpertSession } from '../../db/types.js';
 import type { RouteResult } from '../../experts/router.js';
+import { persistRebuildTrustState } from '../../scanner/overlay-trust-state.js';
 
 // Mock child_process.spawn so LLM routing doesn't call a real routing binary
 vi.mock('child_process', async () => {
@@ -46,6 +47,85 @@ vi.mock('child_process', async () => {
     }),
   };
 });
+
+function insertFeaturePathFixture(db: LuxDatabase, repoDir: string): void {
+  persistRebuildTrustState(
+    db,
+    {
+      mode: 'overlay-complete',
+      repoPath: repoDir,
+      configSource: 'lux.yaml',
+      configLspEnabled: true,
+      surfaceCount: 2,
+      detectorEdgeCount: 1,
+      propagatedEdgeCount: 0,
+      fileNodeCount: 3,
+      symbolNodeCount: 1,
+      controllerBackedCount: 1,
+      closureBackedCount: 0,
+      unknownProviderKindCount: 0,
+      enrichmentStatus: 'active',
+      propagationStatus: 'ran',
+      warnings: [],
+    },
+    { sourceAction: 'index-rebuild' }
+  );
+
+  const now = Math.floor(Date.now() / 1000);
+
+  db.upsertStructuralNode({
+    id: 'surface:http:POST:/offers',
+    node_type: 'capability-surface',
+    symbol_name: 'POST /offers',
+    language_id: 'http',
+    file_path: 'routes/api.php',
+    metadata: JSON.stringify({
+      transport: 'http',
+      method: 'POST',
+      path: '/offers',
+      routeName: 'offers.store',
+    }),
+    updated_at: now,
+  });
+
+  db.upsertStructuralNode({
+    id: 'surface:http:GET:/',
+    node_type: 'capability-surface',
+    symbol_name: 'GET /',
+    language_id: 'http',
+    file_path: 'routes/web.php',
+    metadata: JSON.stringify({
+      transport: 'http',
+      method: 'GET',
+      path: '/',
+      routeName: 'home',
+    }),
+    updated_at: now,
+  });
+
+  db.upsertStructuralNode({
+    id: 'symbol:php:App\\Http\\Controllers\\OfferController@store',
+    node_type: 'symbol',
+    symbol_name: 'OfferController@store',
+    language_id: 'php',
+    file_path: 'app/Http/Controllers/OfferController.php',
+    metadata: '{}',
+    updated_at: now,
+  });
+
+  db.upsertStructuralEdge({
+    id: 'edge:handled_by:surface:http:POST:/offers',
+    source_node_id: 'surface:http:POST:/offers',
+    target_node_id: 'symbol:php:App\\Http\\Controllers\\OfferController@store',
+    edge_type: 'handled_by',
+    confidence: 0.9,
+    confidence_class: 'framework-inferred',
+    freshness_status: 'fresh',
+    dirty_dependency_count: 0,
+    provenance_summary: 'test',
+    updated_at: now,
+  });
+}
 
 /** A mock ExpertSessionManager that returns canned responses. */
 function createMockSessionManager(responses: Record<string, string> = {}): ExpertSessionManager & {
@@ -108,9 +188,80 @@ describe('ask command', () => {
   });
 
   afterEach(() => {
+    process.exitCode = undefined;
     if (db) db.close();
     rmSync(dbDir, { recursive: true, force: true });
     rmSync(contentDir, { recursive: true, force: true });
+  });
+
+  describe('feature-path promotion', () => {
+    it('promotes narrow route-centered questions before expert routing', () => {
+      insertFeaturePathFixture(db, contentDir);
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      const handled = tryAskFeaturePath(db, 'what handles POST /offers?', {}, contentDir);
+
+      expect(handled).toBe(true);
+      expect(process.exitCode).toBeUndefined();
+      expect(logSpy).toHaveBeenCalledTimes(1);
+      const output = logSpy.mock.calls[0][0] as string;
+      expect(output).toContain('OfferController@store');
+      expect(output).toContain('Overlay Trust: overlay-complete');
+      expect(output).toContain('Direct evidence');
+
+      logSpy.mockRestore();
+    });
+
+    it('preserves honest feature-path refusal for promoted unresolved questions', () => {
+      insertFeaturePathFixture(db, contentDir);
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      const handled = tryAskFeaturePath(db, 'what handles POST /missing-route?', {}, contentDir);
+
+      expect(handled).toBe(true);
+      expect(process.exitCode).toBe(1);
+      const output = logSpy.mock.calls[0][0] as string;
+      expect(output).toContain('Resolution: unresolved');
+      expect(output).toContain('Lux could not resolve the question to a feature-path target.');
+
+      logSpy.mockRestore();
+    });
+
+    it('does not promote questions outside the locked feature-path intent gate', () => {
+      insertFeaturePathFixture(db, contentDir);
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      const handled = tryAskFeaturePath(db, 'explain this repository architecture', {}, contentDir);
+
+      expect(handled).toBe(false);
+      expect(logSpy).not.toHaveBeenCalled();
+
+      logSpy.mockRestore();
+    });
+
+    it('emits native feature-path JSON for promoted JSON asks', () => {
+      insertFeaturePathFixture(db, contentDir);
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      const handled = tryAskFeaturePath(
+        db,
+        'what handles POST /offers?',
+        { json: true },
+        contentDir
+      );
+
+      expect(handled).toBe(true);
+      const payload = JSON.parse(logSpy.mock.calls[0][0] as string) as {
+        schemaVersion: number;
+        intent: string;
+        target: { id: string } | null;
+      };
+      expect(payload.schemaVersion).toBeGreaterThanOrEqual(1);
+      expect(payload.intent).toBe('route-handler');
+      expect(payload.target?.id).toBe('surface:http:POST:/offers');
+
+      logSpy.mockRestore();
+    });
   });
 
   describe('askSpecificExpert', () => {
