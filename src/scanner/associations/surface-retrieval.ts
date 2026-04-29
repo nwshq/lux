@@ -380,7 +380,7 @@ function shortLabel(node: StructuralNode): string {
  * Parse TransportContractMetadata from a structural node's metadata JSON.
  * Returns null if the node has no metadata or the metadata is not a contract.
  */
-function parseContractMeta(node: StructuralNode): TransportContractMetadata | null {
+export function parseContractMeta(node: StructuralNode): TransportContractMetadata | null {
   if (node.node_type !== 'contract') return null;
   try {
     const raw = JSON.parse(node.metadata ?? '{}') as Partial<TransportContractMetadata>;
@@ -400,7 +400,7 @@ function parseContractMeta(node: StructuralNode): TransportContractMetadata | nu
  *   - `coarse(page-response)`
  *   - `explicit-class(InvoiceResource)` — explicit class nodes not yet migrated
  */
-function formatContractLabel(node: StructuralNode): string {
+export function formatContractLabel(node: StructuralNode): string {
   const meta = parseContractMeta(node);
   if (!meta) return shortLabel(node);
 
@@ -433,7 +433,7 @@ function formatContractLabel(node: StructuralNode): string {
  *
  * Page and API surfaces score the same for equivalent contract kinds (transport-neutral).
  */
-function scoreContract(node: StructuralNode): number {
+export function scoreContract(node: StructuralNode): number {
   const meta = parseContractMeta(node);
   if (!meta) {
     // Non-migrated explicit contract nodes: treat as exact class
@@ -476,7 +476,7 @@ function scoreContract(node: StructuralNode): number {
  * stable interactionKind label. Returns undefined when no strong evidence
  * exists.
  */
-function inferSurfaceInteractionKind(
+export function inferSurfaceInteractionKind(
   validators: StructuralNode[],
   responseContracts: StructuralNode[]
 ): TransportContractMetadata['interactionKind'] | undefined {

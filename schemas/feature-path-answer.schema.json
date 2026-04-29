@@ -1,0 +1,435 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/nwshq/lux/schemas/feature-path-answer.schema.json",
+  "title": "Feature-Path Answer",
+  "description": "Tranche-one answer contract for Lux feature-path retrieval. Answers a route- or handler-centered feature question by combining structural surface, handler, contract, ownership, bounded operational, and trust-aware cross-language evidence into one answer surface. Direct evidence and context are kept separate.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "question",
+    "intent",
+    "overlayTrustLevel",
+    "resolution",
+    "target",
+    "primaryAnswer",
+    "ownership",
+    "contracts",
+    "directEvidence",
+    "context",
+    "downstreamStep",
+    "crossLanguage",
+    "trust",
+    "failures"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "description": "Schema version. Bumped on any breaking change to this contract.",
+      "const": 1
+    },
+    "question": {
+      "type": "string",
+      "description": "Original natural-language question as provided by the operator."
+    },
+    "intent": {
+      "$ref": "#/definitions/featurePathIntent"
+    },
+    "overlayTrustLevel": {
+      "type": "string",
+      "description": "Operator-facing overlay trust level (e.g. overlay-complete, degraded-overlay, content-only). Carried verbatim from the existing overlay-trust-state derivation."
+    },
+    "resolution": {
+      "$ref": "#/definitions/resolution"
+    },
+    "target": {
+      "anyOf": [
+        { "type": "null" },
+        { "$ref": "#/definitions/target" }
+      ],
+      "description": "Resolved feature-path target. Null when resolution did not produce a concrete target."
+    },
+    "primaryAnswer": {
+      "$ref": "#/definitions/primaryAnswer"
+    },
+    "ownership": {
+      "anyOf": [
+        { "type": "null" },
+        { "$ref": "#/definitions/ownership" }
+      ],
+      "description": "Domain ownership. Null when no plausible region can be attributed to the target."
+    },
+    "contracts": {
+      "anyOf": [
+        { "type": "null" },
+        { "$ref": "#/definitions/contracts" }
+      ],
+      "description": "Structurally recoverable request, response, and downstream payload contracts. Null when no contract was recovered."
+    },
+    "directEvidence": {
+      "type": "array",
+      "description": "Material that directly supports the primary answer. Adjacent or contextual signal must NOT appear here.",
+      "items": { "$ref": "#/definitions/directEvidenceItem" }
+    },
+    "context": {
+      "type": "array",
+      "description": "Adjacent but non-proving information. Must remain visibly separate from directEvidence.",
+      "items": { "$ref": "#/definitions/contextItem" }
+    },
+    "downstreamStep": {
+      "anyOf": [
+        { "type": "null" },
+        { "$ref": "#/definitions/downstreamStep" }
+      ],
+      "description": "At most ONE bounded operational hop where it materially completes the answer. Null when no justified downstream step exists."
+    },
+    "crossLanguage": {
+      "anyOf": [
+        { "type": "null" },
+        { "$ref": "#/definitions/crossLanguage" }
+      ],
+      "description": "Cross-language (e.g. backend-to-frontend) participation. Includes explicit refusal modes when the trust threshold is not met."
+    },
+    "trust": {
+      "$ref": "#/definitions/trust"
+    },
+    "failures": {
+      "type": "array",
+      "description": "Failure classifications attached to this answer. Empty when the answer is fully proven. Non-empty failures do not preclude a partial primary answer.",
+      "items": { "$ref": "#/definitions/failure" }
+    }
+  },
+  "definitions": {
+    "trustTier": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Lux trust tier 1..5 (higher = stronger evidence). Mirrors existing OperationalBoundary / StructuralEdge trust grading."
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["high", "medium", "none"],
+      "description": "Confidence band for the primary answer. Mirrors operational ask confidence grading."
+    },
+    "resolutionStatus": {
+      "type": "string",
+      "enum": ["resolved", "unresolved", "ambiguous"]
+    },
+    "resolutionMatchType": {
+      "type": "string",
+      "enum": ["exact", "semantic-exact", "prefix", "contains"],
+      "description": "How the question target was matched to a persisted feature-path target. semantic-exact means equality after normalization (case, framework prefixes, route shape)."
+    },
+    "featurePathIntent": {
+      "type": "string",
+      "enum": [
+        "route-handler",
+        "route-ownership",
+        "route-callers",
+        "route-contract",
+        "route-downstream"
+      ],
+      "description": "First locked set of feature-path intents. Tranche one stays narrow on route- and handler-centered questions. Detector expansion is explicitly NOT a tranche-one success criterion."
+    },
+    "targetKind": {
+      "type": "string",
+      "enum": ["route-surface", "handler-symbol", "unresolved"]
+    },
+    "evidenceKind": {
+      "type": "string",
+      "enum": [
+        "route-declaration",
+        "handler-recovery",
+        "validator-attachment",
+        "response-contract",
+        "dispatch-call",
+        "event-listener-registration",
+        "high-trust-cross-language-association"
+      ],
+      "description": "Kinds of evidence that may legitimately appear under directEvidence. New kinds require a contract version bump."
+    },
+    "contextKind": {
+      "type": "string",
+      "enum": [
+        "nearby-consumer",
+        "related-job",
+        "neighboring-component",
+        "region-adjacency",
+        "co-located-symbol"
+      ],
+      "description": "Kinds of contextual signal that may appear under context. These must NEVER read like proof."
+    },
+    "ownershipBasis": {
+      "type": "string",
+      "enum": ["module-boundary", "directory-led", "overlay-led", "hybrid", "unresolved"],
+      "description": "How ownership was attributed. Mirrors the existing expert boundary_basis vocabulary so feature-path retrieval and panel boundaries reason in the same terms."
+    },
+    "downstreamEdgeType": {
+      "type": "string",
+      "enum": ["DISPATCHES", "TRIGGERS", "HANDLED_BY", "CONSUMES", "PRODUCES"],
+      "description": "Operational edge type for the bounded downstream hop. Constrained to the persisted OperationalEdgeType vocabulary."
+    },
+    "downstreamTransport": {
+      "type": "string",
+      "enum": ["sync", "async", "queue", "event-bus"]
+    },
+    "crossLanguageStatus": {
+      "type": "string",
+      "enum": ["promoted", "refused-low-trust", "refused-naming-only", "not-applicable"],
+      "description": "Outcome of the cross-language promotion decision. refused-* values are explicit honest refusals (R6, R10) and MUST NOT be hidden when the question implied a frontend hop."
+    },
+    "crossLanguageBasis": {
+      "type": "string",
+      "enum": ["generated-types", "shared-config", "shared-event", "naming-only"],
+      "description": "Basis of a backend-to-frontend association. naming-only is below promotion threshold by default."
+    },
+    "failureClass": {
+      "type": "string",
+      "enum": [
+        "unresolved-target",
+        "ambiguous-target",
+        "missing-handler-recovery",
+        "weak-ownership",
+        "insufficient-contract-recovery",
+        "insufficient-direct-evidence",
+        "cross-language-below-promotion-threshold"
+      ],
+      "description": "Shared failure taxonomy. Validation reports and answer payloads use the same vocabulary so misses can be classified without translation."
+    },
+    "structuralConfidenceClass": {
+      "type": "string",
+      "enum": ["proven", "artifact-backed", "framework-inferred", "heuristic"],
+      "description": "Confidence class carried over from StructuralEdge.confidence_class for any evidence sourced from the structural overlay."
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id"],
+      "properties": {
+        "kind": { "$ref": "#/definitions/targetKind" },
+        "id": {
+          "type": "string",
+          "description": "Persisted node ID. For route surfaces this is the capability-surface ID (e.g. surface:http:POST:/offers)."
+        },
+        "label": {
+          "type": "string",
+          "description": "Display label suitable for the primary-answer summary line."
+        },
+        "filePath": { "type": ["string", "null"] },
+        "surfaceMethod": { "type": "string" },
+        "surfacePath": { "type": "string" },
+        "routeName": { "type": "string" },
+        "trustTier": { "$ref": "#/definitions/trustTier" }
+      }
+    },
+    "resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["query", "status", "candidates"],
+      "properties": {
+        "query": { "type": "string" },
+        "status": { "$ref": "#/definitions/resolutionStatus" },
+        "matchedBy": { "$ref": "#/definitions/resolutionMatchType" },
+        "candidates": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/target" },
+          "description": "Up to a small number of plausible targets. Populated for both ambiguous and unresolved statuses to make refusal honest and actionable."
+        }
+      }
+    },
+    "primaryAnswer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summary", "confidence"],
+      "properties": {
+        "summary": {
+          "type": "string",
+          "description": "Single-sentence plain-language statement of the strongest feature-path claim. Example: 'POST /offers is handled by OfferController@store and belongs to Listings.'"
+        },
+        "confidence": { "$ref": "#/definitions/confidence" }
+      }
+    },
+    "ownership": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["regionId", "regionName", "basis", "trustTier"],
+      "properties": {
+        "regionId": {
+          "type": "string",
+          "description": "Stable identifier (e.g. module:Listings or directory:app/Modules/Listings)."
+        },
+        "regionName": { "type": "string" },
+        "basis": { "$ref": "#/definitions/ownershipBasis" },
+        "trustTier": { "$ref": "#/definitions/trustTier" },
+        "rationale": {
+          "type": "string",
+          "description": "Plain-language reason. Required when basis is 'overlay-led' or 'hybrid' so the basis is not opaque."
+        }
+      }
+    },
+    "contractFragment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "description": "Display label, e.g. 'exact(StoreOfferRequest)' or 'coarse(empty-ack)'."
+        },
+        "contractKind": { "type": "string" },
+        "shapeConfidence": {
+          "type": "string",
+          "enum": ["exact", "coarse"]
+        },
+        "nodeId": { "type": "string" },
+        "filePath": { "type": "string" }
+      }
+    },
+    "downstreamPayloadFragment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label"],
+      "properties": {
+        "label": { "type": "string" },
+        "boundaryId": { "type": "string" },
+        "trustTier": { "$ref": "#/definitions/trustTier" }
+      }
+    },
+    "contracts": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "request": { "$ref": "#/definitions/contractFragment" },
+        "response": { "$ref": "#/definitions/contractFragment" },
+        "downstreamPayload": { "$ref": "#/definitions/downstreamPayloadFragment" },
+        "interactionKind": {
+          "type": "string",
+          "description": "Dominant interactionKind extracted from contracts (e.g. api, page-rendered)."
+        }
+      }
+    },
+    "directEvidenceItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "description"],
+      "properties": {
+        "kind": { "$ref": "#/definitions/evidenceKind" },
+        "description": { "type": "string" },
+        "nodeId": { "type": "string" },
+        "edgeId": { "type": "string" },
+        "filePath": { "type": "string" },
+        "trustTier": { "$ref": "#/definitions/trustTier" },
+        "confidenceClass": { "$ref": "#/definitions/structuralConfidenceClass" }
+      }
+    },
+    "contextItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "description"],
+      "properties": {
+        "kind": { "$ref": "#/definitions/contextKind" },
+        "description": { "type": "string" },
+        "nodeId": { "type": "string" },
+        "edgeId": { "type": "string" },
+        "filePath": { "type": "string" },
+        "trustTier": { "$ref": "#/definitions/trustTier" }
+      }
+    },
+    "downstreamStepEndpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id"],
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "filePath": { "type": "string" }
+      }
+    },
+    "downstreamStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description", "edgeType", "source", "target", "trustTier"],
+      "properties": {
+        "description": { "type": "string" },
+        "edgeType": { "$ref": "#/definitions/downstreamEdgeType" },
+        "transport": { "$ref": "#/definitions/downstreamTransport" },
+        "source": { "$ref": "#/definitions/downstreamStepEndpoint" },
+        "target": { "$ref": "#/definitions/downstreamStepEndpoint" },
+        "trustTier": { "$ref": "#/definitions/trustTier" },
+        "rationale": {
+          "type": "string",
+          "description": "Why this single hop materially completes the answer. Required because the downstream slot is bounded to ONE step."
+        }
+      }
+    },
+    "crossLanguageAssociation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["backendNodeId", "frontendNodeId", "basis", "trustTier"],
+      "properties": {
+        "backendNodeId": { "type": "string" },
+        "frontendNodeId": { "type": "string" },
+        "basis": { "$ref": "#/definitions/crossLanguageBasis" },
+        "trustTier": { "$ref": "#/definitions/trustTier" },
+        "filePath": { "type": "string" }
+      }
+    },
+    "crossLanguage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "associations"],
+      "properties": {
+        "status": { "$ref": "#/definitions/crossLanguageStatus" },
+        "trustTier": {
+          "$ref": "#/definitions/trustTier",
+          "description": "Aggregate trust tier of the strongest promoted association. Absent for refused-* and not-applicable statuses."
+        },
+        "associations": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/crossLanguageAssociation" },
+          "description": "Concrete associations considered. For refused-* statuses, this MAY be populated to make refusal auditable; consumers MUST NOT render refused associations as feature paths."
+        },
+        "rationale": {
+          "type": "string",
+          "description": "Why the status was assigned. Required for refused-* so refusal is not silent."
+        }
+      }
+    },
+    "trust": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targetTrustTier", "evidenceTrustTiers", "ownershipTrustTier", "mixedTrust"],
+      "properties": {
+        "targetTrustTier": {
+          "anyOf": [
+            { "type": "null" },
+            { "$ref": "#/definitions/trustTier" }
+          ]
+        },
+        "evidenceTrustTiers": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/trustTier" }
+        },
+        "ownershipTrustTier": {
+          "anyOf": [
+            { "type": "null" },
+            { "$ref": "#/definitions/trustTier" }
+          ]
+        },
+        "mixedTrust": {
+          "type": "boolean",
+          "description": "True iff target/evidence/ownership tiers contain more than one distinct value."
+        }
+      }
+    },
+    "failure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["failureClass", "detail"],
+      "properties": {
+        "failureClass": { "$ref": "#/definitions/failureClass" },
+        "detail": { "type": "string" }
+      }
+    }
+  }
+}

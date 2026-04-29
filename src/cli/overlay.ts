@@ -7,6 +7,7 @@
 import type { Command } from 'commander';
 import { LuxDatabase } from '../db/index.js';
 import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
+import { runFeaturePathAsk } from './feature-path.js';
 import { runOperationalAsk } from './operational.js';
 import {
   describeOverlayTrustInspection,
@@ -683,4 +684,26 @@ export function addOverlayCommands(program: Command): void {
         runOperationalAsk(program, question, options);
       }
     );
+
+  // --------------------------------------------------------------------------
+  // overlay feature-path
+  // --------------------------------------------------------------------------
+
+  const featurePathCmd = overlayCmd
+    .command('feature-path')
+    .description('Ask answer-first questions over persisted feature-path retrieval (tranche one).');
+
+  featurePathCmd
+    .command('ask <question...>')
+    .description(
+      'Answer one operator question about a route-centered feature path: handler, contract, ownership, callers, downstream.'
+    )
+    .option('--json', 'Emit machine-readable JSON instead of human-readable text')
+    .option(
+      '--target <fragment>',
+      'Override the question fragment used for capability-surface resolution'
+    )
+    .action((question: string[], options: { json?: boolean; target?: string }) => {
+      runFeaturePathAsk(program, question, options);
+    });
 }
