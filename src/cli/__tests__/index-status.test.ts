@@ -69,6 +69,28 @@ describe('index status trust diagnostics', () => {
     );
   });
 
+  it('emits canonical index and overlay diagnostics as JSON', () => {
+    const result = runCli(repoDir, dbPath, ['index', 'status', '--json']);
+    const overlayStatus = runCli(repoDir, dbPath, ['overlay', 'status', '--json']);
+
+    expect(result.status).toBe(0);
+    expect(overlayStatus.status).toBe(0);
+    const payload = JSON.parse(result.stdout) as {
+      stats: { knowledge_entries: number; events: number };
+      overlay: { mode: string; trustLevel: string; trustSource: string; warnings: string[] };
+    };
+    const overlayPayload = JSON.parse(overlayStatus.stdout) as typeof payload.overlay;
+
+    expect(payload.stats.knowledge_entries).toBe(0);
+    expect(payload.overlay).toEqual(overlayPayload);
+    expect(payload.overlay.mode).toBe('none');
+    expect(payload.overlay.trustLevel).toBe('no-overlay');
+    expect(payload.overlay.trustSource).toBe('none');
+    expect(payload.overlay.warnings).toContain(
+      'No overlay trust state recorded. Run "lux index rebuild" to build the canonical overlay path.'
+    );
+  });
+
   it('reports derived content-only trust after content-only rebuild', () => {
     const rebuild = runCli(repoDir, dbPath, ['index', 'rebuild', '--content-only', '--quiet']);
     expect(rebuild.status).toBe(0);
@@ -80,5 +102,32 @@ describe('index status trust diagnostics', () => {
     expect(result.stdout).toContain('Trust Level: content-only');
     expect(result.stdout).toContain('Trust source: derived');
     expect(result.stderr).toContain('Warning: No structural overlay nodes are present');
+  });
+
+  it('emits derived content-only trust in index status JSON', () => {
+    const rebuild = runCli(repoDir, dbPath, ['index', 'rebuild', '--content-only', '--quiet']);
+    expect(rebuild.status).toBe(0);
+
+    const result = runCli(repoDir, dbPath, ['index', 'status', '--json']);
+    const overlayStatus = runCli(repoDir, dbPath, ['overlay', 'status', '--json']);
+
+    expect(result.status).toBe(0);
+    expect(overlayStatus.status).toBe(0);
+    const payload = JSON.parse(result.stdout) as {
+      stats: { knowledge_entries: number };
+      overlay: { mode: string; trustLevel: string; trustSource: string; warnings: string[] };
+    };
+    const overlayPayload = JSON.parse(overlayStatus.stdout) as typeof payload.overlay;
+
+    expect(payload.stats.knowledge_entries).toBeGreaterThan(0);
+    expect(payload.overlay).toEqual(overlayPayload);
+    expect(payload.overlay.mode).toBe('content-only');
+    expect(payload.overlay.trustLevel).toBe('content-only');
+    expect(payload.overlay.trustSource).toBe('derived');
+    expect(
+      payload.overlay.warnings.some((warning) =>
+        warning.includes('No structural overlay nodes are present')
+      )
+    ).toBe(true);
   });
 });

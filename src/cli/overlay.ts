@@ -9,6 +9,7 @@ import { LuxDatabase } from '../db/index.js';
 import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
 import { runFeaturePathAsk } from './feature-path.js';
 import { runOperationalAsk } from './operational.js';
+import { buildOverlayStatusPayload } from './status-payload.js';
 import {
   describeOverlayTrustInspection,
   deriveOverlayTrustLevelFromState,
@@ -444,20 +445,7 @@ export function addOverlayCommands(program: Command): void {
       const diagnostics = describeOverlayTrustInspection(inspection);
 
       if (options.json) {
-        console.log(
-          JSON.stringify(
-            overlay
-              ? {
-                  ...overlay,
-                  trustLevel: diagnostics.trustLevel,
-                  trustSource: diagnostics.trustSource,
-                  warnings: diagnostics.warnings,
-                }
-              : diagnostics,
-            null,
-            2
-          )
-        );
+        console.log(JSON.stringify(buildOverlayStatusPayload(db), null, 2));
       } else if (!overlay) {
         console.log('\nOverlay Status: none');
         console.log(`Trust Level: ${diagnostics.trustLevel}`);

@@ -251,7 +251,7 @@ function deriveOverlayTrustStateFromDb(db: LuxDatabase): PersistedOverlayTrustSt
     propagationStatus:
       surfaces.length === 0 ? 'skipped' : symbolNodes.length === 0 ? 'skipped' : 'empty',
     warnings,
-    recordedAt: new Date().toISOString(),
+    recordedAt: '',
     lastIndexedCommit: db.getIndexMetadata('last_indexed_commit'),
     sourceAction: 'derived',
   };

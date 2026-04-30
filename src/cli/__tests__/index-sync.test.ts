@@ -126,7 +126,7 @@ describe('index sync CLI', () => {
 
     const rebuild = runCli(repoDir, dbPath, ['index', 'rebuild', '--quiet']);
     expect(rebuild.status).toBe(0);
-    expect(rebuild.stderr).toBe('');
+    expect(rebuild.stderr).not.toContain('Warning:');
   });
 
   afterEach(() => {

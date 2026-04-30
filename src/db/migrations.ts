@@ -120,9 +120,9 @@ export class MigrationRunner {
     }
 
     for (const migration of pending) {
-      console.log(`Applying migration ${migration.version}: ${migration.name}`);
+      console.error(`Applying migration ${migration.version}: ${migration.name}`);
       this.applyMigration(migration);
-      console.log(`✓ Migration ${migration.version} applied successfully`);
+      console.error(`✓ Migration ${migration.version} applied successfully`);
     }
 
     return pending.length;

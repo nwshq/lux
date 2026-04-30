@@ -13,12 +13,14 @@ lux index rebuild --content-only
 lux index sync
 lux index sync --force
 lux index status
+lux index status --json
 ```
 
 Notes:
 - `lux index rebuild` is the canonical rebuild path
 - `--content-only` skips overlay materialization
 - `sync` may escalate to a full rebuild when structural changes are detected
+- `index status --json` is the canonical machine-readable status envelope; it includes both index stats and overlay trust diagnostics
 
 ## Search
 

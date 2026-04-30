@@ -17,6 +17,7 @@ import {
   persistRebuildTrustState,
   markOverlayTrustAfterSync,
 } from '../scanner/overlay-trust-state.js';
+import { buildIndexStatusPayload } from './status-payload.js';
 import {
   isGitRepository,
   getHeadCommit,
@@ -740,12 +741,19 @@ indexCmd
 indexCmd
   .command('status')
   .description('Show index statistics and overlay state')
-  .action(() => {
+  .option('--json', 'Emit machine-readable JSON instead of human-readable text')
+  .action((options: { json?: boolean }) => {
     const { dbPath } = getRuntimePaths(program);
     const db = new LuxDatabase(dbPath);
     const stats = db.getStats();
     const inspection = inspectOverlayTrustState(db);
     const diagnostics = describeOverlayTrustInspection(inspection);
+
+    if (options.json) {
+      console.log(JSON.stringify(buildIndexStatusPayload(db), null, 2));
+      db.close();
+      return;
+    }
 
     console.log('\nIndex Statistics:\n');
     console.log(`  Knowledge Entries: ${stats.knowledge_entries}`);
