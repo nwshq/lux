@@ -205,6 +205,60 @@ describe('overlay feature-path CLI', () => {
     expect(evidenceKinds).toContain('handler-recovery');
   });
 
+  it('wraps promoted top-level ask JSON while preserving native overlay JSON', () => {
+    const overlayResult = runCli(repoDir, dbPath, [
+      'overlay',
+      'feature-path',
+      'ask',
+      'what handles POST /offers?',
+      '--json',
+    ]);
+    const askResult = runCli(repoDir, dbPath, ['ask', 'what handles POST /offers?', '--json']);
+
+    expect(overlayResult.status).toBe(0);
+    expect(askResult.status).toBe(0);
+
+    const overlayPayload = JSON.parse(overlayResult.stdout) as {
+      schemaVersion: number;
+      intent: string;
+      target: { id: string } | null;
+    };
+    const askEnvelope = JSON.parse(askResult.stdout) as {
+      schemaVersion: number;
+      surface: string;
+      mode: string;
+      question: string;
+      payload: typeof overlayPayload;
+    };
+
+    expect(overlayPayload.intent).toBe('route-handler');
+    expect(overlayPayload.target?.id).toBe('surface:http:POST:/offers');
+    expect(askEnvelope.schemaVersion).toBe(1);
+    expect(askEnvelope.surface).toBe('feature-path');
+    expect(askEnvelope.mode).toBe('retrieval');
+    expect(askEnvelope.question).toBe('what handles POST /offers?');
+    expect(askEnvelope.payload.intent).toBe(overlayPayload.intent);
+    expect(askEnvelope.payload.target?.id).toBe(overlayPayload.target?.id);
+  });
+
+  it('wraps unresolved promoted top-level ask JSON and exits nonzero', () => {
+    const result = runCli(repoDir, dbPath, ['ask', 'what handles POST /missing-route?', '--json']);
+
+    expect(result.status).toBe(1);
+    const envelope = JSON.parse(result.stdout) as {
+      schemaVersion: number;
+      surface: string;
+      mode: string;
+      payload: { resolution: { status: string } };
+    };
+
+    expect(envelope.schemaVersion).toBe(1);
+    expect(envelope.surface).toBe('feature-path');
+    expect(envelope.mode).toBe('retrieval');
+    expect(envelope.payload.resolution.status).toBe('unresolved');
+    expect(result.stderr).not.toContain('No experts were able to respond');
+  });
+
   it('exits 1 and refuses honestly when the question cannot resolve to a surface', () => {
     const result = runCli(repoDir, dbPath, [
       'overlay',

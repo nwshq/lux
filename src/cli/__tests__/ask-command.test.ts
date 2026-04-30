@@ -3,7 +3,13 @@ import { mkdtempSync, mkdirSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { LuxDatabase } from '../../db/index.js';
-import { askSpecificExpert, askPanel, formatRouteResultJson, tryAskFeaturePath } from '../ask.js';
+import {
+  askSpecificExpert,
+  askPanel,
+  formatAskJsonEnvelope,
+  formatRouteResultJson,
+  tryAskFeaturePath,
+} from '../ask.js';
 import type {
   ExpertSessionManager,
   QueryOptions,
@@ -239,7 +245,7 @@ describe('ask command', () => {
       logSpy.mockRestore();
     });
 
-    it('emits native feature-path JSON for promoted JSON asks', () => {
+    it('emits enveloped feature-path JSON for promoted JSON asks', () => {
       insertFeaturePathFixture(db, contentDir);
       const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
@@ -251,14 +257,24 @@ describe('ask command', () => {
       );
 
       expect(handled).toBe(true);
-      const payload = JSON.parse(logSpy.mock.calls[0][0] as string) as {
+      const envelope = JSON.parse(logSpy.mock.calls[0][0] as string) as {
         schemaVersion: number;
-        intent: string;
-        target: { id: string } | null;
+        surface: string;
+        mode: string;
+        question: string;
+        payload: {
+          schemaVersion: number;
+          intent: string;
+          target: { id: string } | null;
+        };
       };
-      expect(payload.schemaVersion).toBeGreaterThanOrEqual(1);
-      expect(payload.intent).toBe('route-handler');
-      expect(payload.target?.id).toBe('surface:http:POST:/offers');
+      expect(envelope.schemaVersion).toBe(1);
+      expect(envelope.surface).toBe('feature-path');
+      expect(envelope.mode).toBe('retrieval');
+      expect(envelope.question).toBe('what handles POST /offers?');
+      expect(envelope.payload.schemaVersion).toBeGreaterThanOrEqual(1);
+      expect(envelope.payload.intent).toBe('route-handler');
+      expect(envelope.payload.target?.id).toBe('surface:http:POST:/offers');
 
       logSpy.mockRestore();
     });
@@ -341,11 +357,15 @@ describe('ask command', () => {
 
       expect(logSpy).toHaveBeenCalledTimes(1);
       const output = JSON.parse(logSpy.mock.calls[0][0] as string);
-      expect(output.query).toBe('test');
-      expect(output.expert.slug).toBe('json-expert');
-      expect(output.expert.name).toBe('JSON Expert');
-      expect(output.response).toBe('JSON response');
-      expect(output.sessionId).toBe(1);
+      expect(output.schemaVersion).toBe(1);
+      expect(output.surface).toBe('expert');
+      expect(output.mode).toBe('expert');
+      expect(output.question).toBe('test');
+      expect(output.payload.query).toBe('test');
+      expect(output.payload.expert.slug).toBe('json-expert');
+      expect(output.payload.expert.name).toBe('JSON Expert');
+      expect(output.payload.response).toBe('JSON response');
+      expect(output.payload.sessionId).toBe(1);
 
       logSpy.mockRestore();
     });
@@ -470,9 +490,13 @@ describe('ask command', () => {
 
       expect(logSpy).toHaveBeenCalledTimes(1);
       const output = JSON.parse(logSpy.mock.calls[0][0] as string);
-      expect(output.query).toBe('test');
-      expect(output.responses).toBeDefined();
-      expect(output.matchedExperts).toBeDefined();
+      expect(output.schemaVersion).toBe(1);
+      expect(output.surface).toBe('expert-panel');
+      expect(output.mode).toBe('panel');
+      expect(output.question).toBe('test');
+      expect(output.payload.query).toBe('test');
+      expect(output.payload.responses).toBeDefined();
+      expect(output.payload.matchedExperts).toBeDefined();
 
       logSpy.mockRestore();
     });
@@ -552,7 +576,9 @@ describe('ask command', () => {
       // JSON output should use console.log, not streaming
       expect(logSpy).toHaveBeenCalledTimes(1);
       const output = JSON.parse(logSpy.mock.calls[0][0] as string);
-      expect(output.responses).toBeDefined();
+      expect(output.surface).toBe('expert-panel');
+      expect(output.mode).toBe('panel');
+      expect(output.payload.responses).toBeDefined();
 
       // sessionManager should NOT have been passed onChunk
       expect(sessionManager.queryCalls[0].options).toBeUndefined();
@@ -590,6 +616,27 @@ describe('ask command', () => {
 
       writeSpy.mockRestore();
       logSpy.mockRestore();
+    });
+  });
+
+  describe('formatAskJsonEnvelope', () => {
+    it('wraps native payloads with a stable ask surface discriminator', () => {
+      const envelope = formatAskJsonEnvelope(
+        'feature-path',
+        'retrieval',
+        'what handles POST /offers?',
+        {
+          intent: 'route-handler',
+        }
+      );
+
+      expect(envelope).toEqual({
+        schemaVersion: 1,
+        surface: 'feature-path',
+        mode: 'retrieval',
+        question: 'what handles POST /offers?',
+        payload: { intent: 'route-handler' },
+      });
     });
   });
 

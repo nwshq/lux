@@ -69,6 +69,32 @@ export function addAskCommand(program: Command) {
     );
 }
 
+export type AskJsonSurface = 'feature-path' | 'expert-panel' | 'expert';
+export type AskJsonMode = 'retrieval' | 'panel' | 'expert';
+
+export interface AskJsonEnvelope<TPayload> {
+  schemaVersion: 1;
+  surface: AskJsonSurface;
+  mode: AskJsonMode;
+  question: string;
+  payload: TPayload;
+}
+
+export function formatAskJsonEnvelope<TPayload>(
+  surface: AskJsonSurface,
+  mode: AskJsonMode,
+  question: string,
+  payload: TPayload
+): AskJsonEnvelope<TPayload> {
+  return {
+    schemaVersion: 1,
+    surface,
+    mode,
+    question,
+    payload,
+  };
+}
+
 export function tryAskFeaturePath(
   db: LuxDatabase,
   question: string,
@@ -79,7 +105,14 @@ export function tryAskFeaturePath(
   if (!intentResolution.intent) return false;
 
   const result = executeFeaturePathAsk(db, question, { json: options.json, corpusPath });
-  console.log(result.rendered);
+  const output = options.json
+    ? JSON.stringify(
+        formatAskJsonEnvelope('feature-path', 'retrieval', question, result.answer),
+        null,
+        2
+      )
+    : result.rendered;
+  console.log(output);
   if (result.exitCode !== 0) {
     process.exitCode = result.exitCode;
   }
@@ -122,21 +155,18 @@ export async function askSpecificExpert(
   const result = await sessionManager.query(expertSlug, question, queryOpts);
 
   if (options.json) {
+    const payload = {
+      query: question,
+      expert: {
+        slug: expert.slug,
+        name: expert.name,
+        model: expert.model,
+      },
+      response: result.response,
+      sessionId: result.sessionId,
+    };
     console.log(
-      JSON.stringify(
-        {
-          query: question,
-          expert: {
-            slug: expert.slug,
-            name: expert.name,
-            model: expert.model,
-          },
-          response: result.response,
-          sessionId: result.sessionId,
-        },
-        null,
-        2
-      )
+      JSON.stringify(formatAskJsonEnvelope('expert', 'expert', question, payload), null, 2)
     );
     return;
   }
@@ -197,7 +227,10 @@ export async function askPanel(
   const routeResult = await routeQuery(question, db, sessionManager, routerOpts);
 
   if (options.json) {
-    console.log(JSON.stringify(formatRouteResultJson(routeResult), null, 2));
+    const payload = formatRouteResultJson(routeResult);
+    console.log(
+      JSON.stringify(formatAskJsonEnvelope('expert-panel', 'panel', question, payload), null, 2)
+    );
     return;
   }
 
