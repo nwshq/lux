@@ -98,12 +98,22 @@ export function formatAskJsonEnvelope<TPayload>(
   };
 }
 
+function hasFeaturePathSurfaceCue(question: string): boolean {
+  const normalized = question.toLowerCase();
+  return (
+    /\b(get|post|put|patch|delete|options|head)\s+\//i.test(question) ||
+    /\s\/[a-z0-9_{}/:-]+/i.test(normalized)
+  );
+}
+
 export function tryAskFeaturePath(
   db: LuxDatabase,
   question: string,
   options: { json?: boolean },
   corpusPath: string
 ): boolean {
+  if (!hasFeaturePathSurfaceCue(question)) return false;
+
   const intentResolution = inferFeaturePathIntent(question);
   if (!intentResolution.intent) return false;
 

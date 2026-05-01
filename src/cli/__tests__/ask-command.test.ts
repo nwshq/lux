@@ -415,6 +415,21 @@ describe('ask command', () => {
       logSpy.mockRestore();
     });
 
+    it.each([
+      'what dispatches App\\Jobs\\RefreshReport?',
+      'what listeners handle App\\Events\\ReportReady?',
+    ])('does not claim operational questions without a route/surface cue: %s', (question) => {
+      insertFeaturePathFixture(db, contentDir);
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      const handled = tryAskFeaturePath(db, question, {}, contentDir);
+
+      expect(handled).toBe(false);
+      expect(logSpy).not.toHaveBeenCalled();
+
+      logSpy.mockRestore();
+    });
+
     it('emits enveloped feature-path JSON for promoted JSON asks', () => {
       insertFeaturePathFixture(db, contentDir);
       const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
