@@ -23,7 +23,7 @@ import type {
 
 /**
  * Trust tier at or below which evidence is considered too weak to support a
- * primary answer. Mirrors the boundary used by overlay operational ask
+ * compact retrieval summary. Mirrors the boundary used by overlay operational ask
  * (`tier < 4` → medium confidence) so the two surfaces grade evidence the
  * same way.
  */
@@ -173,7 +173,7 @@ function isDirectEvidenceInsufficient(items: FeaturePathDirectEvidenceItem[]): b
 
 function directEvidenceFailureDetail(items: FeaturePathDirectEvidenceItem[]): string {
   if (items.length === 0) {
-    return 'No direct evidence was recovered for the primary answer.';
+    return 'No direct evidence was recovered for the compact retrieval summary.';
   }
   if (items.every((item) => item.kind === 'route-declaration')) {
     return 'Direct evidence is limited to a route declaration; no handler, contract, or dispatch evidence was recovered.';
@@ -203,8 +203,8 @@ const FAILURE_HEADERS: Record<FeaturePathFailureClass, string> = {
  *   - Each failure renders header + detail on its own pair of lines.
  *   - Failures appear AFTER direct evidence and context so the reader sees
  *     the answer first, then the explicit honesty statement.
- *   - Failure text never overrides the primary answer: a partial answer with
- *     attached failures is preferred over silent omission.
+ *   - Failure text never overrides the compact summary: a partial evidence
+ *     packet with attached failures is preferred over silent omission.
  */
 export function renderFeaturePathFailures(failures: FeaturePathFailure[]): string[] {
   if (failures.length === 0) return [];

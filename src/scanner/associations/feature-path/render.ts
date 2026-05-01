@@ -5,7 +5,7 @@
 //
 //   1. Direct evidence and context are rendered under separate, clearly-labeled
 //      sections. Adjacent / contextual signal must NOT be presented as proof of
-//      the primary answer.
+//      the compact retrieval summary.
 //   2. Failures are appended after both sections so the reader sees the answer,
 //      then the explicit honesty statement.
 //
@@ -31,7 +31,7 @@ const CONTEXT_HEADER = 'Context';
  * Format a FeaturePathAnswer for text output.
  *
  * Section order — locked, do not reorder:
- *   1. primary answer summary + confidence + overlay trust
+ *   1. compact summary + confidence + overlay trust
  *   2. target / resolution
  *   3. ownership (when set)
  *   4. contracts (when set)

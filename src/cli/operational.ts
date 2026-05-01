@@ -22,7 +22,7 @@ import {
 } from '../scanner/overlay-trust-state.js';
 import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
 
-type OperationalQuestionIntent =
+export type OperationalQuestionIntent =
   | 'schedule-sources'
   | 'dispatch-sources'
   | 'dispatched-jobs'
@@ -70,7 +70,7 @@ interface OperationalResolutionPayload {
   candidates: OperationalNodePayload[];
 }
 
-interface OperationalAnswerPayload {
+export interface OperationalAnswerPayload {
   question: string;
   intent: OperationalQuestionIntent;
   overlayTrustLevel: string;
@@ -96,12 +96,22 @@ interface OperationalAnswerPayload {
   context: OperationalEvidencePayload[];
 }
 
-interface AskOptions {
+export interface OperationalAskOptions {
   json?: boolean;
   target?: string;
   kind?: OperationalBoundaryKind;
   maxDepth?: number;
   minTrustTier?: number;
+}
+
+export interface OperationalAskExecutionResult {
+  answer: OperationalAnswerPayload;
+  rendered: string;
+  exitCode: 0 | 1;
+}
+
+export interface OperationalIntentResolution {
+  intent: OperationalQuestionIntent | null;
 }
 
 type BoundaryResolution =
@@ -216,23 +226,49 @@ function rawNormalizedForms(boundary: OperationalBoundary): string[] {
   return [...forms].filter(Boolean);
 }
 
-function inferIntent(question: string): OperationalQuestionIntent {
+function matchesOperationalNeighborhoodCue(normalized: string): boolean {
+  // Top-level ask promotion should only intercept explicit persisted-boundary
+  // neighborhood requests. Bare "workflow"/"operational" wording is too easy
+  // to confuse with architecture or product-reasoning questions, so require a
+  // relationship/neighborhood cue as well.
+  const hasBoundaryCue = /\b(operational|workflow)\b/.test(normalized);
+  if (!hasBoundaryCue) return false;
+  return /\b(boundar(y|ies)|neighbou?rhood|reach|upstream|downstream|around|path|paths)\b/.test(
+    normalized
+  );
+}
+
+export function inferOperationalAskIntent(question: string): OperationalIntentResolution {
   const normalized = question.toLowerCase();
   if (
     normalized.includes('evidence') ||
     normalized.includes('trust') ||
     normalized.includes('support')
   ) {
-    return 'evidence';
+    return { intent: 'evidence' };
   }
-  if (normalized.includes('listener') || normalized.includes('handle')) return 'event-listeners';
+  if (normalized.includes('listener')) return { intent: 'event-listeners' };
+  if (normalized.includes('what handles') || normalized.includes('what handle')) {
+    return { intent: 'event-listeners' };
+  }
   if (normalized.includes('dispatches') || normalized.includes('dispatched from')) {
-    return 'dispatch-sources';
+    return { intent: 'dispatch-sources' };
   }
   if (normalized.includes('triggered by') || normalized.includes('what command')) {
-    return 'dispatched-jobs';
+    return { intent: 'dispatched-jobs' };
   }
-  if (normalized.includes('schedule')) return 'schedule-sources';
+  if (normalized.includes('schedule')) return { intent: 'schedule-sources' };
+  if (matchesOperationalNeighborhoodCue(normalized)) {
+    return { intent: 'neighborhood' };
+  }
+  return { intent: null };
+}
+
+function inferIntent(question: string): OperationalQuestionIntent {
+  const inferred = inferOperationalAskIntent(question).intent;
+  if (inferred) return inferred;
+  const normalized = question.toLowerCase();
+  if (normalized.includes('handle')) return 'event-listeners';
   return 'neighborhood';
 }
 
@@ -468,7 +504,7 @@ function buildOperationalAnswer(
   target: OperationalBoundary,
   intent: OperationalQuestionIntent,
   resolution: OperationalResolutionPayload,
-  options: AskOptions
+  options: OperationalAskOptions
 ): OperationalAnswerPayload {
   if (intent === 'event-listeners') {
     return buildEventListenersAnswer(db, question, target, resolution);
@@ -778,7 +814,7 @@ function buildNeighborhoodAnswer(
   question: string,
   target: OperationalBoundary,
   resolution: OperationalResolutionPayload,
-  options: AskOptions
+  options: OperationalAskOptions
 ): OperationalAnswerPayload {
   const minTrustTier = (options.minTrustTier ?? 1) as TrustTier;
   const neighborhood = getTrustAwareOperationalNeighborhood(db, target.id, {
@@ -904,7 +940,7 @@ function renderTextAnswer(payload: OperationalAnswerPayload): string {
   return lines.join('\n');
 }
 
-function validateOptions(options: AskOptions): void {
+function validateOptions(options: OperationalAskOptions): void {
   if (options.kind) {
     const validKinds: OperationalBoundaryKind[] = ['command', 'schedule', 'job', 'event', 'http'];
     if (!validKinds.includes(options.kind)) {
@@ -926,30 +962,16 @@ function validateOptions(options: AskOptions): void {
   }
 }
 
-export function runOperationalAsk(
-  program: Command,
-  questionParts: string[],
-  options: AskOptions
-): void {
-  validateOptions(options);
-
-  const question = questionParts.join(' ').trim();
-  if (!question && !options.target) {
-    console.error('Error: ask requires a question or --target.');
-    process.exit(1);
-  }
-
-  const opts = program.opts();
-  const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
-  const db = new LuxDatabase(
-    resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
-  );
-
+export function executeOperationalAsk(
+  db: LuxDatabase,
+  question: string,
+  options: OperationalAskOptions & { corpusPath: string }
+): OperationalAskExecutionResult {
   const intent = inferIntent(question);
   const targetText = options.target ?? extractTargetQuestionFragment(question, intent);
   const resolution = resolveBoundary(
     db,
-    corpusPath,
+    options.corpusPath,
     targetText,
     preferredKindsForIntent(intent, options.kind, targetText)
   );
@@ -985,12 +1007,36 @@ export function runOperationalAsk(
           )
         );
 
-  if (options.json) {
-    console.log(JSON.stringify(payload, null, 2));
-  } else {
-    console.log(renderTextAnswer(payload));
+  return {
+    answer: payload,
+    rendered: options.json ? JSON.stringify(payload, null, 2) : renderTextAnswer(payload),
+    exitCode: resolution.status === 'resolved' ? 0 : 1,
+  };
+}
+
+export function runOperationalAsk(
+  program: Command,
+  questionParts: string[],
+  options: OperationalAskOptions
+): void {
+  validateOptions(options);
+
+  const question = questionParts.join(' ').trim();
+  if (!question && !options.target) {
+    console.error('Error: ask requires a question or --target.');
+    process.exit(1);
   }
 
+  const opts = program.opts();
+  const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
+  const db = new LuxDatabase(
+    resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
+  );
+
+  const result = executeOperationalAsk(db, question, { ...options, corpusPath });
+
+  console.log(result.rendered);
+
   db.close();
-  if (resolution.status !== 'resolved') process.exit(1);
+  if (result.exitCode !== 0) process.exit(result.exitCode);
 }

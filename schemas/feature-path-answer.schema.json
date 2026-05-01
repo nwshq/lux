@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/nwshq/lux/schemas/feature-path-answer.schema.json",
-  "title": "Feature-Path Answer",
-  "description": "Tranche-one answer contract for Lux feature-path retrieval. Answers a route- or handler-centered feature question by combining structural surface, handler, contract, ownership, bounded operational, and trust-aware cross-language evidence into one answer surface. Direct evidence and context are kept separate.",
+  "title": "Feature-Path Retrieval View",
+  "description": "Tranche-one retrieval-view contract for Lux feature-path retrieval. Returns a compact evidence packet for a route- or handler-centered feature question by combining structural surface, handler, contract, ownership, bounded operational, and trust-aware cross-language evidence. Direct evidence and context are kept separate; this is not a final reasoning surface.",
   "type": "object",
   "required": [
     "schemaVersion",
@@ -68,7 +68,7 @@
     },
     "directEvidence": {
       "type": "array",
-      "description": "Material that directly supports the primary answer. Adjacent or contextual signal must NOT appear here.",
+      "description": "Material that directly supports the compact retrieval summary. Adjacent or contextual signal must NOT appear here.",
       "items": { "$ref": "#/definitions/directEvidenceItem" }
     },
     "context": {
@@ -95,7 +95,7 @@
     },
     "failures": {
       "type": "array",
-      "description": "Failure classifications attached to this answer. Empty when the answer is fully proven. Non-empty failures do not preclude a partial primary answer.",
+      "description": "Failure classifications attached to this retrieval view. Empty when the view is fully proven. Non-empty failures do not preclude a partial evidence packet.",
       "items": { "$ref": "#/definitions/failure" }
     }
   },
@@ -109,7 +109,7 @@
     "confidence": {
       "type": "string",
       "enum": ["high", "medium", "none"],
-      "description": "Confidence band for the primary answer. Mirrors operational ask confidence grading."
+      "description": "Confidence band for the compact retrieval summary. Mirrors operational ask confidence grading."
     },
     "resolutionStatus": {
       "type": "string",
@@ -129,7 +129,7 @@
         "route-contract",
         "route-downstream"
       ],
-      "description": "First locked set of feature-path intents. Tranche one stays narrow on route- and handler-centered questions. Detector expansion is explicitly NOT a tranche-one success criterion."
+      "description": "First locked set of feature-path intents. Tranche one stays narrow on route- and handler-centered retrieval questions. route-callers reports persisted consumers/context, not an exhaustive dynamic call graph. Detector expansion is explicitly NOT a tranche-one success criterion."
     },
     "targetKind": {
       "type": "string",
@@ -167,7 +167,7 @@
     "downstreamEdgeType": {
       "type": "string",
       "enum": ["DISPATCHES", "TRIGGERS", "HANDLED_BY", "CONSUMES", "PRODUCES"],
-      "description": "Operational edge type for the bounded downstream hop. Constrained to the persisted OperationalEdgeType vocabulary."
+      "description": "Operational edge type vocabulary. Constrained to persisted OperationalEdgeType values; the bounded downstream retriever may intentionally omit inverse/context-only edge types from evidence packets."
     },
     "downstreamTransport": {
       "type": "string",
@@ -181,7 +181,7 @@
     "crossLanguageBasis": {
       "type": "string",
       "enum": ["generated-types", "shared-config", "shared-event", "naming-only"],
-      "description": "Basis of a backend-to-frontend association. naming-only is below promotion threshold by default."
+      "description": "Basis of a backend-to-frontend association. naming-only is below promotion threshold by default; shared-config and shared-event are reserved vocabulary until artifact-backed detectors exist."
     },
     "failureClass": {
       "type": "string",
@@ -244,7 +244,7 @@
       "properties": {
         "summary": {
           "type": "string",
-          "description": "Single-sentence plain-language statement of the strongest feature-path claim. Example: 'POST /offers is handled by OfferController@store and belongs to Listings.'"
+          "description": "Single-sentence plain-language statement of the strongest evidence-backed retrieval claim. Example: 'POST /offers is handled by OfferController@store and belongs to Listings.'"
         },
         "confidence": { "$ref": "#/definitions/confidence" }
       }

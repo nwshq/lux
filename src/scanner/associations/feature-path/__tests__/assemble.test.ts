@@ -183,6 +183,50 @@ describe('assembleFeaturePathAnswer', () => {
     expect(directNodeIds).not.toContain(consumerId);
   });
 
+  it('frames route-callers as persisted consumer context rather than exhaustive call graph proof', () => {
+    const surfaceId = 'surface:http:POST:/offers';
+    const controllerId = 'symbol:php:App\\Http\\Controllers\\OfferController@store';
+    const consumerId = 'symbol:ts:OffersClient.create';
+    upsertSurface(
+      db,
+      surfaceId,
+      'POST /offers',
+      'POST',
+      '/offers',
+      'routes/api.php',
+      'offers.store'
+    );
+    upsertNode(
+      db,
+      controllerId,
+      'symbol',
+      'OfferController@store',
+      'app/Http/Controllers/OfferController.php'
+    );
+    upsertNode(
+      db,
+      consumerId,
+      'symbol',
+      'OffersClient.create',
+      'frontend/services/offers-client.ts'
+    );
+    upsertEdge(db, `edge:handled_by:${surfaceId}`, 'handled_by', surfaceId, controllerId);
+    upsertEdge(db, `edge:calls_surface:${consumerId}`, 'calls_surface', consumerId, surfaceId, 0.9);
+
+    const resolution = resolveFeaturePathTarget(db, 'POST /offers');
+    const answer = assembleFeaturePathAnswer(db, {
+      question: 'who calls POST /offers?',
+      intent: 'route-callers',
+      resolution,
+    });
+
+    expect(answer.primaryAnswer.summary).toContain('Persisted consumers');
+    expect(answer.primaryAnswer.summary).toContain('listed under Context');
+    expect(answer.primaryAnswer.confidence).toBe('medium');
+    expect(answer.context.map((item) => item.kind)).toContain('nearby-consumer');
+    expect(answer.directEvidence.map((item) => item.nodeId)).not.toContain(consumerId);
+  });
+
   it('flags missing-handler-recovery when the surface resolves but has no provider', () => {
     const surfaceId = 'surface:http:POST:/offers';
     upsertSurface(

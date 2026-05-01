@@ -6,12 +6,13 @@ import type { ExpertSessionManager } from '../experts/session-manager.js';
 import { routeQuery } from '../experts/router.js';
 import type { RouteResult } from '../experts/router.js';
 import { executeFeaturePathAsk } from './feature-path.js';
+import { executeOperationalAsk, inferOperationalAskIntent } from './operational.js';
 import { inferFeaturePathIntent } from '../scanner/associations/feature-path/intents.js';
 
 export function addAskCommand(program: Command) {
   program
     .command('ask <question>')
-    .description('Ask a question to the expert panel')
+    .description('Retrieve evidence-first Lux views, then fall back to the expert panel')
     .option('--expert <slug>', 'Route to a specific expert instead of auto-routing')
     .option('--verbose', 'Show detailed routing and scoring information')
     .option('--json', 'Output as JSON')
@@ -50,6 +51,8 @@ export function addAskCommand(program: Command) {
             await askSpecificExpert(db, sessionManager, question, options.expert, options);
           } else if (tryAskFeaturePath(db, question, options, corpusPath)) {
             // Promoted retrieval answers are emitted by tryAskFeaturePath.
+          } else if (tryAskOperational(db, question, options, corpusPath)) {
+            // Promoted retrieval answers are emitted by tryAskOperational.
           } else {
             await askPanel(db, sessionManager, question, options, corpusPath);
           }
@@ -69,7 +72,7 @@ export function addAskCommand(program: Command) {
     );
 }
 
-export type AskJsonSurface = 'feature-path' | 'expert-panel' | 'expert';
+export type AskJsonSurface = 'feature-path' | 'operational' | 'expert-panel' | 'expert';
 export type AskJsonMode = 'retrieval' | 'panel' | 'expert';
 
 export interface AskJsonEnvelope<TPayload> {
@@ -108,6 +111,30 @@ export function tryAskFeaturePath(
   const output = options.json
     ? JSON.stringify(
         formatAskJsonEnvelope('feature-path', 'retrieval', question, result.answer),
+        null,
+        2
+      )
+    : result.rendered;
+  console.log(output);
+  if (result.exitCode !== 0) {
+    process.exitCode = result.exitCode;
+  }
+  return true;
+}
+
+export function tryAskOperational(
+  db: LuxDatabase,
+  question: string,
+  options: { json?: boolean },
+  corpusPath: string
+): boolean {
+  const intentResolution = inferOperationalAskIntent(question);
+  if (!intentResolution.intent) return false;
+
+  const result = executeOperationalAsk(db, question, { json: options.json, corpusPath });
+  const output = options.json
+    ? JSON.stringify(
+        formatAskJsonEnvelope('operational', 'retrieval', question, result.answer),
         null,
         2
       )

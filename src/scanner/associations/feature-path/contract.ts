@@ -1,14 +1,14 @@
-// Tranche-one feature-path retrieval answer contract.
+// Tranche-one feature-path retrieval-view contract.
 //
 // This module is the single source of truth for the FeaturePathAnswer shape
-// that Lux returns when an operator asks a route- or handler-centered
-// feature-path question. It is the TypeScript mirror of
+// that Lux returns as a compact evidence packet for a route- or
+// handler-centered feature-path question. It is the TypeScript mirror of
 // schemas/feature-path-answer.schema.json — both files MUST move together.
 //
 // The contract intentionally:
-//   - keeps the answer-first shape used by overlay operational ask
+//   - keeps a compact summary slot while preserving evidence-first semantics
 //   - separates direct evidence from context (R5, R6)
-//   - makes ownership a first-class part of the primary answer (R7)
+//   - makes ownership a first-class part of the retrieval view (R7)
 //   - bounds downstream operational explanation to one hop (R8)
 //   - exposes cross-language refusal modes explicitly (R6, R10)
 //   - reuses existing Lux trust grading rather than inventing a new one (R9)
@@ -31,7 +31,7 @@ export type FeaturePathAnswerSchemaVersion = typeof FEATURE_PATH_ANSWER_SCHEMA_V
  *
  *   - `route-handler`     — what handles this endpoint?
  *   - `route-ownership`   — what part of the system owns this route or workflow?
- *   - `route-callers`     — where is this route called from?
+ *   - `route-callers`     — which persisted consumers/context reference this route?
  *   - `route-contract`    — what request/response shape does this imply?
  *   - `route-downstream`  — what downstream work does this feature trigger?
  */
@@ -63,6 +63,8 @@ export type ResolutionStatus = 'resolved' | 'unresolved' | 'ambiguous';
  */
 export type ResolutionMatchType = 'exact' | 'semantic-exact' | 'prefix' | 'contains';
 
+// `handler-symbol` is reserved in the schema vocabulary for future persisted
+// target forms; tranche one resolves promoted asks from capability surfaces.
 export type FeaturePathTargetKind = 'route-surface' | 'handler-symbol' | 'unresolved';
 
 export interface FeaturePathTarget {
@@ -94,14 +96,14 @@ export interface FeaturePathResolution {
 // ---------------------------------------------------------------------------
 
 /**
- * Confidence band for the primary answer. Mirrors operational ask grading so
- * the two surfaces remain comparable.
+ * Confidence band for the compact summary. Mirrors operational ask grading so
+ * the two retrieval surfaces remain comparable.
  */
 export type FeaturePathConfidence = 'high' | 'medium' | 'none';
 
 export interface FeaturePathPrimaryAnswer {
   /**
-   * Single-sentence plain-language statement of the strongest feature-path claim.
+   * Single-sentence plain-language statement of the strongest evidence-backed retrieval claim.
    * Example: `POST /offers is handled by OfferController@store and belongs to Listings.`
    */
   summary: string;
@@ -183,7 +185,7 @@ export type DirectEvidenceKind =
 
 /**
  * Kinds of contextual signal that may appear under `context`.
- * These must NEVER be rendered as proof of the primary answer.
+ * These must NEVER be rendered as proof of the compact summary.
  */
 export type ContextKind =
   | 'nearby-consumer'
@@ -260,6 +262,9 @@ export type CrossLanguageStatus =
   | 'refused-naming-only'
   | 'not-applicable';
 
+// `shared-config` and `shared-event` are reserved vocabulary for future
+// artifact-backed detectors. Tranche one only promotes `generated-types`;
+// unsupported bases remain refused rather than inferred.
 export type CrossLanguageBasis =
   | 'generated-types'
   | 'shared-config'
@@ -333,12 +338,14 @@ export interface FeaturePathFailure {
 // ---------------------------------------------------------------------------
 
 /**
- * Tranche-one feature-path answer. The single product surface returned to
- * operators and tooling for the locked set of route- and handler-centered
- * feature questions.
+ * Tranche-one feature-path retrieval view. The single evidence-packet surface
+ * returned to operators and tooling for the locked set of route- and
+ * handler-centered feature questions. The `Answer` name is retained as the
+ * stable public contract, but the semantics are retrieval-first: summary,
+ * evidence, context, provenance, trust, and explicit refusal.
  *
  * Field order in this interface mirrors text-rendering order so readers can
- * scan the type and the rendered answer in the same direction.
+ * scan the type and the rendered retrieval view in the same direction.
  */
 export interface FeaturePathAnswer {
   schemaVersion: FeaturePathAnswerSchemaVersion;
@@ -358,9 +365,9 @@ export interface FeaturePathAnswer {
   crossLanguage: FeaturePathCrossLanguage | null;
   trust: FeaturePathTrust;
   /**
-   * Failure classifications. Empty when the answer is fully proven. A non-empty
-   * `failures` does not preclude a partial primary answer — partial answers
-   * with explicit failure context are preferred over silent omission.
+   * Failure classifications. Empty when the retrieval view is fully proven. A
+   * non-empty `failures` does not preclude a partial summary — partial evidence
+   * packets with explicit failure context are preferred over silent omission.
    */
   failures: FeaturePathFailure[];
 }

@@ -638,11 +638,11 @@ export function addOverlayCommands(program: Command): void {
 
   const operationalCmd = overlayCmd
     .command('operational')
-    .description('Ask answer-first questions over persisted operational boundaries.');
+    .description('Inspect evidence-first retrieval views over persisted operational boundaries.');
 
   operationalCmd
     .command('ask <question...>')
-    .description('Answer one operator question about schedules, dispatch, listeners, or evidence.')
+    .description('Return one evidence packet about schedules, dispatch, listeners, or support.')
     .option('--json', 'Emit machine-readable JSON instead of human-readable text')
     .option('--target <name>', 'Boundary name/signature/event/job to answer about')
     .option('--kind <kind>', 'Disambiguate target kind: command, schedule, job, event, or http')
@@ -679,12 +679,14 @@ export function addOverlayCommands(program: Command): void {
 
   const featurePathCmd = overlayCmd
     .command('feature-path')
-    .description('Ask answer-first questions over persisted feature-path retrieval (tranche one).');
+    .description(
+      'Inspect evidence-first retrieval views over persisted feature paths (tranche one).'
+    );
 
   featurePathCmd
     .command('ask <question...>')
     .description(
-      'Answer one operator question about a route-centered feature path: handler, contract, ownership, callers, downstream.'
+      'Return one evidence packet for a route-centered feature path: handler, contract, ownership, persisted consumers, downstream.'
     )
     .option('--json', 'Emit machine-readable JSON instead of human-readable text')
     .option(

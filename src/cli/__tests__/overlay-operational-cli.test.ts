@@ -194,6 +194,71 @@ describe('overlay operational CLI', () => {
     rmSync(dbDir, { recursive: true, force: true });
   });
 
+  it('wraps promoted top-level ask JSON while preserving native overlay JSON', () => {
+    const overlayResult = runCli(repoDir, dbPath, [
+      'overlay',
+      'operational',
+      'ask',
+      'what schedules App\\Jobs\\RefreshReport?',
+      '--json',
+    ]);
+    const askResult = runCli(repoDir, dbPath, [
+      'ask',
+      'what schedules App\\Jobs\\RefreshReport?',
+      '--json',
+    ]);
+
+    expect(overlayResult.status).toBe(0);
+    expect(askResult.status).toBe(0);
+
+    const overlayPayload = JSON.parse(overlayResult.stdout) as {
+      intent: string;
+      resolution: { status: string };
+      target: { id: string } | null;
+    };
+    const askEnvelope = JSON.parse(askResult.stdout) as {
+      schemaVersion: number;
+      surface: string;
+      mode: string;
+      question: string;
+      payload: typeof overlayPayload;
+    };
+
+    expect(overlayPayload.intent).toBe('schedule-sources');
+    expect(overlayPayload.target?.id).toBe('opb:job:App\\Jobs\\RefreshReport');
+    expect(askEnvelope.schemaVersion).toBe(1);
+    expect(askEnvelope.surface).toBe('operational');
+    expect(askEnvelope.mode).toBe('retrieval');
+    expect(askEnvelope.question).toBe('what schedules App\\Jobs\\RefreshReport?');
+    expect(askEnvelope.payload.intent).toBe(overlayPayload.intent);
+    expect(askEnvelope.payload.target?.id).toBe(overlayPayload.target?.id);
+  });
+
+  it('wraps unresolved promoted top-level ask JSON and exits nonzero', () => {
+    const result = runCli(repoDir, dbPath, ['ask', 'what schedules App\\Jobs\\Missing?', '--json']);
+
+    expect(result.status).toBe(1);
+    const envelope = JSON.parse(result.stdout) as {
+      schemaVersion: number;
+      surface: string;
+      mode: string;
+      payload: { resolution: { status: string } };
+    };
+
+    expect(envelope.schemaVersion).toBe(1);
+    expect(envelope.surface).toBe('operational');
+    expect(envelope.mode).toBe('retrieval');
+    expect(envelope.payload.resolution.status).toBe('unresolved');
+    expect(result.stderr).not.toContain('No experts were able to respond');
+  });
+
+  it('does not promote non-operational top-level ask questions', () => {
+    const result = runCli(repoDir, dbPath, ['ask', 'explain this repository architecture']);
+
+    expect(result.stdout).toBe('');
+    expect(result.stderr).toContain('No experts were able to respond');
+  });
+
   it('answers dispatch-source questions as JSON with resolution metadata', () => {
     const result = runCli(repoDir, dbPath, [
       'overlay',

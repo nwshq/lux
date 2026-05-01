@@ -9,6 +9,7 @@ import {
   formatAskJsonEnvelope,
   formatRouteResultJson,
   tryAskFeaturePath,
+  tryAskOperational,
 } from '../ask.js';
 import type {
   ExpertSessionManager,
@@ -53,6 +54,63 @@ vi.mock('child_process', async () => {
     }),
   };
 });
+
+function insertOperationalFixture(db: LuxDatabase, repoDir: string): void {
+  persistRebuildTrustState(
+    db,
+    {
+      mode: 'overlay-complete',
+      repoPath: repoDir,
+      configSource: 'lux.yaml',
+      configLspEnabled: true,
+      surfaceCount: 0,
+      detectorEdgeCount: 2,
+      propagatedEdgeCount: 1,
+      fileNodeCount: 3,
+      symbolNodeCount: 2,
+      controllerBackedCount: 0,
+      closureBackedCount: 0,
+      unknownProviderKindCount: 0,
+      enrichmentStatus: 'active',
+      propagationStatus: 'ran',
+      warnings: [],
+    },
+    { sourceAction: 'index-rebuild' }
+  );
+
+  db.upsertOperationalBoundary({
+    id: 'opb:schedule:nightly-sync',
+    repo_root: repoDir,
+    kind: 'schedule',
+    name: 'nightly-sync',
+    trust_tier: 5,
+    file_path: 'app/Console/Kernel.php',
+  });
+  db.upsertOperationalBoundary({
+    id: 'opb:job:App\\Jobs\\RefreshReport',
+    repo_root: repoDir,
+    kind: 'job',
+    name: 'App\\Jobs\\RefreshReport',
+    trust_tier: 4,
+    file_path: 'app/Jobs/RefreshReport.php',
+  });
+  db.upsertOperationalBoundary({
+    id: 'opb:job:App\\Jobs\\RefreshReportDaily',
+    repo_root: repoDir,
+    kind: 'job',
+    name: 'App\\Jobs\\RefreshReportDaily',
+    trust_tier: 4,
+    file_path: 'app/Jobs/RefreshReportDaily.php',
+  });
+  db.upsertOperationalEdge({
+    id: 'ope:schedule-to-job',
+    source_id: 'opb:schedule:nightly-sync',
+    target_id: 'opb:job:App\\Jobs\\RefreshReport',
+    edge_type: 'TRIGGERS',
+    transport: 'queue',
+    trust_tier: 5,
+  });
+}
 
 function insertFeaturePathFixture(db: LuxDatabase, repoDir: string): void {
   persistRebuildTrustState(
@@ -198,6 +256,118 @@ describe('ask command', () => {
     if (db) db.close();
     rmSync(dbDir, { recursive: true, force: true });
     rmSync(contentDir, { recursive: true, force: true });
+  });
+
+  describe('operational promotion', () => {
+    it('promotes narrow operational questions before expert routing', () => {
+      insertOperationalFixture(db, contentDir);
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      const handled = tryAskOperational(
+        db,
+        'what schedules App\\Jobs\\RefreshReport?',
+        {},
+        contentDir
+      );
+
+      expect(handled).toBe(true);
+      expect(process.exitCode).toBeUndefined();
+      expect(logSpy).toHaveBeenCalledTimes(1);
+      const output = logSpy.mock.calls[0][0] as string;
+      expect(output).toContain('schedule:nightly-sync schedules job:App\\Jobs\\RefreshReport');
+      expect(output).toContain('Overlay Trust: overlay-complete');
+      expect(output).toContain('Direct Evidence');
+
+      logSpy.mockRestore();
+    });
+
+    it('preserves honest operational refusal for promoted unresolved questions', () => {
+      insertOperationalFixture(db, contentDir);
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      const handled = tryAskOperational(db, 'what schedules App\\Jobs\\Missing?', {}, contentDir);
+
+      expect(handled).toBe(true);
+      expect(process.exitCode).toBe(1);
+      const output = logSpy.mock.calls[0][0] as string;
+      expect(output).toContain('Lux could not resolve');
+      expect(output).toContain('Resolution: unresolved');
+
+      logSpy.mockRestore();
+    });
+
+    it.each([
+      'explain this repository architecture',
+      'explain this workflow',
+      'what is the operational design here?',
+    ])(
+      'does not promote broad reasoning questions outside the operational gate: %s',
+      (question) => {
+        insertOperationalFixture(db, contentDir);
+        const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+        const handled = tryAskOperational(db, question, {}, contentDir);
+
+        expect(handled).toBe(false);
+        expect(logSpy).not.toHaveBeenCalled();
+
+        logSpy.mockRestore();
+      }
+    );
+
+    it('promotes explicit persisted operational neighborhood questions', () => {
+      insertOperationalFixture(db, contentDir);
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      const handled = tryAskOperational(
+        db,
+        'what operational boundaries can reach App\\Jobs\\RefreshReport?',
+        {},
+        contentDir
+      );
+
+      expect(handled).toBe(true);
+      expect(logSpy).toHaveBeenCalledTimes(1);
+      const output = logSpy.mock.calls[0][0] as string;
+      expect(output).toContain('can reach');
+      expect(output).toContain('Context');
+
+      logSpy.mockRestore();
+    });
+
+    it('emits enveloped operational JSON for promoted JSON asks', () => {
+      insertOperationalFixture(db, contentDir);
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      const handled = tryAskOperational(
+        db,
+        'what schedules App\\Jobs\\RefreshReport?',
+        { json: true },
+        contentDir
+      );
+
+      expect(handled).toBe(true);
+      const envelope = JSON.parse(logSpy.mock.calls[0][0] as string) as {
+        schemaVersion: number;
+        surface: string;
+        mode: string;
+        question: string;
+        payload: {
+          intent: string;
+          resolution: { status: string };
+          target: { id: string } | null;
+        };
+      };
+      expect(envelope.schemaVersion).toBe(1);
+      expect(envelope.surface).toBe('operational');
+      expect(envelope.mode).toBe('retrieval');
+      expect(envelope.question).toBe('what schedules App\\Jobs\\RefreshReport?');
+      expect(envelope.payload.intent).toBe('schedule-sources');
+      expect(envelope.payload.resolution.status).toBe('resolved');
+      expect(envelope.payload.target?.id).toBe('opb:job:App\\Jobs\\RefreshReport');
+
+      logSpy.mockRestore();
+    });
   });
 
   describe('feature-path promotion', () => {

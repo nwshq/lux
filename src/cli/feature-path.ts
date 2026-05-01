@@ -2,8 +2,9 @@
 //
 // Mirrors the surface of `lux overlay operational ask`: take a natural-language
 // question, resolve it to a capability surface, infer the tranche-one intent,
-// assemble the FeaturePathAnswer through the existing structural overlay, and
-// emit the renderer's text or JSON output. This file is the operator-facing
+// assemble the FeaturePathAnswer retrieval view through the existing structural
+// overlay, and emit the renderer's text or JSON output. This file is the
+// operator-facing
 // wiring; all retrieval logic lives in src/scanner/associations/feature-path.
 
 import type { Command } from 'commander';

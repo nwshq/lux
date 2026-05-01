@@ -1,7 +1,7 @@
 // Tranche-one feature-path retrieval assembler.
 //
 // Phase 2 entry point: takes a resolved feature-path target and assembles a
-// FeaturePathAnswer from the existing structural overlay. This module is
+// FeaturePathAnswer retrieval view from the existing structural overlay. This module is
 // deliberately narrow:
 //
 //   - it ONLY assembles entry-surface and handler evidence here (T4)
@@ -202,8 +202,15 @@ function summarizePrimaryAnswer(
   const ownershipClause = ownership ? ` and belongs to ${ownership.regionName}` : '';
 
   if (intent === 'route-handler' || intent === 'route-callers') {
+    const targetLabel = target.label ?? target.id;
+    if (intent === 'route-callers') {
+      return {
+        summary: `Persisted consumers for ${targetLabel} are listed under Context; handler evidence points to ${handlerLabel}${ownershipClause}.`,
+        confidence: 'medium',
+      };
+    }
     return {
-      summary: `${target.label ?? target.id} is handled by ${handlerLabel}${ownershipClause}.`,
+      summary: `${targetLabel} is handled by ${handlerLabel}${ownershipClause}.`,
       confidence: 'high',
     };
   }

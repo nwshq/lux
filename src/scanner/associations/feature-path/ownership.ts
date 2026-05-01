@@ -1,7 +1,7 @@
 // Tranche-one ownership attribution for feature-path answers.
 //
 // Wraps the existing module-boundary detection so the assembler can integrate
-// ownership directly into the primary answer instead of treating it as a side
+// ownership directly into the retrieval view instead of treating it as a side
 // report (T5, R7, R9).
 //
 // Reuses `detectModuleBoundaries` and `resolveModule` from the imports scanner;
