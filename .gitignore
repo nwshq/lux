@@ -11,3 +11,6 @@ coverage/
 
 # Test temporary files
 src/**/__tests__/temp-*
+
+# Generated retrieval benchmark output
+benchmarks/retrieval/results/

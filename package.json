@@ -25,7 +25,8 @@
     "validate:dead-code": "tsx scripts/validate-dead-code.ts",
     "check": "npm run lint && npm run format:check && npm run build && npm test && npm run lint:architecture && npm run test:architecture",
     "start": "node dist/cli/index.js",
-    "mcp": "node dist/mcp/server.js"
+    "mcp": "node dist/mcp/server.js",
+    "benchmark:retrieval": "npm run build && tsx benchmarks/retrieval/run.ts"
   },
   "keywords": [
     "mcp",

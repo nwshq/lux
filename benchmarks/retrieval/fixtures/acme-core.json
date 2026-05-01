@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "repoId": "auctic-core",
+  "repoPath": "/path/to/auctic-core/vcs",
+  "cases": [
+    {
+      "id": "core-operational-listener-auction-created",
+      "surface": "operational",
+      "mode": "overlay",
+      "question": "what listeners handle acme\\Core\\Events\\AuctionCreated?",
+      "expect": {
+        "exitCode": 0,
+        "resolution": "resolved",
+        "intent": "event-listeners",
+        "targetId": "opb:event:acme\\Core\\Events\\AuctionCreated",
+        "summaryIncludes": "AuctionCreatedListener",
+        "minDirectEvidence": 1
+      }
+    },
+    {
+      "id": "core-operational-dispatch-update-es",
+      "surface": "operational",
+      "mode": "ask",
+      "question": "what dispatches acme\\Core\\Jobs\\UpdateESByIds?",
+      "json": true,
+      "expect": {
+        "exitCode": 0,
+        "askSurface": "operational",
+        "askMode": "retrieval",
+        "resolution": "resolved",
+        "intent": "dispatch-sources",
+        "targetId": "opb:job:acme\\Core\\Jobs\\UpdateESByIds",
+        "summaryIncludes": "dispatches",
+        "minDirectEvidence": 1
+      }
+    },
+    {
+      "id": "core-feature-path-seller-route",
+      "surface": "feature-path",
+      "mode": "ask",
+      "question": "what handles GET /listings/seller/{seller}/{slug}?",
+      "expect": {
+        "exitCode": 0,
+        "resolution": "resolved",
+        "targetId": "surface:http:GET:/listings/seller/{seller}/{slug}",
+        "summaryIncludes": "SellerController",
+        "minDirectEvidence": 2
+      },
+      "json": true
+    },
+    {
+      "id": "core-feature-path-ambiguous-events-route",
+      "surface": "feature-path",
+      "mode": "ask",
+      "question": "what handles POST /events/contact_seller/{listing}?",
+      "expect": {
+        "exitCode": 1,
+        "askSurface": "feature-path",
+        "askMode": "retrieval",
+        "resolution": "ambiguous",
+        "summaryIncludes": "could not resolve"
+      }
+    },
+    {
+      "id": "core-operational-unknown-target",
+      "surface": "operational",
+      "mode": "ask",
+      "question": "what listeners handle acme\\Core\\Events\\NoSuchEvent?",
+      "json": true,
+      "expect": {
+        "exitCode": 1,
+        "askSurface": "operational",
+        "askMode": "retrieval",
+        "resolution": "unresolved",
+        "intent": "event-listeners",
+        "summaryIncludes": "could not resolve"
+      }
+    }
+  ]
+}
