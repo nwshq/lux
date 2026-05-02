@@ -175,6 +175,11 @@ function buildConsumerContext(featurePath: FeaturePath): FeaturePathContextItem[
   }));
 }
 
+function ownershipSummaryClause(ownership: FeaturePathOwnership | null): string {
+  if (!ownership || ownership.basis === 'unresolved') return '';
+  return ` and belongs to ${ownership.regionName}`;
+}
+
 function summarizePrimaryAnswer(
   intent: FeaturePathIntent,
   target: FeaturePathTarget | null,
@@ -199,7 +204,7 @@ function summarizePrimaryAnswer(
     ? handlerEvidence.description.split(' recovered ')[0]
     : 'an inline closure';
 
-  const ownershipClause = ownership ? ` and belongs to ${ownership.regionName}` : '';
+  const ownershipClause = ownershipSummaryClause(ownership);
 
   if (intent === 'route-handler' || intent === 'route-callers') {
     const targetLabel = target.label ?? target.id;

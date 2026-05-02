@@ -33,6 +33,8 @@ interface BenchmarkExpectation {
   intent?: string;
   targetId?: string;
   summaryIncludes?: string;
+  summaryExcludes?: string;
+  failureIncludes?: string;
   minDirectEvidence?: number;
   minContext?: number;
   overlayMode?: string;
@@ -47,6 +49,7 @@ interface ParsedCasePayload {
   intent?: string;
   targetId?: string;
   summary?: string;
+  failureText?: string;
   directEvidenceCount?: number;
   contextCount?: number;
   overlayMode?: string;
@@ -237,6 +240,7 @@ function parseCasePayload(testCase: BenchmarkCase, stdout: string): ParsedCasePa
     intent: asString(payload.intent),
     targetId: asString(target.id),
     summary: asString(primaryAnswer.summary),
+    failureText: extractJsonFailureText(payload),
     directEvidenceCount: asArray(payload.directEvidence ?? payload.evidence).length,
     contextCount: asArray(payload.context).length,
   };
@@ -261,9 +265,30 @@ function parseTextPayload(stdout: string, testCase: BenchmarkCase): ParsedCasePa
     intent: inferTextIntent(testCase),
     targetId: targetMatch?.[1],
     summary,
+    failureText: extractTextFailureText(stdout),
     directEvidenceCount: directEvidenceSection,
     contextCount: contextSection,
   };
+}
+
+function extractJsonFailureText(payload: Record<string, unknown>): string {
+  return asArray(payload.failures)
+    .map((failure) => {
+      const record = asRecord(failure);
+      return [asString(record.failureClass), asString(record.detail)].filter(Boolean).join(': ');
+    })
+    .filter(Boolean)
+    .join('\n');
+}
+
+function extractTextFailureText(stdout: string): string {
+  const lines = stdout.split('\n');
+  const start = lines.findIndex((line) => line.trim().toLowerCase() === 'failures');
+  if (start === -1) return '';
+  return lines
+    .slice(start + 1)
+    .join('\n')
+    .trim();
 }
 
 function inferTextIntent(testCase: BenchmarkCase): string | undefined {
@@ -337,6 +362,10 @@ function validateExpectation(
     failures.push(`targetId expected ${expect.targetId}, got ${actual.targetId ?? 'missing'}`);
   if (expect.summaryIncludes && !actual.summary?.includes(expect.summaryIncludes))
     failures.push(`summary missing ${JSON.stringify(expect.summaryIncludes)}`);
+  if (expect.summaryExcludes && actual.summary?.includes(expect.summaryExcludes))
+    failures.push(`summary must not include ${JSON.stringify(expect.summaryExcludes)}`);
+  if (expect.failureIncludes && !actual.failureText?.includes(expect.failureIncludes))
+    failures.push(`failure text missing ${JSON.stringify(expect.failureIncludes)}`);
   if (
     expect.minDirectEvidence !== undefined &&
     (actual.directEvidenceCount ?? 0) < expect.minDirectEvidence

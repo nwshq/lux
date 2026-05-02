@@ -227,6 +227,33 @@ describe('assembleFeaturePathAnswer', () => {
     expect(answer.directEvidence.map((item) => item.nodeId)).not.toContain(consumerId);
   });
 
+  it('does not present unresolved ownership as a positive ownership claim in the summary', () => {
+    const surfaceId = 'surface:http:GET:/profile';
+    const controllerId = 'symbol:php:ProfileController';
+    upsertSurface(db, surfaceId, 'GET /profile', 'GET', '/profile', 'routes/web.php');
+    upsertNode(
+      db,
+      controllerId,
+      'symbol',
+      'ProfileController',
+      'app/Http/Controllers/ProfileController.php'
+    );
+    upsertEdge(db, `edge:handled_by:${surfaceId}`, 'handled_by', surfaceId, controllerId);
+
+    const resolution = resolveFeaturePathTarget(db, 'GET /profile');
+    const answer = assembleFeaturePathAnswer(db, {
+      question: 'what handles GET /profile?',
+      intent: 'route-handler',
+      resolution,
+      repoRoot: testDir,
+    });
+
+    expect(answer.ownership?.basis).toBe('unresolved');
+    expect(answer.primaryAnswer.summary).toContain('ProfileController');
+    expect(answer.primaryAnswer.summary).not.toContain('belongs to unresolved');
+    expect(answer.failures.map((failure) => failure.failureClass)).toContain('weak-ownership');
+  });
+
   it('flags missing-handler-recovery when the surface resolves but has no provider', () => {
     const surfaceId = 'surface:http:POST:/offers';
     upsertSurface(

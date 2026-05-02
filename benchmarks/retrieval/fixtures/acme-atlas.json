@@ -76,6 +76,8 @@
         "resolution": "resolved",
         "targetId": "surface:http:GET:/profile",
         "summaryIncludes": "ProfileController",
+        "summaryExcludes": "belongs to unresolved",
+        "failureIncludes": "Weak ownership",
         "minDirectEvidence": 2
       },
       "target": "GET /profile"

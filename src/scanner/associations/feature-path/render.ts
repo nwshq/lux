@@ -108,8 +108,10 @@ function renderResolutionSection(resolution: FeaturePathResolution): string[] {
 
 function renderOwnershipSection(ownership: FeaturePathOwnership): string[] {
   const lines = ['', 'Ownership'];
+  const label =
+    ownership.basis === 'unresolved' ? 'unresolved ownership region' : ownership.regionName;
   lines.push(
-    `- ${ownership.regionName} (${ownership.basis}, tier=${ownership.trustTier})${
+    `- ${label} (${ownership.basis}, tier=${ownership.trustTier})${
       ownership.rationale ? ` — ${ownership.rationale}` : ''
     }`
   );

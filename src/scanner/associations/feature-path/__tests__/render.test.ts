@@ -98,6 +98,34 @@ describe('renderFeaturePathAnswerText', () => {
     expect(text).toContain(provenRouteHandlerAnswer.ownership!.regionName);
   });
 
+  it('renders unresolved ownership as weak evidence, not as a positive region name', () => {
+    const answer: FeaturePathAnswer = {
+      ...provenRouteHandlerAnswer,
+      primaryAnswer: {
+        summary: 'GET /profile is handled by ProfileController.',
+        confidence: 'high',
+      },
+      ownership: {
+        regionId: 'unresolved',
+        regionName: 'unresolved',
+        basis: 'unresolved',
+        trustTier: 1,
+        rationale: 'no module-boundary pattern matched app/Http/Controllers/ProfileController.php',
+      },
+      failures: [
+        {
+          failureClass: 'weak-ownership',
+          detail: 'Ownership region was attributed but the basis is unresolved.',
+        },
+      ],
+    };
+
+    const text = renderFeaturePathAnswerText(answer);
+    expect(text.split('\n')[0]).not.toContain('belongs to unresolved');
+    expect(text).toContain('unresolved ownership region');
+    expect(text).toContain('Weak ownership');
+  });
+
   it('omits the Ownership section entirely when ownership is null', () => {
     const text = renderFeaturePathAnswerText(unresolvedAnswer());
     expect(text).not.toContain('\nOwnership\n');
