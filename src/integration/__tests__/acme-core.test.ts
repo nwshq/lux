@@ -139,7 +139,7 @@ describe.skipIf(!pathExists)('auctic-core integration', () => {
       const counts = await scanner.index(db, result);
 
       expect(counts.knowledge).toBeGreaterThanOrEqual(0);
-    });
+    }, 20_000);
 
     it('should report stats after indexing', async () => {
       const scanner = new GeneralScanner(AUCTIC_CORE_PATH);

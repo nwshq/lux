@@ -6,7 +6,7 @@
 
 import type { Command } from 'commander';
 import { LuxDatabase } from '../db/index.js';
-import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
+import { resolveCorpusPath, resolveDbPath, resolveRuntimePaths } from '../utils/runtime-paths.js';
 import { runFeaturePathAsk } from './feature-path.js';
 import { runOperationalAsk } from './operational.js';
 import { buildOverlayStatusPayload } from './status-payload.js';
@@ -435,17 +435,18 @@ export function addOverlayCommands(program: Command): void {
     .option('--json', 'Emit machine-readable JSON instead of human-readable text')
     .action((options: { json?: boolean }) => {
       const opts = program.opts();
-      const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
-      const db = new LuxDatabase(
-        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
-      );
+      const runtime = resolveRuntimePaths({
+        corpus: opts.corpus as string | undefined,
+        db: opts.db as string | undefined,
+      });
+      const db = new LuxDatabase(runtime.dbPath);
 
       const inspection = inspectOverlayTrustState(db);
       const overlay = inspection.state;
       const diagnostics = describeOverlayTrustInspection(inspection);
 
       if (options.json) {
-        console.log(JSON.stringify(buildOverlayStatusPayload(db), null, 2));
+        console.log(JSON.stringify(buildOverlayStatusPayload(db, runtime), null, 2));
       } else if (!overlay) {
         console.log('\nOverlay Status: none');
         console.log(`Trust Level: ${diagnostics.trustLevel}`);

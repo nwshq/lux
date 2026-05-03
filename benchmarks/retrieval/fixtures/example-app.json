@@ -12,6 +12,8 @@
       "expect": {
         "exitCode": 0,
         "overlayMode": "overlay-complete",
+        "corpusSource": "explicit",
+        "dbSource": "repo-local",
         "minSurfaceCount": 1,
         "minKnowledgeEntries": 1
       }

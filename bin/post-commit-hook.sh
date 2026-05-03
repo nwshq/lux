@@ -96,8 +96,16 @@ if ! "$LUX_CLI" --version &> /dev/null; then
     exit 0  # Don't fail the commit
 fi
 
+# Resolve the repository root explicitly. Git normally executes hooks from the
+# worktree root, but passing --corpus makes Lux's root/DB contract visible and
+# avoids accidental parent/nested-repo ambiguity.
+repo_root=$(git rev-parse --show-toplevel 2>&1)
+if [ $? -ne 0 ] || [ -z "$repo_root" ]; then
+    handle_error "Failed to resolve git repository root" $?
+fi
+
 # Attempt to sync index with timeout
-log "INFO" "Starting index sync (timeout: ${LUX_SYNC_TIMEOUT}s)..."
+log "INFO" "Starting index sync for $repo_root (timeout: ${LUX_SYNC_TIMEOUT}s)..."
 
 # Create temporary file for sync output
 sync_output=$(mktemp)
@@ -131,7 +139,7 @@ PY
 }
 
 # Run sync with timeout
-if run_with_timeout "$LUX_CLI" index sync --quiet > "$sync_output" 2>&1; then
+if run_with_timeout "$LUX_CLI" --corpus "$repo_root" index sync --quiet > "$sync_output" 2>&1; then
     sync_exit=0
 else
     sync_exit=$?

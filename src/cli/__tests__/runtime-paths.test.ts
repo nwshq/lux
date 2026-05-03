@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { join } from 'path';
-import { resolveCorpusPath, resolveDbPath } from '../../utils/runtime-paths.js';
+import {
+  resolveCorpusPath,
+  resolveDbPath,
+  resolveRuntimePaths,
+} from '../../utils/runtime-paths.js';
 
 describe('runtime path resolution', () => {
   it('defaults corpus to current working directory', () => {
@@ -26,5 +30,35 @@ describe('runtime path resolution', () => {
         env: { LUX_DB_PATH: '/tmp/from-env.db' },
       })
     ).toBe('/tmp/from-env.db');
+  });
+
+  it('reports explicit/env/cwd corpus and explicit/env/repo-local db sources', () => {
+    expect(resolveRuntimePaths({ corpus: '/tmp/lux-repo', db: '/tmp/custom.db', env: {} })).toEqual(
+      {
+        corpusPath: '/tmp/lux-repo',
+        corpusSource: 'explicit',
+        dbPath: '/tmp/custom.db',
+        dbSource: 'explicit',
+      }
+    );
+
+    expect(
+      resolveRuntimePaths({
+        cwd: '/tmp/cwd-repo',
+        env: { LUX_CORPUS_PATH: '/tmp/env-repo', LUX_DB_PATH: '/tmp/env.db' },
+      })
+    ).toEqual({
+      corpusPath: '/tmp/env-repo',
+      corpusSource: 'env',
+      dbPath: '/tmp/env.db',
+      dbSource: 'env',
+    });
+
+    expect(resolveRuntimePaths({ cwd: '/tmp/cwd-repo', env: {} })).toEqual({
+      corpusPath: '/tmp/cwd-repo',
+      corpusSource: 'cwd',
+      dbPath: join('/tmp/cwd-repo', '.lux', 'lux.db'),
+      dbSource: 'repo-local',
+    });
   });
 });

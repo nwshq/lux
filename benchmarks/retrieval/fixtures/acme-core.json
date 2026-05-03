@@ -14,8 +14,12 @@
         "intent": "event-listeners",
         "targetId": "opb:event:acme\\Core\\Events\\AuctionCreated",
         "summaryIncludes": "AuctionCreatedListener",
-        "minDirectEvidence": 1
-      }
+        "minDirectEvidence": 1,
+        "overlayNativeJson": true,
+        "overlayTrustLevel": "overlay-complete",
+        "minEvidenceTrustTier": 3
+      },
+      "json": true
     },
     {
       "id": "core-operational-dispatch-update-es",
@@ -31,7 +35,12 @@
         "intent": "dispatch-sources",
         "targetId": "opb:job:acme\\Core\\Jobs\\UpdateESByIds",
         "summaryIncludes": "dispatches",
-        "minDirectEvidence": 1
+        "minDirectEvidence": 1,
+        "askSchemaVersion": 1,
+        "askQuestion": "what dispatches acme\\Core\\Jobs\\UpdateESByIds?",
+        "overlayTrustLevel": "overlay-complete",
+        "mixedTrust": false,
+        "minEvidenceTrustTier": 3
       }
     },
     {
@@ -44,7 +53,17 @@
         "resolution": "resolved",
         "targetId": "surface:http:GET:/listings/seller/{seller}/{slug}",
         "summaryIncludes": "SellerController",
-        "minDirectEvidence": 2
+        "minDirectEvidence": 2,
+        "askSchemaVersion": 1,
+        "askQuestion": "what handles GET /listings/seller/{seller}/{slug}?",
+        "overlayTrustLevel": "overlay-complete",
+        "mixedTrust": true,
+        "minEvidenceTrustTier": 3,
+        "evidenceKindIncludes": "route-declaration",
+        "contextNodeDisjoint": true,
+        "summaryExcludes": "belongs to unresolved",
+        "failureClassIncludes": "weak-ownership",
+        "failureIncludes": "weak-ownership"
       },
       "json": true
     },
@@ -58,8 +77,12 @@
         "askSurface": "feature-path",
         "askMode": "retrieval",
         "resolution": "ambiguous",
-        "summaryIncludes": "could not resolve"
-      }
+        "summaryIncludes": "could not resolve",
+        "askSchemaVersion": 1,
+        "askQuestion": "what handles POST /events/contact_seller/{listing}?",
+        "overlayTrustLevel": "overlay-complete"
+      },
+      "json": true
     },
     {
       "id": "core-operational-unknown-target",
@@ -73,7 +96,11 @@
         "askMode": "retrieval",
         "resolution": "unresolved",
         "intent": "event-listeners",
-        "summaryIncludes": "could not resolve"
+        "summaryIncludes": "could not resolve",
+        "askSchemaVersion": 1,
+        "askQuestion": "what listeners handle acme\\Core\\Events\\NoSuchEvent?",
+        "overlayTrustLevel": "overlay-complete",
+        "mixedTrust": false
       }
     }
   ]

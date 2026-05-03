@@ -62,6 +62,8 @@ describe('index status trust diagnostics', () => {
     const result = runCli(repoDir, dbPath, ['index', 'status']);
 
     expect(result.status).toBe(0);
+    expect(result.stdout).toContain(`Corpus: ${repoDir} (explicit)`);
+    expect(result.stdout).toContain(`Database: ${dbPath} (explicit)`);
     expect(result.stdout).toContain('Structural Overlay:');
     expect(result.stdout).toContain('Trust Level: no-overlay');
     expect(result.stdout).toContain(
@@ -78,11 +80,22 @@ describe('index status trust diagnostics', () => {
     const payload = JSON.parse(result.stdout) as {
       stats: { knowledge_entries: number; events: number };
       overlay: { mode: string; trustLevel: string; trustSource: string; warnings: string[] };
+      runtime: { corpusPath: string; corpusSource: string; dbPath: string; dbSource: string };
     };
-    const overlayPayload = JSON.parse(overlayStatus.stdout) as typeof payload.overlay;
+    const overlayStatusPayload = JSON.parse(overlayStatus.stdout) as {
+      overlay: typeof payload.overlay;
+      runtime: typeof payload.runtime;
+    };
 
     expect(payload.stats.knowledge_entries).toBe(0);
-    expect(payload.overlay).toEqual(overlayPayload);
+    expect(payload.runtime).toEqual({
+      corpusPath: repoDir,
+      corpusSource: 'explicit',
+      dbPath,
+      dbSource: 'explicit',
+    });
+    expect(overlayStatusPayload.runtime).toEqual(payload.runtime);
+    expect(payload.overlay).toEqual(overlayStatusPayload.overlay);
     expect(payload.overlay.mode).toBe('none');
     expect(payload.overlay.trustLevel).toBe('no-overlay');
     expect(payload.overlay.trustSource).toBe('none');
@@ -116,11 +129,22 @@ describe('index status trust diagnostics', () => {
     const payload = JSON.parse(result.stdout) as {
       stats: { knowledge_entries: number };
       overlay: { mode: string; trustLevel: string; trustSource: string; warnings: string[] };
+      runtime: { corpusPath: string; corpusSource: string; dbPath: string; dbSource: string };
     };
-    const overlayPayload = JSON.parse(overlayStatus.stdout) as typeof payload.overlay;
+    const overlayStatusPayload = JSON.parse(overlayStatus.stdout) as {
+      overlay: typeof payload.overlay;
+      runtime: typeof payload.runtime;
+    };
 
     expect(payload.stats.knowledge_entries).toBeGreaterThan(0);
-    expect(payload.overlay).toEqual(overlayPayload);
+    expect(payload.runtime).toEqual({
+      corpusPath: repoDir,
+      corpusSource: 'explicit',
+      dbPath,
+      dbSource: 'explicit',
+    });
+    expect(overlayStatusPayload.runtime).toEqual(payload.runtime);
+    expect(payload.overlay).toEqual(overlayStatusPayload.overlay);
     expect(payload.overlay.mode).toBe('content-only');
     expect(payload.overlay.trustLevel).toBe('content-only');
     expect(payload.overlay.trustSource).toBe('derived');

@@ -17,10 +17,12 @@ lux index status --json
 ```
 
 Notes:
-- `lux index rebuild` is the canonical rebuild path
-- `--content-only` skips overlay materialization
+
+- `lux index rebuild` is the canonical overlay-complete rebuild path
+- `--content-only` skips overlay materialization and is not valid for retrieval-surface validation
 - `sync` may escalate to a full rebuild when structural changes are detected
-- `index status --json` is the canonical machine-readable status envelope; it includes both index stats and overlay trust diagnostics
+- `index status --json` is the canonical machine-readable status envelope; it includes index stats, overlay trust diagnostics, and runtime corpus/DB provenance
+- `overlay status --json` emits the native overlay trust payload plus the same runtime provenance
 
 ## Search
 
@@ -34,6 +36,7 @@ lux search "query" --content
 ```
 
 Implemented search type values:
+
 - `all`
 - `knowledge`
 
@@ -127,9 +130,22 @@ lux overlay boundaries neighborhood Listing
 ```
 
 Current operator-facing overlay states:
+
 - `overlay-complete`
 - `degraded-overlay`
+- `stale-overlay`
 - `content-only`
+- `no-overlay`
+
+### Overlay trust recovery
+
+| State                    | Meaning                                                                        | Recovery                                                                                                                    |
+| ------------------------ | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| `no-overlay`             | No persisted or derivable overlay state exists.                                | Run `lux index rebuild`.                                                                                                    |
+| `content-only`           | Content was indexed without structural overlay materialization.                | Run plain `lux index rebuild` before validating retrieval surfaces.                                                         |
+| `stale-overlay`          | Content sync advanced after a known overlay baseline and trust may be drifted. | Run `lux index rebuild`; use `lux index sync` only for routine commit-aware catch-up.                                       |
+| `degraded-overlay`       | Overlay state exists but is incomplete or warning-bearing.                     | Inspect warnings with `lux index status`; run `lux index rebuild`.                                                          |
+| wrong root / nested repo | Lux is pointed at a parent directory or a DB from another corpus.              | Rerun with `--corpus <actual repo root>` and prefer the repo-local DB unless intentionally overriding `--db`/`LUX_DB_PATH`. |
 
 ### Boundary exploration
 

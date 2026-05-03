@@ -14,13 +14,18 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, '..', '..', '..');
 const CLI_ENTRY = join(PROJECT_ROOT, 'src', 'cli', 'index.ts');
 
-interface OverlayStatusPayload {
+interface OverlayTrustPayload {
   mode: string;
   trustLevel?: string;
   trustSource: string;
   warnings: string[];
   symbolNodeCount?: number;
   enrichmentStatus?: string;
+}
+
+interface OverlayStatusPayload {
+  overlay: OverlayTrustPayload;
+  runtime: { corpusPath: string; corpusSource: string; dbPath: string; dbSource: string };
 }
 
 function git(repoPath: string, command: string): string {
@@ -192,10 +197,16 @@ describe('overlay CLI trust surface', () => {
 
     expect(result.status).toBe(0);
     const payload: OverlayStatusPayload = JSON.parse(result.stdout) as OverlayStatusPayload;
-    expect(payload.mode).toBe('none');
-    expect(payload.trustLevel).toBe('no-overlay');
-    expect(payload.trustSource).toBe('none');
-    expect(payload.warnings).toContain(
+    expect(payload.runtime).toEqual({
+      corpusPath: repoDir,
+      corpusSource: 'explicit',
+      dbPath,
+      dbSource: 'explicit',
+    });
+    expect(payload.overlay.mode).toBe('none');
+    expect(payload.overlay.trustLevel).toBe('no-overlay');
+    expect(payload.overlay.trustSource).toBe('none');
+    expect(payload.overlay.warnings).toContain(
       'No overlay trust state recorded. Run "lux index rebuild" to build the canonical overlay path.'
     );
   });
@@ -208,11 +219,17 @@ describe('overlay CLI trust surface', () => {
 
     expect(result.status).toBe(0);
     const payload: OverlayStatusPayload = JSON.parse(result.stdout) as OverlayStatusPayload;
-    expect(payload.mode).toBe('content-only');
-    expect(payload.trustLevel).toBe('content-only');
-    expect(payload.trustSource).toBe('derived');
+    expect(payload.runtime).toEqual({
+      corpusPath: repoDir,
+      corpusSource: 'explicit',
+      dbPath,
+      dbSource: 'explicit',
+    });
+    expect(payload.overlay.mode).toBe('content-only');
+    expect(payload.overlay.trustLevel).toBe('content-only');
+    expect(payload.overlay.trustSource).toBe('derived');
     expect(
-      payload.warnings.some((warning) =>
+      payload.overlay.warnings.some((warning) =>
         warning.includes('No structural overlay nodes are present')
       )
     ).toBe(true);
@@ -277,12 +294,18 @@ describe('overlay CLI trust surface', () => {
 
     expect(status.status).toBe(0);
     const payload: OverlayStatusPayload = JSON.parse(status.stdout) as OverlayStatusPayload;
-    expect(payload.mode).toBe('overlay-complete');
-    expect(payload.trustLevel).toBe('overlay-complete');
-    expect(payload.trustSource).toBe('persisted');
-    expect(payload.symbolNodeCount).toBeGreaterThan(0);
-    expect(payload.enrichmentStatus).toBe('active');
-    expect(payload.warnings).toEqual([]);
+    expect(payload.runtime).toEqual({
+      corpusPath: repoDir,
+      corpusSource: 'explicit',
+      dbPath,
+      dbSource: 'explicit',
+    });
+    expect(payload.overlay.mode).toBe('overlay-complete');
+    expect(payload.overlay.trustLevel).toBe('overlay-complete');
+    expect(payload.overlay.trustSource).toBe('persisted');
+    expect(payload.overlay.symbolNodeCount).toBeGreaterThan(0);
+    expect(payload.overlay.enrichmentStatus).toBe('active');
+    expect(payload.overlay.warnings).toEqual([]);
 
     expect(check.status).toBe(0);
     expect(check.stdout).toContain('Overlay check passed:');

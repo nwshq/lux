@@ -50,8 +50,20 @@ Modes:
 Each run writes a timestamped directory under `benchmarks/retrieval/results/` by default:
 
 - `summary.json` — aggregate pass/fail summary and compact per-case result.
-- `<repoId>/status.json` — status/trust snapshot for the repo.
+- `<repoId>/status.json` — status/trust/runtime snapshot for the repo.
 - `<repoId>/<caseId>.stdout.txt` — raw stdout.
 - `<repoId>/<caseId>.stderr.txt` — raw stderr.
 
 `benchmarks/retrieval/results/` is ignored and intended for generated output. Copy selected summarized reports into CORPUS when preserving validation evidence.
+
+## Phase 5 gate contract
+
+Before promoting new retrieval breadth, run the full harness and preserve a compact report in CORPUS. The report should include:
+
+- Lux commit/tag.
+- Benchmark command and output directory.
+- Per-repo pass totals.
+- Status snapshot summary: overlay mode, corpus source, DB source, surface count, knowledge entries.
+- Any failure messages and the follow-up decision.
+
+A passing Phase 5 gate requires explicit corpora and repo-local DB defaults unless a fixture intentionally tests an override. The runner validates `index status --json` runtime metadata so accidental fallback to implicit/global state is visible.

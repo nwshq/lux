@@ -146,7 +146,8 @@ describe('hooks command runtime path resolution', () => {
     expect(hook).toContain('LUX_SKIP_REBUILD');
     expect(hook).toContain('indexable content changes detected');
     expect(hook).toContain('\\.(md|mdx|txt|rst|php|ts|tsx|js|jsx|py|go|rs|java)$');
-    expect(hook).toContain('index sync --quiet');
+    expect(hook).toContain('git rev-parse --show-toplevel');
+    expect(hook).toContain('--corpus "$repo_root" index sync --quiet');
     expect(hook).toContain("Run 'lux index sync' manually to catch the index up.");
   });
 
@@ -164,7 +165,7 @@ describe('hooks command runtime path resolution', () => {
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('Lux post-commit hook updated');
     expect(hook).toContain('Automatically syncs index after corpus commits');
-    expect(hook).toContain('index sync --quiet');
+    expect(hook).toContain('--corpus "$repo_root" index sync --quiet');
     expect(hook).not.toContain('echo stale');
   });
 

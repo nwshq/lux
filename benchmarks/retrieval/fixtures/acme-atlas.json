@@ -17,7 +17,12 @@
         "intent": "schedule-sources",
         "targetId": "opb:command:app:refresh-client-statuses",
         "summaryIncludes": "schedules",
-        "minDirectEvidence": 1
+        "minDirectEvidence": 1,
+        "askSchemaVersion": 1,
+        "askQuestion": "what schedules app:refresh-client-statuses?",
+        "overlayTrustLevel": "overlay-complete",
+        "mixedTrust": false,
+        "minEvidenceTrustTier": 3
       }
     },
     {
@@ -31,8 +36,12 @@
         "intent": "dispatch-sources",
         "targetId": "opb:job:App\\Modules\\ClientProvisioning\\Jobs\\RefreshClientStatus",
         "summaryIncludes": "dispatches",
-        "minDirectEvidence": 1
-      }
+        "minDirectEvidence": 1,
+        "overlayNativeJson": true,
+        "overlayTrustLevel": "overlay-complete",
+        "minEvidenceTrustTier": 3
+      },
+      "json": true
     },
     {
       "id": "atlas-operational-listener-releases-synced",
@@ -47,8 +56,14 @@
         "intent": "event-listeners",
         "targetId": "opb:event:App\\Modules\\ReleaseNotes\\Events\\ReleasesSynced",
         "summaryIncludes": "SendReleaseAnnouncementListener",
-        "minDirectEvidence": 1
-      }
+        "minDirectEvidence": 1,
+        "askSchemaVersion": 1,
+        "askQuestion": "what listeners handle App\\Modules\\ReleaseNotes\\Events\\ReleasesSynced?",
+        "overlayTrustLevel": "overlay-complete",
+        "mixedTrust": false,
+        "minEvidenceTrustTier": 3
+      },
+      "json": true
     },
     {
       "id": "atlas-operational-neighborhood-refresh-client-status",
@@ -63,8 +78,12 @@
         "intent": "neighborhood",
         "targetId": "opb:job:App\\Modules\\ClientProvisioning\\Jobs\\RefreshClientStatus",
         "summaryIncludes": "can reach or be reached",
-        "minContext": 1
-      }
+        "minContext": 1,
+        "askSchemaVersion": 1,
+        "askQuestion": "what operational boundaries can reach App\\Modules\\ClientProvisioning\\Jobs\\RefreshClientStatus?",
+        "overlayTrustLevel": "overlay-complete"
+      },
+      "json": true
     },
     {
       "id": "atlas-feature-path-profile-route",
@@ -77,10 +96,18 @@
         "targetId": "surface:http:GET:/profile",
         "summaryIncludes": "ProfileController",
         "summaryExcludes": "belongs to unresolved",
-        "failureIncludes": "Weak ownership",
-        "minDirectEvidence": 2
+        "failureIncludes": "weak-ownership",
+        "minDirectEvidence": 2,
+        "overlayTrustLevel": "overlay-complete",
+        "evidenceKindIncludes": "route-declaration",
+        "contextNodeDisjoint": true,
+        "failureClassIncludes": "weak-ownership",
+        "overlayNativeJson": true,
+        "minEvidenceTrustTier": 3,
+        "mixedTrust": true
       },
-      "target": "GET /profile"
+      "target": "GET /profile",
+      "json": true
     },
     {
       "id": "atlas-feature-path-ambiguous-register",

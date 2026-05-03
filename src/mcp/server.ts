@@ -9,10 +9,14 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { LuxDatabase } from '../db/index.js';
 import { GeneralScanner } from '../scanner/index.js';
+import { attachEnrichment } from '../scanner/general.js';
+import { rebuildWithOverlay } from '../scanner/rebuild-orchestrator.js';
+import { persistRebuildTrustState } from '../scanner/overlay-trust-state.js';
 import { SubprocessSessionManager } from '../experts/subprocess-manager.js';
 import { routeQuery } from '../experts/router.js';
 import { readFileSync, existsSync } from 'fs';
 import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
+import { getHeadCommit, isGitRepository } from '../scanner/git.js';
 
 const DEFAULT_CORPUS_PATH = resolveCorpusPath({ corpus: process.env.LUX_CORPUS_PATH });
 const DEFAULT_DB_PATH = resolveDbPath({
@@ -279,17 +283,39 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'lux_rebuild_index': {
         const scanner = new GeneralScanner(DEFAULT_CORPUS_PATH);
-        const result = await scanner.scan();
+        const { result, scanResult } = await rebuildWithOverlay(db, DEFAULT_CORPUS_PATH);
+        const indexedScan = {
+          ...scanResult.scan,
+          knowledge: scanResult.scan.knowledge.map((entry) =>
+            attachEnrichment(entry, scanResult.enrichments)
+          ),
+        };
 
-        db.clearAll();
+        await scanner.index(db, indexedScan);
+        if (scanResult.dependencies.length > 0) {
+          db.clearModuleDependencies();
+          for (const dep of scanResult.dependencies) {
+            db.insertModuleDependency({
+              source_module: dep.source_module,
+              target_module: dep.target_module,
+              reference_count: dep.reference_count,
+              sample_files: JSON.stringify(dep.sample_files),
+            });
+          }
+        }
 
-        // Use the scanner's index() method to write to database
-        await scanner.index(db, result);
+        const headCommit = isGitRepository(DEFAULT_CORPUS_PATH)
+          ? getHeadCommit(DEFAULT_CORPUS_PATH)
+          : null;
+        if (headCommit) db.setIndexMetadata('last_indexed_commit', headCommit);
+        const trustState = persistRebuildTrustState(db, result, {
+          lastIndexedCommit: headCommit ?? undefined,
+        });
 
         db.insertEvent({
           source: 'mcp',
           event_type: 'index_rebuild',
-          summary: `Indexed ${result.knowledge.length} knowledge entries`,
+          summary: `Indexed ${scanResult.scan.knowledge.length} knowledge entries with ${result.surfaceCount} overlay surfaces`,
         });
 
         return {
@@ -300,7 +326,24 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 {
                   success: true,
                   indexed: {
-                    knowledge: result.knowledge.length,
+                    knowledge: scanResult.scan.knowledge.length,
+                  },
+                  overlay: {
+                    mode: trustState.mode,
+                    trustLevel:
+                      trustState.mode === 'overlay-complete'
+                        ? 'overlay-complete'
+                        : trustState.mode === 'content-only'
+                          ? 'content-only'
+                          : 'degraded-overlay',
+                    surfaceCount: trustState.surfaceCount,
+                    fileNodeCount: trustState.fileNodeCount,
+                    symbolNodeCount: trustState.symbolNodeCount,
+                    warnings: trustState.warnings,
+                  },
+                  runtime: {
+                    corpusPath: DEFAULT_CORPUS_PATH,
+                    dbPath: DEFAULT_DB_PATH,
                   },
                 },
                 null,

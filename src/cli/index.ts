@@ -38,7 +38,7 @@ import { addExpertCommands } from './expert.js';
 import { addAskCommand } from './ask.js';
 import { addDepsCommand } from './deps.js';
 import { addOverlayCommands } from './overlay.js';
-import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
+import { resolveRuntimePaths } from '../utils/runtime-paths.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const version: string = (
@@ -65,14 +65,12 @@ program
 // Index commands
 const indexCmd = program.command('index').description('Manage index');
 
-function getRuntimePaths(cmd: Command): { corpusPath: string; dbPath: string } {
+function getRuntimePaths(cmd: Command): ReturnType<typeof resolveRuntimePaths> {
   const opts = cmd.opts();
-  const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
-  const dbPath = resolveDbPath({
-    corpus: corpusPath,
+  return resolveRuntimePaths({
+    corpus: opts.corpus as string | undefined,
     db: opts.db as string | undefined,
   });
-  return { corpusPath, dbPath };
 }
 
 indexCmd
@@ -743,19 +741,21 @@ indexCmd
   .description('Show index statistics and overlay state')
   .option('--json', 'Emit machine-readable JSON instead of human-readable text')
   .action((options: { json?: boolean }) => {
-    const { dbPath } = getRuntimePaths(program);
-    const db = new LuxDatabase(dbPath);
+    const runtime = getRuntimePaths(program);
+    const db = new LuxDatabase(runtime.dbPath);
     const stats = db.getStats();
     const inspection = inspectOverlayTrustState(db);
     const diagnostics = describeOverlayTrustInspection(inspection);
 
     if (options.json) {
-      console.log(JSON.stringify(buildIndexStatusPayload(db), null, 2));
+      console.log(JSON.stringify(buildIndexStatusPayload(db, runtime), null, 2));
       db.close();
       return;
     }
 
     console.log('\nIndex Statistics:\n');
+    console.log(`  Corpus: ${runtime.corpusPath} (${runtime.corpusSource})`);
+    console.log(`  Database: ${runtime.dbPath} (${runtime.dbSource})`);
     console.log(`  Knowledge Entries: ${stats.knowledge_entries}`);
     console.log(`  Events: ${stats.events}`);
 

@@ -1,4 +1,5 @@
 import type { LuxDatabase } from '../db/index.js';
+import type { RuntimePathResolution } from '../utils/runtime-paths.js';
 import {
   describeOverlayTrustInspection,
   inspectOverlayTrustState,
@@ -6,7 +7,7 @@ import {
   type PersistedOverlayTrustState,
 } from '../scanner/overlay-trust-state.js';
 
-export type OverlayStatusPayload =
+export type OverlayTrustPayload =
   | (PersistedOverlayTrustState & {
       trustLevel: OverlayTrustDiagnostics['trustLevel'];
       trustSource: OverlayTrustDiagnostics['trustSource'];
@@ -14,12 +15,36 @@ export type OverlayStatusPayload =
     })
   | OverlayTrustDiagnostics;
 
-export interface IndexStatusPayload {
-  stats: ReturnType<LuxDatabase['getStats']>;
-  overlay: OverlayStatusPayload;
+export type OverlayStatusPayload = OverlayTrustPayload | OverlayStatusPayloadWithRuntime;
+
+export interface OverlayStatusPayloadWithRuntime {
+  overlay: OverlayTrustPayload;
+  runtime: RuntimeStatusPayload;
 }
 
-export function buildOverlayStatusPayload(db: LuxDatabase): OverlayStatusPayload {
+export interface IndexStatusPayload {
+  stats: ReturnType<LuxDatabase['getStats']>;
+  overlay: OverlayTrustPayload;
+  runtime?: RuntimeStatusPayload;
+}
+
+export interface RuntimeStatusPayload {
+  corpusPath: string;
+  corpusSource: RuntimePathResolution['corpusSource'];
+  dbPath: string;
+  dbSource: RuntimePathResolution['dbSource'];
+}
+
+function buildRuntimeStatusPayload(runtime: RuntimePathResolution): RuntimeStatusPayload {
+  return {
+    corpusPath: runtime.corpusPath,
+    corpusSource: runtime.corpusSource,
+    dbPath: runtime.dbPath,
+    dbSource: runtime.dbSource,
+  };
+}
+
+function buildOverlayTrustPayload(db: LuxDatabase): OverlayTrustPayload {
   const inspection = inspectOverlayTrustState(db);
   const diagnostics = describeOverlayTrustInspection(inspection);
 
@@ -33,9 +58,21 @@ export function buildOverlayStatusPayload(db: LuxDatabase): OverlayStatusPayload
     : diagnostics;
 }
 
-export function buildIndexStatusPayload(db: LuxDatabase): IndexStatusPayload {
+export function buildOverlayStatusPayload(
+  db: LuxDatabase,
+  runtime?: RuntimePathResolution
+): OverlayStatusPayload {
+  const overlay = buildOverlayTrustPayload(db);
+  return runtime ? { overlay, runtime: buildRuntimeStatusPayload(runtime) } : overlay;
+}
+
+export function buildIndexStatusPayload(
+  db: LuxDatabase,
+  runtime?: RuntimePathResolution
+): IndexStatusPayload {
   return {
     stats: db.getStats(),
-    overlay: buildOverlayStatusPayload(db),
+    overlay: buildOverlayTrustPayload(db),
+    ...(runtime ? { runtime: buildRuntimeStatusPayload(runtime) } : {}),
   };
 }

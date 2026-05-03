@@ -2,10 +2,12 @@
 
 ## Runtime path behavior
 
-Server path resolution uses `src/utils/runtime-paths.ts`:
+Server path resolution uses `src/utils/runtime-paths.ts` at process startup:
 
 - corpus: `LUX_CORPUS_PATH` or cwd
 - db: `LUX_DB_PATH` or `<corpus>/.lux/lux.db`
+
+Prefer setting `LUX_CORPUS_PATH` explicitly in MCP client configuration. Omit `LUX_DB_PATH` unless you intentionally want to override the repo-local database.
 
 ## Server
 
@@ -58,7 +60,9 @@ mcporter call lux.lux_search query="acme" type="all"
 
 ```bash
 lux index rebuild
+lux index status --json
+lux overlay status --json
 ls -la /path/to/corpus/.lux/lux.db
 ```
 
-Use `LUX_DB_PATH` only when intentionally overriding the corpus-local default.
+Use `LUX_DB_PATH` only when intentionally overriding the corpus-local default. MCP rebuild uses the same canonical overlay-complete rebuild semantics as the CLI and persists overlay trust metadata; if status reports `no-overlay`, `content-only`, `stale-overlay`, or `degraded-overlay`, run `lux index rebuild` against the same corpus/db settings used by the MCP server.

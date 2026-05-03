@@ -27,8 +27,20 @@ interface BenchmarkCase {
 
 interface BenchmarkExpectation {
   exitCode: number;
+  corpusSource?: string;
+  dbSource?: string;
+  askSchemaVersion?: number;
   askSurface?: string;
   askMode?: string;
+  askQuestion?: string;
+  overlayNativeJson?: boolean;
+  overlayTrustLevel?: string;
+  minEvidenceTrustTier?: number;
+  mixedTrust?: boolean;
+  evidenceKindIncludes?: string;
+  failureClassIncludes?: string;
+  failureClassExcludes?: string;
+  contextNodeDisjoint?: boolean;
   resolution?: string;
   intent?: string;
   targetId?: string;
@@ -43,8 +55,20 @@ interface BenchmarkExpectation {
 }
 
 interface ParsedCasePayload {
+  corpusSource?: string;
+  dbSource?: string;
+  askSchemaVersion?: number;
   askSurface?: string;
   askMode?: string;
+  askQuestion?: string;
+  overlayNativeJson?: boolean;
+  overlayTrustLevel?: string;
+  evidenceTrustTiers?: number[];
+  mixedTrust?: boolean;
+  evidenceKinds?: string[];
+  failureClasses?: string[];
+  directEvidenceNodeIds?: string[];
+  contextNodeIds?: string[];
   resolution?: string;
   intent?: string;
   targetId?: string;
@@ -221,6 +245,18 @@ function asNumber(value: unknown): number | undefined {
   return typeof value === 'number' ? value : undefined;
 }
 
+function asBoolean(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined;
+}
+
+function asStringArray(value: unknown): string[] {
+  return asArray(value).filter((item): item is string => typeof item === 'string');
+}
+
+function asNumberArray(value: unknown): number[] {
+  return asArray(value).filter((item): item is number => typeof item === 'number');
+}
+
 function parseCasePayload(testCase: BenchmarkCase, stdout: string): ParsedCasePayload {
   const parsed = parseJsonOutput(stdout);
   if (parsed === undefined) return parseTextPayload(stdout, testCase);
@@ -232,17 +268,30 @@ function parseCasePayload(testCase: BenchmarkCase, stdout: string): ParsedCasePa
   const resolution = asRecord(payload.resolution);
   const target = asRecord(payload.target);
   const primaryAnswer = asRecord(payload.primaryAnswer);
+  const trust = asRecord(payload.trust);
+  const directEvidence = asArray(payload.directEvidence ?? payload.evidence);
+  const context = asArray(payload.context);
 
   return {
+    askSchemaVersion: asNumber(root.schemaVersion),
     askSurface: asString(root.surface),
     askMode: asString(root.mode),
+    askQuestion: asString(root.question),
+    overlayNativeJson: testCase.mode === 'overlay' ? root.payload === undefined : undefined,
+    overlayTrustLevel: asString(payload.overlayTrustLevel),
+    evidenceTrustTiers: asNumberArray(trust.evidenceTrustTiers),
+    mixedTrust: asBoolean(trust.mixedTrust),
+    evidenceKinds: extractKinds(directEvidence),
+    failureClasses: extractFailureClasses(payload),
+    directEvidenceNodeIds: extractNodeIds(directEvidence),
+    contextNodeIds: extractNodeIds(context),
     resolution: asString(resolution.status),
     intent: asString(payload.intent),
     targetId: asString(target.id),
     summary: asString(primaryAnswer.summary),
     failureText: extractJsonFailureText(payload),
-    directEvidenceCount: asArray(payload.directEvidence ?? payload.evidence).length,
-    contextCount: asArray(payload.context).length,
+    directEvidenceCount: directEvidence.length,
+    contextCount: context.length,
   };
 }
 
@@ -269,6 +318,24 @@ function parseTextPayload(stdout: string, testCase: BenchmarkCase): ParsedCasePa
     directEvidenceCount: directEvidenceSection,
     contextCount: contextSection,
   };
+}
+
+function extractKinds(items: unknown[]): string[] {
+  return items
+    .map((item) => asString(asRecord(item).kind))
+    .filter((kind): kind is string => Boolean(kind));
+}
+
+function extractNodeIds(items: unknown[]): string[] {
+  return items
+    .map((item) => asString(asRecord(item).nodeId))
+    .filter((nodeId): nodeId is string => Boolean(nodeId));
+}
+
+function extractFailureClasses(payload: Record<string, unknown>): string[] {
+  return asArray(payload.failures)
+    .map((failure) => asString(asRecord(failure).failureClass))
+    .filter((failureClass): failureClass is string => Boolean(failureClass));
 }
 
 function extractJsonFailureText(payload: Record<string, unknown>): string {
@@ -317,7 +384,10 @@ function sectionLineCount(stdout: string, heading: string, stopHeadings: string[
 function parseStatusPayload(root: Record<string, unknown>): ParsedCasePayload {
   const stats = asRecord(root.stats);
   const overlay = asRecord(root.overlay);
+  const runtime = asRecord(root.runtime);
   return {
+    corpusSource: asString(runtime.corpusSource),
+    dbSource: asString(runtime.dbSource),
     overlayMode: asString(overlay.mode),
     surfaceCount: asNumber(overlay.surfaceCount),
     knowledgeEntries: asNumber(stats.knowledge_entries),
@@ -346,12 +416,56 @@ function validateExpectation(
   const failures: string[] = [];
   if (exitCode !== expect.exitCode)
     failures.push(`exitCode expected ${expect.exitCode}, got ${exitCode}`);
+  if (expect.corpusSource && actual.corpusSource !== expect.corpusSource)
+    failures.push(
+      `corpusSource expected ${expect.corpusSource}, got ${actual.corpusSource ?? 'missing'}`
+    );
+  if (expect.dbSource && actual.dbSource !== expect.dbSource)
+    failures.push(`dbSource expected ${expect.dbSource}, got ${actual.dbSource ?? 'missing'}`);
+  if (expect.askSchemaVersion && actual.askSchemaVersion !== expect.askSchemaVersion)
+    failures.push(
+      `askSchemaVersion expected ${expect.askSchemaVersion}, got ${actual.askSchemaVersion ?? 'missing'}`
+    );
   if (expect.askSurface && actual.askSurface !== expect.askSurface)
     failures.push(
       `askSurface expected ${expect.askSurface}, got ${actual.askSurface ?? 'missing'}`
     );
   if (expect.askMode && actual.askMode !== expect.askMode)
     failures.push(`askMode expected ${expect.askMode}, got ${actual.askMode ?? 'missing'}`);
+  if (expect.askQuestion && actual.askQuestion !== expect.askQuestion)
+    failures.push(
+      `askQuestion expected ${JSON.stringify(expect.askQuestion)}, got ${JSON.stringify(actual.askQuestion ?? 'missing')}`
+    );
+  if (
+    expect.overlayNativeJson !== undefined &&
+    actual.overlayNativeJson !== expect.overlayNativeJson
+  )
+    failures.push(
+      `overlayNativeJson expected ${expect.overlayNativeJson}, got ${actual.overlayNativeJson ?? 'missing'}`
+    );
+  if (expect.overlayTrustLevel && actual.overlayTrustLevel !== expect.overlayTrustLevel)
+    failures.push(
+      `overlayTrustLevel expected ${expect.overlayTrustLevel}, got ${actual.overlayTrustLevel ?? 'missing'}`
+    );
+  if (
+    expect.minEvidenceTrustTier !== undefined &&
+    !actual.evidenceTrustTiers?.some((tier) => tier >= expect.minEvidenceTrustTier!)
+  )
+    failures.push(
+      `evidenceTrustTiers expected at least one >= ${expect.minEvidenceTrustTier}, got ${(actual.evidenceTrustTiers ?? []).join(',') || 'none'}`
+    );
+  if (expect.mixedTrust !== undefined && actual.mixedTrust !== expect.mixedTrust)
+    failures.push(
+      `mixedTrust expected ${expect.mixedTrust}, got ${actual.mixedTrust ?? 'missing'}`
+    );
+  if (expect.evidenceKindIncludes && !actual.evidenceKinds?.includes(expect.evidenceKindIncludes))
+    failures.push(`evidence kind missing ${JSON.stringify(expect.evidenceKindIncludes)}`);
+  if (expect.failureClassIncludes && !actual.failureClasses?.includes(expect.failureClassIncludes))
+    failures.push(`failure class missing ${JSON.stringify(expect.failureClassIncludes)}`);
+  if (expect.failureClassExcludes && actual.failureClasses?.includes(expect.failureClassExcludes))
+    failures.push(`failure class must not include ${JSON.stringify(expect.failureClassExcludes)}`);
+  if (expect.contextNodeDisjoint && hasOverlap(actual.directEvidenceNodeIds, actual.contextNodeIds))
+    failures.push('direct evidence and context node ids must be disjoint');
   if (expect.resolution && actual.resolution !== expect.resolution)
     failures.push(
       `resolution expected ${expect.resolution}, got ${actual.resolution ?? 'missing'}`
@@ -391,6 +505,12 @@ function validateExpectation(
       `knowledgeEntries expected >= ${expect.minKnowledgeEntries}, got ${actual.knowledgeEntries ?? 0}`
     );
   return failures;
+}
+
+function hasOverlap(a: string[] | undefined, b: string[] | undefined): boolean {
+  if (!a || !b) return false;
+  const set = new Set(a);
+  return b.some((item) => set.has(item));
 }
 
 function writeText(path: string, content: string): void {
