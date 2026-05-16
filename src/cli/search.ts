@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { LuxDatabase } from '../db/index.js';
 import { detectModuleBoundaries, resolveModule } from '../scanner/imports/module-boundary.js';
+import { emitUsageEvent, createInvocationId } from '../db/observability/usage-event.js';
 import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
 
 export function addSearchCommand(program: Command) {
@@ -26,6 +27,8 @@ export function addSearchCommand(program: Command) {
         );
 
         const limit = parseInt(options.limit, 10);
+        const invocationId = createInvocationId();
+        const startedAt = Date.now();
         const results: Array<{
           type: string;
           title: string;
@@ -62,6 +65,20 @@ export function addSearchCommand(program: Command) {
         } catch (error) {
           console.error('FTS5 search unavailable:', (error as Error).message);
           console.error('Run `lux migrate up` and `lux index rebuild`, then try again.');
+          emitUsageEvent(db, {
+            source: 'cli',
+            surface: 'search',
+            action: 'query',
+            invocationId,
+            commandOutcome: 'error',
+            retrievalOutcome: 'not_applicable',
+            durationMs: Date.now() - startedAt,
+            exitCode: 1,
+            corpusPath,
+            queryText: query,
+            attributes: { type: options.type, contentOnly: options.content ?? false },
+            error: { code: 'fts_unavailable' },
+          });
           db.close();
           process.exitCode = 1;
           return;
@@ -70,7 +87,7 @@ export function addSearchCommand(program: Command) {
         // Limit results
         const limitedResults = results.slice(0, limit);
 
-        // Log search event
+        // Log legacy search event and normalized usage event.
         db.insertEvent({
           source: 'cli',
           event_type: 'search',
@@ -82,6 +99,25 @@ export function addSearchCommand(program: Command) {
             content_only: options.content ?? false,
             results_count: limitedResults.length,
             total_matches: results.length,
+          },
+        });
+        emitUsageEvent(db, {
+          source: 'cli',
+          surface: 'search',
+          action: 'query',
+          invocationId,
+          commandOutcome: 'success',
+          retrievalOutcome: 'not_applicable',
+          durationMs: Date.now() - startedAt,
+          exitCode: 0,
+          corpusPath,
+          queryText: query,
+          attributes: {
+            type: options.type,
+            limit,
+            contentOnly: options.content ?? false,
+            resultsCount: limitedResults.length,
+            totalMatches: results.length,
           },
         });
 

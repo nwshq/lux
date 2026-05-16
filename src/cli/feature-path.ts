@@ -16,6 +16,7 @@ import {
   renderFeaturePathAnswerText,
 } from '../scanner/associations/feature-path/render.js';
 import { resolveFeaturePathTarget } from '../scanner/associations/feature-path/resolve.js';
+import { emitUsageEvent, createInvocationId } from '../db/observability/usage-event.js';
 import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
 import type { FeaturePathAnswer } from '../scanner/associations/feature-path/contract.js';
 
@@ -82,10 +83,36 @@ export function runFeaturePathAsk(
   const db = new LuxDatabase(
     resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
   );
+  const invocationId = createInvocationId();
+  const startedAt = Date.now();
 
   const result = executeFeaturePathAsk(db, question, { ...options, corpusPath });
 
   console.log(result.rendered);
+  emitUsageEvent(db, {
+    source: 'cli',
+    surface: 'feature-path',
+    action: 'ask',
+    invocationId,
+    commandOutcome: result.exitCode === 0 ? 'success' : 'error',
+    retrievalOutcome:
+      result.answer.resolution.status === 'resolved'
+        ? 'answered'
+        : result.answer.resolution.status === 'ambiguous'
+          ? 'ambiguous'
+          : 'unresolved',
+    durationMs: Date.now() - startedAt,
+    exitCode: result.exitCode,
+    corpusPath,
+    queryText: question || options.target,
+    normalizedIntent: result.answer.intent,
+    retrieval: {
+      promoted: false,
+      resolvedTargetType: result.answer.resolution.status,
+      directEvidenceCount: result.answer.directEvidence.length,
+      contextualEvidenceCount: result.answer.context.length,
+    },
+  });
 
   db.close();
   if (result.exitCode !== 0) process.exit(result.exitCode);

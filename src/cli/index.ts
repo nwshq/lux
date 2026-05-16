@@ -38,6 +38,12 @@ import { addExpertCommands } from './expert.js';
 import { addAskCommand } from './ask.js';
 import { addDepsCommand } from './deps.js';
 import { addOverlayCommands } from './overlay.js';
+import { addUsageCommands } from './usage.js';
+import {
+  createInvocationId,
+  emitUsageEvent,
+  safeUsageTrustState,
+} from '../db/observability/usage-event.js';
 import { resolveRuntimePaths } from '../utils/runtime-paths.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -87,6 +93,8 @@ indexCmd
   )
   .action(async (options: { quiet?: boolean; contentOnly?: boolean }) => {
     const { corpusPath, dbPath } = getRuntimePaths(program);
+    const invocationId = createInvocationId();
+    const startedAt = Date.now();
     let db: LuxDatabase | undefined;
 
     try {
@@ -223,6 +231,25 @@ indexCmd
         }
       }
 
+      emitUsageEvent(db, {
+        source: 'cli',
+        surface: 'index-rebuild',
+        action: options.contentOnly ? 'content-only' : 'overlay-complete',
+        invocationId,
+        commandOutcome: 'success',
+        retrievalOutcome: 'not_applicable',
+        trustState: options.contentOnly ? 'content-only' : safeUsageTrustState(overlayResult?.mode),
+        durationMs: Date.now() - startedAt,
+        exitCode: 0,
+        corpusPath,
+        dbPath,
+        attributes: {
+          entries: result.knowledge.length,
+          overlayMode: overlayResult?.mode ?? (options.contentOnly ? 'content-only' : 'unknown'),
+          surfaceCount: overlayResult?.surfaceCount,
+        },
+      });
+
       // Store HEAD commit hash if this is a git repo
       if (isGitRepository(corpusPath)) {
         try {
@@ -302,6 +329,8 @@ indexCmd
   .option('--force', 'Ignore stored commit, do full rebuild')
   .action(async (options: { quiet?: boolean; force?: boolean }) => {
     const { corpusPath, dbPath } = getRuntimePaths(program);
+    const invocationId = createInvocationId();
+    const startedAt = Date.now();
     let db: LuxDatabase | undefined;
 
     try {
@@ -537,6 +566,24 @@ indexCmd
           } catch {
             // Non-fatal
           }
+          emitUsageEvent(db, {
+            source: 'cli',
+            surface: 'index-sync',
+            action: 'overlay-rebuild',
+            invocationId,
+            commandOutcome: 'success',
+            retrievalOutcome: 'not_applicable',
+            trustState: safeUsageTrustState(result.mode),
+            durationMs: Date.now() - startedAt,
+            exitCode: 0,
+            corpusPath,
+            dbPath,
+            repoCommit: headCommit,
+            attributes: {
+              overlayRelevantPaths: overlayRelevantPaths.length,
+              surfaceCount: result.surfaceCount,
+            },
+          });
 
           if (!options.quiet) {
             printRebuildTrustSummary(result);
@@ -707,6 +754,27 @@ indexCmd
       } catch {
         // Non-fatal
       }
+      emitUsageEvent(db, {
+        source: 'cli',
+        surface: 'index-sync',
+        action: 'incremental',
+        invocationId,
+        commandOutcome: 'success',
+        retrievalOutcome: 'not_applicable',
+        trustState: safeUsageTrustState(deriveOverlayTrustLevelFromState(syncTrustState)),
+        durationMs: Date.now() - startedAt,
+        exitCode: 0,
+        corpusPath,
+        dbPath,
+        repoCommit: headCommit,
+        attributes: {
+          indexedCount: plan.toIndex.length,
+          deletedEntryCount: plan.toDelete.length,
+          addedCount: diff.added.length,
+          modifiedCount: diff.modified.length,
+          deletedCount: diff.deleted.length,
+        },
+      });
 
       if (!options.quiet) {
         const syncTrustLevel = deriveOverlayTrustLevelFromState(syncTrustState);
@@ -746,6 +814,20 @@ indexCmd
     const stats = db.getStats();
     const inspection = inspectOverlayTrustState(db);
     const diagnostics = describeOverlayTrustInspection(inspection);
+    const invocationId = createInvocationId();
+    emitUsageEvent(db, {
+      source: 'cli',
+      surface: 'index-status',
+      action: 'status',
+      invocationId,
+      commandOutcome: 'success',
+      retrievalOutcome: 'not_applicable',
+      trustState: safeUsageTrustState(diagnostics.trustLevel),
+      exitCode: 0,
+      corpusPath: runtime.corpusPath,
+      dbPath: runtime.dbPath,
+      attributes: { json: options.json ?? false, trustLevel: diagnostics.trustLevel },
+    });
 
     if (options.json) {
       console.log(JSON.stringify(buildIndexStatusPayload(db, runtime), null, 2));
@@ -816,6 +898,9 @@ addDepsCommand(program);
 
 // Add overlay commands
 addOverlayCommands(program);
+
+// Add usage observability commands
+addUsageCommands(program);
 
 program.parse();
 

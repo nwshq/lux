@@ -8,6 +8,7 @@ import type { RouteResult } from '../experts/router.js';
 import { executeFeaturePathAsk } from './feature-path.js';
 import { executeOperationalAsk, inferOperationalAskIntent } from './operational.js';
 import { inferFeaturePathIntent } from '../scanner/associations/feature-path/intents.js';
+import { createInvocationId, emitUsageEvent } from '../db/observability/usage-event.js';
 
 export function addAskCommand(program: Command) {
   program
@@ -45,16 +46,29 @@ export function addAskCommand(program: Command) {
           resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
         );
         const sessionManager = new SubprocessSessionManager(db);
+        const invocationId = createInvocationId();
+        const startedAt = Date.now();
 
         try {
           if (options.expert) {
-            await askSpecificExpert(db, sessionManager, question, options.expert, options);
-          } else if (tryAskFeaturePath(db, question, options, corpusPath)) {
+            await askSpecificExpert(db, sessionManager, question, options.expert, options, {
+              invocationId,
+              startedAt,
+              corpusPath,
+            });
+          } else if (
+            tryAskFeaturePath(db, question, options, corpusPath, invocationId, startedAt)
+          ) {
             // Promoted retrieval answers are emitted by tryAskFeaturePath.
-          } else if (tryAskOperational(db, question, options, corpusPath)) {
+          } else if (
+            tryAskOperational(db, question, options, corpusPath, invocationId, startedAt)
+          ) {
             // Promoted retrieval answers are emitted by tryAskOperational.
           } else {
-            await askPanel(db, sessionManager, question, options, corpusPath);
+            await askPanel(db, sessionManager, question, options, corpusPath, {
+              invocationId,
+              startedAt,
+            });
           }
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
@@ -63,6 +77,19 @@ export function addAskCommand(program: Command) {
           } else {
             console.error(`Error: ${message}`);
           }
+          emitUsageEvent(db, {
+            source: 'cli',
+            surface: 'ask',
+            action: 'ask',
+            invocationId,
+            commandOutcome: 'error',
+            retrievalOutcome: 'not_applicable',
+            durationMs: Date.now() - startedAt,
+            exitCode: 1,
+            corpusPath,
+            queryText: question,
+            error: { code: 'ask_error' },
+          });
           db.close();
           process.exit(1);
         }
@@ -110,7 +137,9 @@ export function tryAskFeaturePath(
   db: LuxDatabase,
   question: string,
   options: { json?: boolean },
-  corpusPath: string
+  corpusPath: string,
+  invocationId = createInvocationId(),
+  startedAt = Date.now()
 ): boolean {
   if (!hasFeaturePathSurfaceCue(question)) return false;
 
@@ -126,6 +155,31 @@ export function tryAskFeaturePath(
       )
     : result.rendered;
   console.log(output);
+  emitUsageEvent(db, {
+    source: 'cli',
+    surface: 'feature-path',
+    action: 'ask',
+    invocationId,
+    commandOutcome: result.exitCode === 0 ? 'success' : 'error',
+    retrievalOutcome:
+      result.answer.resolution.status === 'resolved'
+        ? 'answered'
+        : result.answer.resolution.status === 'ambiguous'
+          ? 'ambiguous'
+          : 'unresolved',
+    durationMs: Date.now() - startedAt,
+    exitCode: result.exitCode,
+    corpusPath,
+    queryText: question,
+    normalizedIntent: result.answer.intent,
+    retrieval: {
+      promoted: true,
+      resolvedTargetType: result.answer.resolution.status,
+      directEvidenceCount: result.answer.directEvidence.length,
+      contextualEvidenceCount: result.answer.context.length,
+      fallbackSurface: result.exitCode === 0 ? undefined : 'none',
+    },
+  });
   if (result.exitCode !== 0) {
     process.exitCode = result.exitCode;
   }
@@ -136,7 +190,9 @@ export function tryAskOperational(
   db: LuxDatabase,
   question: string,
   options: { json?: boolean },
-  corpusPath: string
+  corpusPath: string,
+  invocationId = createInvocationId(),
+  startedAt = Date.now()
 ): boolean {
   const intentResolution = inferOperationalAskIntent(question);
   if (!intentResolution.intent) return false;
@@ -150,6 +206,32 @@ export function tryAskOperational(
       )
     : result.rendered;
   console.log(output);
+  emitUsageEvent(db, {
+    source: 'cli',
+    surface: 'operational',
+    action: 'ask',
+    invocationId,
+    commandOutcome: result.exitCode === 0 ? 'success' : 'error',
+    retrievalOutcome:
+      result.answer.resolution.status === 'resolved'
+        ? 'answered'
+        : result.answer.resolution.status === 'ambiguous'
+          ? 'ambiguous'
+          : 'unresolved',
+    trustState: result.answer.overlayTrustLevel === 'overlay-complete' ? 'fresh' : 'unknown',
+    durationMs: Date.now() - startedAt,
+    exitCode: result.exitCode,
+    corpusPath,
+    queryText: question,
+    normalizedIntent: result.answer.intent,
+    retrieval: {
+      promoted: true,
+      resolvedTargetType: result.answer.target?.boundaryKind ?? result.answer.resolution.status,
+      evidenceCount: result.answer.evidence.length + result.answer.context.length,
+      directEvidenceCount: result.answer.evidence.length,
+      contextualEvidenceCount: result.answer.context.length,
+    },
+  });
   if (result.exitCode !== 0) {
     process.exitCode = result.exitCode;
   }
@@ -161,7 +243,8 @@ export async function askSpecificExpert(
   sessionManager: ExpertSessionManager,
   question: string,
   expertSlug: string,
-  options: { verbose?: boolean; json?: boolean; stream?: boolean }
+  options: { verbose?: boolean; json?: boolean; stream?: boolean },
+  usage?: { invocationId: string; startedAt: number; corpusPath: string }
 ): Promise<void> {
   const expert = db.getExpert(expertSlug);
   if (!expert) {
@@ -190,6 +273,22 @@ export async function askSpecificExpert(
     : undefined;
 
   const result = await sessionManager.query(expertSlug, question, queryOpts);
+
+  if (usage) {
+    emitUsageEvent(db, {
+      source: 'cli',
+      surface: 'expert',
+      action: 'ask',
+      invocationId: usage.invocationId,
+      commandOutcome: 'success',
+      retrievalOutcome: 'not_applicable',
+      durationMs: Date.now() - usage.startedAt,
+      exitCode: 0,
+      corpusPath: usage.corpusPath,
+      queryText: question,
+      attributes: { expertSlug },
+    });
+  }
 
   if (options.json) {
     const payload = {
@@ -237,7 +336,8 @@ export async function askPanel(
     routingProvider?: string;
     routingThinking?: 'off' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh';
   },
-  corpusPath?: string
+  corpusPath?: string,
+  usage?: { invocationId: string; startedAt: number }
 ): Promise<void> {
   if (options.verbose && !options.json) {
     const activeExperts = db.getExpertsByStatus('active');
@@ -262,6 +362,26 @@ export async function askPanel(
   };
 
   const routeResult = await routeQuery(question, db, sessionManager, routerOpts);
+  if (usage) {
+    emitUsageEvent(db, {
+      source: 'cli',
+      surface: 'expert-panel',
+      action: 'ask',
+      invocationId: usage.invocationId,
+      commandOutcome: routeResult.responses.length > 0 ? 'success' : 'error',
+      retrievalOutcome: 'fallback',
+      durationMs: Date.now() - usage.startedAt,
+      exitCode: routeResult.responses.length > 0 ? 0 : 1,
+      corpusPath,
+      queryText: question,
+      retrieval: { fallbackSurface: 'expert-panel' },
+      attributes: {
+        routingMethod: routeResult.routingMethod,
+        matchedExperts: routeResult.matchedExperts.length,
+        responses: routeResult.responses.length,
+      },
+    });
+  }
 
   if (options.json) {
     const payload = formatRouteResultJson(routeResult);

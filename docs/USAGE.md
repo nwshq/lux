@@ -109,6 +109,26 @@ lux ask "question" --stream
 lux ask "question" --no-stream
 ```
 
+## Usage observability
+
+```bash
+lux usage report --since 7d
+lux usage report --since 24h --json
+lux usage report --surface feature-path --retrieval-outcome unresolved
+lux usage report --command-outcome error
+lux usage report --trust-state stale
+```
+
+Usage observability is local-first. Lux writes normalized `lux_usage_event` records into the repo-local SQLite events table and `lux usage report` summarizes them without external infrastructure.
+
+The event model separates:
+
+- final command outcome (`success` or `error`)
+- retrieval attempt outcome (`answered`, `refused`, `ambiguous`, `unresolved`, `fallback`, or `not_applicable`)
+- trust/freshness state (`fresh`, `stale`, `degraded`, `content-only`, `absent`, or `unknown`)
+
+This means promoted retrieval refusals and fallbacks remain visible even when a later expert-panel path succeeds. Standard events hash query text by default and do not store raw prompts, raw model responses, or raw session identifiers. JSONL, GELF/Graylog, and OTLP exporters are deferred; SQLite is the canonical first-tranche sink.
+
 ## Module dependency analysis
 
 ```bash

@@ -18,6 +18,11 @@ import { readFileSync, existsSync } from 'fs';
 import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
 import { getHeadCommit, isGitRepository } from '../scanner/git.js';
 import { executeSpecEvidenceAsk } from '../cli/spec-evidence.js';
+import {
+  createInvocationId,
+  emitUsageEvent,
+  safeUsageTrustState,
+} from '../db/observability/usage-event.js';
 
 const DEFAULT_CORPUS_PATH = resolveCorpusPath({ corpus: process.env.LUX_CORPUS_PATH });
 const DEFAULT_DB_PATH = resolveDbPath({
@@ -259,6 +264,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             results_count: results.length,
           },
         });
+        emitUsageEvent(db, {
+          source: 'mcp',
+          surface: 'search',
+          action: 'query',
+          invocationId: createInvocationId(),
+          commandOutcome: 'success',
+          retrievalOutcome: 'not_applicable',
+          exitCode: 0,
+          corpusPath: DEFAULT_CORPUS_PATH,
+          dbPath: DEFAULT_DB_PATH,
+          queryText: query,
+          attributes: { type, limit, resultsCount: results.length },
+        });
 
         return {
           content: [
@@ -341,6 +359,23 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           source: 'mcp',
           event_type: 'index_rebuild',
           summary: `Indexed ${scanResult.scan.knowledge.length} knowledge entries with ${result.surfaceCount} overlay surfaces`,
+        });
+        emitUsageEvent(db, {
+          source: 'mcp',
+          surface: 'index-rebuild',
+          action: 'overlay-complete',
+          invocationId: createInvocationId(),
+          commandOutcome: 'success',
+          retrievalOutcome: 'not_applicable',
+          trustState: safeUsageTrustState(trustState.mode),
+          exitCode: 0,
+          corpusPath: DEFAULT_CORPUS_PATH,
+          dbPath: DEFAULT_DB_PATH,
+          repoCommit: headCommit ?? undefined,
+          attributes: {
+            knowledgeEntries: scanResult.scan.knowledge.length,
+            surfaceCount: result.surfaceCount,
+          },
         });
 
         return {
@@ -588,12 +623,34 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           kind: string;
         };
 
+        const invocationId = createInvocationId();
+        const startedAt = Date.now();
         const result = executeSpecEvidenceAsk(db, question, {
           target,
           kind,
           json: true,
           corpusPath: DEFAULT_CORPUS_PATH,
           dbPath: DEFAULT_DB_PATH,
+        });
+        emitUsageEvent(db, {
+          source: 'mcp',
+          surface: 'spec-evidence',
+          action: 'ask',
+          invocationId,
+          commandOutcome: result.exitCode === 0 ? 'success' : 'error',
+          retrievalOutcome:
+            result.packet.target.resolutionState === 'resolved'
+              ? 'answered'
+              : result.packet.target.resolutionState === 'ambiguous'
+                ? 'ambiguous'
+                : 'unresolved',
+          trustState: result.packet.sourceScope.trustState,
+          durationMs: Date.now() - startedAt,
+          exitCode: result.exitCode,
+          corpusPath: DEFAULT_CORPUS_PATH,
+          dbPath: DEFAULT_DB_PATH,
+          queryText: question,
+          normalizedIntent: result.packet.target.kind,
         });
 
         return {

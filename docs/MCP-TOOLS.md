@@ -80,3 +80,7 @@ Returns a `SpecDerivationEvidencePacketV1` JSON packet for a single route, handl
 Supported `kind` values: `route`, `handler`, `job`, `listener`, `command`.
 
 Deferred seed kinds such as `event`, `service`, `region`, file, and symbol are not accepted in this tranche. The tool returns the same packet contract as CLI `lux overlay spec-evidence ask --json`; unresolved or ambiguous targets are returned as MCP errors.
+
+## Usage observability
+
+MCP search, rebuild, ask, and spec-evidence paths emit normalized local `lux_usage_event` records where the handler has enough context to do so. These events are written to the same repo-local SQLite event store used by CLI observability and can be reviewed with `lux usage report` from the CLI. External event shippers are not part of this tranche.
