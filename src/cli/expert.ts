@@ -327,6 +327,11 @@ export function addExpertCommands(program: Command) {
     .option('--diff', 'Only show proposals that differ from current experts')
     .option('--json', 'Output proposals as JSON (skip interactive review)')
     .option('--max-experts <n>', 'Maximum number of experts to propose', '20')
+    .option(
+      '--count-selection-mode <mode>',
+      'Count semantics: top-n-slice|quality-gated-inventory',
+      'top-n-slice'
+    )
     .option('--min-confidence <f>', 'Minimum confidence threshold (0.0-1.0)', '0.5')
     .action(
       async (options: {
@@ -343,6 +348,7 @@ export function addExpertCommands(program: Command) {
         diff?: boolean;
         json?: boolean;
         maxExperts: string;
+        countSelectionMode: 'top-n-slice' | 'quality-gated-inventory';
         minConfidence: string;
       }) => {
         const opts = program.opts();
@@ -373,12 +379,23 @@ export function addExpertCommands(program: Command) {
           diff: options.diff,
           json: options.json,
           maxExperts: parseInt(options.maxExperts, 10),
+          countSelectionMode: options.countSelectionMode,
           minConfidence: parseFloat(options.minConfidence),
         };
 
         // Validate parsed numbers
         if (isNaN(discoveryOptions.maxExperts!)) {
           console.error('--max-experts must be a number');
+          db.close();
+          process.exit(1);
+        }
+        if (
+          discoveryOptions.countSelectionMode !== 'top-n-slice' &&
+          discoveryOptions.countSelectionMode !== 'quality-gated-inventory'
+        ) {
+          console.error(
+            '--count-selection-mode must be one of: top-n-slice, quality-gated-inventory'
+          );
           db.close();
           process.exit(1);
         }
@@ -452,6 +469,22 @@ export function formatDiscoveryOutput(result: DiscoveryResult, dryRun?: boolean)
 
   // Proposals table
   formatProposalTable(result.proposed);
+
+  const count = result.countPolicy;
+  console.log(
+    `\nCount policy: ${count.selectionMode}` +
+      (count.selectionMode === 'quality-gated-inventory'
+        ? ` (safety cap ${count.safetyCap})`
+        : ` (max experts ${count.maxExperts})`)
+  );
+  console.log(
+    `  Proposals: ${count.proposalCountBeforeFilter} total, ` +
+      `${count.eligibleCountAfterConfidence} above confidence, ` +
+      `${count.acceptedCountAfterCountLimit} shown`
+  );
+  if (count.stoppedBecause !== 'none') {
+    console.log(`  Stopped because: ${count.stoppedBecause}`);
+  }
 
   // Summary
   if (result.accepted.length > 0) {

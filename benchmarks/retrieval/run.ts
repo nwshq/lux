@@ -11,7 +11,7 @@ interface BenchmarkFixture {
   cases: BenchmarkCase[];
 }
 
-type BenchmarkSurface = 'feature-path' | 'operational' | 'status';
+type BenchmarkSurface = 'feature-path' | 'operational' | 'status' | 'spec-evidence';
 type BenchmarkMode = 'ask' | 'overlay' | 'status';
 
 interface BenchmarkCase {
@@ -22,6 +22,7 @@ interface BenchmarkCase {
   json?: boolean;
   target?: string;
   kind?: string;
+  export?: 'json' | 'md';
   expect: BenchmarkExpectation;
 }
 
@@ -52,6 +53,24 @@ interface BenchmarkExpectation {
   overlayMode?: string;
   minSurfaceCount?: number;
   minKnowledgeEntries?: number;
+  specEvidenceSurface?: 'spec-derivation-evidence';
+  specEvidenceSchemaVersion?: 1;
+  sufficiencyOverall?: 'sufficient' | 'partial' | 'insufficient' | 'conflicting';
+  canSupportSpecDraft?: boolean;
+  minStateChanges?: number;
+  minDecisionLogic?: number;
+  minDataFlow?: number;
+  minOperationalEffects?: number;
+  minReviewPrompts?: number;
+  targetKind?: 'route' | 'handler' | 'job' | 'listener' | 'command';
+  coverageIncludes?: Array<'found' | 'missing' | 'unsupported' | 'not_applicable'>;
+  coverageSignalKeysInclude?: string[];
+  supportIncludes?: Array<'direct' | 'contextual' | 'weak' | 'insufficient' | 'conflicting'>;
+  sourceFactIncludes?: string;
+  possibleInterpretationIncludes?: string;
+  conflictingEvidenceIncludes?: string;
+  exportPathExists?: boolean;
+  forbiddenTextIncludes?: string[];
 }
 
 interface ParsedCasePayload {
@@ -79,6 +98,22 @@ interface ParsedCasePayload {
   overlayMode?: string;
   surfaceCount?: number;
   knowledgeEntries?: number;
+  sufficiencyOverall?: string;
+  canSupportSpecDraft?: boolean;
+  stateChangesCount?: number;
+  decisionLogicCount?: number;
+  dataFlowCount?: number;
+  operationalEffectsCount?: number;
+  reviewPromptsCount?: number;
+  targetKind?: string;
+  coverageStatuses?: string[];
+  coverageSignalKeys?: string[];
+  supports?: string[];
+  sourceFacts?: string[];
+  possibleInterpretations?: string[];
+  conflictingEvidence?: string[];
+  exportPath?: string;
+  stdout?: string;
 }
 
 interface CommandResult {
@@ -177,7 +212,8 @@ function readFixture(path: string): BenchmarkFixture {
 function buildCaseCommand(
   luxBin: string,
   fixture: BenchmarkFixture,
-  testCase: BenchmarkCase
+  testCase: BenchmarkCase,
+  exportPath?: string
 ): string[] {
   const command = ['node', luxBin, '--corpus', fixture.repoPath];
 
@@ -196,6 +232,7 @@ function buildCaseCommand(
   if (testCase.json) command.push('--json');
   if (testCase.target) command.push('--target', testCase.target);
   if (testCase.kind) command.push('--kind', testCase.kind);
+  if (exportPath) command.push('--out', exportPath);
   command.push(testCase.question);
   return command;
 }
@@ -263,6 +300,7 @@ function parseCasePayload(testCase: BenchmarkCase, stdout: string): ParsedCasePa
 
   const root = asRecord(parsed);
   if (testCase.surface === 'status') return parseStatusPayload(root);
+  if (testCase.surface === 'spec-evidence') return parseSpecEvidencePayload(root, stdout);
 
   const payload = asRecord(root.payload ?? root);
   const resolution = asRecord(payload.resolution);
@@ -292,6 +330,61 @@ function parseCasePayload(testCase: BenchmarkCase, stdout: string): ParsedCasePa
     failureText: extractJsonFailureText(payload),
     directEvidenceCount: directEvidence.length,
     contextCount: context.length,
+    stdout,
+  };
+}
+
+function parseSpecEvidencePayload(
+  root: Record<string, unknown>,
+  stdout: string
+): ParsedCasePayload {
+  const target = asRecord(root.target);
+  const sufficiency = asRecord(root.sufficiency);
+  const coverage = asRecord(root.coverage);
+  const stateChanges = asArray(root.stateChanges);
+  const decisionLogic = asArray(root.decisionLogic);
+  const dataFlow = asArray(root.dataFlow);
+  const operationalEffects = asArray(root.operationalEffects);
+  const supportingContext = asArray(root.supportingContext);
+  const allClaims = [
+    ...stateChanges,
+    ...decisionLogic,
+    ...dataFlow,
+    ...operationalEffects,
+    ...supportingContext,
+  ].map(asRecord);
+  const coverageRecords = Object.values(coverage).map(asRecord);
+
+  return {
+    askSchemaVersion: asNumber(root.schemaVersion),
+    askSurface: asString(root.surface),
+    askMode: asString(root.mode),
+    askQuestion: asString(root.question),
+    resolution: asString(target.resolutionState),
+    targetId: asString(target.resolvedNodeId),
+    targetKind: asString(target.kind),
+    sufficiencyOverall: asString(sufficiency.overall),
+    canSupportSpecDraft: asBoolean(sufficiency.canSupportSpecDraft),
+    stateChangesCount: stateChanges.length,
+    decisionLogicCount: decisionLogic.length,
+    dataFlowCount: dataFlow.length,
+    operationalEffectsCount: operationalEffects.length,
+    reviewPromptsCount: asArray(root.reviewPrompts).length,
+    coverageStatuses: coverageRecords
+      .flatMap((record) => Object.values(record))
+      .filter((value): value is string => typeof value === 'string'),
+    coverageSignalKeys: coverageRecords.flatMap((record) => Object.keys(record)),
+    supports: allClaims
+      .map((claim) => asString(claim.support))
+      .filter((value): value is string => Boolean(value)),
+    sourceFacts: allClaims
+      .map((claim) => asString(claim.sourceFact))
+      .filter((value): value is string => Boolean(value)),
+    possibleInterpretations: allClaims
+      .map((claim) => asString(claim.possibleInterpretation))
+      .filter((value): value is string => Boolean(value)),
+    conflictingEvidence: asStringArray(sufficiency.conflictingEvidence),
+    stdout,
   };
 }
 
@@ -317,6 +410,7 @@ function parseTextPayload(stdout: string, testCase: BenchmarkCase): ParsedCasePa
     failureText: extractTextFailureText(stdout),
     directEvidenceCount: directEvidenceSection,
     contextCount: contextSection,
+    stdout,
   };
 }
 
@@ -504,6 +598,92 @@ function validateExpectation(
     failures.push(
       `knowledgeEntries expected >= ${expect.minKnowledgeEntries}, got ${actual.knowledgeEntries ?? 0}`
     );
+  if (expect.specEvidenceSurface && actual.askSurface !== expect.specEvidenceSurface)
+    failures.push(
+      `specEvidenceSurface expected ${expect.specEvidenceSurface}, got ${actual.askSurface ?? 'missing'}`
+    );
+  if (
+    expect.specEvidenceSchemaVersion !== undefined &&
+    actual.askSchemaVersion !== expect.specEvidenceSchemaVersion
+  )
+    failures.push(
+      `specEvidenceSchemaVersion expected ${expect.specEvidenceSchemaVersion}, got ${actual.askSchemaVersion ?? 'missing'}`
+    );
+  if (expect.sufficiencyOverall && actual.sufficiencyOverall !== expect.sufficiencyOverall)
+    failures.push(
+      `sufficiencyOverall expected ${expect.sufficiencyOverall}, got ${actual.sufficiencyOverall ?? 'missing'}`
+    );
+  if (
+    expect.canSupportSpecDraft !== undefined &&
+    actual.canSupportSpecDraft !== expect.canSupportSpecDraft
+  )
+    failures.push(
+      `canSupportSpecDraft expected ${expect.canSupportSpecDraft}, got ${actual.canSupportSpecDraft ?? 'missing'}`
+    );
+  if (expect.targetKind && actual.targetKind !== expect.targetKind)
+    failures.push(`targetKind expected ${expect.targetKind}, got ${actual.targetKind ?? 'missing'}`);
+  if (expect.minStateChanges !== undefined && (actual.stateChangesCount ?? 0) < expect.minStateChanges)
+    failures.push(`stateChanges expected >= ${expect.minStateChanges}, got ${actual.stateChangesCount ?? 0}`);
+  if (
+    expect.minDecisionLogic !== undefined &&
+    (actual.decisionLogicCount ?? 0) < expect.minDecisionLogic
+  )
+    failures.push(
+      `decisionLogic expected >= ${expect.minDecisionLogic}, got ${actual.decisionLogicCount ?? 0}`
+    );
+  if (expect.minDataFlow !== undefined && (actual.dataFlowCount ?? 0) < expect.minDataFlow)
+    failures.push(`dataFlow expected >= ${expect.minDataFlow}, got ${actual.dataFlowCount ?? 0}`);
+  if (
+    expect.minOperationalEffects !== undefined &&
+    (actual.operationalEffectsCount ?? 0) < expect.minOperationalEffects
+  )
+    failures.push(
+      `operationalEffects expected >= ${expect.minOperationalEffects}, got ${actual.operationalEffectsCount ?? 0}`
+    );
+  if (
+    expect.minReviewPrompts !== undefined &&
+    (actual.reviewPromptsCount ?? 0) < expect.minReviewPrompts
+  )
+    failures.push(
+      `reviewPrompts expected >= ${expect.minReviewPrompts}, got ${actual.reviewPromptsCount ?? 0}`
+    );
+  for (const status of expect.coverageIncludes ?? []) {
+    if (!actual.coverageStatuses?.includes(status)) failures.push(`coverage missing ${status}`);
+  }
+  for (const key of expect.coverageSignalKeysInclude ?? []) {
+    if (!actual.coverageSignalKeys?.includes(key)) failures.push(`coverage key missing ${key}`);
+  }
+  for (const support of expect.supportIncludes ?? []) {
+    if (!actual.supports?.includes(support)) failures.push(`support missing ${support}`);
+  }
+  if (
+    expect.sourceFactIncludes &&
+    !actual.sourceFacts?.some((fact) => fact.includes(expect.sourceFactIncludes!))
+  )
+    failures.push(`source facts missing ${JSON.stringify(expect.sourceFactIncludes)}`);
+  if (
+    expect.possibleInterpretationIncludes &&
+    !actual.possibleInterpretations?.some((fact) =>
+      fact.includes(expect.possibleInterpretationIncludes!)
+    )
+  )
+    failures.push(
+      `possible interpretations missing ${JSON.stringify(expect.possibleInterpretationIncludes)}`
+    );
+  if (
+    expect.conflictingEvidenceIncludes &&
+    !actual.conflictingEvidence?.some((fact) => fact.includes(expect.conflictingEvidenceIncludes!))
+  )
+    failures.push(
+      `conflicting evidence missing ${JSON.stringify(expect.conflictingEvidenceIncludes)}`
+    );
+  if (expect.exportPathExists && (!actual.exportPath || !existsSync(actual.exportPath)))
+    failures.push(`export path missing ${actual.exportPath ?? 'missing'}`);
+  for (const forbidden of expect.forbiddenTextIncludes ?? []) {
+    if (actual.stdout?.includes(forbidden)) {
+      failures.push(`stdout must not include ${JSON.stringify(forbidden)}`);
+    }
+  }
   return failures;
 }
 
@@ -564,13 +744,14 @@ function runCase(
   options: RunnerOptions,
   repoOut: string
 ): CaseResult {
-  const command = buildCaseCommand(options.luxBin, fixture, testCase);
+  const exportPath = testCase.export ? join(repoOut, `${testCase.id}.${testCase.export}`) : undefined;
+  const command = buildCaseCommand(options.luxBin, fixture, testCase, exportPath);
   const result = runCommand(command);
   const stdoutPath = join(repoOut, `${testCase.id}.stdout.txt`);
   const stderrPath = join(repoOut, `${testCase.id}.stderr.txt`);
   writeText(stdoutPath, result.stdout);
   writeText(stderrPath, result.stderr);
-  const parsed = parseCasePayload(testCase, result.stdout);
+  const parsed = { ...parseCasePayload(testCase, result.stdout), exportPath };
   const failures = validateExpectation(testCase.expect, parsed, result.exitCode);
 
   return {

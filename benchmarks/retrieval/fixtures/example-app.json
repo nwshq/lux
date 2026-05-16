@@ -46,6 +46,19 @@
         "intent": "schedule-sources",
         "summaryIncludes": "could not resolve"
       }
+    },
+    {
+      "id": "chirocat-spec-evidence-deferred-event-seed",
+      "surface": "spec-evidence",
+      "mode": "overlay",
+      "question": "What source evidence supports this event?",
+      "target": "App\\Events\\NoSuchEvent",
+      "kind": "event",
+      "json": true,
+      "expect": {
+        "exitCode": 1,
+        "forbiddenTextIncludes": ["The system shall", "Approved", "Validated by Lux"]
+      }
     }
   ]
 }

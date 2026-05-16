@@ -68,6 +68,30 @@
       "json": true
     },
     {
+      "id": "core-spec-evidence-listener-auction-created",
+      "surface": "spec-evidence",
+      "mode": "overlay",
+      "question": "What source evidence supports this listener?",
+      "target": "AuctionCreatedListener",
+      "kind": "listener",
+      "json": true,
+      "expect": {
+        "exitCode": 0,
+        "specEvidenceSurface": "spec-derivation-evidence",
+        "specEvidenceSchemaVersion": 1,
+        "resolution": "resolved",
+        "targetKind": "listener",
+        "minStateChanges": 1,
+        "minOperationalEffects": 1,
+        "minReviewPrompts": 1,
+        "coverageIncludes": ["found", "missing", "unsupported"],
+        "coverageSignalKeysInclude": ["handled_event", "listener_side_effect"],
+        "supportIncludes": ["direct"],
+        "sourceFactIncludes": "AuctionCreated",
+        "forbiddenTextIncludes": ["The system shall", "Requirement:", "Approved", "Validated by Lux", "Specification:"]
+      }
+    },
+    {
       "id": "core-feature-path-ambiguous-events-route",
       "surface": "feature-path",
       "mode": "ask",

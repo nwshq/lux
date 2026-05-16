@@ -110,6 +110,94 @@
       "json": true
     },
     {
+      "id": "atlas-spec-evidence-route-profile",
+      "surface": "spec-evidence",
+      "mode": "overlay",
+      "question": "What source evidence supports this route?",
+      "target": "GET /profile",
+      "kind": "route",
+      "json": true,
+      "export": "md",
+      "expect": {
+        "exitCode": 0,
+        "specEvidenceSurface": "spec-derivation-evidence",
+        "specEvidenceSchemaVersion": 1,
+        "askMode": "retrieval",
+        "resolution": "resolved",
+        "targetKind": "route",
+        "sufficiencyOverall": "partial",
+        "canSupportSpecDraft": true,
+        "minOperationalEffects": 1,
+        "minReviewPrompts": 1,
+        "coverageIncludes": ["found", "missing", "unsupported"],
+        "coverageSignalKeysInclude": ["validation_rule", "idempotency_or_duplicate_prevention", "operational_handler"],
+        "supportIncludes": ["contextual"],
+        "sourceFactIncludes": "ProfileController",
+        "exportPathExists": true,
+        "forbiddenTextIncludes": ["The system shall", "Requirement:", "Approved", "Validated by Lux", "Specification:"]
+      }
+    },
+    {
+      "id": "atlas-spec-evidence-handler-profile",
+      "surface": "spec-evidence",
+      "mode": "overlay",
+      "question": "What source evidence supports this handler?",
+      "target": "GET /profile",
+      "kind": "handler",
+      "json": true,
+      "expect": {
+        "exitCode": 0,
+        "specEvidenceSurface": "spec-derivation-evidence",
+        "specEvidenceSchemaVersion": 1,
+        "resolution": "resolved",
+        "targetKind": "handler",
+        "minOperationalEffects": 1,
+        "coverageIncludes": ["found", "missing", "unsupported"],
+        "forbiddenTextIncludes": ["The system shall", "Requirement:", "Approved", "Validated by Lux", "Specification:"]
+      }
+    },
+    {
+      "id": "atlas-spec-evidence-job-refresh-client-status",
+      "surface": "spec-evidence",
+      "mode": "overlay",
+      "question": "What source evidence supports this job?",
+      "target": "App\\Modules\\ClientProvisioning\\Jobs\\RefreshClientStatus",
+      "kind": "job",
+      "json": true,
+      "expect": {
+        "exitCode": 0,
+        "specEvidenceSurface": "spec-derivation-evidence",
+        "specEvidenceSchemaVersion": 1,
+        "resolution": "resolved",
+        "targetKind": "job",
+        "minOperationalEffects": 1,
+        "minReviewPrompts": 1,
+        "coverageIncludes": ["found", "missing", "unsupported"],
+        "supportIncludes": ["direct"],
+        "sourceFactIncludes": "RefreshClientStatus",
+        "forbiddenTextIncludes": ["The system shall", "Requirement:", "Approved", "Validated by Lux", "Specification:"]
+      }
+    },
+    {
+      "id": "atlas-spec-evidence-command-refresh-client-statuses",
+      "surface": "spec-evidence",
+      "mode": "overlay",
+      "question": "What source evidence supports this command?",
+      "target": "app:refresh-client-statuses",
+      "kind": "command",
+      "json": true,
+      "expect": {
+        "exitCode": 0,
+        "specEvidenceSurface": "spec-derivation-evidence",
+        "specEvidenceSchemaVersion": 1,
+        "resolution": "resolved",
+        "targetKind": "command",
+        "minOperationalEffects": 1,
+        "coverageIncludes": ["found", "missing", "unsupported"],
+        "forbiddenTextIncludes": ["The system shall", "Requirement:", "Approved", "Validated by Lux", "Specification:"]
+      }
+    },
+    {
       "id": "atlas-feature-path-ambiguous-register",
       "surface": "feature-path",
       "mode": "overlay",

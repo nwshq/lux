@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "repos": [
+    {
+      "schemaVersion": 1,
+      "repoId": "auctic-atlas",
+      "repoPath": "/path/to/auctic-atlas/vcs"
+    },
+    {
+      "schemaVersion": 1,
+      "repoId": "auctic-core",
+      "repoPath": "/path/to/auctic-core/vcs"
+    }
+  ]
+}

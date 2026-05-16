@@ -320,6 +320,15 @@ describe('Expert CLI Commands', () => {
         skipped: [makeProposal()],
         registered: [],
         rationale: 'Test rationale.',
+        countPolicy: {
+          selectionMode: 'top-n-slice',
+          minConfidence: 0.5,
+          proposalCountBeforeFilter: 1,
+          eligibleCountAfterConfidence: 1,
+          acceptedCountAfterCountLimit: 1,
+          stoppedBecause: 'none',
+          maxExperts: 20,
+        },
         ...overrides,
       };
     }

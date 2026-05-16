@@ -313,6 +313,14 @@ describe('runDiscoveryPipeline', () => {
     const result = await runDiscoveryPipeline(db, { ...baseOptions, maxExperts: 5 }, stages);
 
     expect(result.proposed).toHaveLength(5);
+    expect(result.countPolicy).toMatchObject({
+      selectionMode: 'top-n-slice',
+      maxExperts: 5,
+      proposalCountBeforeFilter: 30,
+      eligibleCountAfterConfidence: 30,
+      acceptedCountAfterCountLimit: 5,
+      stoppedBecause: 'top-n-slice',
+    });
     expect(stages.review).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({ slug: 'expert-0' }),
@@ -343,6 +351,47 @@ describe('runDiscoveryPipeline', () => {
     const result = await runDiscoveryPipeline(db, baseOptions, stages);
 
     expect(result.proposed).toHaveLength(20);
+    expect(result.countPolicy).toMatchObject({
+      selectionMode: 'top-n-slice',
+      maxExperts: 20,
+      stoppedBecause: 'top-n-slice',
+    });
+  });
+
+  it('uses inventory safety-cap semantics when requested', async () => {
+    const manyExperts = Array.from({ length: 25 }, (_, i) =>
+      makeProposal({
+        slug: `expert-${i}`,
+        confidence: 0.9,
+      })
+    );
+
+    const stages = makeStages({
+      analyze: vi.fn().mockResolvedValue({
+        experts: manyExperts,
+        rationale: 'Many proposals.',
+      }),
+      review: vi.fn().mockResolvedValue({
+        accepted: [],
+        skipped: manyExperts.slice(0, 16),
+      }),
+    });
+
+    const result = await runDiscoveryPipeline(
+      db,
+      { ...baseOptions, countSelectionMode: 'quality-gated-inventory' },
+      stages
+    );
+
+    expect(result.proposed).toHaveLength(16);
+    expect(result.countPolicy).toMatchObject({
+      selectionMode: 'quality-gated-inventory',
+      safetyCap: 16,
+      proposalCountBeforeFilter: 25,
+      eligibleCountAfterConfidence: 25,
+      acceptedCountAfterCountLimit: 16,
+      stoppedBecause: 'safety-cap',
+    });
   });
 
   // ── Dry-Run Mode ───────────────────────────────────────

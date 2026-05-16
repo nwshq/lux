@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "repos": [
+    {
+      "schemaVersion": 1,
+      "repoId": "example-app",
+      "repoPath": "/path/to/example-app/vcs"
+    }
+  ]
+}

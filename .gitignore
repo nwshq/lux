@@ -14,3 +14,10 @@ src/**/__tests__/temp-*
 
 # Generated retrieval benchmark output
 benchmarks/retrieval/results/
+
+# Generated Lux local state
+.lux/
+src/**/.lux/
+
+# Local validation notes
+docs/validation/release-validation-*.md

@@ -10,6 +10,7 @@ Current MCP tool surface from `src/mcp/server.ts`.
 - `lux_rebuild_index`
 - `lux_list_experts`
 - `lux_ask`
+- `lux_spec_derivation_evidence`
 
 ## `lux_search`
 
@@ -63,3 +64,19 @@ Current MCP tool surface from `src/mcp/server.ts`.
   "context": "string"
 }
 ```
+
+## `lux_spec_derivation_evidence`
+
+Returns a `SpecDerivationEvidencePacketV1` JSON packet for a single route, handler, job, listener, or command target. This is source evidence for downstream specification derivation, not a Lux-authored specification.
+
+```json
+{
+  "question": "what source evidence supports this operation?",
+  "target": "POST /orders/{id}/cancel",
+  "kind": "route"
+}
+```
+
+Supported `kind` values: `route`, `handler`, `job`, `listener`, `command`.
+
+Deferred seed kinds such as `event`, `service`, `region`, file, and symbol are not accepted in this tranche. The tool returns the same packet contract as CLI `lux overlay spec-evidence ask --json`; unresolved or ambiguous targets are returned as MCP errors.

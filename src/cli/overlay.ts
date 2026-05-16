@@ -9,6 +9,7 @@ import { LuxDatabase } from '../db/index.js';
 import { resolveCorpusPath, resolveDbPath, resolveRuntimePaths } from '../utils/runtime-paths.js';
 import { runFeaturePathAsk } from './feature-path.js';
 import { runOperationalAsk } from './operational.js';
+import { runSpecEvidenceAsk } from './spec-evidence.js';
 import { buildOverlayStatusPayload } from './status-payload.js';
 import {
   describeOverlayTrustInspection,
@@ -697,4 +698,35 @@ export function addOverlayCommands(program: Command): void {
     .action((question: string[], options: { json?: boolean; target?: string }) => {
       runFeaturePathAsk(program, question, options);
     });
+
+  // --------------------------------------------------------------------------
+  // overlay spec-evidence
+  // --------------------------------------------------------------------------
+
+  const specEvidenceCmd = overlayCmd
+    .command('spec-evidence')
+    .description(
+      'Emit source-grounded spec-derivation evidence packets for a single route, handler, job, listener, or command target.'
+    );
+
+  specEvidenceCmd
+    .command('ask <question...>')
+    .description('Return one source-evidence packet for downstream specification derivation.')
+    .option('--json', 'Emit the SpecDerivationEvidencePacketV1 JSON contract')
+    .option('--target <target>', 'Route, handler, job, listener, or command target to resolve')
+    .option('--kind <kind>', 'Target kind: route, handler, job, listener, or command')
+    .option('--out <path>', 'Write a single-target JSON or Markdown review artifact')
+    .action(
+      (
+        question: string[],
+        options: {
+          json?: boolean;
+          target?: string;
+          kind?: string;
+          out?: string;
+        }
+      ) => {
+        runSpecEvidenceAsk(program, question, options);
+      }
+    );
 }

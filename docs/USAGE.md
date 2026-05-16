@@ -89,7 +89,14 @@ lux expert remove <slug> --yes
 lux expert discover --dry-run
 lux expert discover --accept-all
 lux expert discover --diff
+lux expert discover --count-selection-mode quality-gated-inventory --max-experts 16
 ```
+
+`expert discover` reports its count policy in JSON and human output. The default
+`top-n-slice` mode preserves fixed-count benchmark and compatibility behavior.
+Use `quality-gated-inventory` when the question is how many structurally justified
+experts the repo should carry; in that mode `--max-experts` is a safety cap, not a
+product target. Runtime routing remains bounded separately from inventory size.
 
 ## Ask
 
@@ -121,6 +128,8 @@ lux overlay status --json
 lux overlay check
 lux overlay operational ask "what dispatches App\\Jobs\\RefreshReport?"
 lux overlay operational ask "what schedules releases:sync?" --json
+lux overlay spec-evidence ask "what source evidence supports this route?" --target "POST /orders/{id}/cancel" --kind route --json
+lux overlay spec-evidence ask "what source evidence supports this job?" --target "App\\Jobs\\RefreshReport" --kind job --out /tmp/refresh-report-evidence.md
 lux overlay boundaries show
 lux overlay boundaries show --focus Listing --include-paths
 lux overlay boundaries explore
@@ -167,3 +176,26 @@ Practical framing:
 - region answers: what parts of the system exist as meaningful domains?
 - family answers: what structural patterns are creating the connections?
 - neighborhood answers: what is this specific domain connected to right now?
+
+### Spec-derivation evidence
+
+`lux overlay spec-evidence ask` emits a `SpecDerivationEvidencePacketV1` retrieval packet for one target. Lux provides source-grounded evidence for a downstream specification system; it does not write, approve, validate, or lifecycle-manage specifications.
+
+Supported first-tranche seed kinds:
+
+- `route`
+- `handler`
+- `job`
+- `listener`
+- `command`
+
+Deferred as seed kinds: `event`, `service`, `region`, arbitrary file/symbol targets, and whole-repository batch catalogs. Events may appear only as context for a listener packet.
+
+Options:
+
+- `--kind route|handler|job|listener|command` selects the target kind
+- `--target <target>` provides the route, handler, job, listener, or command identifier
+- `--json` emits the packet JSON contract
+- `--out <path>` writes a single-target review artifact; `.json` writes packet JSON and `.md` or `.markdown` writes Markdown
+
+The packet separates `sourceFact` from optional `possibleInterpretation`, includes support levels and evidence references for claims, reports missing/unsupported coverage signals, and marks sufficiency as `sufficient`, `partial`, `insufficient`, or `conflicting`.

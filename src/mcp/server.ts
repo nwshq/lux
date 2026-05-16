@@ -17,6 +17,7 @@ import { routeQuery } from '../experts/router.js';
 import { readFileSync, existsSync } from 'fs';
 import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
 import { getHeadCommit, isGitRepository } from '../scanner/git.js';
+import { executeSpecEvidenceAsk } from '../cli/spec-evidence.js';
 
 const DEFAULT_CORPUS_PATH = resolveCorpusPath({ corpus: process.env.LUX_CORPUS_PATH });
 const DEFAULT_DB_PATH = resolveDbPath({
@@ -154,6 +155,30 @@ const TOOLS: Tool[] = [
         },
       },
       required: ['question'],
+    },
+  },
+  {
+    name: 'lux_spec_derivation_evidence',
+    description:
+      'Return a SpecDerivationEvidencePacketV1 for one route, handler, job, listener, or command target. Lux returns source evidence only; it does not write or approve specifications.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        question: {
+          type: 'string',
+          description: 'Evidence question for the downstream specification system.',
+        },
+        target: {
+          type: 'string',
+          description: 'Single target identifier to resolve.',
+        },
+        kind: {
+          type: 'string',
+          enum: ['route', 'handler', 'job', 'listener', 'command'],
+          description: 'Target seed kind.',
+        },
+      },
+      required: ['question', 'target', 'kind'],
     },
   },
 ];
@@ -554,6 +579,27 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             isError: true,
           };
         }
+      }
+
+      case 'lux_spec_derivation_evidence': {
+        const { question, target, kind } = args as {
+          question: string;
+          target: string;
+          kind: string;
+        };
+
+        const result = executeSpecEvidenceAsk(db, question, {
+          target,
+          kind,
+          json: true,
+          corpusPath: DEFAULT_CORPUS_PATH,
+          dbPath: DEFAULT_DB_PATH,
+        });
+
+        return {
+          content: [{ type: 'text', text: JSON.stringify(result.packet, null, 2) }],
+          isError: result.exitCode !== 0,
+        };
       }
 
       default:

@@ -1,11 +1,18 @@
 import type { LuxDatabase } from '../db/index.js';
-import type { DiscoveryOptions, DiscoveryResult, PipelineStages, ProposedExpert } from './types.js';
+import type {
+  DiscoveryOptions,
+  DiscoveryResult,
+  ExpertCountPolicy,
+  PipelineStages,
+  ProposedExpert,
+} from './types.js';
 import { diffProposals } from './diff.js';
 
 // ── Constants ──────────────────────────────────────────────
 
 const DEFAULT_MODEL = 'gpt-5.4';
 const DEFAULT_MAX_EXPERTS = 20;
+const DEFAULT_INVENTORY_SAFETY_CAP = 16;
 const DEFAULT_MIN_CONFIDENCE = 0.5;
 
 // ── Pipeline Orchestrator ──────────────────────────────────
@@ -30,14 +37,14 @@ export async function runDiscoveryPipeline(
   options: DiscoveryOptions,
   stages: PipelineStages
 ): Promise<DiscoveryResult> {
-  const maxExperts = options.maxExperts ?? DEFAULT_MAX_EXPERTS;
+  const countConfig = resolveCountConfig(options);
   const minConfidence = options.minConfidence ?? DEFAULT_MIN_CONFIDENCE;
 
   // Stage 1: Collect directory tree
   const tree = stages.collectTree(options.rootPath);
 
   if (!tree.trim()) {
-    return emptyResult('Directory tree is empty — nothing to analyze.');
+    return emptyResult('Directory tree is empty — nothing to analyze.', emptyCountPolicy(options));
   }
 
   // Stage 2: Enrich with database signals
@@ -50,15 +57,23 @@ export async function runDiscoveryPipeline(
   const proposal = await stages.analyze(context, options);
 
   if (proposal.experts.length === 0) {
-    return emptyResult(proposal.rationale || 'AI analysis returned no expert proposals.');
+    return emptyResult(
+      proposal.rationale || 'AI analysis returned no expert proposals.',
+      emptyCountPolicy(options)
+    );
   }
 
-  // Filter by confidence threshold and cap at max experts
-  const candidates = filterCandidates(proposal.experts, minConfidence, maxExperts);
+  // Filter by confidence threshold and apply the configured count policy.
+  const { candidates, countPolicy } = selectCandidates(
+    proposal.experts,
+    minConfidence,
+    countConfig
+  );
 
   if (candidates.length === 0) {
     return emptyResult(
-      `All ${proposal.experts.length} proposals fell below the confidence threshold (${minConfidence}).`
+      `All ${proposal.experts.length} proposals fell below the confidence threshold (${minConfidence}).`,
+      countPolicy
     );
   }
 
@@ -83,6 +98,7 @@ export async function runDiscoveryPipeline(
         skipped: candidates,
         registered: [],
         rationale: proposal.rationale,
+        countPolicy,
         diffResult: diff,
       };
     }
@@ -94,6 +110,7 @@ export async function runDiscoveryPipeline(
         skipped: [],
         registered: [],
         rationale: proposal.rationale,
+        countPolicy,
         diffResult: diff,
       };
     }
@@ -114,6 +131,7 @@ export async function runDiscoveryPipeline(
         skipped: [...reviewed.skipped],
         registered: [],
         rationale: proposal.rationale,
+        countPolicy,
         diffResult: diff,
       };
     }
@@ -127,6 +145,7 @@ export async function runDiscoveryPipeline(
       skipped: reviewed.skipped,
       registered,
       rationale: proposal.rationale,
+      countPolicy,
       diffResult: diff,
     };
   }
@@ -139,6 +158,7 @@ export async function runDiscoveryPipeline(
       skipped: candidates,
       registered: [],
       rationale: proposal.rationale,
+      countPolicy,
     };
   }
 
@@ -158,6 +178,7 @@ export async function runDiscoveryPipeline(
       skipped: [...reviewed.skipped],
       registered: [],
       rationale: proposal.rationale,
+      countPolicy,
     };
   }
 
@@ -170,6 +191,7 @@ export async function runDiscoveryPipeline(
     skipped: reviewed.skipped,
     registered,
     rationale: proposal.rationale,
+    countPolicy,
   };
 }
 
@@ -188,6 +210,67 @@ export function filterCandidates(
   return experts.filter((e) => e.confidence >= minConfidence).slice(0, maxExperts);
 }
 
+interface CountConfig {
+  selectionMode: ExpertCountPolicy['selectionMode'];
+  limit: number;
+}
+
+function resolveCountConfig(options: DiscoveryOptions): CountConfig {
+  const selectionMode = options.countSelectionMode ?? 'top-n-slice';
+  const defaultLimit =
+    selectionMode === 'quality-gated-inventory'
+      ? DEFAULT_INVENTORY_SAFETY_CAP
+      : DEFAULT_MAX_EXPERTS;
+  return {
+    selectionMode,
+    limit: options.maxExperts ?? defaultLimit,
+  };
+}
+
+function selectCandidates(
+  experts: ProposedExpert[],
+  minConfidence: number,
+  countConfig: CountConfig
+): { candidates: ProposedExpert[]; countPolicy: ExpertCountPolicy } {
+  const eligible = experts.filter((e) => e.confidence >= minConfidence);
+  const candidates = eligible.slice(0, countConfig.limit);
+  const capped = eligible.length > candidates.length;
+  const countPolicy: ExpertCountPolicy = {
+    selectionMode: countConfig.selectionMode,
+    minConfidence,
+    proposalCountBeforeFilter: experts.length,
+    eligibleCountAfterConfidence: eligible.length,
+    acceptedCountAfterCountLimit: candidates.length,
+    stoppedBecause:
+      eligible.length === 0
+        ? 'confidence-threshold'
+        : capped
+          ? countConfig.selectionMode === 'quality-gated-inventory'
+            ? 'safety-cap'
+            : 'top-n-slice'
+          : 'none',
+    ...(countConfig.selectionMode === 'quality-gated-inventory'
+      ? { safetyCap: countConfig.limit }
+      : { maxExperts: countConfig.limit }),
+  };
+  return { candidates, countPolicy };
+}
+
+function emptyCountPolicy(options: DiscoveryOptions): ExpertCountPolicy {
+  const countConfig = resolveCountConfig(options);
+  return {
+    selectionMode: countConfig.selectionMode,
+    minConfidence: options.minConfidence ?? DEFAULT_MIN_CONFIDENCE,
+    proposalCountBeforeFilter: 0,
+    eligibleCountAfterConfidence: 0,
+    acceptedCountAfterCountLimit: 0,
+    stoppedBecause: 'none',
+    ...(countConfig.selectionMode === 'quality-gated-inventory'
+      ? { safetyCap: countConfig.limit }
+      : { maxExperts: countConfig.limit }),
+  };
+}
+
 /**
  * Resolve the effective model for AI analysis.
  */
@@ -195,12 +278,13 @@ export function resolveModel(options: DiscoveryOptions): string {
   return options.model ?? DEFAULT_MODEL;
 }
 
-function emptyResult(rationale: string): DiscoveryResult {
+function emptyResult(rationale: string, countPolicy: ExpertCountPolicy): DiscoveryResult {
   return {
     proposed: [],
     accepted: [],
     skipped: [],
     registered: [],
     rationale,
+    countPolicy,
   };
 }

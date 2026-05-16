@@ -36,14 +36,33 @@ export interface DiscoveryOptions {
   dryRun?: boolean;
   /** Output proposals as JSON and skip interactive review. */
   json?: boolean;
-  /** Maximum number of experts to propose (default: 20). */
+  /** Maximum number of experts to propose. Treated as a fixed top-N slice unless countSelectionMode is set. */
   maxExperts?: number;
+  /** Whether count limiting represents a benchmark slice or inventory-oriented safety cap. */
+  countSelectionMode?: ExpertCountSelectionMode;
   /** Minimum confidence threshold 0.0–1.0 (default: 0.5). */
   minConfidence?: number;
   /** Accept all proposals without interactive review. */
   acceptAll?: boolean;
   /** Only show proposals that differ from current experts. */
   diff?: boolean;
+}
+
+export type ExpertCountSelectionMode = 'top-n-slice' | 'quality-gated-inventory';
+
+export type ExpertCountStopReason = 'none' | 'confidence-threshold' | 'top-n-slice' | 'safety-cap';
+
+export interface ExpertCountPolicy {
+  selectionMode: ExpertCountSelectionMode;
+  minConfidence: number;
+  proposalCountBeforeFilter: number;
+  eligibleCountAfterConfidence: number;
+  acceptedCountAfterCountLimit: number;
+  stoppedBecause: ExpertCountStopReason;
+  /** Fixed count used when selectionMode is top-n-slice. */
+  maxExperts?: number;
+  /** Safety cap used when selectionMode is quality-gated-inventory. */
+  safetyCap?: number;
 }
 
 // ── Tree Collection ────────────────────────────────────────
@@ -173,6 +192,8 @@ export interface DiscoveryResult {
   registered: RegisteredExpert[];
   /** Overall rationale from the AI analysis. */
   rationale: string;
+  /** Count-selection metadata for distinguishing top-N slices from inventory discovery. */
+  countPolicy: ExpertCountPolicy;
   /** Diff result when running in --diff mode. */
   diffResult?: import('./diff.js').DiffResult;
 }
