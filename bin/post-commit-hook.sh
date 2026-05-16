@@ -27,11 +27,30 @@ log() {
     fi
 }
 
+emit_hook_event() {
+    local outcome="$1"
+    local reason="$2"
+    local exit_code="${3:-0}"
+    local message="${4:-}"
+
+    if command -v "$LUX_CLI" > /dev/null 2>&1; then
+        "$LUX_CLI" --corpus "$repo_root" usage hook-event \
+            --outcome "$outcome" \
+            --reason "$reason" \
+            --changed-count "${changed_count:-0}" \
+            --exit-code "$exit_code" \
+            --timeout-seconds "$LUX_SYNC_TIMEOUT" \
+            --message "$message" \
+            > /dev/null 2>&1 || true
+    fi
+}
+
 # Error exit handler - always exits with 0 to avoid blocking commits
 handle_error() {
     local msg="$1"
     local exit_code="${2:-1}"
     log "ERROR" "$msg (exit code: $exit_code)"
+    emit_hook_event "error" "sync_failed" "$exit_code" "$msg"
     echo "✗ Lux hook error: $msg" >&2
     echo "  The commit succeeded, but index sync failed." >&2
     echo "  Run 'lux index sync' manually to catch the index up." >&2
@@ -40,14 +59,20 @@ handle_error() {
 
 # Check if sync should be skipped
 if [ -n "$LUX_SKIP_SYNC" ]; then
+    repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+    changed_count=0
     log "INFO" "Sync skipped (LUX_SKIP_SYNC or legacy LUX_SKIP_REBUILD is set)"
+    emit_hook_event "skipped" "env_skip" 0 "LUX_SKIP_SYNC or LUX_SKIP_REBUILD is set"
     exit 0
 fi
 
 # Check if commit message indicates skip
 commit_msg=$(git log -1 --pretty=%B)
 if echo "$commit_msg" | grep -qE '\[skip.?lux\]|\[lux.?skip\]|\[no.?index\]'; then
+    repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+    changed_count=0
     log "INFO" "Sync skipped (commit message contains skip directive)"
+    emit_hook_event "skipped" "message_skip" 0 "commit message contains skip directive"
     exit 0
 fi
 
@@ -60,7 +85,10 @@ fi
 
 # Validate that we got actual file paths (not empty or error message)
 if [ -z "$changed_files" ]; then
+    repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+    changed_count=0
     log "WARN" "No files detected in commit, skipping sync"
+    emit_hook_event "skipped" "no_files" 0 "no files detected in commit"
     exit 0
 fi
 
@@ -69,13 +97,18 @@ fi
 indexable_changed=$(echo "$changed_files" | grep -vE '^(\.git/|\.lux/|node_modules/|vendor/|dist/|build/)' | grep -E '\.(md|mdx|txt|rst|php|ts|tsx|js|jsx|py|go|rs|java)$' || true)
 
 if [ -z "$indexable_changed" ]; then
+    repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+    changed_count=0
     log "INFO" "No indexable content changes detected, skipping sync"
+    emit_hook_event "skipped" "no_indexable_changes" 0 "no indexable content changes detected"
     exit 0
 fi
 
 changed_count=$(echo "$indexable_changed" | sed '/^$/d' | wc -l | tr -d ' ')
 if [ "$changed_count" -eq 0 ]; then
+    repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
     log "WARN" "Indexable change detection produced zero files, skipping sync"
+    emit_hook_event "skipped" "zero_indexable_changes" 0 "indexable change detection produced zero files"
     exit 0
 fi
 
@@ -83,15 +116,19 @@ log "INFO" "Detected $changed_count indexable file(s) changed"
 
 # Check if lux CLI is available
 if ! command -v "$LUX_CLI" &> /dev/null; then
+    repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
     log "ERROR" "lux CLI not found. Cannot sync index."
     log "INFO" "Install lux or set LUX_CLI environment variable."
+    emit_hook_event "error" "cli_missing" 127 "lux CLI not found"
     echo "Warning: lux CLI not found. Run 'npm install -g .' to install." >&2
     exit 0  # Don't fail the commit
 fi
 
 # Verify lux CLI is executable
 if ! "$LUX_CLI" --version &> /dev/null; then
+    repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
     log "ERROR" "lux CLI found but not executable or misconfigured"
+    emit_hook_event "error" "cli_unusable" 126 "lux CLI not executable or misconfigured"
     echo "Warning: lux CLI not working. Check your installation." >&2
     exit 0  # Don't fail the commit
 fi
@@ -148,6 +185,7 @@ fi
 # Handle different failure scenarios
 if [ $sync_exit -eq 0 ]; then
     log "INFO" "Index synced successfully"
+    emit_hook_event "success" "sync_success" 0 "index sync completed"
     echo "✓ Lux index synced ($changed_count file(s) updated)" >&2
     exit 0
 elif [ $sync_exit -eq 124 ] || [ $sync_exit -eq 143 ]; then

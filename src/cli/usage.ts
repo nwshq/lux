@@ -1,6 +1,7 @@
 import type { Command } from 'commander';
 import { LuxDatabase } from '../db/index.js';
 import { buildUsageReport, parseSince } from '../db/observability/usage-report.js';
+import { emitUsageEvent } from '../db/observability/usage-event.js';
 import type {
   UsageCommandOutcome,
   UsageEventSurface,
@@ -18,10 +19,67 @@ interface UsageReportOptions {
   json?: boolean;
 }
 
+interface HookEventOptions {
+  outcome: 'success' | 'error' | 'skipped';
+  reason?: string;
+  changedCount?: string;
+  exitCode?: string;
+  timeoutSeconds?: string;
+  message?: string;
+  corpus?: string;
+  db?: string;
+}
+
 export function addUsageCommands(program: Command): void {
   const usage = program
     .command('usage')
     .description('Inspect local Lux usage observability events');
+
+  usage
+    .command('hook-event')
+    .description('Internal: record a Lux-managed hook usage event')
+    .option('--outcome <outcome>', 'Hook outcome: success|error|skipped')
+    .option('--reason <reason>', 'Hook outcome reason')
+    .option('--changed-count <count>', 'Changed indexable file count')
+    .option('--exit-code <code>', 'Hook/sync exit code')
+    .option('--timeout-seconds <seconds>', 'Hook timeout setting')
+    .option('--message <message>', 'Short diagnostic message')
+    .option('--corpus <path>', 'Corpus path for the hook repository')
+    .option('--db <path>', 'Database path override')
+    .action((options: HookEventOptions) => {
+      const outcome = parseHookOutcome(options.outcome);
+      const opts = program.opts();
+      const corpusPath = resolveCorpusPath({
+        corpus: options.corpus || (opts.corpus as string | undefined),
+      });
+      const db = new LuxDatabase(
+        resolveDbPath({ corpus: corpusPath, db: options.db || (opts.db as string | undefined) })
+      );
+
+      try {
+        const changedCount = parseOptionalInteger(options.changedCount, '--changed-count');
+        const exitCode = parseOptionalInteger(options.exitCode, '--exit-code');
+        const timeoutSeconds = parseOptionalInteger(options.timeoutSeconds, '--timeout-seconds');
+        const commandOutcome = outcome === 'success' || outcome === 'skipped' ? 'success' : 'error';
+        emitUsageEvent(db, {
+          source: 'hook',
+          surface: 'hook',
+          action: outcome,
+          commandOutcome,
+          retrievalOutcome: 'not_applicable',
+          exitCode: exitCode ?? (commandOutcome === 'success' ? 0 : 1),
+          corpusPath,
+          attributes: {
+            reason: options.reason,
+            changedCount,
+            timeoutSeconds,
+            message: options.message,
+          },
+        });
+      } finally {
+        db.close();
+      }
+    });
 
   usage
     .command('report')
@@ -100,4 +158,18 @@ function printRecord(label: string, record: Record<string, number>): void {
   for (const [key, count] of Object.entries(record)) {
     console.log(`  ${key}: ${count}`);
   }
+}
+
+function parseHookOutcome(value: string | undefined): HookEventOptions['outcome'] {
+  if (value === 'success' || value === 'error' || value === 'skipped') return value;
+  throw new Error('Error: --outcome must be one of success, error, skipped.');
+}
+
+function parseOptionalInteger(value: string | undefined, label: string): number | undefined {
+  if (value === undefined) return undefined;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    throw new Error(`Error: ${label} must be a non-negative integer.`);
+  }
+  return parsed;
 }

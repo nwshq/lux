@@ -15,7 +15,8 @@ export type UsageEventSurface =
   | 'overlay-status'
   | 'index-sync'
   | 'index-rebuild'
-  | 'discovery';
+  | 'discovery'
+  | 'hook';
 
 export type UsageCommandOutcome = 'success' | 'error';
 export type UsageRetrievalOutcome =

@@ -47,6 +47,7 @@ Hooks now follow the shared runtime path resolver.
 - corpus: `--corpus` -> `LUX_CORPUS_PATH` -> cwd
 - explicit `--corpus` still wins over env and cwd
 - installed post-commit hooks run `lux index sync`
+- hook success/skip/error outcomes are emitted as local usage events where possible
 - hook failures do not block commits; they print recovery guidance instead
 - preferred env vars: `LUX_SKIP_SYNC`, `LUX_SYNC_TIMEOUT`
 - legacy env vars still work: `LUX_SKIP_REBUILD`, `LUX_REBUILD_TIMEOUT`
@@ -127,7 +128,7 @@ The event model separates:
 - retrieval attempt outcome (`answered`, `refused`, `ambiguous`, `unresolved`, `fallback`, or `not_applicable`)
 - trust/freshness state (`fresh`, `stale`, `degraded`, `content-only`, `absent`, or `unknown`)
 
-This means promoted retrieval refusals and fallbacks remain visible even when a later expert-panel path succeeds. Standard events hash query text by default and do not store raw prompts, raw model responses, or raw session identifiers. JSONL, GELF/Graylog, and OTLP exporters are deferred; SQLite is the canonical first-tranche sink.
+This means promoted retrieval refusals and fallbacks remain visible even when a later expert-panel path succeeds. Standard events hash query text by default and do not store raw prompts, raw model responses, or raw session identifiers. Lux-managed post-commit hooks also emit best-effort hook outcome events, so automated sync behavior is visible without making commits depend on observability writes. JSONL, GELF/Graylog, and OTLP exporters are deferred; SQLite is the canonical first-tranche sink.
 
 ## Module dependency analysis
 

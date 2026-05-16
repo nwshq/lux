@@ -148,6 +148,9 @@ describe('hooks command runtime path resolution', () => {
     expect(hook).toContain('\\.(md|mdx|txt|rst|php|ts|tsx|js|jsx|py|go|rs|java)$');
     expect(hook).toContain('git rev-parse --show-toplevel');
     expect(hook).toContain('--corpus "$repo_root" index sync --quiet');
+    expect(hook).toContain('usage hook-event');
+    expect(hook).toContain('--outcome "$outcome"');
+    expect(hook).toContain('emit_hook_event "success" "sync_success"');
     expect(hook).toContain("Run 'lux index sync' manually to catch the index up.");
   });
 
@@ -166,6 +169,7 @@ describe('hooks command runtime path resolution', () => {
     expect(result.stdout).toContain('Lux post-commit hook updated');
     expect(hook).toContain('Automatically syncs index after corpus commits');
     expect(hook).toContain('--corpus "$repo_root" index sync --quiet');
+    expect(hook).toContain('usage hook-event');
     expect(hook).not.toContain('echo stale');
   });
 
