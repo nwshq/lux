@@ -765,13 +765,40 @@ function resolvePhpNamespaceToModule(
     const patternParts = patternPrefix.split('/').filter((p) => p.length > 0);
     const patternDepth = patternParts.length;
 
-    // The module name is the segment at the same depth in the namespace
+    // Strategy 2a (namespace-prefix-aware): a module directory may sit under
+    // a namespace prefix that is DEEPER than the filesystem pattern prefix.
+    // e.g. files live at "src/Module/{Name}" (prefix depth 2) but the PHP
+    // namespace is "acme\\Core\\Module\\{Name}\\..." (module name at
+    // depth 3). Anchor on the last literal segment of the pattern prefix
+    // (e.g. "Module") and take the namespace segment immediately after it,
+    // wherever it occurs — instead of assuming a fixed segment index. The
+    // constructed module directory is verified to actually exist, which
+    // also filters out vendor namespaces (Illuminate\*, Spatie\*, Carbon\*)
+    // that would otherwise resolve to phantom modules.
+    const anchor = patternParts[patternParts.length - 1];
+    if (anchor) {
+      const anchorIndex = segments.lastIndexOf(anchor);
+      if (anchorIndex !== -1 && anchorIndex + 1 < segments.length) {
+        const moduleName = segments[anchorIndex + 1];
+        if (existsSync(join(rootPath, patternPrefix, moduleName))) {
+          const constructedPath = join(rootPath, patternPrefix, moduleName, 'dummy.php');
+          const resolved = resolveModule(constructedPath, rootPath, patterns);
+          if (resolved) return resolved;
+        }
+      }
+    }
+
+    // Strategy 2b (fixed-index fallback): original behaviour for repos whose
+    // namespace depth matches the filesystem pattern depth. Also existence-
+    // verified so non-module namespaces do not produce phantom modules.
     if (segments.length > patternDepth) {
       const moduleName = segments[patternDepth];
-      // Verify this forms a valid path under the pattern
-      const constructedPath = join(rootPath, patternPrefix, moduleName, 'dummy.php');
-      const resolved = resolveModule(constructedPath, rootPath, patterns);
-      if (resolved) return resolved;
+      if (existsSync(join(rootPath, patternPrefix, moduleName))) {
+        // Verify this forms a valid path under the pattern
+        const constructedPath = join(rootPath, patternPrefix, moduleName, 'dummy.php');
+        const resolved = resolveModule(constructedPath, rootPath, patterns);
+        if (resolved) return resolved;
+      }
     }
   }
 
