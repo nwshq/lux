@@ -73,11 +73,12 @@ const EXTENSION_TO_LANGUAGE: Record<string, string> = {
   '.toml': 'toml',
 };
 
-/** Directory patterns to always exclude from source code scanning. */
+/** Directory patterns to always exclude from content and source code scanning. */
 export const SOURCE_CODE_IGNORE_PATTERNS: string[] = [
   'node_modules/**',
   'vendor/**',
   '.git/**',
+  '.claude/**',
   'dist/**',
   'build/**',
   'out/**',
@@ -146,8 +147,10 @@ export class GeneralScanner {
     }
     const knowledge: ScannedKnowledge[] = [];
 
-    // Scan all markdown files recursively from the root
-    const mdFiles = await glob('**/*.md', { cwd: scanPath });
+    // Scan all markdown files recursively from the root, excluding vendored
+    // and tooling trees (e.g. node_modules, .git, .claude worktrees) so nested
+    // repo checkouts don't inject duplicate content entries.
+    const mdFiles = await glob('**/*.md', { cwd: scanPath, ignore: SOURCE_CODE_IGNORE_PATTERNS });
 
     for (const mdFile of mdFiles) {
       const filePath = join(scanPath, mdFile);
