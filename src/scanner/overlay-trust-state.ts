@@ -24,11 +24,7 @@ export interface OverlayTrustDiagnostics {
 }
 
 export type OverlayTrustLevel =
-  | 'no-overlay'
-  | 'content-only'
-  | 'stale-overlay'
-  | 'degraded-overlay'
-  | 'overlay-complete';
+  'no-overlay' | 'content-only' | 'stale-overlay' | 'degraded-overlay' | 'overlay-complete';
 
 export interface OverlaySyncMutationDetails {
   lastIndexedCommit?: string;

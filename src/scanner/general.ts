@@ -245,7 +245,7 @@ export class GeneralScanner {
       const content = readFileSync(filePath, 'utf-8');
       const parsed = matter(content);
       return {
-        frontmatter: parsed.data as Frontmatter,
+        frontmatter: parsed.data,
         content: parsed.content,
       };
     } catch {
@@ -336,7 +336,8 @@ export class GeneralScanner {
           throw new Error(
             `Failed to insert knowledge entry "${entry.title}" (${entry.filePath}): ${
               error instanceof Error ? error.message : String(error)
-            }`
+            }`,
+            { cause: error }
           );
         }
       }

@@ -20,19 +20,9 @@ export type UsageEventSurface =
 
 export type UsageCommandOutcome = 'success' | 'error';
 export type UsageRetrievalOutcome =
-  | 'answered'
-  | 'refused'
-  | 'ambiguous'
-  | 'unresolved'
-  | 'fallback'
-  | 'not_applicable';
+  'answered' | 'refused' | 'ambiguous' | 'unresolved' | 'fallback' | 'not_applicable';
 export type UsageTrustState =
-  | 'fresh'
-  | 'stale'
-  | 'degraded'
-  | 'content-only'
-  | 'absent'
-  | 'unknown';
+  'fresh' | 'stale' | 'degraded' | 'content-only' | 'absent' | 'unknown';
 
 export interface UsageQueryPayload {
   hash?: string;

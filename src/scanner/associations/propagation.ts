@@ -101,7 +101,7 @@ function runProviderPropagation(
     const filledRoles = new Set<'request' | 'response'>();
 
     for (const candidate of candidates) {
-      let resolved: { nodeId: string; node: StructuralNode } | null = null;
+      let resolved: { nodeId: string; node: StructuralNode } | null;
 
       if (candidate.syntheticNode) {
         db.upsertStructuralNode(candidate.syntheticNode);
@@ -833,8 +833,7 @@ function findSymbolsLinkedToController(
   const lsp = entry.metadata?.lsp as Record<string, unknown> | undefined;
   if (lsp) {
     const typeHierarchy = lsp.typeHierarchy as
-      | Array<{ name: string; supertypes?: Array<{ name: string }> }>
-      | undefined;
+      Array<{ name: string; supertypes?: Array<{ name: string }> }> | undefined;
     if (typeHierarchy) {
       for (const sym of typeHierarchy) {
         const supers = sym.supertypes?.map((s) => s.name) ?? [];
@@ -1857,10 +1856,7 @@ function isControlKeyword(name: string): boolean {
  * - ordinary-service: general utility/service with no artifact evidence
  */
 export type ArtifactRole =
-  | 'generated-client'
-  | 'schema-derived'
-  | 'handwritten-wrapper'
-  | 'ordinary-service';
+  'generated-client' | 'schema-derived' | 'handwritten-wrapper' | 'ordinary-service';
 
 /** Matches generation markers in file headers (first ~1 000 chars). */
 const GENERATION_HEADER_RE =

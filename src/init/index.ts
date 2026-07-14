@@ -28,7 +28,7 @@ const ScannerConfigSchema = z.object({
 
 const LuxConfigSchema = z.object({
   version: z.number().int().min(1).default(1),
-  scanner: ScannerConfigSchema.default({}),
+  scanner: ScannerConfigSchema.prefault({}),
 });
 
 export type LuxConfig = z.infer<typeof LuxConfigSchema>;
@@ -166,7 +166,7 @@ export function collectDirectoryTree(rootPath: string): string {
       const connector = isLast ? '\u2514\u2500\u2500 ' : '\u251c\u2500\u2500 ';
       const childPrefix = isLast ? '    ' : '\u2502   ';
 
-      let isDir = false;
+      let isDir: boolean;
       try {
         isDir = statSync(fullPath).isDirectory();
       } catch {
@@ -248,7 +248,10 @@ export function parseAndValidateYaml(raw: string): LuxConfig {
     parsed = parseYaml(cleaned);
   } catch (error) {
     throw new Error(
-      `Failed to parse YAML: ${error instanceof Error ? error.message : String(error)}`
+      `Failed to parse YAML: ${error instanceof Error ? error.message : String(error)}`,
+      {
+        cause: error,
+      }
     );
   }
 

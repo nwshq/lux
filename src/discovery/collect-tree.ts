@@ -73,7 +73,7 @@ export function collectTree(rootPath: string, options?: TreeOptions): string {
       const connector = isLast ? '\u2514\u2500\u2500 ' : '\u251c\u2500\u2500 ';
       const childPrefix = isLast ? '    ' : '\u2502   ';
 
-      let isDir = false;
+      let isDir: boolean;
       try {
         isDir = statSync(fullPath).isDirectory();
       } catch {

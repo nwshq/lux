@@ -229,11 +229,7 @@ export type TrustTier = 1 | 2 | 3 | 4 | 5;
 export type OperationalBoundaryKind = 'command' | 'schedule' | 'job' | 'event' | 'http';
 
 export type OperationalEdgeType =
-  | 'TRIGGERS'
-  | 'HANDLED_BY'
-  | 'DISPATCHES'
-  | 'CONSUMES'
-  | 'PRODUCES';
+  'TRIGGERS' | 'HANDLED_BY' | 'DISPATCHES' | 'CONSUMES' | 'PRODUCES';
 
 export type OperationalTransport = 'sync' | 'async' | 'queue' | 'event-bus';
 

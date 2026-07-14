@@ -24,11 +24,7 @@ import type { FeaturePath } from '../scanner/associations/surface-retrieval.js';
  * Monotonically ordered: no-overlay < content-only < stale-overlay < degraded-overlay < overlay-complete
  */
 export type OverlayTrustLevel =
-  | 'no-overlay'
-  | 'content-only'
-  | 'stale-overlay'
-  | 'degraded-overlay'
-  | 'overlay-complete';
+  'no-overlay' | 'content-only' | 'stale-overlay' | 'degraded-overlay' | 'overlay-complete';
 
 /**
  * Derive the canonical 5-tier trust level from current DB state.

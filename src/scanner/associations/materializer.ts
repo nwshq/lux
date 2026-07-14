@@ -78,7 +78,7 @@ export function materializeNodes(
  */
 export function buildFileNode(entry: ScannedKnowledge, rootPath: string): StructuralNode {
   const relPath = toRelative(entry.filePath, rootPath);
-  const fm = entry.frontmatter as Record<string, unknown> | undefined;
+  const fm = entry.frontmatter;
   const languageId = (fm?.language as string | undefined) ?? undefined;
 
   return {
@@ -111,8 +111,7 @@ export function buildSymbolNodes(
   // not collapse across namespaces.
   const ext = enrichment as unknown as Record<string, unknown>;
   const phpReferences = ext['references'] as
-    | Array<{ symbolName: string; symbolKind: number }>
-    | undefined;
+    Array<{ symbolName: string; symbolKind: number }> | undefined;
   const phpQualifiedNames = buildPhpQualifiedNameMap(
     enrichment.symbols.map((symbol) => symbol.name),
     phpReferences,

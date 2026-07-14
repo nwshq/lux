@@ -36,11 +36,7 @@ export type FeaturePathAnswerSchemaVersion = typeof FEATURE_PATH_ANSWER_SCHEMA_V
  *   - `route-downstream`  — what downstream work does this feature trigger?
  */
 export type FeaturePathIntent =
-  | 'route-handler'
-  | 'route-ownership'
-  | 'route-callers'
-  | 'route-contract'
-  | 'route-downstream';
+  'route-handler' | 'route-ownership' | 'route-callers' | 'route-contract' | 'route-downstream';
 
 export const FEATURE_PATH_INTENTS: readonly FeaturePathIntent[] = [
   'route-handler',
@@ -119,11 +115,7 @@ export interface FeaturePathPrimaryAnswer {
  * vocabulary so feature-path retrieval and panel boundaries reason in the same terms.
  */
 export type OwnershipBasis =
-  | 'module-boundary'
-  | 'directory-led'
-  | 'overlay-led'
-  | 'hybrid'
-  | 'unresolved';
+  'module-boundary' | 'directory-led' | 'overlay-led' | 'hybrid' | 'unresolved';
 
 export interface FeaturePathOwnership {
   /** Stable identifier (e.g. `module:Listings` or `directory:app/Modules/Listings`). */
@@ -257,19 +249,13 @@ export interface FeaturePathDownstreamStep {
  * hidden when the question implied a frontend hop.
  */
 export type CrossLanguageStatus =
-  | 'promoted'
-  | 'refused-low-trust'
-  | 'refused-naming-only'
-  | 'not-applicable';
+  'promoted' | 'refused-low-trust' | 'refused-naming-only' | 'not-applicable';
 
 // `shared-config` and `shared-event` are reserved vocabulary for future
 // artifact-backed detectors. Tranche one only promotes `generated-types`;
 // unsupported bases remain refused rather than inferred.
 export type CrossLanguageBasis =
-  | 'generated-types'
-  | 'shared-config'
-  | 'shared-event'
-  | 'naming-only';
+  'generated-types' | 'shared-config' | 'shared-event' | 'naming-only';
 
 export interface FeaturePathCrossLanguageAssociation {
   backendNodeId: string;

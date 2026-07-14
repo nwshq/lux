@@ -17,12 +17,7 @@
 
 import type { LuxDatabase } from '../../../db/index.js';
 import type { OperationalEdge, OperationalEdgeType, StructuralNode } from '../../../db/types.js';
-import type {
-  DownstreamEdgeType,
-  DownstreamTransport,
-  FeaturePathDownstreamEndpoint,
-  FeaturePathDownstreamStep,
-} from './contract.js';
+import type { FeaturePathDownstreamEndpoint, FeaturePathDownstreamStep } from './contract.js';
 
 const DOWNSTREAM_EDGE_TYPES: ReadonlySet<OperationalEdgeType> = new Set<OperationalEdgeType>([
   'DISPATCHES',
@@ -87,14 +82,14 @@ export function findBoundedDownstreamStep(
 
   const step: FeaturePathDownstreamStep = {
     description,
-    edgeType: best.edge_type as DownstreamEdgeType,
+    edgeType: best.edge_type,
     source,
     target,
     trustTier: best.trust_tier,
     rationale,
   };
   if (best.transport) {
-    step.transport = best.transport as DownstreamTransport;
+    step.transport = best.transport;
   }
   return step;
 }

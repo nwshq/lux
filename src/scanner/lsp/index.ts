@@ -202,7 +202,7 @@ export function toEnrichedDiagnostic(diagnostic: Diagnostic): EnrichedDiagnostic
     line: diagnostic.range.start.line,
     severity,
     severityLabel: SEVERITY_LABELS[severity] ?? `Unknown(${severity})`,
-    message: diagnostic.message,
+    message: typeof diagnostic.message === 'string' ? diagnostic.message : diagnostic.message.value,
     source: diagnostic.source,
     code:
       diagnostic.code !== undefined

@@ -1,19 +1,10 @@
 export type SpecDerivationSupport =
-  | 'direct'
-  | 'contextual'
-  | 'weak'
-  | 'insufficient'
-  | 'conflicting';
+  'direct' | 'contextual' | 'weak' | 'insufficient' | 'conflicting';
 
 export type SpecDerivationSufficiency = 'sufficient' | 'partial' | 'insufficient' | 'conflicting';
 
 export type SpecDerivationTrustState =
-  | 'fresh'
-  | 'stale'
-  | 'degraded'
-  | 'content-only'
-  | 'absent'
-  | 'unknown';
+  'fresh' | 'stale' | 'degraded' | 'content-only' | 'absent' | 'unknown';
 
 export type SpecDerivationTargetKind = 'route' | 'handler' | 'job' | 'listener' | 'command';
 
@@ -187,9 +178,7 @@ export type SpecDerivationOperationalEffectSignal =
   | 'operational_neighborhood';
 
 export type SpecDerivationSupportingContextSignal =
-  | 'test_evidence'
-  | 'doc_evidence'
-  | 'naming_evidence';
+  'test_evidence' | 'doc_evidence' | 'naming_evidence';
 
 export interface SpecDerivationCoverageBlock {
   stateChangeSignals: Record<SpecDerivationStateChangeSignal, SpecDerivationSignalStatus>;

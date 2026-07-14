@@ -938,7 +938,8 @@ export function parseProposalResponse(raw: string): DiscoveryProposal {
     const extracted = extractJsonObject(cleaned);
     if (!extracted) {
       throw new Error(
-        `Failed to parse AI response as JSON: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to parse AI response as JSON: ${error instanceof Error ? error.message : String(error)}`,
+        { cause: error }
       );
     }
 
@@ -946,7 +947,8 @@ export function parseProposalResponse(raw: string): DiscoveryProposal {
       parsed = JSON.parse(extracted);
     } catch (nestedError) {
       throw new Error(
-        `Failed to parse AI response as JSON: ${nestedError instanceof Error ? nestedError.message : String(nestedError)}`
+        `Failed to parse AI response as JSON: ${nestedError instanceof Error ? nestedError.message : String(nestedError)}`,
+        { cause: nestedError }
       );
     }
   }

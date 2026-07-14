@@ -138,7 +138,7 @@ export class SubprocessSessionManager implements ExpertSessionManager {
         },
       });
 
-      throw new Error(`Expert query failed: ${message}`);
+      throw new Error(`Expert query failed: ${message}`, { cause: error });
     }
   }
 

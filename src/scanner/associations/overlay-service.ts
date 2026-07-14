@@ -207,7 +207,7 @@ function buildContextEntries(
   return scan.knowledge
     .filter((k) => k.type === 'source-code')
     .map((k: ScannedKnowledge) => {
-      const fm = k.frontmatter as Record<string, unknown> | undefined;
+      const fm = k.frontmatter;
       const languageId = fm?.language as string | undefined;
       const metadata: Record<string, unknown> = {};
 

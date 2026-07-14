@@ -17,7 +17,6 @@ import type {
   QueryResult,
   SessionInfo,
 } from '../../experts/session-manager.js';
-import type { Expert, ExpertSession } from '../../db/types.js';
 import type { RouteResult } from '../../experts/router.js';
 import { persistRebuildTrustState } from '../../scanner/overlay-trust-state.js';
 
@@ -209,7 +208,7 @@ function createMockSessionManager(responses: Record<string, string> = {}): Exper
           spawned_at: Date.now(),
           last_active_at: Date.now(),
           status: 'warm',
-        } as ExpertSession,
+        },
         expert: {
           id: 1,
           slug: expertSlug,
@@ -219,7 +218,7 @@ function createMockSessionManager(responses: Record<string, string> = {}): Exper
           status: 'active',
           created_at: Date.now(),
           updated_at: Date.now(),
-        } as Expert,
+        },
       };
     },
 

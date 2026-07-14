@@ -129,7 +129,8 @@ export function loadLspConfig(rootPath: string): LuxLspConfig {
     parsed = parseYaml(rawContent);
   } catch (error) {
     throw new Error(
-      `Failed to parse lux.yaml: ${error instanceof Error ? error.message : String(error)}`
+      `Failed to parse lux.yaml: ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error }
     );
   }
 
@@ -137,7 +138,7 @@ export function loadLspConfig(rootPath: string): LuxLspConfig {
     return DEFAULT_CONFIG;
   }
 
-  return validateConfig(parsed as RawLuxConfig);
+  return validateConfig(parsed);
 }
 
 /**

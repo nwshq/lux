@@ -21,10 +21,7 @@ export type BoundaryEvidenceFamily =
   | 'fallback-structure';
 
 export type BoundaryEvidenceRole =
-  | 'graph-forming'
-  | 'reinforcement-only'
-  | 'projection-support'
-  | 'supporting-only';
+  'graph-forming' | 'reinforcement-only' | 'projection-support' | 'supporting-only';
 
 export type BoundaryEvidenceTier = 'overlay-backed' | 'projected-overlay' | 'supporting';
 
