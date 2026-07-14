@@ -14,6 +14,9 @@ import {
   rebuildStructuralOverlay,
   type OverlayRebuildResult,
 } from './associations/overlay-service.js';
+import { AssociationEngine } from './associations/engine.js';
+import { langForFile } from './ast/extract.js';
+import { resolveTypedReceiverEdges } from './ast/lsp-resolve.js';
 
 // ---------------------------------------------------------------------------
 // Source Code Scanning Constants
@@ -402,6 +405,12 @@ export interface GeneralScanOptions {
   db?: LuxDatabase;
   /** Run structural overlay rebuild after scan+enrich. Requires db option. */
   overlayEnabled?: boolean;
+  /**
+   * Inject a pre-built enricher registry instead of constructing one from config
+   * (dependency-injection seam for tests and embedding). When provided, its
+   * enrichers are still initialized, used, and shut down by the scan lifecycle.
+   */
+  enricherRegistry?: EnricherRegistry;
 }
 
 /** Map of language IDs to factory functions for built-in enrichers. */
@@ -460,13 +469,15 @@ export async function generalScan(
   const enrichments: EnrichmentMap = new Map();
   const errors: Array<{ filePath: string; error: string }> = [];
   let activeCount = 0;
+  // Kept alive past enrichment so the typed-receiver LSP pass can query it.
+  let activeRegistry: EnricherRegistry | null = null;
 
   if (!config.lsp.enabled) {
     report('LSP enrichment disabled.');
   } else {
-    // 3. Build enricher registry from config
+    // 3. Build enricher registry from config (or use an injected one)
     report('Initializing LSP enrichers...');
-    const registry = buildRegistry(config.lsp.enrichers);
+    const registry = options?.enricherRegistry ?? buildRegistry(config.lsp.enrichers);
 
     if (registry.size === 0) {
       report('No LSP enrichers configured.');
@@ -487,6 +498,8 @@ export async function generalScan(
           );
         }
       }
+
+      activeRegistry = registry;
 
       // 5. Collect enrichable files from scan results
       const filesToEnrich = collectEnrichableFiles(scan, registry);
@@ -515,16 +528,6 @@ export async function generalScan(
           }
         }
       }
-
-      // 7. Shut down enrichers
-      report('Shutting down LSP enrichers...');
-      try {
-        await registry.shutdownAll();
-      } catch (error) {
-        report(
-          `Warning: enricher shutdown errors: ${error instanceof Error ? error.message : String(error)}`
-        );
-      }
     }
   }
 
@@ -537,6 +540,7 @@ export async function generalScan(
     try {
       overlay = await rebuildStructuralOverlay(options.db, rootPath, scan, enrichments, {
         onProgress: report,
+        astEnabled: config.ast?.enabled ?? true,
       });
       report(
         `Overlay complete: ${overlay.fileNodes} file node(s), ${overlay.symbolNodes} symbol node(s), ` +
@@ -545,6 +549,47 @@ export async function generalScan(
     } catch (error) {
       report(
         `Warning: overlay rebuild failed — ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  // 8b. LSP-resolve typed-receiver cross-file calls while the registry is alive.
+  if (
+    overlay &&
+    options?.db &&
+    (config.ast?.enabled ?? true) &&
+    activeRegistry &&
+    activeCount > 0
+  ) {
+    report('Resolving typed-receiver cross-file calls via LSP...');
+    try {
+      const reg = activeRegistry;
+      const astEntries = scan.knowledge
+        .filter((k) => k.type === 'source-code' && !!k.content && langForFile(k.filePath) !== null)
+        .map((k) => ({ filePath: k.filePath, content: k.content as string }));
+      const edges = await resolveTypedReceiverEdges(
+        astEntries,
+        rootPath,
+        (fp, line, char) => reg.resolveDefinition(fp, line, char),
+        Math.floor(Date.now() / 1000)
+      );
+      const stored = AssociationEngine.persistEdges(options.db, edges);
+      report(`Typed-receiver resolution: ${stored} edge(s) stored.`);
+    } catch (error) {
+      report(
+        `Warning: typed-receiver resolution failed — ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  // 9. Shut down LSP enrichers (kept alive through the overlay + typed-receiver pass).
+  if (activeRegistry) {
+    report('Shutting down LSP enrichers...');
+    try {
+      await activeRegistry.shutdownAll();
+    } catch (error) {
+      report(
+        `Warning: enricher shutdown errors: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }

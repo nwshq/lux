@@ -139,6 +139,18 @@ export interface LspEnricher {
 
   /** Whether the enricher is currently initialized and ready. */
   readonly isReady: boolean;
+
+  /**
+   * Resolve the definition location of the token at a 0-based (line, character).
+   * Optional — enrichers that support on-demand definition queries implement it.
+   *
+   * @returns The target file path and 0-based start line, or null.
+   */
+  resolveDefinition?(
+    filePath: string,
+    line: number,
+    character: number
+  ): Promise<{ filePath: string; line: number } | null>;
 }
 
 // ---------------------------------------------------------------------------
@@ -255,6 +267,20 @@ export class EnricherRegistry {
       const normalized = ext.startsWith('.') ? ext : `.${ext}`;
       this.extensionIndex.set(normalized, enricher.languageId);
     }
+  }
+
+  /** Route an on-demand definition query to the enricher for the file's language. */
+  async resolveDefinition(
+    filePath: string,
+    line: number,
+    character: number
+  ): Promise<{ filePath: string; line: number } | null> {
+    const ext = filePath.slice(filePath.lastIndexOf('.'));
+    const languageId = this.extensionIndex.get(ext);
+    if (!languageId) return null;
+    const enricher = this.enrichers.get(languageId);
+    if (!enricher?.isReady || !enricher.resolveDefinition) return null;
+    return enricher.resolveDefinition(filePath, line, character);
   }
 
   /** Unregister an enricher by language ID. Returns true if it was present. */

@@ -5,7 +5,7 @@
 // metadata.lsp fields on indexed entities.
 
 import { readFileSync } from 'fs';
-import { pathToFileURL } from 'url';
+import { pathToFileURL, fileURLToPath } from 'url';
 import type { DocumentSymbol, Location, TypeHierarchyItem } from 'vscode-languageserver-protocol';
 import { LspClient } from './client.js';
 import type {
@@ -244,6 +244,37 @@ export class PhpLspEnricher implements LspEnricher {
       this.client.notify('textDocument/didClose', {
         textDocument: { uri },
       });
+    }
+  }
+
+  async resolveDefinition(
+    filePath: string,
+    line: number,
+    character: number
+  ): Promise<{ filePath: string; line: number } | null> {
+    if (!this._isReady || !this.client) return null;
+    let content: string;
+    try {
+      content = readFileSync(filePath, 'utf-8');
+    } catch {
+      return null;
+    }
+    const uri = pathToFileURL(filePath).toString();
+    this.client.notify('textDocument/didOpen', {
+      textDocument: { uri, languageId: 'php', version: 1, text: content },
+    });
+    try {
+      const result = await this.client.request<Location | Location[] | null>(
+        'textDocument/definition',
+        { textDocument: { uri }, position: { line, character } }
+      );
+      const loc = Array.isArray(result) ? result[0] : result;
+      if (!loc) return null;
+      return { filePath: fileURLToPath(loc.uri), line: loc.range.start.line };
+    } catch {
+      return null;
+    } finally {
+      this.client.notify('textDocument/didClose', { textDocument: { uri } });
     }
   }
 

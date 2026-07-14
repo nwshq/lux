@@ -43,7 +43,9 @@
     "commander": "^15.0.0",
     "glob": "^13.0.6",
     "gray-matter": "^4.0.3",
+    "tree-sitter-wasms": "^0.1.13",
     "vscode-languageserver-protocol": "^3.18.2",
+    "web-tree-sitter": "^0.22.6",
     "yaml": "^2.9.0",
     "zod": "^4.4.3"
   },

@@ -17,6 +17,8 @@ import type { ScanResult, ScannedKnowledge } from '../types.js';
 import type { EnrichmentMap } from '../lsp/index.js';
 import { isGitRepository, getHeadCommit, getDirtyFiles } from '../git.js';
 import { materializeNodes } from './materializer.js';
+import { materializeAstSymbols } from '../ast/materialize.js';
+import { AstStructuralResolver } from '../ast/resolver.js';
 import { AssociationEngine } from './engine.js';
 import { createDefaultResolvers } from './framework/index.js';
 import type { AssociationContext, AssociationResolver } from './types.js';
@@ -34,6 +36,8 @@ import { propagateSurfaces } from './propagation.js';
 // ---------------------------------------------------------------------------
 
 export interface OverlayRebuildOptions {
+  /** Enable the tree-sitter AST structural tier (symbols + calls/references). Default: false. */
+  astEnabled?: boolean;
   /** Include heuristic edges (default: false). */
   includeHeuristics?: boolean;
   /** Override resolver pack (default: createDefaultResolvers()). */
@@ -106,8 +110,32 @@ export async function rebuildStructuralOverlay(
 
   // 3. Materialize structural nodes from scan output
   report('Materializing structural nodes...');
-  const { fileNodes, symbolNodes } = materializeNodes(db, scan, enrichments, rootPath);
+  const materialized = materializeNodes(db, scan, enrichments, rootPath);
+  const fileNodes = materialized.fileNodes;
+  let symbolNodes = materialized.symbolNodes;
   report(`Materialized ${fileNodes} file node(s) and ${symbolNodes} symbol node(s).`);
+
+  // 3b. AST symbol tier (default on) — supplies symbols without LSP. Isolated:
+  // a tree-sitter/WASM failure here must degrade only this tier, not abort the
+  // whole overlay (surfaces, propagation) for a feature the user didn't opt into.
+  if (options.astEnabled) {
+    report('Materializing AST symbol nodes...');
+    try {
+      const astNodes = await materializeAstSymbols(
+        db,
+        scan,
+        rootPath,
+        Math.floor(Date.now() / 1000),
+        report
+      );
+      symbolNodes += astNodes;
+      report(`Materialized ${astNodes} AST symbol node(s).`);
+    } catch (error) {
+      report(
+        `Warning: AST symbol materialization failed — ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
 
   // 4. Assemble association context
   const entries = buildContextEntries(scan, enrichments, rootPath);
@@ -121,7 +149,11 @@ export async function rebuildStructuralOverlay(
   };
 
   // 5. Run association engine
-  const resolvers = options.resolvers ?? createDefaultResolvers();
+  const resolvers =
+    options.resolvers ??
+    (options.astEnabled
+      ? [...createDefaultResolvers(), new AstStructuralResolver()]
+      : createDefaultResolvers());
   const engine = new AssociationEngine(db, resolvers, {
     includeHeuristics: options.includeHeuristics ?? false,
     onProgress: report,

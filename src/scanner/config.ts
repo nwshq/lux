@@ -47,12 +47,20 @@ export interface DepsConfig {
   moduleBoundary?: string;
 }
 
+/** Tree-sitter AST structural-tier configuration. */
+export interface AstConfig {
+  /** Whether the AST structural tier is enabled (default: true — zero-config). */
+  enabled: boolean;
+}
+
 /** Top-level lux.yaml configuration (LSP-specific fields). */
 export interface LuxLspConfig {
   /** LSP enrichment configuration. */
   lsp: LspConfig;
   /** Dependency analysis configuration. */
   deps: DepsConfig;
+  /** AST structural tier configuration. */
+  ast?: AstConfig;
 }
 
 // ---------------------------------------------------------------------------
@@ -68,9 +76,14 @@ const DEFAULT_DEPS_CONFIG: DepsConfig = {
   enabled: true,
 };
 
+const DEFAULT_AST_CONFIG: AstConfig = {
+  enabled: true,
+};
+
 const DEFAULT_CONFIG: LuxLspConfig = {
   lsp: DEFAULT_LSP_CONFIG,
   deps: DEFAULT_DEPS_CONFIG,
+  ast: DEFAULT_AST_CONFIG,
 };
 
 // ---------------------------------------------------------------------------
@@ -101,6 +114,7 @@ interface RawDepsConfig {
 interface RawLuxConfig {
   lsp?: unknown;
   deps?: unknown;
+  ast?: unknown;
 }
 
 // ---------------------------------------------------------------------------
@@ -148,7 +162,15 @@ function validateConfig(raw: RawLuxConfig): LuxLspConfig {
   return {
     lsp: raw.lsp ? validateLspConfig(raw.lsp) : DEFAULT_LSP_CONFIG,
     deps: raw.deps ? validateDepsConfig(raw.deps) : DEFAULT_DEPS_CONFIG,
+    ast: raw.ast ? validateAstConfig(raw.ast) : DEFAULT_AST_CONFIG,
   };
+}
+
+function validateAstConfig(raw: unknown): AstConfig {
+  if (typeof raw !== 'object' || raw === null) return DEFAULT_AST_CONFIG;
+  const obj = raw as { enabled?: unknown };
+  // On by default (zero-config); only an explicit `enabled: false` opts out.
+  return { enabled: obj.enabled !== false };
 }
 
 function validateDepsConfig(raw: unknown): DepsConfig {
