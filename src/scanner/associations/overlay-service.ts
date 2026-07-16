@@ -18,6 +18,7 @@ import type { EnrichmentMap } from '../lsp/index.js';
 import { isGitRepository, getHeadCommit, getDirtyFiles } from '../git.js';
 import { materializeNodes } from './materializer.js';
 import { materializeAstSymbols } from '../ast/materialize.js';
+import { buildSharedExtractions, type SharedExtractions } from '../ast/extraction-cache.js';
 import { AstStructuralResolver } from '../ast/resolver.js';
 import { AssociationEngine } from './engine.js';
 import { createDefaultResolvers } from './framework/index.js';
@@ -61,6 +62,12 @@ export interface OverlayRebuildResult {
   surfacesDetected: number;
   surfaceEdgesStored: number;
   propagationEdgesAdded: number;
+  /**
+   * The shared per-rebuild AST extraction cache (Lever D), when the AST tier ran.
+   * Returned so the caller's typed-receiver pass (general.ts step 8b) can reuse
+   * it instead of re-parsing every file a third time.
+   */
+  sharedExtractions?: SharedExtractions;
 }
 
 /**
@@ -115,6 +122,21 @@ export async function rebuildStructuralOverlay(
   let symbolNodes = materialized.symbolNodes;
   report(`Materialized ${fileNodes} file node(s) and ${symbolNodes} symbol node(s).`);
 
+  // 3a. Build the shared per-rebuild AST extraction cache ONCE (Lever D), so the
+  // materializer, the structural resolver, and the caller's typed-receiver pass
+  // read one Extraction per file instead of re-parsing it three times. Isolated:
+  // a build failure degrades to each consumer parsing on demand (cache absent).
+  let sharedExtractions: SharedExtractions | undefined;
+  if (options.astEnabled) {
+    try {
+      sharedExtractions = await buildSharedExtractions(scan, rootPath, report);
+    } catch (error) {
+      report(
+        `Warning: shared AST extraction failed — ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
   // 3b. AST symbol tier (default on) — supplies symbols without LSP. Isolated:
   // a tree-sitter/WASM failure here must degrade only this tier, not abort the
   // whole overlay (surfaces, propagation) for a feature the user didn't opt into.
@@ -126,6 +148,7 @@ export async function rebuildStructuralOverlay(
         scan,
         rootPath,
         Math.floor(Date.now() / 1000),
+        sharedExtractions,
         report
       );
       symbolNodes += astNodes;
@@ -146,6 +169,7 @@ export async function rebuildStructuralOverlay(
     entries,
     currentCommit,
     dirtyFiles,
+    sharedExtractions,
   };
 
   // 5. Run association engine
@@ -218,6 +242,7 @@ export async function rebuildStructuralOverlay(
     surfacesDetected: detectorResult.surfacesDetected,
     surfaceEdgesStored: detectorResult.surfaceEdgesStored,
     propagationEdgesAdded,
+    sharedExtractions,
   };
 }
 

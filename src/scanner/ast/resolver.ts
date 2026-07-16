@@ -56,7 +56,10 @@ export class AstStructuralResolver implements AssociationResolver {
     );
     if (eligible.length === 0) return [];
 
-    const grammars = await getGrammars();
+    // Read from the shared per-rebuild extraction cache when present (Lever D);
+    // only load grammars when we have to parse ourselves.
+    const shared = context.sharedExtractions;
+    const grammars = shared ? null : await getGrammars();
 
     // Pass 1: extract every file; build the symbol universe + scanned-file set.
     const files: FileExtraction[] = [];
@@ -66,12 +69,19 @@ export class AstStructuralResolver implements AssociationResolver {
       const lang = langForFile(entry.filePath);
       if (!lang) continue;
       const relPath = toRelative(entry.filePath, context.rootPath);
-      const { extraction } = extractSource(
-        grammars,
-        entry.metadata?.content as string,
-        relPath,
-        lang
-      );
+      let extraction: Extraction;
+      if (shared) {
+        const cached = shared.get(relPath);
+        if (!cached) continue; // absent from the shared cache — isolated upstream
+        extraction = cached;
+      } else {
+        extraction = extractSource(
+          grammars!,
+          entry.metadata?.content as string,
+          relPath,
+          lang
+        ).extraction;
+      }
       files.push({ relPath, lang, extraction });
       relPaths.add(relPath);
       for (const def of extraction.nodes) {

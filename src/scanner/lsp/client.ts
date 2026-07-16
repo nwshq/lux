@@ -37,6 +37,8 @@ export interface LspClientOptions {
   requestTimeoutMs?: number;
   /** Timeout in milliseconds for server initialization (default: 60000). */
   initTimeoutMs?: number;
+  /** Max distinct documents open in the server at once (the didOpen cap). Default: 12. */
+  maxOpenDocuments?: number;
 }
 
 /** Internal representation of a pending JSON-RPC request. */
@@ -44,6 +46,13 @@ interface PendingRequest {
   resolve: (result: unknown) => void;
   reject: (error: Error) => void;
   timer: ReturnType<typeof setTimeout>;
+}
+
+/** Refcounted open-document lease state, keyed by URI. */
+interface OpenDoc {
+  refCount: number;
+  /** Resolves once the didOpen for this URI has been sent (guards the open race). */
+  opened: Promise<void>;
 }
 
 // ---------------------------------------------------------------------------
@@ -107,13 +116,18 @@ class Semaphore {
  */
 export class LspClient {
   private readonly options: Required<
-    Pick<LspClientOptions, 'maxConcurrency' | 'requestTimeoutMs' | 'initTimeoutMs'>
+    Pick<
+      LspClientOptions,
+      'maxConcurrency' | 'requestTimeoutMs' | 'initTimeoutMs' | 'maxOpenDocuments'
+    >
   > &
     LspClientOptions;
   private process: ChildProcess | null = null;
   private nextId = 1;
   private readonly pending = new Map<number, PendingRequest>();
   private readonly semaphore: Semaphore;
+  private readonly openDocSemaphore: Semaphore;
+  private readonly openDocs = new Map<string, OpenDoc>();
   private inputBuffer = '';
   private contentLength = -1;
   private _initialized = false;
@@ -125,9 +139,11 @@ export class LspClient {
       maxConcurrency: 4,
       requestTimeoutMs: 30_000,
       initTimeoutMs: 60_000,
+      maxOpenDocuments: 12,
       ...options,
     };
     this.semaphore = new Semaphore(this.options.maxConcurrency);
+    this.openDocSemaphore = new Semaphore(this.options.maxOpenDocuments);
   }
 
   /** Whether the client has been initialized and is ready for requests. */
@@ -227,6 +243,52 @@ export class LspClient {
   notify(method: string, params: unknown): void {
     this.assertReady();
     this.sendNotification(method, params);
+  }
+
+  /**
+   * Run `fn` with `uri` open in the server, refcounted per URI. The FIRST holder
+   * sends didOpen (after acquiring an open-document permit — this is the didOpen
+   * cap that the request semaphore does not provide); the LAST releaser sends
+   * didClose and frees the permit. Concurrent holders of the same URI share a
+   * single open, so a parallel pass never closes a document another operation is
+   * mid-request on.
+   *
+   * The open-map entry is reserved SYNCHRONOUSLY (before the first await) so a
+   * second caller for the same URI observes it and takes the refCount++ branch
+   * rather than issuing a duplicate didOpen (a protocol violation on a v1 doc).
+   */
+  async withDocument<T>(
+    uri: string,
+    languageId: string,
+    text: string,
+    fn: () => Promise<T>
+  ): Promise<T> {
+    this.assertReady();
+    let doc = this.openDocs.get(uri);
+    if (doc) {
+      doc.refCount++;
+      await doc.opened; // an already-registered open may still be in flight
+    } else {
+      doc = { refCount: 1, opened: Promise.resolve() };
+      this.openDocs.set(uri, doc); // reserve SYNCHRONOUSLY — before any await — to win the race
+      doc.opened = (async () => {
+        await this.openDocSemaphore.acquire();
+        this.sendNotification('textDocument/didOpen', {
+          textDocument: { uri, languageId, version: 1, text },
+        });
+      })();
+      await doc.opened;
+    }
+    try {
+      return await fn();
+    } finally {
+      doc.refCount--;
+      if (doc.refCount <= 0) {
+        this.openDocs.delete(uri);
+        this.sendNotification('textDocument/didClose', { textDocument: { uri } });
+        this.openDocSemaphore.release();
+      }
+    }
   }
 
   // -------------------------------------------------------------------------

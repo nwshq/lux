@@ -26,6 +26,8 @@ Shared resolver: `src/utils/runtime-paths.ts`
 - `lux expert list|show|add|remove|discover`
 - `lux ask`
 - `lux deps graph|clusters|impact|coverage`
+- `lux vendor-pack build|status`
+- `lux trace <symbol>`
 - `lux overlay status|check|operational ask|boundaries ...`
 
 ## Current MCP surface
@@ -37,6 +39,7 @@ From `src/mcp/server.ts`:
 - `lux_rebuild_index`
 - `lux_list_experts`
 - `lux_ask`
+- `lux_trace`
 
 ## Overlay
 

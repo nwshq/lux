@@ -4,8 +4,14 @@ import { glob } from 'glob';
 import matter from 'gray-matter';
 import type { Frontmatter, ScannedKnowledge, ScanResult } from './types.js';
 import type { LuxDatabase } from '../db/index.js';
-import { loadLspConfig, type LuxLspConfig, type LspEnricherEntry } from './config.js';
+import {
+  loadLspConfig,
+  type LuxLspConfig,
+  type LspEnricherEntry,
+  type ScanConfig,
+} from './config.js';
 import { EnricherRegistry, type EnrichmentMap } from './lsp/index.js';
+import { mapWithConcurrency } from './lsp/pool.js';
 import { PhpLspEnricher } from './lsp/php.js';
 import { TypeScriptLspEnricher } from './lsp/typescript.js';
 import { parseImports } from './imports/index.js';
@@ -17,6 +23,7 @@ import {
 import { AssociationEngine } from './associations/engine.js';
 import { langForFile } from './ast/extract.js';
 import { resolveTypedReceiverEdges } from './ast/lsp-resolve.js';
+import { makeExternalTargetResolver } from './pack/external-resolve.js';
 
 // ---------------------------------------------------------------------------
 // Source Code Scanning Constants
@@ -94,6 +101,26 @@ export const SOURCE_CODE_IGNORE_PATTERNS: string[] = [
   '**/*.min.css',
 ];
 
+/**
+ * Generated build artifacts: compiled/minified bundles and sourcemaps that are
+ * a derived copy of authored source. Excluded by default (Decision 3 /
+ * ADR-6 / REQ-3), but NOT dependencies — vendor/ and node_modules/ live in
+ * SOURCE_CODE_IGNORE_PATTERNS and are always excluded regardless of this flag.
+ */
+export const GENERATED_ARTIFACT_PATTERNS: string[] = ['public/**', '**/*.bundle.js', '**/*.js.map'];
+
+/**
+ * Resolve the effective ignore set from the always-excluded built-ins plus the
+ * configurable generated-artifact / extra patterns. Dependencies (vendor/,
+ * node_modules/) are always in the built-in base set and can never be re-included.
+ */
+export function resolveIgnorePatterns(scan?: ScanConfig): string[] {
+  const patterns = [...SOURCE_CODE_IGNORE_PATTERNS];
+  if (scan?.excludeGeneratedArtifacts ?? true) patterns.push(...GENERATED_ARTIFACT_PATTERNS);
+  if (scan?.ignorePatterns?.length) patterns.push(...scan.ignorePatterns);
+  return patterns;
+}
+
 /** Manifest files whose presence indicates a source code repository. */
 const SOURCE_CODE_MANIFEST_FILES: string[] = [
   'package.json',
@@ -137,9 +164,11 @@ export function inferTagsFromPath(filePath: string): string[] {
 
 export class GeneralScanner {
   private rootPath?: string;
+  private readonly ignorePatterns: string[];
 
-  constructor(rootPath?: string) {
+  constructor(rootPath?: string, ignorePatterns: string[] = SOURCE_CODE_IGNORE_PATTERNS) {
     this.rootPath = rootPath;
+    this.ignorePatterns = ignorePatterns;
   }
 
   async scan(rootPath?: string): Promise<ScanResult> {
@@ -153,7 +182,7 @@ export class GeneralScanner {
     // Scan all markdown files recursively from the root, excluding vendored
     // and tooling trees (e.g. node_modules, .git, .claude worktrees) so nested
     // repo checkouts don't inject duplicate content entries.
-    const mdFiles = await glob('**/*.md', { cwd: scanPath, ignore: SOURCE_CODE_IGNORE_PATTERNS });
+    const mdFiles = await glob('**/*.md', { cwd: scanPath, ignore: this.ignorePatterns });
 
     for (const mdFile of mdFiles) {
       const filePath = join(scanPath, mdFile);
@@ -217,7 +246,7 @@ export class GeneralScanner {
     const extensionGlobs = SOURCE_CODE_EXTENSIONS.map((ext) => `**/*${ext}`);
     const files = await glob(extensionGlobs, {
       cwd: rootPath,
-      ignore: SOURCE_CODE_IGNORE_PATTERNS,
+      ignore: this.ignorePatterns,
       nodir: true,
     });
     return files;
@@ -411,6 +440,12 @@ export interface GeneralScanOptions {
    * enrichers are still initialized, used, and shut down by the scan lifecycle.
    */
   enricherRegistry?: EnricherRegistry;
+  /**
+   * Absolute path to a built vendor pack DB (ADR-1). When set and overlay is
+   * enabled, the pack is merged into the overlay after app materialization and
+   * before boundary resolution (step 8a). Null/undefined ⇒ no merge (app-only).
+   */
+  vendorPackPath?: string | null;
 }
 
 /** Map of language IDs to factory functions for built-in enrichers. */
@@ -437,6 +472,15 @@ const ENRICHER_FACTORIES: Record<
 };
 
 /**
+ * Max files enriched concurrently (Lever B). Aligns with the LspClient's
+ * `maxOpenDocuments` cap so in-flight file reads and open documents stay bounded
+ * together; the request Semaphore(4) continues to bound LSP requests underneath.
+ * The pack build (REQ-4, 3–6× the files) is the real beneficiary — treat this as
+ * a conservative tuning knob, not a correctness parameter.
+ */
+const ENRICH_FILE_CONCURRENCY = 12;
+
+/**
  * Run the full scan-then-enrich pipeline.
  *
  * 1. Loads LSP configuration from lux.yaml (or uses provided config)
@@ -458,9 +502,9 @@ export async function generalScan(
   const report = options?.onProgress ?? (() => {});
   const config = options?.config ?? loadLspConfig(rootPath);
 
-  // 1. Run the base scan
+  // 1. Run the base scan (generated-artifact exclusion resolved from config — Lever A)
   report('Scanning content directory...');
-  const scanner = new GeneralScanner(rootPath);
+  const scanner = new GeneralScanner(rootPath, resolveIgnorePatterns(config.scan));
   const scan = await scanner.scan();
 
   // 2. Parse imports and compute module dependencies (independent of LSP)
@@ -505,17 +549,28 @@ export async function generalScan(
       const filesToEnrich = collectEnrichableFiles(scan, registry);
       report(`Found ${filesToEnrich.size} files to enrich across ${activeCount} enrichers.`);
 
-      // 6. Run enrichment
+      // 6. Run enrichment (bounded-parallel — Lever B). The refcounted document
+      //    lease + open-document semaphore in LspClient make this safe; a naive
+      //    Promise.all would flush every didOpen past the request semaphore and
+      //    let one file's didClose close a URI another op is mid-request on.
+      //
+      //    NOTE (Lever C, deferred per CANONICAL-DECISIONS §8): the combined-open
+      //    warmth micro-optimization — running this enrichment pass and the
+      //    step-8b typed-receiver pass against ONE document open per file — is
+      //    deferred. It conflicts with Phase-3's step-8a merge sequencing (the
+      //    typed-receiver pass must stay AFTER materialization + merge). Lever A
+      //    alone meets the REQ-3 app-build target; B+D+E carry the rest.
       for (const [languageId, filePaths] of filesToEnrich) {
         const enricher = registry.get(languageId);
         if (!enricher?.isReady) continue;
 
-        report(`Enriching ${filePaths.length} ${languageId} files...`);
+        report(`Enriching ${filePaths.length} ${languageId} files (bounded parallel)...`);
 
-        for (const filePath of filePaths) {
+        await mapWithConcurrency(filePaths, ENRICH_FILE_CONCURRENCY, async (filePath) => {
           try {
             const result = await enricher.enrich(filePath);
             if (result) {
+              // Safe under the single-threaded event loop — no shared-index write.
               enrichments.set(filePath, result);
             }
           } catch (error) {
@@ -526,7 +581,7 @@ export async function generalScan(
               error instanceof Error ? error : new Error(message)
             );
           }
-        }
+        });
       }
     }
   }
@@ -553,6 +608,24 @@ export async function generalScan(
     }
   }
 
+  // 8a. Merge the vendor pack (ADR-2). Runs AFTER app materialization (step 8, so
+  //     capability-surface propagation ran on the clean app-only graph) and
+  //     BEFORE boundary resolution (step 8b needs the merged vendor nodes present
+  //     to resolve into). clearOverlay() wiped any prior merge at the top of this
+  //     rebuild, so the merge RECURS — re-applied here every rebuild. App nodes
+  //     from step 8 win on FQN-id collision (importVendorPack is INSERT OR IGNORE).
+  if (overlay && options?.db && options?.vendorPackPath) {
+    report('Merging vendor pack into overlay...');
+    try {
+      const merged = options.db.importVendorPack(options.vendorPackPath);
+      report(`Vendor pack merged: ${merged.nodes} node(s), ${merged.edges} edge(s).`);
+    } catch (error) {
+      report(
+        `Warning: vendor pack merge failed — ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
   // 8b. LSP-resolve typed-receiver cross-file calls while the registry is alive.
   if (
     overlay &&
@@ -567,11 +640,26 @@ export async function generalScan(
       const astEntries = scan.knowledge
         .filter((k) => k.type === 'source-code' && !!k.content && langForFile(k.filePath) !== null)
         .map((k) => ({ filePath: k.filePath, content: k.content as string }));
+      // Upgraded per CANONICAL-DECISIONS §8: pooled per-file loop + one warm
+      // document open per file (Lever B), reusing the overlay's shared extraction
+      // cache (Lever D) so this pass never re-parses. Still a DISTINCT pass after
+      // materialization — the step 8a merge above runs ahead of it.
+      // When a vendor pack was merged (step 8a), the boundary resolver turns
+      // app→vendor calls (formerly dropped) into proven edges into merged nodes.
+      const resolveExternalTarget = options.vendorPackPath
+        ? makeExternalTargetResolver(options.db, rootPath)
+        : undefined;
       const edges = await resolveTypedReceiverEdges(
         astEntries,
         rootPath,
         (fp, line, char) => reg.resolveDefinition(fp, line, char),
-        Math.floor(Date.now() / 1000)
+        Math.floor(Date.now() / 1000),
+        {
+          resolveInFile: (fp, positions) => reg.resolveDefinitionsInFile(fp, positions),
+          sharedExtractions: overlay.sharedExtractions,
+          concurrency: ENRICH_FILE_CONCURRENCY,
+          resolveExternalTarget,
+        }
       );
       const stored = AssociationEngine.persistEdges(options.db, edges);
       report(`Typed-receiver resolution: ${stored} edge(s) stored.`);

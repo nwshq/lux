@@ -5,7 +5,11 @@ import type { ScanResult } from '../../types.js';
 import { materializeAstSymbols } from '../materialize.js';
 
 function mockDb(sink: StructuralNode[]): LuxDatabase {
-  return { upsertStructuralNode: (n: StructuralNode) => sink.push(n) } as unknown as LuxDatabase;
+  return {
+    upsertStructuralNode: (n: StructuralNode) => sink.push(n),
+    // materializeAstSymbols batches upserts in a transaction (Lever E).
+    transaction: <T>(fn: () => T): T => fn(),
+  } as unknown as LuxDatabase;
 }
 
 describe('materializeAstSymbols', () => {

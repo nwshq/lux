@@ -35,6 +35,10 @@ export class LuxDatabase {
     this.db = new Database(dbPath);
     this.db.pragma('journal_mode = WAL');
     this.db.pragma('foreign_keys = ON');
+    // Safe under WAL (a crash can lose the last commit, never corrupt) and removes
+    // the per-commit fsync — the write path both the app rebuild and the vendor-pack
+    // merge depend on for batched-write throughput (ADR-6 / ADR-2).
+    this.db.pragma('synchronous = NORMAL');
 
     // Initialize migration system
     this.migrations = new MigrationRunner(this.db);
@@ -413,6 +417,7 @@ export class LuxDatabase {
       symbol_kind: node.symbol_kind ?? null,
       qualified_name: node.qualified_name ?? null,
       metadata: node.metadata ?? null,
+      origin: node.origin ?? 'local',
       updated_at: node.updated_at,
     });
   }
@@ -458,6 +463,70 @@ export class LuxDatabase {
     replaceTransaction();
   }
 
+  /**
+   * Run `fn` inside a single SQLite transaction and return its result. `fn` must
+   * be synchronous (better-sqlite3 transactions cannot span an await). Batches the
+   * many small overlay writes into one commit — the write path both the app
+   * rebuild and the vendor-pack merge reuse (ADR-6 / ADR-2 / REQ-4).
+   */
+  transaction<T>(fn: () => T): T {
+    return this.db.transaction(fn)();
+  }
+
+  /**
+   * Merge a vendor pack's structural nodes and edges into this project's overlay
+   * (ADR-2). The pack is a standalone overlay-shaped SQLite file, built once per
+   * `composer.lock` (ADR-1); its tables mirror `structural_nodes` /
+   * `structural_edges`. There is no attach-by-reference at query time (a single
+   * `new Database` handle), so the merge is a transient merge-time ATTACH + bulk
+   * `INSERT OR IGNORE … SELECT`, all in-engine (~818k rows never cross into JS).
+   *
+   * - Every imported node is stamped `origin='vendor-pack'` (ADR-3).
+   * - `INSERT OR IGNORE` means a project (local) node/edge that already occupies
+   *   an id WINS — the app's real code over the vendor copy (ADR-2).
+   * - `edge_evidence` is NOT imported: vendor edges carry their provenance inline
+   *   in `provenance_summary`, and importing per-edge evidence multiplies rows for
+   *   marginal trace value.
+   *
+   * `clearOverlay()` wipes the overlay at the top of each rebuild, so this runs
+   * every rebuild; one transaction under `synchronous=NORMAL` keeps it ~1.7s for
+   * ~818k rows (REQ-4). ATTACH must happen OUTSIDE the transaction (SQLite forbids
+   * ATTACH within a transaction); the write is committed before DETACH.
+   *
+   * @param packDbPath Absolute path to a built vendor pack DB.
+   * @returns Net rows inserted (post-`OR IGNORE`).
+   */
+  importVendorPack(packDbPath: string): { nodes: number; edges: number } {
+    this.getQueries(); // ensure the DB is initialized/migrated before we touch it
+    this.db.prepare('ATTACH DATABASE ? AS pack').run(packDbPath);
+    try {
+      let nodes = 0;
+      let edges = 0;
+      const importAll = this.db.transaction(() => {
+        nodes = this.db
+          .prepare(
+            `INSERT OR IGNORE INTO structural_nodes
+               (id, node_type, file_path, language_id, symbol_name, symbol_kind, qualified_name, metadata, origin, updated_at)
+             SELECT id, node_type, file_path, language_id, symbol_name, symbol_kind, qualified_name, metadata, 'vendor-pack', updated_at
+               FROM pack.structural_nodes`
+          )
+          .run().changes;
+        edges = this.db
+          .prepare(
+            `INSERT OR IGNORE INTO structural_edges
+               (id, source_node_id, target_node_id, edge_type, confidence, confidence_class, freshness_status, source_commit, dirty_dependency_count, provenance_summary, updated_at)
+             SELECT id, source_node_id, target_node_id, edge_type, confidence, confidence_class, freshness_status, source_commit, dirty_dependency_count, provenance_summary, updated_at
+               FROM pack.structural_edges`
+          )
+          .run().changes;
+      });
+      importAll();
+      return { nodes, edges };
+    } finally {
+      this.db.prepare('DETACH DATABASE pack').run();
+    }
+  }
+
   getStructuralNode(id: string): StructuralNode | null {
     return (this.getQueries().getStructuralNode.get(id) as StructuralNode | undefined) ?? null;
   }
@@ -470,8 +539,45 @@ export class LuxDatabase {
     return this.getQueries().getStructuralNodesByType.all(nodeType) as StructuralNode[];
   }
 
+  /**
+   * Structural nodes of a type, EXCLUDING imported vendor-pack nodes (ADR-3 /
+   * REQ-7). Overlay consumers that must not surface framework internals
+   * (module-boundary analysis, retrieval, trust-state counts) use this instead
+   * of {@link getStructuralNodesByType}.
+   */
+  getLocalStructuralNodesByType(nodeType: string): StructuralNode[] {
+    return this.getQueries().getLocalStructuralNodesByType.all(nodeType) as StructuralNode[];
+  }
+
+  /** True when a node was imported from a vendor pack (not project-local). (ADR-3) */
+  static isExternalNode(node: Pick<StructuralNode, 'origin'>): boolean {
+    return (node.origin ?? 'local') !== 'local';
+  }
+
   getStructuralEdgesForNode(nodeId: string): StructuralEdge[] {
     return this.getQueries().getStructuralEdgesForNode.all(nodeId, nodeId) as StructuralEdge[];
+  }
+
+  /**
+   * Outgoing structural edges from a node (source_node_id = nodeId), ordered by
+   * confidence. Backs the forward call-trace frontier expansion (ADR-5, REQ-8).
+   */
+  getOutgoingStructuralEdges(nodeId: string): StructuralEdge[] {
+    return this.getQueries().getStructuralEdgesForSourceNode.all(nodeId) as StructuralEdge[];
+  }
+
+  /**
+   * Resolve a user-supplied symbol (node id, PHP FQN, or leaf name) to candidate
+   * structural symbol nodes for a trace start (ADR-5). Returns [] if none.
+   */
+  findStructuralSymbolNodes(term: string, limit = 10): StructuralNode[] {
+    const leaf = term.includes('::') ? term.slice(term.lastIndexOf('::') + 2) : term;
+    return this.getQueries().findStructuralSymbolNodes.all({
+      term,
+      suffix: `%\\${term}`,
+      leaf,
+      limit,
+    }) as StructuralNode[];
   }
 
   getEdgeEvidence(edgeId: string): EdgeEvidence[] {

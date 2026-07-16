@@ -5,6 +5,7 @@
 // provenance data before persistence.
 
 import type { StructuralNode, EdgeType, ConfidenceClass } from '../../db/types.js';
+import type { SharedExtractions } from '../ast/extraction-cache.js';
 
 // Re-export node type alias for convenience
 export type {
@@ -34,6 +35,11 @@ export interface AssociationContext {
   currentCommit?: string;
   /** Relative file paths that are currently dirty in the working tree. */
   dirtyFiles: string[];
+  /**
+   * Per-rebuild shared AST extraction cache (Lever D), keyed by relative path.
+   * When present, AST-based resolvers read from it instead of re-parsing.
+   */
+  sharedExtractions?: SharedExtractions;
 }
 
 // ---------------------------------------------------------------------------

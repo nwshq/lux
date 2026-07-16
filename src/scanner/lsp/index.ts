@@ -151,6 +151,28 @@ export interface LspEnricher {
     line: number,
     character: number
   ): Promise<{ filePath: string; line: number } | null>;
+
+  /**
+   * Resolve a definition against a document that is ALREADY open in the server
+   * (no didOpen/didClose). Optional — the enrich/resolveDefinition wrappers use
+   * it under a refcounted document lease (Lever B).
+   */
+  resolveDefinitionOpen?(
+    uri: string,
+    line: number,
+    character: number
+  ): Promise<{ filePath: string; line: number } | null>;
+
+  /**
+   * Resolve many call-site positions within ONE file under a single warm
+   * document open (Lever B). Result order matches the input positions. Optional —
+   * the typed-receiver pass prefers this over per-position resolveDefinition so a
+   * file opens once instead of once per call-site.
+   */
+  resolveDefinitionsInFile?(
+    filePath: string,
+    positions: Array<{ line: number; character: number }>
+  ): Promise<Array<{ filePath: string; line: number } | null>>;
 }
 
 // ---------------------------------------------------------------------------
@@ -197,12 +219,17 @@ const SEVERITY_LABELS: Record<number, string> = {
 
 /** Convert an LSP DocumentSymbol to an EnrichedSymbol. */
 export function toEnrichedSymbol(symbol: DocumentSymbol): EnrichedSymbol {
+  // Some servers (e.g. intelephense on Blade `.blade.php` templates) return
+  // symbols without a `range`; fall back to `selectionRange`, then to 0, so a
+  // range-less symbol degrades gracefully instead of throwing and failing the
+  // whole file's enrichment.
+  const range = symbol.range ?? symbol.selectionRange;
   return {
     name: symbol.name,
     kind: symbol.kind,
     kindLabel: SYMBOL_KIND_LABELS[symbol.kind] ?? `Unknown(${symbol.kind})`,
-    startLine: symbol.range.start.line,
-    endLine: symbol.range.end.line,
+    startLine: range?.start.line ?? 0,
+    endLine: range?.end.line ?? 0,
     children: symbol.children?.map(toEnrichedSymbol),
   };
 }
@@ -281,6 +308,35 @@ export class EnricherRegistry {
     const enricher = this.enrichers.get(languageId);
     if (!enricher?.isReady || !enricher.resolveDefinition) return null;
     return enricher.resolveDefinition(filePath, line, character);
+  }
+
+  /**
+   * Route a batch of call-site positions for one file to its enricher, opening
+   * the document once (Lever B). Falls back to per-position resolveDefinition
+   * when the enricher does not implement the warm batch primitive. Result order
+   * matches the input positions.
+   */
+  async resolveDefinitionsInFile(
+    filePath: string,
+    positions: Array<{ line: number; character: number }>
+  ): Promise<Array<{ filePath: string; line: number } | null>> {
+    const ext = filePath.slice(filePath.lastIndexOf('.'));
+    const languageId = this.extensionIndex.get(ext);
+    if (!languageId) return positions.map(() => null);
+    const enricher = this.enrichers.get(languageId);
+    if (!enricher?.isReady) return positions.map(() => null);
+    if (enricher.resolveDefinitionsInFile) {
+      return enricher.resolveDefinitionsInFile(filePath, positions);
+    }
+    if (enricher.resolveDefinition) {
+      const resolve = enricher.resolveDefinition.bind(enricher);
+      const out: Array<{ filePath: string; line: number } | null> = [];
+      for (const p of positions) {
+        out.push(await resolve(filePath, p.line, p.character));
+      }
+      return out;
+    }
+    return positions.map(() => null);
   }
 
   /** Unregister an enricher by language ID. Returns true if it was present. */

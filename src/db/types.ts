@@ -182,6 +182,13 @@ export type ConfidenceClass = 'proven' | 'artifact-backed' | 'framework-inferred
 
 export type FreshnessStatus = 'fresh' | 'stale' | 'dirty-dependent' | 'unknown';
 
+/**
+ * Provenance of a structural node (ADR-3). 'local' = materialized from the
+ * scanned project corpus; 'vendor-pack' = imported from a merged vendor pack.
+ * Defaults to 'local' for every project-materialized node (migration 012).
+ */
+export type NodeOrigin = 'local' | 'vendor-pack';
+
 export interface StructuralNode {
   id: string;
   node_type: StructuralNodeType;
@@ -191,6 +198,8 @@ export interface StructuralNode {
   symbol_kind?: string;
   qualified_name?: string;
   metadata?: string;
+  /** Provenance. Defaults to 'local' for all project-materialized nodes (ADR-3). */
+  origin?: NodeOrigin;
   updated_at: number;
 }
 

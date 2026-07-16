@@ -703,7 +703,12 @@ function collectAllStructuralNodes(db: LuxDatabase): StructuralNode[] {
   const seen = new Set<string>();
   const nodes: StructuralNode[] = [];
   for (const nodeType of nodeTypes) {
-    for (const node of db.getStructuralNodesByType(nodeType)) {
+    // origin='local' only — merged vendor-pack nodes must never enter
+    // expert-boundary derivation (ADR-3 / REQ-7, the worst pollution site).
+    // collectAllStructuralEdges then naturally drops vendor→vendor edges: it
+    // only starts from local nodes, so a boundary edge's vendor target is never
+    // a member of `nodes` and is not double-counted as an internal edge.
+    for (const node of db.getLocalStructuralNodesByType(nodeType)) {
       if (seen.has(node.id)) continue;
       seen.add(node.id);
       nodes.push(node);

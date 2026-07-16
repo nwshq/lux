@@ -105,15 +105,19 @@ export class AssociationEngine {
       `Persisting ${toStore.length} edges (${deduped.length - toStore.length} heuristics filtered).`
     );
 
-    // 4. Persist
+    // 4. Persist — batch all edge + evidence writes into one transaction (Lever E).
+    // The inner replaceEdgeEvidence transaction is promoted to a savepoint when
+    // nested, so behaviour is unchanged beyond collapsing many commits into one.
     const ts = Math.floor(Date.now() / 1000);
-    for (const rel of toStore) {
-      const dbEdge = this.toDbEdge(rel, context, ts);
-      this.db.upsertStructuralEdge(dbEdge);
+    this.db.transaction(() => {
+      for (const rel of toStore) {
+        const dbEdge = this.toDbEdge(rel, context, ts);
+        this.db.upsertStructuralEdge(dbEdge);
 
-      const evidence = this.toDbEvidence(rel, ts);
-      this.db.replaceEdgeEvidence(rel.id, evidence);
-    }
+        const evidence = this.toDbEvidence(rel, ts);
+        this.db.replaceEdgeEvidence(rel.id, evidence);
+      }
+    });
 
     return {
       resolversRun: this.resolvers.filter((r) => r.supports(context)).length,
@@ -137,33 +141,36 @@ export class AssociationEngine {
   static persistEdges(db: LuxDatabase, edges: StructuralRelationEdge[]): number {
     const ts = Math.floor(Date.now() / 1000);
 
-    for (const rel of edges) {
-      const dbEdge: StructuralEdge = {
-        id: rel.id,
-        source_node_id: rel.sourceNodeId,
-        target_node_id: rel.targetNodeId,
-        edge_type: rel.edgeType,
-        confidence: rel.confidence,
-        confidence_class: rel.confidenceClass,
-        freshness_status: 'fresh',
-        dirty_dependency_count: 0,
-        provenance_summary: `${rel.provenance.resolver} [${rel.provenance.evidenceKind}]`,
-        updated_at: ts,
-      };
-      db.upsertStructuralEdge(dbEdge);
+    // Batch all edge + evidence writes into one transaction (Lever E).
+    db.transaction(() => {
+      for (const rel of edges) {
+        const dbEdge: StructuralEdge = {
+          id: rel.id,
+          source_node_id: rel.sourceNodeId,
+          target_node_id: rel.targetNodeId,
+          edge_type: rel.edgeType,
+          confidence: rel.confidence,
+          confidence_class: rel.confidenceClass,
+          freshness_status: 'fresh',
+          dirty_dependency_count: 0,
+          provenance_summary: `${rel.provenance.resolver} [${rel.provenance.evidenceKind}]`,
+          updated_at: ts,
+        };
+        db.upsertStructuralEdge(dbEdge);
 
-      const evidence: EdgeEvidence[] = rel.provenance.evidenceLocations.map((loc, i) => ({
-        id: `${rel.id}:ev:${i}`,
-        edge_id: rel.id,
-        resolver: rel.provenance.resolver,
-        evidence_kind: rel.provenance.evidenceKind,
-        file_path: loc.filePath,
-        line: loc.line,
-        note: loc.note,
-        recorded_at: ts,
-      }));
-      db.replaceEdgeEvidence(rel.id, evidence);
-    }
+        const evidence: EdgeEvidence[] = rel.provenance.evidenceLocations.map((loc, i) => ({
+          id: `${rel.id}:ev:${i}`,
+          edge_id: rel.id,
+          resolver: rel.provenance.resolver,
+          evidence_kind: rel.provenance.evidenceKind,
+          file_path: loc.filePath,
+          line: loc.line,
+          note: loc.note,
+          recorded_at: ts,
+        }));
+        db.replaceEdgeEvidence(rel.id, evidence);
+      }
+    });
 
     return edges.length;
   }

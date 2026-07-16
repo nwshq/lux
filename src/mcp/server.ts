@@ -18,6 +18,8 @@ import { readFileSync, existsSync } from 'fs';
 import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
 import { getHeadCommit, isGitRepository } from '../scanner/git.js';
 import { executeSpecEvidenceAsk } from '../cli/spec-evidence.js';
+import { resolveStartNode, traceFrom } from '../scanner/associations/trace.js';
+import type { ConfidenceClass, EdgeType } from '../db/types.js';
 import {
   createInvocationId,
   emitUsageEvent,
@@ -184,6 +186,45 @@ const TOOLS: Tool[] = [
         },
       },
       required: ['question', 'target', 'kind'],
+    },
+  },
+  {
+    name: 'lux_trace',
+    description:
+      'Trace calls from a symbol across the app→vendor boundary. Follows calls/references ' +
+      'edges multi-hop into merged vendor nodes; synchronous framework calls reach the ' +
+      'resolving in-vendor method, dynamic-dispatch calls (dispatch/event) reach the ' +
+      'dispatch machinery and are marked as re-entry-deferred boundaries. Returns an ' +
+      'annotated node/edge graph.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        symbol: {
+          type: 'string',
+          description:
+            'Start symbol: a structural node id, a PHP FQN (Ns\\Class::method), or a leaf name.',
+        },
+        depth: { type: 'number', description: 'Max hops to follow', default: 8 },
+        max_nodes: { type: 'number', description: 'Total node budget', default: 2000 },
+        edge_types: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Edge types to follow',
+          default: ['calls', 'references'],
+        },
+        min_confidence: {
+          type: 'string',
+          enum: ['proven', 'artifact-backed', 'framework-inferred', 'heuristic'],
+          description: 'Lowest confidence class to follow',
+          default: 'framework-inferred',
+        },
+        include_external: {
+          type: 'boolean',
+          description: 'Follow edges into vendor nodes',
+          default: true,
+        },
+      },
+      required: ['symbol'],
     },
   },
 ];
@@ -657,6 +698,88 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           content: [{ type: 'text', text: JSON.stringify(result.packet, null, 2) }],
           isError: result.exitCode !== 0,
         };
+      }
+
+      case 'lux_trace': {
+        const {
+          symbol,
+          depth = 8,
+          max_nodes: maxNodes = 2000,
+          edge_types: edgeTypes = ['calls', 'references'],
+          min_confidence: minConfidence = 'framework-inferred',
+          include_external: includeExternal = true,
+        } = args as {
+          symbol: string;
+          depth?: number;
+          max_nodes?: number;
+          edge_types?: string[];
+          min_confidence?: string;
+          include_external?: boolean;
+        };
+
+        const resolved = resolveStartNode(db, symbol);
+        if ('notFound' in resolved) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `No structural symbol found for: ${symbol}. Rebuild the index or pass a fully-qualified name.`,
+              },
+            ],
+            isError: true,
+          };
+        }
+        if ('ambiguous' in resolved) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(
+                  {
+                    ambiguous: true,
+                    candidates: resolved.ambiguous.map((c) => ({
+                      id: c.id,
+                      name: c.qualified_name ?? c.symbol_name,
+                    })),
+                  },
+                  null,
+                  2
+                ),
+              },
+            ],
+            isError: true,
+          };
+        }
+
+        const result = traceFrom(db, resolved.nodeId, {
+          maxDepth: depth,
+          maxNodes,
+          edgeTypes: edgeTypes as EdgeType[],
+          minConfidenceClass: minConfidence as ConfidenceClass,
+          includeExternal,
+        });
+
+        db.insertEvent({
+          source: 'mcp',
+          event_type: 'trace',
+          summary: `Traced ${symbol}: ${result.stats.nodeCount} nodes, ${result.stats.dispatchBoundaries} dispatch boundaries`,
+          payload: { symbol, depth, nodeCount: result.stats.nodeCount },
+        });
+        emitUsageEvent(db, {
+          source: 'mcp',
+          surface: 'trace',
+          action: 'query',
+          invocationId: createInvocationId(),
+          commandOutcome: 'success',
+          retrievalOutcome: 'answered',
+          exitCode: 0,
+          corpusPath: DEFAULT_CORPUS_PATH,
+          dbPath: DEFAULT_DB_PATH,
+          queryText: symbol,
+          attributes: { nodeCount: result.stats.nodeCount, external: result.stats.externalCount },
+        });
+
+        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
       }
 
       default:

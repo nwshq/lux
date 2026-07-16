@@ -10,7 +10,7 @@
 //
 // Retrieval uses only the DB — no re-parsing. Evidence is available but optional.
 
-import type { LuxDatabase } from '../../db/index.js';
+import { LuxDatabase } from '../../db/index.js';
 import type { StructuralNode, EdgeEvidence } from '../../db/types.js';
 import type { TransportContractMetadata } from './types.js';
 
@@ -107,13 +107,17 @@ export function getSurfaceFeaturePath(db: LuxDatabase, surfaceId: string): Featu
     isClosureBacked: surfaceMeta.providerKind === 'closure',
   };
 
+  // Guard every endpoint resolution against external (vendor-pack) nodes: an
+  // app→vendor boundary `calls` edge points at a merged vendor node, which must
+  // never surface as a capability's consumer/provider/artifact/declaring-file
+  // (ADR-3 / REQ-7). External nodes stay reachable through a trace, not here.
   for (const { edge } of edges) {
     if (edge.edge_type === 'handled_by' && edge.source_node_id === surfaceId) {
       const node = db.getStructuralNode(edge.target_node_id);
-      if (node) path.providers.push(node);
+      if (node && !LuxDatabase.isExternalNode(node)) path.providers.push(node);
     } else if (edge.edge_type === 'calls_surface' && edge.target_node_id === surfaceId) {
       const node = db.getStructuralNode(edge.source_node_id);
-      if (node) {
+      if (node && !LuxDatabase.isExternalNode(node)) {
         path.consumers.push(node);
         if (edge.confidence >= PROVEN_CONFIDENCE_THRESHOLD) {
           path.provenConsumers.push(node);
@@ -121,10 +125,11 @@ export function getSurfaceFeaturePath(db: LuxDatabase, surfaceId: string): Featu
       }
     } else if (edge.edge_type === 'derived_from' && edge.target_node_id === surfaceId) {
       const node = db.getStructuralNode(edge.source_node_id);
-      if (node) path.artifacts.push(node);
+      if (node && !LuxDatabase.isExternalNode(node)) path.artifacts.push(node);
     } else if (edge.edge_type === 'declares_surface' && edge.target_node_id === surfaceId) {
       if (!path.declaringFile) {
-        path.declaringFile = db.getStructuralNode(edge.source_node_id) ?? null;
+        const node = db.getStructuralNode(edge.source_node_id);
+        path.declaringFile = node && !LuxDatabase.isExternalNode(node) ? node : null;
       }
     }
   }
@@ -140,10 +145,10 @@ export function getSurfaceFeaturePath(db: LuxDatabase, surfaceId: string): Featu
 
       if (edge.edge_type === 'validates_with' && edge.source_node_id === provider.id) {
         const node = db.getStructuralNode(edge.target_node_id);
-        if (node) path.validators.push(node);
+        if (node && !LuxDatabase.isExternalNode(node)) path.validators.push(node);
       } else if (edge.edge_type === 'returns_contract' && edge.source_node_id === provider.id) {
         const node = db.getStructuralNode(edge.target_node_id);
-        if (node) path.responseContracts.push(node);
+        if (node && !LuxDatabase.isExternalNode(node)) path.responseContracts.push(node);
       }
     }
   }

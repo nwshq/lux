@@ -37,6 +37,8 @@ import { addLintCommand } from './lint.js';
 import { addExpertCommands } from './expert.js';
 import { addAskCommand } from './ask.js';
 import { addDepsCommand } from './deps.js';
+import { addVendorPackCommands } from './pack.js';
+import { addTraceCommand } from './trace.js';
 import { addOverlayCommands } from './overlay.js';
 import { addUsageCommands } from './usage.js';
 import {
@@ -895,6 +897,12 @@ addAskCommand(program);
 
 // Add deps command
 addDepsCommand(program);
+
+// Add vendor-pack command
+addVendorPackCommands(program);
+
+// Add trace command
+addTraceCommand(program);
 
 // Add overlay commands
 addOverlayCommands(program);

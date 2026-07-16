@@ -9,6 +9,7 @@ export type UsageEventSurface =
   | 'feature-path'
   | 'operational'
   | 'spec-evidence'
+  | 'trace'
   | 'expert-panel'
   | 'expert'
   | 'index-status'

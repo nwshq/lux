@@ -205,46 +205,42 @@ export class PhpLspEnricher implements LspEnricher {
       return null;
     }
 
-    // Open the document in the language server
-    this.client.notify('textDocument/didOpen', {
-      textDocument: {
-        uri,
-        languageId: 'php',
-        version: 1,
-        text: fileContent,
-      },
-    });
+    // Route open/close through the refcounted lease so bounded-parallel
+    // enrichment (Lever B) never double-opens or closes a mid-request document.
+    return this.client.withDocument(uri, 'php', fileContent, () =>
+      this.enrichOpen(uri, filePath, fileContent)
+    );
+  }
 
-    try {
-      // 1. Get document symbols
-      const symbols = await this.getDocumentSymbols(uri);
-      const enrichedSymbols = symbols.map(toEnrichedSymbol);
+  /** Enrich a document that is ALREADY open (no didOpen/didClose). */
+  async enrichOpen(
+    uri: string,
+    filePath: string,
+    fileContent: string
+  ): Promise<PhpEnrichmentResult | null> {
+    // 1. Get document symbols
+    const symbols = await this.getDocumentSymbols(uri);
+    const enrichedSymbols = symbols.map(toEnrichedSymbol);
 
-      // 2. Get references for top-level referenceable symbols
-      const references = await this.getSymbolReferences(uri, fileContent, symbols);
+    // 2. Get references for top-level referenceable symbols (REQ-5: KEPT)
+    const references = await this.getSymbolReferences(uri, fileContent, symbols);
 
-      // 3. Get type hierarchy for classes and interfaces
-      const typeHierarchy = await this.getTypeHierarchy(uri, fileContent, symbols);
+    // 3. Get type hierarchy for classes and interfaces (REQ-5: KEPT)
+    const typeHierarchy = await this.getTypeHierarchy(uri, fileContent, symbols);
 
-      // 4. Collect definitions from reference data
-      const definitions = this.extractDefinitions(references);
+    // 4. Collect definitions from reference data
+    const definitions = this.extractDefinitions(references);
 
-      return {
-        filePath,
-        languageId: 'php',
-        symbols: enrichedSymbols,
-        diagnostics: [],
-        definitions,
-        references,
-        typeHierarchy,
-        enrichedAt: Math.floor(Date.now() / 1000),
-      };
-    } finally {
-      // Close the document
-      this.client.notify('textDocument/didClose', {
-        textDocument: { uri },
-      });
-    }
+    return {
+      filePath,
+      languageId: 'php',
+      symbols: enrichedSymbols,
+      diagnostics: [],
+      definitions,
+      references,
+      typeHierarchy,
+      enrichedAt: Math.floor(Date.now() / 1000),
+    };
   }
 
   async resolveDefinition(
@@ -260,11 +256,19 @@ export class PhpLspEnricher implements LspEnricher {
       return null;
     }
     const uri = pathToFileURL(filePath).toString();
-    this.client.notify('textDocument/didOpen', {
-      textDocument: { uri, languageId: 'php', version: 1, text: content },
-    });
+    return this.client.withDocument(uri, 'php', content, () =>
+      this.resolveDefinitionOpen(uri, line, character)
+    );
+  }
+
+  /** Resolve a definition against an ALREADY-open document. */
+  async resolveDefinitionOpen(
+    uri: string,
+    line: number,
+    character: number
+  ): Promise<{ filePath: string; line: number } | null> {
     try {
-      const result = await this.client.request<Location | Location[] | null>(
+      const result = await this.client!.request<Location | Location[] | null>(
         'textDocument/definition',
         { textDocument: { uri }, position: { line, character } }
       );
@@ -273,9 +277,33 @@ export class PhpLspEnricher implements LspEnricher {
       return { filePath: fileURLToPath(loc.uri), line: loc.range.start.line };
     } catch {
       return null;
-    } finally {
-      this.client.notify('textDocument/didClose', { textDocument: { uri } });
     }
+  }
+
+  /**
+   * Resolve every call-site position in one file under a SINGLE warm document
+   * open (Lever B). The typed-receiver pass (general.ts step 8b) calls this so a
+   * file with K member-calls opens once instead of K times.
+   */
+  async resolveDefinitionsInFile(
+    filePath: string,
+    positions: Array<{ line: number; character: number }>
+  ): Promise<Array<{ filePath: string; line: number } | null>> {
+    if (!this._isReady || !this.client) return positions.map(() => null);
+    let content: string;
+    try {
+      content = readFileSync(filePath, 'utf-8');
+    } catch {
+      return positions.map(() => null);
+    }
+    const uri = pathToFileURL(filePath).toString();
+    return this.client.withDocument(uri, 'php', content, async () => {
+      const out: Array<{ filePath: string; line: number } | null> = [];
+      for (const p of positions) {
+        out.push(await this.resolveDefinitionOpen(uri, p.line, p.character));
+      }
+      return out;
+    });
   }
 
   async enrichBatch(filePaths: string[]): Promise<PhpEnrichmentResult[]> {

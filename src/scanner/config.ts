@@ -53,6 +53,19 @@ export interface AstConfig {
   enabled: boolean;
 }
 
+/** Content/source scanning configuration. */
+export interface ScanConfig {
+  /**
+   * Exclude generated build artifacts (compiled/minified bundles under
+   * public/, sourcemaps). Default: true — the biggest app-build lever, and
+   * lossless for the call graph (the bundles are a derived copy of authored
+   * source). Set false for apps that serve AUTHORED js from public/.
+   */
+  excludeGeneratedArtifacts: boolean;
+  /** Extra ignore globs, unioned with the built-in defaults. */
+  ignorePatterns: string[];
+}
+
 /** Top-level lux.yaml configuration (LSP-specific fields). */
 export interface LuxLspConfig {
   /** LSP enrichment configuration. */
@@ -61,6 +74,8 @@ export interface LuxLspConfig {
   deps: DepsConfig;
   /** AST structural tier configuration. */
   ast?: AstConfig;
+  /** Content/source scanning configuration. */
+  scan?: ScanConfig;
 }
 
 // ---------------------------------------------------------------------------
@@ -80,10 +95,16 @@ const DEFAULT_AST_CONFIG: AstConfig = {
   enabled: true,
 };
 
+const DEFAULT_SCAN_CONFIG: ScanConfig = {
+  excludeGeneratedArtifacts: true,
+  ignorePatterns: [],
+};
+
 const DEFAULT_CONFIG: LuxLspConfig = {
   lsp: DEFAULT_LSP_CONFIG,
   deps: DEFAULT_DEPS_CONFIG,
   ast: DEFAULT_AST_CONFIG,
+  scan: DEFAULT_SCAN_CONFIG,
 };
 
 // ---------------------------------------------------------------------------
@@ -115,6 +136,7 @@ interface RawLuxConfig {
   lsp?: unknown;
   deps?: unknown;
   ast?: unknown;
+  scan?: unknown;
 }
 
 // ---------------------------------------------------------------------------
@@ -163,6 +185,7 @@ function validateConfig(raw: RawLuxConfig): LuxLspConfig {
     lsp: raw.lsp ? validateLspConfig(raw.lsp) : DEFAULT_LSP_CONFIG,
     deps: raw.deps ? validateDepsConfig(raw.deps) : DEFAULT_DEPS_CONFIG,
     ast: raw.ast ? validateAstConfig(raw.ast) : DEFAULT_AST_CONFIG,
+    scan: raw.scan ? validateScanConfig(raw.scan) : DEFAULT_SCAN_CONFIG,
   };
 }
 
@@ -171,6 +194,18 @@ function validateAstConfig(raw: unknown): AstConfig {
   const obj = raw as { enabled?: unknown };
   // On by default (zero-config); only an explicit `enabled: false` opts out.
   return { enabled: obj.enabled !== false };
+}
+
+function validateScanConfig(raw: unknown): ScanConfig {
+  if (typeof raw !== 'object' || raw === null) return DEFAULT_SCAN_CONFIG;
+  const obj = raw as { exclude_generated_artifacts?: unknown; ignore_patterns?: unknown };
+  return {
+    // On by default; only an explicit `exclude_generated_artifacts: false` opts out.
+    excludeGeneratedArtifacts: obj.exclude_generated_artifacts !== false,
+    ignorePatterns: Array.isArray(obj.ignore_patterns)
+      ? obj.ignore_patterns.filter((p): p is string => typeof p === 'string')
+      : [],
+  };
 }
 
 function validateDepsConfig(raw: unknown): DepsConfig {

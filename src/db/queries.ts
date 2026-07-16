@@ -80,6 +80,8 @@ export class PreparedQueries {
   readonly upsertStructuralNode: Database.Statement;
   readonly getStructuralNode: Database.Statement;
   readonly getStructuralNodesByType: Database.Statement;
+  readonly getLocalStructuralNodesByType: Database.Statement;
+  readonly findStructuralSymbolNodes: Database.Statement;
   readonly getStructuralNodeByFilePath: Database.Statement;
 
   // Structural overlay queries — edges
@@ -360,8 +362,8 @@ export class PreparedQueries {
 
     // Structural overlay — node queries
     this.upsertStructuralNode = db.prepare(`
-      INSERT INTO structural_nodes (id, node_type, file_path, language_id, symbol_name, symbol_kind, qualified_name, metadata, updated_at)
-      VALUES (@id, @node_type, @file_path, @language_id, @symbol_name, @symbol_kind, @qualified_name, @metadata, @updated_at)
+      INSERT INTO structural_nodes (id, node_type, file_path, language_id, symbol_name, symbol_kind, qualified_name, metadata, origin, updated_at)
+      VALUES (@id, @node_type, @file_path, @language_id, @symbol_name, @symbol_kind, @qualified_name, @metadata, @origin, @updated_at)
       ON CONFLICT(id) DO UPDATE SET
         node_type = excluded.node_type,
         file_path = excluded.file_path,
@@ -370,6 +372,7 @@ export class PreparedQueries {
         symbol_kind = excluded.symbol_kind,
         qualified_name = excluded.qualified_name,
         metadata = excluded.metadata,
+        origin = excluded.origin,
         updated_at = excluded.updated_at
     `);
 
@@ -379,6 +382,28 @@ export class PreparedQueries {
 
     this.getStructuralNodesByType = db.prepare(`
       SELECT * FROM structural_nodes WHERE node_type = ? ORDER BY updated_at DESC
+    `);
+
+    // origin='local' only — excludes merged vendor-pack nodes (ADR-3 / REQ-7).
+    this.getLocalStructuralNodesByType = db.prepare(`
+      SELECT * FROM structural_nodes
+      WHERE node_type = ? AND origin = 'local'
+      ORDER BY updated_at DESC
+    `);
+
+    // Resolve a user-supplied symbol to structural symbol nodes for a trace start
+    // (ADR-5). Exact id / qualified_name / symbol_name wins; app (local) nodes
+    // rank above vendor-pack nodes so `lux trace Foo::bar` picks authored code.
+    this.findStructuralSymbolNodes = db.prepare(`
+      SELECT * FROM structural_nodes
+      WHERE node_type = 'symbol'
+        AND (id = @term OR qualified_name = @term OR symbol_name = @term
+             OR qualified_name LIKE @suffix OR symbol_name = @leaf)
+      ORDER BY
+        (id = @term OR qualified_name = @term) DESC,
+        (origin = 'local') DESC,
+        updated_at DESC
+      LIMIT @limit
     `);
 
     this.getStructuralNodeByFilePath = db.prepare(`

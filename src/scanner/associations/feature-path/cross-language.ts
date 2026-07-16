@@ -21,7 +21,7 @@
 // vocabulary for future detectors but are NOT inferred here, because doing so
 // would over-claim. New bases require their own detectors before promotion.
 
-import type { LuxDatabase } from '../../../db/index.js';
+import { LuxDatabase } from '../../../db/index.js';
 import type {
   ConfidenceClass,
   EdgeEvidence,
@@ -105,6 +105,10 @@ function collectCrossLanguageAssociations(
 
     const consumer = db.getStructuralNode(edge.source_node_id);
     if (!consumer) continue;
+    // Defence in depth (ADR-3 / REQ-7): boundary edges are `calls`, not
+    // `calls_surface`, so a vendor node cannot reach here today — but never
+    // surface a merged external node as a cross-language consumer regardless.
+    if (LuxDatabase.isExternalNode(consumer)) continue;
     if (!consumer.language_id || consumer.language_id === handlerLanguageId) continue;
 
     const basis = inferBasis(edge, evidence);

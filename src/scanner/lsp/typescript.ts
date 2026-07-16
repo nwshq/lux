@@ -141,39 +141,32 @@ export class TypeScriptLspEnricher implements LspEnricher {
       return null;
     }
 
-    this.client.notify('textDocument/didOpen', {
-      textDocument: {
-        uri,
-        languageId,
-        version: 1,
-        text: fileContent,
-      },
-    });
+    // Route open/close through the refcounted lease so bounded-parallel
+    // enrichment (Lever B) never double-opens or closes a mid-request document.
+    return this.client.withDocument(uri, languageId, fileContent, () =>
+      this.enrichOpen(uri, filePath)
+    );
+  }
 
-    try {
-      // 1. Get document symbols
-      const rawSymbols = await this.getDocumentSymbols(uri);
-      const symbols = rawSymbols.map(toEnrichedSymbol);
+  /** Enrich a document that is ALREADY open (no didOpen/didClose). */
+  async enrichOpen(uri: string, filePath: string): Promise<EnrichmentResult | null> {
+    // 1. Get document symbols
+    const rawSymbols = await this.getDocumentSymbols(uri);
+    const symbols = rawSymbols.map(toEnrichedSymbol);
 
-      // 2. Get definitions for top-level symbols
-      const definitions = await this.getDefinitions(uri, rawSymbols);
+    // 2. Get definitions for top-level symbols (declaration positions — REQ-5: KEPT)
+    const definitions = await this.getDefinitions(uri, rawSymbols);
 
-      // 3. Get diagnostics (published asynchronously; we collect what's available)
-      const diagnostics = await this.getDiagnostics(uri);
-
-      return {
-        filePath,
-        languageId: this.languageId,
-        symbols,
-        diagnostics,
-        definitions,
-        enrichedAt: Math.floor(Date.now() / 1000),
-      };
-    } finally {
-      this.client.notify('textDocument/didClose', {
-        textDocument: { uri },
-      });
-    }
+    return {
+      filePath,
+      languageId: this.languageId,
+      symbols,
+      // typescript-language-server pushes diagnostics asynchronously via
+      // publishDiagnostics; nothing is collected synchronously here.
+      diagnostics: [],
+      definitions,
+      enrichedAt: Math.floor(Date.now() / 1000),
+    };
   }
 
   async resolveDefinition(
@@ -191,11 +184,19 @@ export class TypeScriptLspEnricher implements LspEnricher {
     const uri = pathToFileURL(filePath).toString();
     const ext = filePath.slice(filePath.lastIndexOf('.'));
     const languageId = ext === '.js' || ext === '.jsx' ? 'javascript' : 'typescript';
-    this.client.notify('textDocument/didOpen', {
-      textDocument: { uri, languageId, version: 1, text: content },
-    });
+    return this.client.withDocument(uri, languageId, content, () =>
+      this.resolveDefinitionOpen(uri, line, character)
+    );
+  }
+
+  /** Resolve a definition against an ALREADY-open document. */
+  async resolveDefinitionOpen(
+    uri: string,
+    line: number,
+    character: number
+  ): Promise<{ filePath: string; line: number } | null> {
     try {
-      const result = await this.client.request<Location | Location[] | null>(
+      const result = await this.client!.request<Location | Location[] | null>(
         'textDocument/definition',
         { textDocument: { uri }, position: { line, character } }
       );
@@ -204,9 +205,35 @@ export class TypeScriptLspEnricher implements LspEnricher {
       return { filePath: fileURLToPath(loc.uri), line: loc.range.start.line };
     } catch {
       return null;
-    } finally {
-      this.client.notify('textDocument/didClose', { textDocument: { uri } });
     }
+  }
+
+  /**
+   * Resolve every call-site position in one file under a SINGLE warm document
+   * open (Lever B). The typed-receiver pass (general.ts step 8b) calls this so a
+   * file with K member-calls opens once instead of K times.
+   */
+  async resolveDefinitionsInFile(
+    filePath: string,
+    positions: Array<{ line: number; character: number }>
+  ): Promise<Array<{ filePath: string; line: number } | null>> {
+    if (!this._isReady || !this.client) return positions.map(() => null);
+    let content: string;
+    try {
+      content = readFileSync(filePath, 'utf-8');
+    } catch {
+      return positions.map(() => null);
+    }
+    const uri = pathToFileURL(filePath).toString();
+    const ext = filePath.slice(filePath.lastIndexOf('.'));
+    const languageId = ext === '.js' || ext === '.jsx' ? 'javascript' : 'typescript';
+    return this.client.withDocument(uri, languageId, content, async () => {
+      const out: Array<{ filePath: string; line: number } | null> = [];
+      for (const p of positions) {
+        out.push(await this.resolveDefinitionOpen(uri, p.line, p.character));
+      }
+      return out;
+    });
   }
 
   async enrichBatch(filePaths: string[]): Promise<EnrichmentResult[]> {
@@ -274,16 +301,6 @@ export class TypeScriptLspEnricher implements LspEnricher {
     }
 
     return definitions;
-  }
-
-  private getDiagnostics(uri: string) {
-    // typescript-language-server pushes diagnostics asynchronously via
-    // textDocument/publishDiagnostics notifications. For now we return an
-    // empty array — callers that need diagnostics can listen to the
-    // notification stream directly.
-    // Future enhancement: buffer published diagnostics during enrichment.
-    void uri;
-    return Promise.resolve([]);
   }
 
   // -------------------------------------------------------------------------

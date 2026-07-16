@@ -9,11 +9,14 @@
 //   rebuildContentOnly()  — lightweight content-index rebuild, explicitly not
 //                           suitable for capability-surface validation
 
+import { existsSync } from 'fs';
+import { join } from 'path';
 import type { LuxDatabase } from '../db/index.js';
 import { generalScan } from './general.js';
 import type { GeneralScanResult } from './general.js';
 import type { OverlayRebuildResult } from './associations/overlay-service.js';
 import { loadLspConfig } from './config.js';
+import { lookupPack } from './pack/cache.js';
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -67,6 +70,27 @@ export interface RebuildOptions {
   onProgress?: (message: string) => void;
   /** Include heuristic edges in the overlay (default: false). */
   includeHeuristics?: boolean;
+  /**
+   * Override the vendor-pack merge (ADR-1/ADR-2). `undefined` ⇒ auto-resolve a
+   * cached pack for the project's `composer.lock` (merge iff one exists); an
+   * explicit path forces that pack; `null` forces an app-only rebuild (no merge).
+   */
+  vendorPackPath?: string | null;
+}
+
+/**
+ * Resolve the cached vendor pack for a project's current `composer.lock`, or null
+ * when there is no Composer project or no matching cached pack. Keyed by the
+ * lockfile hash, so a dependency bump misses the cache (no stale merge).
+ */
+function resolveVendorPackPath(rootPath: string): string | null {
+  try {
+    if (!existsSync(join(rootPath, 'composer.lock'))) return null;
+    const lookup = lookupPack(rootPath);
+    return lookup.hit ? lookup.packPath : null;
+  } catch {
+    return null;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -95,11 +119,17 @@ export async function rebuildWithOverlay(
   db.clearOverlay();
   db.clearKnowledgeIndex();
 
+  // ADR-1/ADR-2: locate the cached pack for this dependency set (null ⇒ app-only).
+  // An explicit option (incl. null) overrides auto-resolution.
+  const vendorPackPath =
+    options.vendorPackPath !== undefined ? options.vendorPackPath : resolveVendorPackPath(rootPath);
+
   const scanResult = await generalScan(rootPath, {
     config,
     onProgress: options.onProgress,
     overlayEnabled: true,
     db,
+    vendorPackPath,
   });
 
   const result = classifyResult(rootPath, scanResult, db, 'overlay', config.lsp.enabled);

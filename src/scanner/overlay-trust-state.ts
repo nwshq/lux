@@ -202,8 +202,10 @@ export function markOverlayTrustAfterSync(
 function deriveOverlayTrustStateFromDb(db: LuxDatabase): PersistedOverlayTrustState | null {
   const stats = db.getStats();
   const surfaces = db.getCapabilitySurfaces();
-  const fileNodes = db.getStructuralNodesByType('file');
-  const symbolNodes = db.getStructuralNodesByType('symbol');
+  // Count app-origin nodes only — merged vendor-pack nodes must not inflate the
+  // overlay trust snapshot behind `lux overlay status` (ADR-3 / REQ-7).
+  const fileNodes = db.getLocalStructuralNodesByType('file');
+  const symbolNodes = db.getLocalStructuralNodesByType('symbol');
   const { controllerBackedCount, closureBackedCount, unknownProviderKindCount } =
     countProviderKinds(surfaces);
 
