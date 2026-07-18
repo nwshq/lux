@@ -489,6 +489,23 @@ const ENRICHER_FACTORIES: Record<
 const ENRICH_FILE_CONCURRENCY = 12;
 
 /**
+ * Build the typed-receiver LSP work-list (E1 follow-up #2): app source plus any
+ * promoted first-party source, filtered to enrichable source-code files. First-party
+ * entries are unioned only when present, so single-repo runs are byte-identical.
+ * The language server (rooted at the client) resolves promoted files' kernel-internal
+ * calls because the promoted package is already indexed via the client's `vendor/`.
+ */
+export function buildTypedReceiverEntries(
+  baseKnowledge: ScannedKnowledge[],
+  firstPartySource: ScannedKnowledge[]
+): Array<{ filePath: string; content: string }> {
+  const all = firstPartySource.length > 0 ? [...baseKnowledge, ...firstPartySource] : baseKnowledge;
+  return all
+    .filter((k) => k.type === 'source-code' && !!k.content && langForFile(k.filePath) !== null)
+    .map((k) => ({ filePath: k.filePath, content: k.content as string }));
+}
+
+/**
  * Run the full scan-then-enrich pipeline.
  *
  * 1. Loads LSP configuration from lux.yaml (or uses provided config)
@@ -667,9 +684,14 @@ export async function generalScan(
     report('Resolving typed-receiver cross-file calls via LSP...');
     try {
       const reg = activeRegistry;
-      const astEntries = scan.knowledge
-        .filter((k) => k.type === 'source-code' && !!k.content && langForFile(k.filePath) !== null)
-        .map((k) => ({ filePath: k.filePath, content: k.content as string }));
+      // First-party promotion (E1 follow-up #2): include promoted first-party source
+      // in the work-list so kernel-INTERNAL calls (a promoted controller → a promoted
+      // service) are offered for resolution. The language server, rooted at the client,
+      // already indexes the kernel via the client's vendor/ (the promoted package is a
+      // composer dependency), so a single-root server resolves these — no multi-root
+      // workspace needed (validated by spike). Their extractions are already in the
+      // shared cache (built from overlayScan).
+      const astEntries = buildTypedReceiverEntries(scan.knowledge, firstPartySource);
       // Upgraded per CANONICAL-DECISIONS §8: pooled per-file loop + one warm
       // document open per file (Lever B), reusing the overlay's shared extraction
       // cache (Lever D) so this pass never re-parses. Still a DISTINCT pass after
