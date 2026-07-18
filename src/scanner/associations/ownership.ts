@@ -1,3 +1,5 @@
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
 import type { LuxDatabase } from '../../db/index.js';
 import type { StructuralNode } from '../../db/types.js';
 
@@ -9,20 +11,46 @@ import type { StructuralNode } from '../../db/types.js';
 export type OwnershipLabel = 'kernel-owned' | 'client-override' | 'client-gap' | 'external';
 
 /**
+ * Derive the consuming app's root PHP namespace from `<corpus>/composer.json`
+ * `autoload.psr-4` — the entry mapping to `app/`, else the first PSR-4 root, else
+ * the Laravel default `App`. Trailing namespace separators are stripped
+ * (`"App\\"` → `App`). Graceful (returns `App`) when composer.json is absent or
+ * unparseable, so single-repo behavior is unchanged.
+ */
+export function resolveAppNamespace(corpusPath: string): string {
+  const composerPath = join(corpusPath, 'composer.json');
+  if (!existsSync(composerPath)) return 'App';
+  try {
+    const parsed = JSON.parse(readFileSync(composerPath, 'utf-8')) as {
+      autoload?: { 'psr-4'?: Record<string, string> };
+    };
+    const psr4 = parsed.autoload?.['psr-4'];
+    if (!psr4) return 'App';
+    const entries = Object.entries(psr4);
+    const appRoot = entries.find(([, path]) => path.replace(/\/+$/, '') === 'app') ?? entries[0];
+    return appRoot ? appRoot[0].replace(/\\+$/, '') : 'App';
+  } catch {
+    return 'App';
+  }
+}
+
+/**
  * Classify a handler edge from its target FQCN node-id and the target node (or
- * null if absent). `App\*` is the consuming app's namespace (Laravel convention).
- *   - present `App\*`                         → client-override (the app handles it)
- *   - present non-`App\*`, project-local      → kernel-owned (promoted kernel source)
- *   - present non-`App\*`, vendor-pack origin → external (third-party controller,
- *                                               e.g. Fortify/Jetstream/Nova)
- *   - absent `App\*`                          → client-gap (route the client doesn't implement)
- *   - absent non-`App\*`                      → external (unresolved third-party)
+ * null if absent). `appNamespace` is the consuming app's root namespace (Laravel
+ * default `App`, or derived via {@link resolveAppNamespace}).
+ *   - present `<app>\*`                         → client-override (the app handles it)
+ *   - present non-`<app>\*`, project-local      → kernel-owned (promoted kernel source)
+ *   - present non-`<app>\*`, vendor-pack origin → external (third-party controller,
+ *                                                 e.g. Fortify/Jetstream/Nova)
+ *   - absent `<app>\*`                          → client-gap (route the client doesn't implement)
+ *   - absent non-`<app>\*`                      → external (unresolved third-party)
  */
 export function classifyOwnership(
   targetNodeId: string,
-  node: StructuralNode | null
+  node: StructuralNode | null,
+  appNamespace = 'App'
 ): OwnershipLabel {
-  const isApp = /^symbol:php:App\\/.test(targetNodeId);
+  const isApp = targetNodeId.startsWith(`symbol:php:${appNamespace}\\`);
   if (node) {
     if (isApp) return 'client-override';
     // origin defaults to 'local'; a merged vendor-pack node is third-party.
@@ -42,7 +70,7 @@ export interface OwnershipSummary {
  * the vendor-pack merge so third-party targets are correctly distinguished from
  * genuine client-gaps. Idempotent (a rebuild recomputes from current node state).
  */
-export function classifyHandlerOwnership(db: LuxDatabase): OwnershipSummary {
+export function classifyHandlerOwnership(db: LuxDatabase, appNamespace = 'App'): OwnershipSummary {
   const counts: Record<OwnershipLabel, number> = {
     'kernel-owned': 0,
     'client-override': 0,
@@ -52,7 +80,11 @@ export function classifyHandlerOwnership(db: LuxDatabase): OwnershipSummary {
   const edges = db.getHandlerEdgesForOwnership();
   const updates: Array<{ id: string; ownership: string }> = [];
   for (const edge of edges) {
-    const label = classifyOwnership(edge.target_node_id, db.getStructuralNode(edge.target_node_id));
+    const label = classifyOwnership(
+      edge.target_node_id,
+      db.getStructuralNode(edge.target_node_id),
+      appNamespace
+    );
     updates.push({ id: edge.id, ownership: label });
     counts[label]++;
   }

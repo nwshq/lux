@@ -1,10 +1,10 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { mkdirSync, rmSync } from 'fs';
+import { mkdirSync, rmSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { LuxDatabase } from '../../../db/index.js';
 import { AssociationEngine } from '../engine.js';
 import type { StructuralRelationEdge } from '../types.js';
-import { classifyOwnership, classifyHandlerOwnership } from '../ownership.js';
+import { classifyOwnership, classifyHandlerOwnership, resolveAppNamespace } from '../ownership.js';
 
 const testDir = join(import.meta.dirname, 'fixtures', 'ownership-test');
 const now = () => Math.floor(Date.now() / 1000);
@@ -105,5 +105,66 @@ describe('classifyHandlerOwnership', () => {
     expect(breakdown['kernel-owned']).toBe(1);
     expect(breakdown['client-gap']).toBe(1);
     expect(breakdown['external']).toBe(2);
+  });
+});
+
+describe('classifyOwnership — custom app namespace (#1)', () => {
+  it('treats the derived app namespace as the client, not the hardcoded App\\', () => {
+    // A client rooted at Acme\ : its own controllers are client-override…
+    expect(
+      classifyOwnership(
+        'symbol:php:Acme\\Http\\Controllers\\Foo',
+        symbolNode('id', 'local'),
+        'Acme'
+      )
+    ).toBe('client-override');
+    expect(classifyOwnership('symbol:php:Acme\\Http\\Controllers\\Foo', null, 'Acme')).toBe(
+      'client-gap'
+    );
+    // …and a promoted kernel under App\ is now kernel-owned (App is NOT this app).
+    expect(
+      classifyOwnership('symbol:php:App\\Kernel\\Foo', symbolNode('id', 'local'), 'Acme')
+    ).toBe('kernel-owned');
+  });
+
+  it('does not false-match a namespace that merely starts with the app namespace', () => {
+    // appNamespace "App" must not match "Applications\..."
+    expect(
+      classifyOwnership('symbol:php:Applications\\Foo', symbolNode('id', 'local'), 'App')
+    ).toBe('kernel-owned');
+  });
+});
+
+describe('resolveAppNamespace (#1)', () => {
+  const dir = join(testDir, 'app-ns');
+  afterEach(() => rmSync(testDir, { recursive: true, force: true }));
+
+  function withComposer(json: string): string {
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, 'composer.json'), json);
+    return dir;
+  }
+
+  it('derives the PSR-4 root mapping to app/ (strips trailing separator)', () => {
+    expect(resolveAppNamespace(withComposer('{"autoload":{"psr-4":{"Acme\\\\":"app/"}}}'))).toBe(
+      'Acme'
+    );
+  });
+
+  it('defaults to App when composer.json is absent', () => {
+    mkdirSync(dir, { recursive: true });
+    expect(resolveAppNamespace(dir)).toBe('App');
+  });
+
+  it('defaults to App when there is no psr-4 autoload', () => {
+    expect(resolveAppNamespace(withComposer('{"name":"acme/app"}'))).toBe('App');
+  });
+
+  it('prefers the app/ root over other PSR-4 entries', () => {
+    expect(
+      resolveAppNamespace(
+        withComposer('{"autoload":{"psr-4":{"Database\\\\":"database/","App\\\\":"app/"}}}')
+      )
+    ).toBe('App');
   });
 });

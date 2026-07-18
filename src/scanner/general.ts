@@ -25,7 +25,7 @@ import { langForFile, type Extraction } from './ast/extract.js';
 import { resolveTypedReceiverEdges } from './ast/lsp-resolve.js';
 import { makeExternalTargetResolver } from './pack/external-resolve.js';
 import { resolveFacadeAndHelperEdges } from './pack/facade-resolve.js';
-import { classifyHandlerOwnership } from './associations/ownership.js';
+import { classifyHandlerOwnership, resolveAppNamespace } from './associations/ownership.js';
 
 // ---------------------------------------------------------------------------
 // Source Code Scanning Constants
@@ -735,7 +735,7 @@ export async function generalScan(
   //     promoted, so the pass is gated on that (also avoids a per-rebuild cost single-repo).
   if (overlay && options?.db && firstPartyRoots.length > 0) {
     try {
-      const summary = classifyHandlerOwnership(options.db);
+      const summary = classifyHandlerOwnership(options.db, resolveAppNamespace(rootPath));
       report(
         `Handler ownership: ${summary.counts['kernel-owned']} kernel-owned, ` +
           `${summary.counts['client-override']} client-override, ` +
