@@ -90,7 +90,16 @@ export function resolvePhpClassReference(rawRef: string, entry: LaravelPhpEntry)
     .replace(/^\\/, '');
 
   if (!normalized) return normalized;
-  if (normalized.includes('\\')) return normalized;
+  if (normalized.includes('\\')) {
+    // Expand a namespace-alias `use` import on the first segment, matching PHP
+    // name resolution (e.g. `use App\Jobs\Api;` resolves `Api\FooJob` to
+    // `App\Jobs\Api\FooJob`). These refs are `::class` / `new X` / dispatch
+    // targets — never Laravel legacy string controllers — so expansion is
+    // unconditional here. Mirrors the E3 fix in laravel-http.ts.
+    const sep = normalized.indexOf('\\');
+    const importedNs = entry.imports.get(normalized.slice(0, sep));
+    return importedNs ? `${importedNs}${normalized.slice(sep)}` : normalized;
+  }
 
   const imported = entry.imports.get(normalized);
   if (imported) return imported;
