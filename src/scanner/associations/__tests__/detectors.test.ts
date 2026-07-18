@@ -312,6 +312,68 @@ describe('LaravelHttpSurfaceDetector.detect() — boundary edges', () => {
       'symbol:php:App\\Http\\Controllers\\Api\\ListingController'
     );
   });
+
+  it('E3: expands a namespace-alias use import for a [Api\\Controller::class] route', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'src/Module/Payments/routes.php',
+        languageId: 'php',
+        content:
+          `use acme\\Core\\Module\\Payments\\Http\\Controllers\\Api;\n` +
+          `Route::post('/client-token', [Api\\GetClientTokenController::class, '__invoke']);`,
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    const surface = batch.surfaces.find((s) => s.id === 'surface:http:POST:/client-token');
+    expect(surface!.metadata.explicitProvider).toBe(
+      'acme\\Core\\Module\\Payments\\Http\\Controllers\\Api\\GetClientTokenController'
+    );
+  });
+
+  it('E2: does not double-prefix an already-qualified legacy string controller', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'src/CoreServiceProvider.php',
+        languageId: 'php',
+        content: `Route::namespace("acme\\Core\\Http\\Controllers")->group(__DIR__ . '/../routes/api.php');`,
+      },
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: `Route::get('/addr', 'acme\\Core\\Http\\Controllers\\Api\\AucticAddressController@countryStates');`,
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    const surface = batch.surfaces.find((s) => s.id === 'surface:http:GET:/addr');
+    expect(surface!.metadata.explicitProvider).toBe(
+      'acme\\Core\\Http\\Controllers\\Api\\AucticAddressController'
+    );
+  });
+
+  it('E3-scope guard: a legacy string controller is group-prefixed, never use-import-expanded', async () => {
+    const ctx = makeContext([
+      {
+        filePath: 'src/CoreServiceProvider.php',
+        languageId: 'php',
+        content: `Route::namespace("acme\\Core\\Http\\Controllers")->group(__DIR__ . '/../routes/api.php');`,
+      },
+      {
+        filePath: 'routes/api.php',
+        languageId: 'php',
+        content: `use Some\\Vendor\\Api;\nRoute::get('/legacy', 'Api\\LegacyController@index');`,
+      },
+    ]);
+
+    const batch = await detector.detect(ctx);
+    const surface = batch.surfaces.find((s) => s.id === 'surface:http:GET:/legacy');
+    // Laravel prefixes STRING controllers with the group namespace and does NOT
+    // apply the `use Some\Vendor\Api;` import — E3 alias expansion must not leak here.
+    expect(surface!.metadata.explicitProvider).toBe(
+      'acme\\Core\\Http\\Controllers\\Api\\LegacyController'
+    );
+  });
 });
 
 // ---------------------------------------------------------------------------

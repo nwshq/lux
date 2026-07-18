@@ -1221,11 +1221,29 @@ function resolvePhpClassReference(
 ): string {
   if (reference.startsWith('\\')) return reference.slice(1);
   if (importMap.has(reference)) return importMap.get(reference)!;
+
   if (reference.includes('\\')) {
-    return prefixLegacyRelativeNamespace && controllerNamespace
-      ? `${controllerNamespace}\\${reference}`
-      : reference;
+    if (prefixLegacyRelativeNamespace) {
+      // Legacy string controller ('Foo\Bar@method'): Laravel prepends the route
+      // group's namespace — EXCEPT when the reference is already fully-qualified
+      // under that namespace, which Laravel would mechanically double-prefix into
+      // a broken class. Resolve to the intended class instead (E2). Laravel does
+      // not apply `use` imports to string controllers, so no alias expansion here.
+      if (controllerNamespace && !reference.startsWith(`${controllerNamespace}\\`)) {
+        return `${controllerNamespace}\\${reference}`;
+      }
+      return reference;
+    }
+    // `::class` reference: resolve a namespace-alias `use` import on the first
+    // segment, matching PHP's own name resolution (E3). e.g. a file with
+    // `use App\Http\Controllers\Api;` resolves `Api\FooController::class` to
+    // `App\Http\Controllers\Api\FooController`.
+    const sep = reference.indexOf('\\');
+    const head = reference.slice(0, sep);
+    if (importMap.has(head)) return `${importMap.get(head)}${reference.slice(sep)}`;
+    return reference;
   }
+
   if (prefixLegacyRelativeNamespace && controllerNamespace)
     return `${controllerNamespace}\\${reference}`;
   return reference;
