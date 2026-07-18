@@ -25,6 +25,7 @@ import { langForFile, type Extraction } from './ast/extract.js';
 import { resolveTypedReceiverEdges } from './ast/lsp-resolve.js';
 import { makeExternalTargetResolver } from './pack/external-resolve.js';
 import { resolveFacadeAndHelperEdges } from './pack/facade-resolve.js';
+import { classifyHandlerOwnership } from './associations/ownership.js';
 
 // ---------------------------------------------------------------------------
 // Source Code Scanning Constants
@@ -427,6 +428,12 @@ export interface GeneralScanResult {
 export interface GeneralScanOptions {
   /** Override LSP config instead of loading from lux.yaml. */
   config?: LuxLspConfig;
+  /**
+   * First-party package source roots to scan as app-source and merge into the
+   * overlay (E1 first-party promotion). Resolved from `firstParty.packages`
+   * globs against the app's composer install map. Empty ⇒ single-root (default).
+   */
+  firstPartyRoots?: string[];
   /** Callback for progress reporting. */
   onProgress?: (message: string) => void;
   /** Callback for enrichment errors. */
@@ -505,8 +512,24 @@ export async function generalScan(
 
   // 1. Run the base scan (generated-artifact exclusion resolved from config — Lever A)
   report('Scanning content directory...');
-  const scanner = new GeneralScanner(rootPath, resolveIgnorePatterns(config.scan));
+  const ignore = resolveIgnorePatterns(config.scan);
+  const scanner = new GeneralScanner(rootPath, ignore);
   const scan = await scanner.scan();
+
+  // 1a. First-party promotion (E1): scan declared first-party package roots and
+  //     collect their SOURCE files. These augment the structural OVERLAY only
+  //     (so a shared kernel's routes resolve to the consuming app's controllers)
+  //     — NOT the content/knowledge index, which stays app-local (promoted
+  //     packages carry their own markdown/build files that would collide there).
+  const firstPartyRoots = options?.firstPartyRoots ?? [];
+  const firstPartySource: ScannedKnowledge[] = [];
+  for (const fpRoot of firstPartyRoots) {
+    report(`Scanning first-party root: ${fpRoot}`);
+    const fpScan = await new GeneralScanner(fpRoot, ignore).scan();
+    for (const k of fpScan.knowledge) {
+      if (k.type === 'source-code') firstPartySource.push(k);
+    }
+  }
 
   // 2. Parse imports and compute module dependencies (independent of LSP)
   const dependencies = parseDependencies(scan, rootPath, config, report);
@@ -594,7 +617,13 @@ export async function generalScan(
   if (options?.overlayEnabled && options.db) {
     report('Rebuilding structural overlay...');
     try {
-      overlay = await rebuildStructuralOverlay(options.db, rootPath, scan, enrichments, {
+      // First-party source augments the overlay scan only (app-local knowledge
+      // index is unchanged — see step 1a).
+      const overlayScan =
+        firstPartySource.length > 0
+          ? { ...scan, knowledge: [...scan.knowledge, ...firstPartySource] }
+          : scan;
+      overlay = await rebuildStructuralOverlay(options.db, rootPath, overlayScan, enrichments, {
         onProgress: report,
         astEnabled: config.ast?.enabled ?? true,
       });
@@ -694,6 +723,27 @@ export async function generalScan(
       // distinguishable from the benign "0 edges to resolve" success path above.
       report(
         `Warning: facade & helper resolution failed — ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`
+      );
+    }
+  }
+
+  // 8d. Classify HTTP handler-edge ownership across the app/kernel boundary (E1).
+  //     Runs after all node materialization (overlay + pack merge + facade) so
+  //     'external' (third-party, absent) is distinguished from 'client-gap' (an
+  //     App\* route the client doesn't implement). Most meaningful with first-party
+  //     promotion — the app/kernel boundary only exists when a first-party kernel is
+  //     promoted, so the pass is gated on that (also avoids a per-rebuild cost single-repo).
+  if (overlay && options?.db && firstPartyRoots.length > 0) {
+    try {
+      const summary = classifyHandlerOwnership(options.db);
+      report(
+        `Handler ownership: ${summary.counts['kernel-owned']} kernel-owned, ` +
+          `${summary.counts['client-override']} client-override, ` +
+          `${summary.counts['client-gap']} client-gap, ${summary.counts.external} external.`
+      );
+    } catch (error) {
+      report(
+        `Warning: ownership classification failed — ${error instanceof Error ? error.message : String(error)}`
       );
     }
   }

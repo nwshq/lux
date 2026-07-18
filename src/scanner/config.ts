@@ -76,6 +76,14 @@ export interface LuxLspConfig {
   ast?: AstConfig;
   /** Content/source scanning configuration. */
   scan?: ScanConfig;
+  /** First-party package promotion (E1): globs against composer package names. */
+  firstParty?: FirstPartyConfig;
+}
+
+/** The firstParty section of lux.yaml. */
+export interface FirstPartyConfig {
+  /** Composer package-name globs to promote to app-source, e.g. ["acme/*"]. */
+  packages: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -137,6 +145,7 @@ interface RawLuxConfig {
   deps?: unknown;
   ast?: unknown;
   scan?: unknown;
+  firstParty?: unknown;
 }
 
 // ---------------------------------------------------------------------------
@@ -186,7 +195,16 @@ function validateConfig(raw: RawLuxConfig): LuxLspConfig {
     deps: raw.deps ? validateDepsConfig(raw.deps) : DEFAULT_DEPS_CONFIG,
     ast: raw.ast ? validateAstConfig(raw.ast) : DEFAULT_AST_CONFIG,
     scan: raw.scan ? validateScanConfig(raw.scan) : DEFAULT_SCAN_CONFIG,
+    firstParty: validateFirstPartyConfig(raw.firstParty),
   };
+}
+
+function validateFirstPartyConfig(raw: unknown): FirstPartyConfig | undefined {
+  if (typeof raw !== 'object' || raw === null) return undefined;
+  const packages = (raw as { packages?: unknown }).packages;
+  if (!Array.isArray(packages)) return undefined;
+  const globs = packages.filter((p): p is string => typeof p === 'string');
+  return globs.length ? { packages: globs } : undefined;
 }
 
 function validateAstConfig(raw: unknown): AstConfig {

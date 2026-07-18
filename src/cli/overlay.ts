@@ -527,6 +527,50 @@ export function addOverlayCommands(program: Command): void {
     });
 
   // --------------------------------------------------------------------------
+  // overlay ownership — kernel↔client handler ownership map (E1)
+  // --------------------------------------------------------------------------
+
+  overlayCmd
+    .command('ownership')
+    .description(
+      'Show HTTP handler ownership across the app/kernel boundary ' +
+        '(kernel-owned / client-override / client-gap / external).'
+    )
+    .option('--json', 'Emit machine-readable JSON instead of human-readable text')
+    .action((options: { json?: boolean }) => {
+      const opts = program.opts();
+      const runtime = resolveRuntimePaths({
+        corpus: opts.corpus as string | undefined,
+        db: opts.db as string | undefined,
+      });
+      const db = new LuxDatabase(runtime.dbPath);
+      const rows = db.getOwnershipBreakdown();
+      db.close();
+      const total = rows.reduce((n, r) => n + r.count, 0);
+
+      if (options.json) {
+        console.log(JSON.stringify({ total, breakdown: rows }, null, 2));
+        return;
+      }
+      console.log(`\nHTTP handler ownership (${total} handler edge(s)):`);
+      if (total === 0) {
+        console.log('  (no handler edges — run `lux index rebuild`)');
+        return;
+      }
+      for (const r of rows) {
+        const label = r.ownership ?? 'unclassified';
+        const pct = ((100 * r.count) / total).toFixed(1);
+        console.log(`  ${label.padEnd(16)} ${String(r.count).padStart(5)}  (${pct}%)`);
+      }
+      const gap = rows.find((r) => r.ownership === 'client-gap');
+      if (gap && gap.count > 0) {
+        console.log(
+          `\n  ${gap.count} client-gap: kernel routes with no handler implemented in this app.`
+        );
+      }
+    });
+
+  // --------------------------------------------------------------------------
   // overlay boundaries
   // --------------------------------------------------------------------------
 

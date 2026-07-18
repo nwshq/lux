@@ -16,6 +16,7 @@ import { generalScan } from './general.js';
 import type { GeneralScanResult } from './general.js';
 import type { OverlayRebuildResult } from './associations/overlay-service.js';
 import { loadLspConfig } from './config.js';
+import { resolveFirstPartyRoots } from './pack/first-party.js';
 import { lookupPack } from './pack/cache.js';
 
 // ---------------------------------------------------------------------------
@@ -124,12 +125,18 @@ export async function rebuildWithOverlay(
   const vendorPackPath =
     options.vendorPackPath !== undefined ? options.vendorPackPath : resolveVendorPackPath(rootPath);
 
+  // E1: promote declared first-party packages to app-source (empty ⇒ single-root).
+  const firstPartyRoots = config.firstParty
+    ? resolveFirstPartyRoots(rootPath, config.firstParty.packages).map((r) => r.sourceRoot)
+    : [];
+
   const scanResult = await generalScan(rootPath, {
     config,
     onProgress: options.onProgress,
     overlayEnabled: true,
     db,
     vendorPackPath,
+    firstPartyRoots,
   });
 
   const result = classifyResult(rootPath, scanResult, db, 'overlay', config.lsp.enabled);

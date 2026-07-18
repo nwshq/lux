@@ -28,7 +28,7 @@ Shared resolver: `src/utils/runtime-paths.ts`
 - `lux deps graph|clusters|impact|coverage`
 - `lux vendor-pack build|status`
 - `lux trace <symbol>`
-- `lux overlay status|check|operational ask|boundaries ...`
+- `lux overlay status|check|ownership|operational ask|boundaries ...`
 
 ## Current MCP surface
 

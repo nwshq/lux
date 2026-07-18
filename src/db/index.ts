@@ -566,6 +566,35 @@ export class LuxDatabase {
     return this.getQueries().getStructuralEdgesForSourceNode.all(nodeId) as StructuralEdge[];
   }
 
+  /** `handled_by` edges from HTTP surfaces, for ownership classification (E1). */
+  getHandlerEdgesForOwnership(): Array<{ id: string; target_node_id: string }> {
+    return this.db
+      .prepare(
+        `SELECT id, target_node_id FROM structural_edges
+         WHERE edge_type = 'handled_by' AND source_node_id LIKE 'surface:http:%'`
+      )
+      .all() as Array<{ id: string; target_node_id: string }>;
+  }
+
+  /** Persist ownership labels on structural edges in one transaction (E1). */
+  setEdgeOwnershipBatch(updates: Array<{ id: string; ownership: string }>): void {
+    const stmt = this.db.prepare('UPDATE structural_edges SET ownership = ? WHERE id = ?');
+    this.db.transaction((rows: Array<{ id: string; ownership: string }>) => {
+      for (const r of rows) stmt.run(r.ownership, r.id);
+    })(updates);
+  }
+
+  /** Ownership breakdown of HTTP handler edges, for `lux overlay ownership` (E1). */
+  getOwnershipBreakdown(): Array<{ ownership: string | null; count: number }> {
+    return this.db
+      .prepare(
+        `SELECT ownership, COUNT(*) as count FROM structural_edges
+         WHERE edge_type = 'handled_by' AND source_node_id LIKE 'surface:http:%'
+         GROUP BY ownership ORDER BY count DESC`
+      )
+      .all() as Array<{ ownership: string | null; count: number }>;
+  }
+
   /**
    * Resolve a user-supplied symbol (node id, PHP FQN, or leaf name) to candidate
    * structural symbol nodes for a trace start (ADR-5). Returns [] if none.
