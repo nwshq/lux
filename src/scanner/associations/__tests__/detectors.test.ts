@@ -290,7 +290,7 @@ describe('LaravelHttpSurfaceDetector.detect() — boundary edges', () => {
     expect(declEdge!.provenance.evidenceKind).toBe('route-declaration');
   });
 
-  it('resolves legacy string controllers through inherited route-group namespace', async () => {
+  it('resolves legacy string controllers through the default controller namespace fallback', async () => {
     const ctx = makeContext([
       {
         filePath: 'routes/admin.php',
@@ -306,10 +306,10 @@ describe('LaravelHttpSurfaceDetector.detect() — boundary edges', () => {
     const handledEdge = batch.edges.find((e) => e.edgeType === 'handled_by');
 
     expect(surface!.metadata.explicitProvider).toBe(
-      'acme\\Core\\Http\\Controllers\\Api\\ListingController'
+      'App\\Http\\Controllers\\Api\\ListingController'
     );
     expect(handledEdge!.targetNodeId).toBe(
-      'symbol:php:acme\\Core\\Http\\Controllers\\Api\\ListingController'
+      'symbol:php:App\\Http\\Controllers\\Api\\ListingController'
     );
   });
 });

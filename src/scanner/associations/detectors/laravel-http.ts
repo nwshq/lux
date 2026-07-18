@@ -1241,7 +1241,10 @@ function inferRouteControllerNamespace(
   if (registrationNamespace) return registrationNamespace;
 
   if (/^routes\/(api|admin|web|json)\.php$/i.test(filePath)) {
-    return 'acme\\Core\\Http\\Controllers';
+    // Laravel's conventional default controller namespace for legacy
+    // relative string-controller references when the route file declares
+    // no explicit ->namespace() and no registration namespace was resolved.
+    return 'App\\Http\\Controllers';
   }
 
   return undefined;

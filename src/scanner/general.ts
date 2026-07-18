@@ -933,7 +933,7 @@ function resolvePhpNamespaceToModule(
     // Strategy 2a (namespace-prefix-aware): a module directory may sit under
     // a namespace prefix that is DEEPER than the filesystem pattern prefix.
     // e.g. files live at "src/Module/{Name}" (prefix depth 2) but the PHP
-    // namespace is "acme\\Core\\Module\\{Name}\\..." (module name at
+    // namespace is "Acme\\Core\\Module\\{Name}\\..." (module name at
     // depth 3). Anchor on the last literal segment of the pattern prefix
     // (e.g. "Module") and take the namespace segment immediately after it,
     // wherever it occurs — instead of assuming a fixed segment index. The
