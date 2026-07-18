@@ -21,9 +21,10 @@ import {
   type OverlayRebuildResult,
 } from './associations/overlay-service.js';
 import { AssociationEngine } from './associations/engine.js';
-import { langForFile } from './ast/extract.js';
+import { langForFile, type Extraction } from './ast/extract.js';
 import { resolveTypedReceiverEdges } from './ast/lsp-resolve.js';
 import { makeExternalTargetResolver } from './pack/external-resolve.js';
+import { resolveFacadeAndHelperEdges } from './pack/facade-resolve.js';
 
 // ---------------------------------------------------------------------------
 // Source Code Scanning Constants
@@ -666,6 +667,33 @@ export async function generalScan(
     } catch (error) {
       report(
         `Warning: typed-receiver resolution failed — ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+
+  // 8c. Resolve facade-static + bare-helper calls against the framework catalogs
+  //     (framework-inferred, driver-aware, CONTINUING). Needs step 8a's merged pack for
+  //     the service/driver target nodes and the shared extraction cache (Lever D). It is
+  //     disjoint from step 8b's `proven` edges BY CONSTRUCTION — not by running after it:
+  //     the catalog is __callStatic-only (ADR-7), so a real-static call 8b resolves is
+  //     never in it, and every catalog edge id carries a distinct `:facade-catalog` /
+  //     `:helper-catalog` suffix so it cannot collide with an 8b `:lsp` edge on the same
+  //     node pair. contentOnly / no-pack rebuilds skip it and behaviour is unchanged (REQ-5).
+  if (overlay?.sharedExtractions && options?.db && options?.vendorPackPath) {
+    report('Resolving facade & helper calls against the framework catalog...');
+    try {
+      const files: Array<{ relPath: string; extraction: Extraction }> = [];
+      for (const [relPath, extraction] of overlay.sharedExtractions) {
+        if (langForFile(relPath) === 'php') files.push({ relPath, extraction });
+      }
+      const edges = resolveFacadeAndHelperEdges(files, options.db, Math.floor(Date.now() / 1000));
+      const stored = AssociationEngine.persistEdges(options.db, edges);
+      report(`Facade & helper resolution: ${stored} edge(s) stored.`);
+    } catch (error) {
+      // Log the full error (stack, not just .message) so a genuine resolver fault is
+      // distinguishable from the benign "0 edges to resolve" success path above.
+      report(
+        `Warning: facade & helper resolution failed — ${error instanceof Error ? (error.stack ?? error.message) : String(error)}`
       );
     }
   }
