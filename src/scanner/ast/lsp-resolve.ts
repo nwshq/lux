@@ -14,6 +14,8 @@
 // its per-file loop under a bounded pool + one warm document open per file
 // (Lever B) and to consume the shared per-rebuild extraction cache (Lever D).
 
+import { realpathSync } from 'node:fs';
+import { dirname, basename, join } from 'node:path';
 import type { StructuralRelationEdge } from '../associations/types.js';
 import {
   extractSource,
@@ -174,6 +176,40 @@ export async function resolveTypedReceiverEdges(
   const edges: StructuralRelationEdge[] = [];
   const seenEdge = new Set<string>();
 
+  // Reconcile symlinked paths before keying resolved targets. A composer path-repo
+  // kernel resolves through `vendor/<pkg>` (a directory symlink), while the scan
+  // keyed those files by their realpath (`resolveFirstPartyRoots`), so the language
+  // server's symlink-path definition and the scan's realpath key never match and
+  // the edge is dropped. Canonicalize the RESOLVED side to the realpath form the
+  // scan already uses — at the two read consumers only (never inside `toRelative`,
+  // which also keys the scan side). Memoized on the directory (only the package-root
+  // component `vendor/<pkg>` is expected to be symlinked, not the leaf file; a leaf
+  // or nested-subdir symlink below the root would simply drop, never mis-map, since
+  // the scan keys only the realpath'd package root). Degrades to the raw path on a
+  // broken symlink so the pass never throws.
+  const realDirCache = new Map<string, string>();
+  const canonPath = (p: string): string => {
+    const dir = dirname(p);
+    let realDir = realDirCache.get(dir);
+    if (realDir === undefined) {
+      try {
+        realDir = realpathSync(dir);
+      } catch {
+        realDir = dir;
+      }
+      realDirCache.set(dir, realDir);
+    }
+    return join(realDir, basename(p));
+  };
+  // `rootPath` is constant across the pass — canonicalize once so a symlinked corpus
+  // prefix can't mis-key in-root files against the canonicalized resolved paths.
+  let rootPathReal: string;
+  try {
+    rootPathReal = realpathSync(rootPath);
+  } catch {
+    rootPathReal = rootPath;
+  }
+
   await mapWithConcurrency(files, options?.concurrency ?? 1, async (f) => {
     const defs = defRangesByRel.get(f.relPath) ?? [];
     const langId = f.lang === 'php' ? 'php' : 'typescript';
@@ -218,12 +254,19 @@ export async function resolveTypedReceiverEdges(
     for (let i = 0; i < sites.length; i++) {
       const loc = locs[i];
       const memberName = memberLeafName(sites[i].toRaw);
-      let targetId = mapLocToTarget(loc, rootPath, defRangesByRel, symbolIds, memberName);
+      let targetId = mapLocToTarget(
+        loc,
+        rootPathReal,
+        defRangesByRel,
+        symbolIds,
+        memberName,
+        canonPath
+      );
       if (
         !targetId &&
         loc &&
         resolveExternalTarget &&
-        isOutOfCorpus(loc, rootPath, defRangesByRel)
+        isOutOfCorpus(loc, rootPathReal, defRangesByRel, canonPath)
       ) {
         targetId = await resolveExternalTarget(loc.filePath, loc.line, memberName);
       }
@@ -286,10 +329,11 @@ function mapLocToTarget(
   rootPath: string,
   defRangesByRel: Map<string, DefRange[]>,
   symbolIds: Set<string>,
-  memberName?: string
+  memberName: string | undefined,
+  canon: (p: string) => string
 ): string | null {
   if (!loc) return null;
-  const targetRel = toRelative(loc.filePath, rootPath);
+  const targetRel = toRelative(canon(loc.filePath), rootPath);
   const trDefs = defRangesByRel.get(targetRel);
   if (!trDefs) return null; // target outside the scanned corpus (vendor / node_modules)
   const def = enclosingByLine(trDefs, loc.line + 1);
@@ -310,9 +354,10 @@ function mapLocToTarget(
 function isOutOfCorpus(
   loc: { filePath: string; line: number },
   rootPath: string,
-  defRangesByRel: Map<string, DefRange[]>
+  defRangesByRel: Map<string, DefRange[]>,
+  canon: (p: string) => string
 ): boolean {
-  return !defRangesByRel.has(toRelative(loc.filePath, rootPath));
+  return !defRangesByRel.has(toRelative(canon(loc.filePath), rootPath));
 }
 
 function enclosingByByte(defs: DefRange[], byte: number): DefRange | undefined {
