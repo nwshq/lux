@@ -1,4 +1,4 @@
-import type Database from 'better-sqlite3';
+import type { LuxSqlite } from './sqlite-adapter.js';
 import { readFileSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -22,10 +22,10 @@ export interface AppliedMigration {
  * Handles schema versioning and migrations.
  */
 export class MigrationRunner {
-  private db: Database.Database;
+  private db: LuxSqlite;
   private migrationsPath: string;
 
-  constructor(db: Database.Database) {
+  constructor(db: LuxSqlite) {
     this.db = db;
     this.migrationsPath = join(__dirname, 'migrations');
     this.initMigrationsTable();
@@ -47,7 +47,8 @@ export class MigrationRunner {
    * Get the current schema version from the database.
    */
   getCurrentVersion(): number {
-    const result = this.db.prepare('SELECT MAX(version) as version FROM schema_version').get() as {
+    // transient one-shot read → adapter's auto-finalizing `get` (not a registry-tracked prepare)
+    const result = this.db.get('SELECT MAX(version) as version FROM schema_version') as {
       version: number | null;
     };
     return result.version ?? 0;
@@ -57,9 +58,9 @@ export class MigrationRunner {
    * Get all applied migrations from the database.
    */
   getAppliedMigrations(): AppliedMigration[] {
-    return this.db
-      .prepare('SELECT version, applied_at FROM schema_version ORDER BY version')
-      .all() as AppliedMigration[];
+    return this.db.all(
+      'SELECT version, applied_at FROM schema_version ORDER BY version'
+    ) as AppliedMigration[];
   }
 
   /**
@@ -101,8 +102,8 @@ export class MigrationRunner {
       // Execute the migration SQL
       this.db.exec(migration.sql);
 
-      // Record the migration
-      this.db.prepare('INSERT INTO schema_version (version) VALUES (?)').run(migration.version);
+      // Record the migration (transient one-shot write → auto-finalizing `run`)
+      this.db.run('INSERT INTO schema_version (version) VALUES (?)', migration.version);
     });
 
     applyTransaction();

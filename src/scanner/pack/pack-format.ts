@@ -15,7 +15,7 @@
 //   - `pack_meta` is a small JSON-per-key manifest read by `lux vendor-pack
 //     status` and by the cache to validate a hit.
 
-import Database from 'better-sqlite3';
+import { LuxSqlite } from '../../db/sqlite-adapter.js';
 import { mkdirSync } from 'fs';
 import { dirname } from 'path';
 import type { StructuralNode, StructuralEdge } from '../../db/types.js';
@@ -108,11 +108,11 @@ export interface VendorPackManifest {
  * sidecar would let ATTACH read a partial DB).
  */
 export class VendorPackWriter {
-  private db: Database.Database;
+  private db: LuxSqlite;
 
   constructor(packPath: string) {
     mkdirSync(dirname(packPath), { recursive: true });
-    this.db = new Database(packPath);
+    this.db = new LuxSqlite(packPath);
     this.db.pragma('journal_mode = WAL');
     // NORMAL is safe for a rebuildable artifact and is what the spike measured.
     this.db.pragma('synchronous = NORMAL');
@@ -189,10 +189,10 @@ export class VendorPackWriter {
 
 /** Read-only manifest reader over a built pack. */
 export class VendorPackReader {
-  private db: Database.Database;
+  private db: LuxSqlite;
 
   constructor(public readonly packPath: string) {
-    this.db = new Database(packPath, { readonly: true, fileMustExist: true });
+    this.db = new LuxSqlite(packPath, { readonly: true, fileMustExist: true });
   }
 
   manifest(): VendorPackManifest {

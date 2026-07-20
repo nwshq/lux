@@ -43,6 +43,7 @@
     "commander": "^15.0.0",
     "glob": "^13.0.6",
     "gray-matter": "^4.0.3",
+    "node-sqlite3-wasm": "0.8.59",
     "tree-sitter-wasms": "^0.1.13",
     "vscode-languageserver-protocol": "^3.18.2",
     "web-tree-sitter": "^0.22.6",

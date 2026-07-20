@@ -1,4 +1,4 @@
-import Database from 'better-sqlite3';
+import { LuxSqlite } from './sqlite-adapter.js';
 import { mkdirSync } from 'fs';
 import { dirname } from 'path';
 import { PreparedQueries } from './queries.js';
@@ -20,14 +20,14 @@ import type {
 } from './types.js';
 
 export class LuxDatabase {
-  private db: Database.Database;
+  private db: LuxSqlite;
   private queries?: PreparedQueries;
   private migrations: MigrationRunner;
 
   constructor(dbPath: string, autoMigrate = true) {
     // Ensure database directory exists
     mkdirSync(dirname(dbPath), { recursive: true });
-    this.db = new Database(dbPath);
+    this.db = new LuxSqlite(dbPath);
     this.db.pragma('journal_mode = WAL');
     this.db.pragma('foreign_keys = ON');
     // Safe under WAL (a crash can lose the last commit, never corrupt) and removes
@@ -335,32 +335,30 @@ export class LuxDatabase {
    */
   importVendorPack(packDbPath: string): { nodes: number; edges: number } {
     this.getQueries(); // ensure the DB is initialized/migrated before we touch it
-    this.db.prepare('ATTACH DATABASE ? AS pack').run(packDbPath);
+    // Transient one-shots (ATTACH / bulk INSERT / DETACH): use the auto-finalizing
+    // `run()` so they never enter the finalize registry (the MCP DB is never closed).
+    this.db.run('ATTACH DATABASE ? AS pack', packDbPath);
     try {
       let nodes = 0;
       let edges = 0;
       const importAll = this.db.transaction(() => {
-        nodes = this.db
-          .prepare(
-            `INSERT OR IGNORE INTO structural_nodes
+        nodes = this.db.run(
+          `INSERT OR IGNORE INTO structural_nodes
                (id, node_type, file_path, language_id, symbol_name, symbol_kind, qualified_name, metadata, origin, updated_at)
              SELECT id, node_type, file_path, language_id, symbol_name, symbol_kind, qualified_name, metadata, 'vendor-pack', updated_at
                FROM pack.structural_nodes`
-          )
-          .run().changes;
-        edges = this.db
-          .prepare(
-            `INSERT OR IGNORE INTO structural_edges
+        ).changes;
+        edges = this.db.run(
+          `INSERT OR IGNORE INTO structural_edges
                (id, source_node_id, target_node_id, edge_type, confidence, confidence_class, freshness_status, source_commit, dirty_dependency_count, provenance_summary, updated_at)
              SELECT id, source_node_id, target_node_id, edge_type, confidence, confidence_class, freshness_status, source_commit, dirty_dependency_count, provenance_summary, updated_at
                FROM pack.structural_edges`
-          )
-          .run().changes;
+        ).changes;
       });
       importAll();
       return { nodes, edges };
     } finally {
-      this.db.prepare('DETACH DATABASE pack').run();
+      this.db.run('DETACH DATABASE pack');
     }
   }
 
@@ -405,17 +403,15 @@ export class LuxDatabase {
 
   /** `handled_by` edges from HTTP surfaces, for ownership classification (E1). */
   getHandlerEdgesForOwnership(): Array<{ id: string; target_node_id: string }> {
-    return this.db
-      .prepare(
-        `SELECT id, target_node_id FROM structural_edges
-         WHERE edge_type = 'handled_by' AND source_node_id LIKE 'surface:http:%'`
-      )
-      .all() as Array<{ id: string; target_node_id: string }>;
+    return this.getQueries().getHandlerEdgesForOwnership.all() as Array<{
+      id: string;
+      target_node_id: string;
+    }>;
   }
 
   /** Persist ownership labels on structural edges in one transaction (E1). */
   setEdgeOwnershipBatch(updates: Array<{ id: string; ownership: string }>): void {
-    const stmt = this.db.prepare('UPDATE structural_edges SET ownership = ? WHERE id = ?');
+    const stmt = this.getQueries().setEdgeOwnership;
     this.db.transaction((rows: Array<{ id: string; ownership: string }>) => {
       for (const r of rows) stmt.run(r.ownership, r.id);
     })(updates);
@@ -423,13 +419,10 @@ export class LuxDatabase {
 
   /** Ownership breakdown of HTTP handler edges, for `lux overlay ownership` (E1). */
   getOwnershipBreakdown(): Array<{ ownership: string | null; count: number }> {
-    return this.db
-      .prepare(
-        `SELECT ownership, COUNT(*) as count FROM structural_edges
-         WHERE edge_type = 'handled_by' AND source_node_id LIKE 'surface:http:%'
-         GROUP BY ownership ORDER BY count DESC`
-      )
-      .all() as Array<{ ownership: string | null; count: number }>;
+    return this.getQueries().getOwnershipBreakdown.all() as Array<{
+      ownership: string | null;
+      count: number;
+    }>;
   }
 
   /**
