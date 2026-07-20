@@ -36,7 +36,7 @@ function normalizeThinking(value: string | undefined): AiThinking | undefined {
   }
 }
 
-export function inferBackendFromModel(model: string): AiBackend {
+function inferBackendFromModel(model: string): AiBackend {
   if (model.startsWith('claude-') || model.startsWith('anthropic/')) {
     return 'claude';
   }

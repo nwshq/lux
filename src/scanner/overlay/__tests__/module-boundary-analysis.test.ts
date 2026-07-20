@@ -130,8 +130,8 @@ describe('module-boundary rubric', () => {
     expect(direct).toBeGreaterThan(0);
   });
 
-  it('classifies fallback endpoint calls as supporting-only', () => {
-    const entry = classifyBoundaryEvidence('calls_endpoint');
+  it('classifies fallback template renders as supporting-only', () => {
+    const entry = classifyBoundaryEvidence('renders_template');
 
     expect(entry.family).toBe('fallback-structure');
     expect(entry.role).toBe('supporting-only');

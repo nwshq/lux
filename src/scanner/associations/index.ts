@@ -20,9 +20,7 @@ export {
   fileNodeId,
   phpSymbolNodeId,
   tsSymbolNodeId,
-  routeNodeId,
   contractNodeId,
-  artifactNodeId,
   surfaceNodeId,
 } from './types.js';
 
@@ -31,9 +29,7 @@ export type { EdgeWithEvidence } from './evidence.js';
 
 export {
   createDefaultResolvers,
-  LaravelRoutesResolver,
   LaravelBoundaryEvidenceResolver,
-  GeneratedTypesResolver,
 } from './framework/index.js';
 
 export {

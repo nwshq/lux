@@ -139,11 +139,8 @@ export type StructuralNodeType =
 
 export type EdgeType =
   // Legacy overlay edges (kept for backwards compatibility)
-  | 'calls_endpoint'
-  | 'maps_route_to_consumer'
   | 'renders_template'
   | 'hydrates_component'
-  | 'uses_generated_type'
   | 'implements_contract'
   | 'emits_event'
   | 'subscribes_event'

@@ -4,7 +4,7 @@ import { join } from 'path';
 import { LuxDatabase } from '../../../db/index.js';
 import { AssociationEngine } from '../engine.js';
 import type { AssociationContext, AssociationResolver, StructuralRelationEdge } from '../types.js';
-import { fileNodeId, routeNodeId } from '../types.js';
+import { fileNodeId, surfaceNodeId } from '../types.js';
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -34,9 +34,9 @@ function makeContext(overrides: Partial<AssociationContext> = {}): AssociationCo
 function makeEdge(overrides: Partial<StructuralRelationEdge> = {}): StructuralRelationEdge {
   return {
     id: 'edge:test',
-    edgeType: 'calls_endpoint',
+    edgeType: 'calls_surface',
     sourceNodeId: fileNodeId('resources/js/pages/Invoice.tsx'),
-    targetNodeId: routeNodeId('get', '/api/invoices'),
+    targetNodeId: surfaceNodeId('http', 'GET /api/invoices'),
     sourceLanguage: 'typescript',
     targetLanguage: 'php',
     confidence: 0.9,
@@ -87,8 +87,8 @@ describe('AssociationEngine', () => {
       updated_at: now(),
     });
     db.upsertStructuralNode({
-      id: routeNodeId('get', '/api/invoices'),
-      node_type: 'route',
+      id: surfaceNodeId('http', 'GET /api/invoices'),
+      node_type: 'capability-surface',
       file_path: 'routes/api.php',
       language_id: 'php',
       updated_at: now(),
@@ -113,7 +113,7 @@ describe('AssociationEngine', () => {
 
       const stored = db.getStructuralEdgesForNode(edge.sourceNodeId);
       expect(stored).toHaveLength(1);
-      expect(stored[0].edge_type).toBe('calls_endpoint');
+      expect(stored[0].edge_type).toBe('calls_surface');
       expect(stored[0].confidence).toBe(0.9);
     });
 
@@ -259,14 +259,5 @@ describe('AssociationEngine', () => {
 describe('node ID helpers', () => {
   it('fileNodeId produces stable IDs', () => {
     expect(fileNodeId('src/app.ts')).toBe('file:src/app.ts');
-  });
-
-  it('routeNodeId normalises method to uppercase', () => {
-    const id = routeNodeId('get', '/api/users');
-    expect(id).toBe('route:GET:/api/users');
-  });
-
-  it('routeNodeId handles mixed-case method', () => {
-    expect(routeNodeId('POST', '/api/users')).toBe('route:POST:/api/users');
   });
 });

@@ -127,22 +127,6 @@ const REINFORCEMENT_CONFIDENCE_CLASSES: ConfidenceClass[] = [
 ];
 
 const BOUNDARY_EVIDENCE_RUBRIC: Record<EdgeType, Omit<BoundaryEvidenceRubricEntry, 'edgeType'>> = {
-  calls_endpoint: {
-    family: 'fallback-structure',
-    role: 'supporting-only',
-    defaultTier: 'supporting',
-    startingWeight: 0.15,
-    canStandAlone: false,
-    preferredConfidenceClasses: GRAPH_FORMING_CONFIDENCE_CLASSES,
-  },
-  maps_route_to_consumer: {
-    family: 'surface-bridge',
-    role: 'graph-forming',
-    defaultTier: 'overlay-backed',
-    startingWeight: 0.55,
-    canStandAlone: true,
-    preferredConfidenceClasses: GRAPH_FORMING_CONFIDENCE_CLASSES,
-  },
   renders_template: {
     family: 'fallback-structure',
     role: 'supporting-only',
@@ -158,14 +142,6 @@ const BOUNDARY_EVIDENCE_RUBRIC: Record<EdgeType, Omit<BoundaryEvidenceRubricEntr
     startingWeight: 0.1,
     canStandAlone: false,
     preferredConfidenceClasses: GRAPH_FORMING_CONFIDENCE_CLASSES,
-  },
-  uses_generated_type: {
-    family: 'shared-contract-family',
-    role: 'reinforcement-only',
-    defaultTier: 'supporting',
-    startingWeight: 0.28,
-    canStandAlone: false,
-    preferredConfidenceClasses: REINFORCEMENT_CONFIDENCE_CLASSES,
   },
   implements_contract: {
     family: 'contract-lineage',
