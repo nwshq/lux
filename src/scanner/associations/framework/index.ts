@@ -13,7 +13,5 @@ import type { AssociationResolver } from '../types.js';
  * Pass the result to AssociationEngine to run the full default pack.
  */
 export function createDefaultResolvers(): AssociationResolver[] {
-  return [
-    new LaravelBoundaryEvidenceResolver(),
-  ];
+  return [new LaravelBoundaryEvidenceResolver()];
 }

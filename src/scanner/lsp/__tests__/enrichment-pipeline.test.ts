@@ -467,4 +467,3 @@ describe('attachEnrichment', () => {
     expect(result).toBe(entry);
   });
 });
-

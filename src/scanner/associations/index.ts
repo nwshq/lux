@@ -27,10 +27,7 @@ export {
 export { summarizeEdgeEvidence, formatEdgeBlock, annotateFreshness } from './evidence.js';
 export type { EdgeWithEvidence } from './evidence.js';
 
-export {
-  createDefaultResolvers,
-  LaravelBoundaryEvidenceResolver,
-} from './framework/index.js';
+export { createDefaultResolvers, LaravelBoundaryEvidenceResolver } from './framework/index.js';
 
 export {
   createDefaultOperationalExtractors,

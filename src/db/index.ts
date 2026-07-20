@@ -45,7 +45,6 @@ export class LuxDatabase {
     }
   }
 
-
   /**
    * Initialize prepared queries. Must be called after migrations.
    */
