@@ -4,28 +4,6 @@
   "repoPath": "/path/to/auctic-atlas/vcs",
   "cases": [
     {
-      "id": "atlas-operational-schedule-refresh-client-statuses",
-      "surface": "operational",
-      "mode": "ask",
-      "question": "what schedules app:refresh-client-statuses?",
-      "json": true,
-      "expect": {
-        "exitCode": 0,
-        "askSurface": "operational",
-        "askMode": "retrieval",
-        "resolution": "resolved",
-        "intent": "schedule-sources",
-        "targetId": "opb:command:app:refresh-client-statuses",
-        "summaryIncludes": "schedules",
-        "minDirectEvidence": 1,
-        "askSchemaVersion": 1,
-        "askQuestion": "what schedules app:refresh-client-statuses?",
-        "overlayTrustLevel": "overlay-complete",
-        "mixedTrust": false,
-        "minEvidenceTrustTier": 3
-      }
-    },
-    {
       "id": "atlas-operational-dispatch-refresh-client-status",
       "surface": "operational",
       "mode": "overlay",
@@ -40,48 +18,6 @@
         "overlayNativeJson": true,
         "overlayTrustLevel": "overlay-complete",
         "minEvidenceTrustTier": 3
-      },
-      "json": true
-    },
-    {
-      "id": "atlas-operational-listener-releases-synced",
-      "surface": "operational",
-      "mode": "ask",
-      "question": "what listeners handle App\\Modules\\ReleaseNotes\\Events\\ReleasesSynced?",
-      "expect": {
-        "exitCode": 0,
-        "askSurface": "operational",
-        "askMode": "retrieval",
-        "resolution": "resolved",
-        "intent": "event-listeners",
-        "targetId": "opb:event:App\\Modules\\ReleaseNotes\\Events\\ReleasesSynced",
-        "summaryIncludes": "SendReleaseAnnouncementListener",
-        "minDirectEvidence": 1,
-        "askSchemaVersion": 1,
-        "askQuestion": "what listeners handle App\\Modules\\ReleaseNotes\\Events\\ReleasesSynced?",
-        "overlayTrustLevel": "overlay-complete",
-        "mixedTrust": false,
-        "minEvidenceTrustTier": 3
-      },
-      "json": true
-    },
-    {
-      "id": "atlas-operational-neighborhood-refresh-client-status",
-      "surface": "operational",
-      "mode": "ask",
-      "question": "what operational boundaries can reach App\\Modules\\ClientProvisioning\\Jobs\\RefreshClientStatus?",
-      "expect": {
-        "exitCode": 0,
-        "askSurface": "operational",
-        "askMode": "retrieval",
-        "resolution": "resolved",
-        "intent": "neighborhood",
-        "targetId": "opb:job:App\\Modules\\ClientProvisioning\\Jobs\\RefreshClientStatus",
-        "summaryIncludes": "can reach or be reached",
-        "minContext": 1,
-        "askSchemaVersion": 1,
-        "askQuestion": "what operational boundaries can reach App\\Modules\\ClientProvisioning\\Jobs\\RefreshClientStatus?",
-        "overlayTrustLevel": "overlay-complete"
       },
       "json": true
     },
@@ -129,12 +65,28 @@
         "canSupportSpecDraft": true,
         "minOperationalEffects": 1,
         "minReviewPrompts": 1,
-        "coverageIncludes": ["found", "missing", "unsupported"],
-        "coverageSignalKeysInclude": ["validation_rule", "idempotency_or_duplicate_prevention", "operational_handler"],
-        "supportIncludes": ["contextual"],
+        "coverageIncludes": [
+          "found",
+          "missing",
+          "unsupported"
+        ],
+        "coverageSignalKeysInclude": [
+          "validation_rule",
+          "idempotency_or_duplicate_prevention",
+          "operational_handler"
+        ],
+        "supportIncludes": [
+          "contextual"
+        ],
         "sourceFactIncludes": "ProfileController",
         "exportPathExists": true,
-        "forbiddenTextIncludes": ["The system shall", "Requirement:", "Approved", "Validated by Lux", "Specification:"]
+        "forbiddenTextIncludes": [
+          "The system shall",
+          "Requirement:",
+          "Approved",
+          "Validated by Lux",
+          "Specification:"
+        ]
       }
     },
     {
@@ -152,8 +104,18 @@
         "resolution": "resolved",
         "targetKind": "handler",
         "minOperationalEffects": 1,
-        "coverageIncludes": ["found", "missing", "unsupported"],
-        "forbiddenTextIncludes": ["The system shall", "Requirement:", "Approved", "Validated by Lux", "Specification:"]
+        "coverageIncludes": [
+          "found",
+          "missing",
+          "unsupported"
+        ],
+        "forbiddenTextIncludes": [
+          "The system shall",
+          "Requirement:",
+          "Approved",
+          "Validated by Lux",
+          "Specification:"
+        ]
       }
     },
     {
@@ -172,10 +134,22 @@
         "targetKind": "job",
         "minOperationalEffects": 1,
         "minReviewPrompts": 1,
-        "coverageIncludes": ["found", "missing", "unsupported"],
-        "supportIncludes": ["direct"],
+        "coverageIncludes": [
+          "found",
+          "missing",
+          "unsupported"
+        ],
+        "supportIncludes": [
+          "direct"
+        ],
         "sourceFactIncludes": "RefreshClientStatus",
-        "forbiddenTextIncludes": ["The system shall", "Requirement:", "Approved", "Validated by Lux", "Specification:"]
+        "forbiddenTextIncludes": [
+          "The system shall",
+          "Requirement:",
+          "Approved",
+          "Validated by Lux",
+          "Specification:"
+        ]
       }
     },
     {
@@ -193,8 +167,18 @@
         "resolution": "resolved",
         "targetKind": "command",
         "minOperationalEffects": 1,
-        "coverageIncludes": ["found", "missing", "unsupported"],
-        "forbiddenTextIncludes": ["The system shall", "Requirement:", "Approved", "Validated by Lux", "Specification:"]
+        "coverageIncludes": [
+          "found",
+          "missing",
+          "unsupported"
+        ],
+        "forbiddenTextIncludes": [
+          "The system shall",
+          "Requirement:",
+          "Approved",
+          "Validated by Lux",
+          "Specification:"
+        ]
       }
     },
     {

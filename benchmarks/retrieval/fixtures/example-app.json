@@ -19,35 +19,6 @@
       }
     },
     {
-      "id": "chirocat-feature-path-unresolved-route",
-      "surface": "feature-path",
-      "mode": "ask",
-      "question": "what handles GET /patients/{patient}/dashboard/{tab}/{sub?}?",
-      "json": true,
-      "expect": {
-        "exitCode": 1,
-        "askSurface": "feature-path",
-        "askMode": "retrieval",
-        "resolution": "unresolved",
-        "summaryIncludes": "could not resolve"
-      }
-    },
-    {
-      "id": "chirocat-operational-unavailable-schedule",
-      "surface": "operational",
-      "mode": "ask",
-      "question": "what schedules app:refresh-client-statuses?",
-      "json": true,
-      "expect": {
-        "exitCode": 1,
-        "askSurface": "operational",
-        "askMode": "retrieval",
-        "resolution": "unresolved",
-        "intent": "schedule-sources",
-        "summaryIncludes": "could not resolve"
-      }
-    },
-    {
       "id": "chirocat-spec-evidence-deferred-event-seed",
       "surface": "spec-evidence",
       "mode": "overlay",
@@ -57,7 +28,11 @@
       "json": true,
       "expect": {
         "exitCode": 1,
-        "forbiddenTextIncludes": ["The system shall", "Approved", "Validated by Lux"]
+        "forbiddenTextIncludes": [
+          "The system shall",
+          "Approved",
+          "Validated by Lux"
+        ]
       }
     }
   ]

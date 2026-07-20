@@ -3,16 +3,11 @@ import { mkdirSync } from 'fs';
 import { dirname } from 'path';
 import { PreparedQueries } from './queries.js';
 import { MigrationRunner } from './migrations.js';
-import { resolveAiDefaults } from '../utils/ai-defaults.js';
 import type {
   KnowledgeEntry,
   Event,
-  Expert,
-  ExpertSession,
   KnowledgeEntryInsert,
   EventInsert,
-  ExpertInsert,
-  ExpertSessionInsert,
   DocumentSearchResult,
   ModuleDependency,
   StructuralNode,
@@ -50,54 +45,6 @@ export class LuxDatabase {
     }
   }
 
-  /**
-   * Wrap database errors with more helpful messages
-   */
-  private wrapDbError(error: unknown, operation: string, context?: string): Error {
-    if (error instanceof Error) {
-      const message = error.message;
-
-      // Handle specific SQLite error codes
-      if (message.includes('UNIQUE constraint failed')) {
-        const match = message.match(/UNIQUE constraint failed: (\w+)\.(\w+)/);
-        if (match) {
-          const [, table, column] = match;
-          return new Error(
-            `Duplicate ${table.slice(0, -1)} detected: ${column} already exists. ${context || ''}`
-          );
-        }
-        return new Error(`Duplicate entry detected during ${operation}. ${context || ''}`);
-      }
-
-      if (message.includes('FOREIGN KEY constraint failed')) {
-        return new Error(
-          `Invalid relationship during ${operation}: Referenced parent entity does not exist. ${context || ''}`
-        );
-      }
-
-      if (message.includes('NOT NULL constraint failed')) {
-        const match = message.match(/NOT NULL constraint failed: (\w+)\.(\w+)/);
-        if (match) {
-          const [, table, column] = match;
-          return new Error(
-            `Missing required field during ${operation}: ${column} is required for ${table}. ${context || ''}`
-          );
-        }
-        return new Error(`Missing required field during ${operation}. ${context || ''}`);
-      }
-
-      if (message.includes('CHECK constraint failed')) {
-        return new Error(
-          `Validation failed during ${operation}: Data does not meet database constraints. ${context || ''}`
-        );
-      }
-
-      // Return original error with added context
-      return new Error(`${operation} failed: ${message}. ${context || ''}`);
-    }
-
-    return new Error(`${operation} failed: ${String(error)}. ${context || ''}`);
-  }
 
   /**
    * Initialize prepared queries. Must be called after migrations.
@@ -221,115 +168,6 @@ export class LuxDatabase {
     }
 
     return results;
-  }
-
-  // Expert operations
-  insertExpert(expert: ExpertInsert): number {
-    try {
-      const result = this.getQueries().insertExpert.run({
-        slug: expert.slug,
-        name: expert.name,
-        mount_path: expert.mount_path,
-        model: expert.model ?? resolveAiDefaults().model,
-        backend: expert.backend ?? null,
-        provider: expert.provider ?? null,
-        thinking: expert.thinking ?? null,
-        claude_md_path: expert.claude_md_path ?? null,
-        memory_path: expert.memory_path ?? null,
-        status: expert.status ?? 'active',
-        boundary_basis: expert.boundary_basis ?? null,
-        structural_signature: expert.structural_signature ?? null,
-        structural_rationale: expert.structural_rationale ?? null,
-      });
-      return result.lastInsertRowid as number;
-    } catch (error) {
-      throw this.wrapDbError(error, 'insertExpert', `Expert slug: ${expert.slug}`);
-    }
-  }
-
-  getExpert(slug: string): Expert | undefined {
-    return this.getQueries().getExpert.get(slug) as Expert | undefined;
-  }
-
-  getAllExperts(): Expert[] {
-    return this.getQueries().getAllExperts.all() as Expert[];
-  }
-
-  getExpertsByStatus(status: string): Expert[] {
-    return this.getQueries().getExpertsByStatus.all(status) as Expert[];
-  }
-
-  updateExpert(slug: string, updates: Partial<ExpertInsert>) {
-    this.getQueries().updateExpert.run({
-      slug,
-      name: updates.name ?? null,
-      mount_path: updates.mount_path ?? null,
-      model: updates.model ?? null,
-      backend: updates.backend ?? null,
-      provider: updates.provider ?? null,
-      thinking: updates.thinking ?? null,
-      claude_md_path: updates.claude_md_path ?? null,
-      memory_path: updates.memory_path ?? null,
-      status: updates.status ?? null,
-      boundary_basis: updates.boundary_basis ?? null,
-      structural_signature: updates.structural_signature ?? null,
-      structural_rationale: updates.structural_rationale ?? null,
-    });
-  }
-
-  deleteExpert(slug: string) {
-    this.getQueries().deleteExpert.run(slug);
-  }
-
-  // Expert session operations
-  insertExpertSession(session: ExpertSessionInsert): number {
-    try {
-      const result = this.getQueries().insertExpertSession.run({
-        expert_id: session.expert_id,
-        session_ref: session.session_ref,
-        status: session.status ?? 'warm',
-      });
-      return result.lastInsertRowid as number;
-    } catch (error) {
-      throw this.wrapDbError(error, 'insertExpertSession', `Expert ID: ${session.expert_id}`);
-    }
-  }
-
-  getExpertSession(id: number): ExpertSession | undefined {
-    return this.getQueries().getExpertSession.get(id) as ExpertSession | undefined;
-  }
-
-  getSessionsByExpert(expertId: number): ExpertSession[] {
-    return this.getQueries().getSessionsByExpert.all(expertId) as ExpertSession[];
-  }
-
-  getSessionsByStatus(
-    status: string
-  ): (ExpertSession & { expert_slug: string; expert_name: string })[] {
-    return this.getQueries().getSessionsByStatus.all(status) as (ExpertSession & {
-      expert_slug: string;
-      expert_name: string;
-    })[];
-  }
-
-  getActiveSessionForExpert(expertId: number): ExpertSession | undefined {
-    return this.getQueries().getActiveSessionForExpert.get(expertId) as ExpertSession | undefined;
-  }
-
-  touchExpertSession(id: number) {
-    this.getQueries().updateSessionLastActive.run(id);
-  }
-
-  updateExpertSessionStatus(id: number, status: string) {
-    this.getQueries().updateSessionStatus.run({ id, status });
-  }
-
-  deleteExpertSession(id: number) {
-    this.getQueries().deleteExpertSession.run(id);
-  }
-
-  deleteSessionsByExpert(expertId: number) {
-    this.getQueries().deleteSessionsByExpert.run(expertId);
   }
 
   // Knowledge entry deletion by path
@@ -809,8 +647,6 @@ export class LuxDatabase {
     const queries = this.getQueries();
     this.clearOverlay();
     this.clearKnowledgeIndex();
-    queries.clearExpertSessions.run();
-    queries.clearExperts.run();
     queries.clearEvents.run();
   }
 
@@ -818,12 +654,10 @@ export class LuxDatabase {
     const queries = this.getQueries();
     const knowledge = queries.countKnowledgeEntries.get() as { count: number };
     const events = queries.countEvents.get() as { count: number };
-    const experts = queries.countExperts.get() as { count: number };
 
     return {
       knowledge_entries: knowledge.count,
       events: events.count,
-      experts: experts.count,
     };
   }
 

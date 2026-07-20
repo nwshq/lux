@@ -40,65 +40,6 @@ export interface EventInsert {
   payload?: Record<string, unknown>;
 }
 
-export interface Expert {
-  id: number;
-  slug: string;
-  name: string;
-  mount_path: string;
-  model: string;
-  /** Runtime backend used to execute this expert. Legacy rows may leave this unset. */
-  backend?: string;
-  /** Runtime provider for Pi-backed experts. */
-  provider?: string;
-  /** Runtime thinking level for Pi-backed experts. */
-  thinking?: string;
-  claude_md_path?: string;
-  memory_path?: string;
-  status: string;
-  created_at: number;
-  updated_at: number;
-  /** Whether this expert's boundary is directory-led, overlay-led, or hybrid. */
-  boundary_basis?: string;
-  /** JSON-serialized ExpertStructuralSignature. */
-  structural_signature?: string;
-  /** Human-readable structural rationale from the proposal that created this expert. */
-  structural_rationale?: string;
-}
-
-export interface ExpertInsert {
-  slug: string;
-  name: string;
-  mount_path: string;
-  model?: string;
-  backend?: string;
-  provider?: string;
-  thinking?: string;
-  claude_md_path?: string;
-  memory_path?: string;
-  status?: string;
-  /** Whether this expert's boundary is directory-led, overlay-led, or hybrid. */
-  boundary_basis?: string;
-  /** JSON-serialized ExpertStructuralSignature. */
-  structural_signature?: string;
-  /** Human-readable structural rationale from the proposal that created this expert. */
-  structural_rationale?: string;
-}
-
-export interface ExpertSession {
-  id: number;
-  expert_id: number;
-  session_ref: string;
-  spawned_at: number;
-  last_active_at: number;
-  status: string;
-}
-
-export interface ExpertSessionInsert {
-  expert_id: number;
-  session_ref: string;
-  status?: string;
-}
-
 /** Index metadata key-value pair for tracking index state. */
 export interface IndexMetadata {
   key: string;
