@@ -4,7 +4,7 @@
  *
  * Layers (top → bottom):
  *   1. Interface:      cli/, mcp/
- *   2. Business Logic: scanner/, init/
+ *   2. Business Logic: scanner/
  *   3. Data Access:    db/
  *   4. Shared:         utils/   (any layer may import)
  *
@@ -12,7 +12,7 @@
  * or utils/. Importing *upward* is a violation.
  *
  * Forbidden patterns are additional specific import pairs that are never allowed
- * even between modules on the same layer (e.g. init → scanner).
+ * even between modules on the same layer.
  *
  * Any import statement with a trailing `// @architecture-ignore` comment is
  * suppressed from violation reporting.
@@ -40,7 +40,6 @@ const MODULE_LAYER: Record<string, Layer> = {
   cli: 'interface',
   mcp: 'interface',
   scanner: 'business',
-  init: 'business',
   db: 'data',
   utils: 'shared',
   integration: 'interface', // integration tests live at interface level
@@ -59,12 +58,10 @@ function layerRank(layer: Layer): number {
  * These go beyond the general layer rule (e.g. business-to-business bans).
  */
 const FORBIDDEN_IMPORTS: Record<string, Set<string>> = {
-  // Business logic modules should not cross-import each other
-  init: new Set(['scanner']),
   // Data layer must not import from any higher layer
-  db: new Set(['cli', 'mcp', 'scanner', 'init']),
+  db: new Set(['cli', 'mcp', 'scanner']),
   // Utils must be leaf — imports nothing from src/
-  utils: new Set(['cli', 'mcp', 'scanner', 'init', 'db']),
+  utils: new Set(['cli', 'mcp', 'scanner', 'db']),
 };
 
 // ---------------------------------------------------------------------------

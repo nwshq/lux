@@ -299,7 +299,7 @@ A newly added process document.
     });
   });
 
-  describe('lux_list_experts', () => {
+  describe('expert table accessors (residual — no MCP tool)', () => {
     it('should list all experts', () => {
       const experts = db.getAllExperts();
       expect(experts).toHaveLength(0); // No experts registered yet
@@ -351,8 +351,8 @@ A newly added process document.
     });
   });
 
-  describe('lux_ask', () => {
-    it('should return error for non-existent expert via expert_hint', () => {
+  describe('expert lookup accessors (residual — no MCP tool)', () => {
+    it('should return undefined for a non-existent expert slug', () => {
       const expert = db.getExpert('non-existent');
       expect(expert).toBeUndefined();
     });
@@ -399,7 +399,7 @@ A newly added process document.
     });
 
     it('should have active experts available for auto-routing', () => {
-      // Without expert_hint, the handler auto-routes to active experts
+      // Residual expert-table accessor; no MCP handler consumes it in v2
       const activeExperts = db.getExpertsByStatus('active');
       expect(activeExperts).toHaveLength(0); // No experts registered yet
 

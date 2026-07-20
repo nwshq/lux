@@ -40,10 +40,7 @@ const ENTRY_POINTS = new Set(['index.ts', 'cli/index.ts', 'mcp/server.ts']);
  * Their exports are transitively entry-point exports.
  */
 const ENTRY_ADJACENT = new Set([
-  'discovery/index.ts',
   'scanner/index.ts',
-  'lint/index.ts',
-  'lint/rules/location/index.ts',
   'scanner/lsp/index.ts',
 ]);
 

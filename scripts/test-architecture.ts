@@ -30,7 +30,6 @@ const SRC = resolve(ROOT, 'src');
 const ALLOWED_MODULES = new Set([
   'cli',
   'db',
-  'init',
   'integration',
   'mcp',
   'scanner',
