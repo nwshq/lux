@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import Database from 'better-sqlite3';
+import { LuxSqlite } from '../dist/db/sqlite-adapter.js';
 import { LuxDatabase } from '../dist/db/index.js';
 import { rebuildWithOverlay } from '../dist/scanner/rebuild-orchestrator.js';
 
@@ -18,8 +18,7 @@ const luxDb = new LuxDatabase(dbPath);
 await rebuildWithOverlay(luxDb, targetRepoPath);
 luxDb.close();
 
-const db = new Database(dbPath, { readonly: true });
-db.pragma('journal_mode = WAL');
+const db = new LuxSqlite(dbPath, { readonly: true });
 
 const allSurfaces = db.prepare(`
   select id,

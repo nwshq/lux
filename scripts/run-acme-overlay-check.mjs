@@ -1,5 +1,5 @@
 import { existsSync, rmSync } from 'node:fs';
-import Database from 'better-sqlite3';
+import { LuxSqlite } from '../dist/db/sqlite-adapter.js';
 import { LuxDatabase } from '../dist/db/index.js';
 import { rebuildWithOverlay } from '../dist/scanner/rebuild-orchestrator.js';
 
@@ -19,7 +19,7 @@ console.log('[scan-stats]', JSON.stringify(scanResult.stats));
 console.log('[overlay-result]', JSON.stringify(result));
 luxDb.close();
 
-const db = new Database(dbPath, { readonly: true });
+const db = new LuxSqlite(dbPath, { readonly: true });
 const count = (sql) => db.prepare(sql).get().count;
 
 const counts = {

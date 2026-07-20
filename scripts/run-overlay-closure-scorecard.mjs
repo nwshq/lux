@@ -1,7 +1,7 @@
 import { existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import Database from 'better-sqlite3';
+import { LuxSqlite } from '../dist/db/sqlite-adapter.js';
 
 const [luxRepoPath, targetRepoPath, dbPath] = process.argv.slice(2);
 if (!luxRepoPath || !targetRepoPath || !dbPath) {
@@ -18,7 +18,7 @@ const luxDb = new LuxDatabase(dbPath);
 await rebuildWithOverlay(luxDb, targetRepoPath);
 luxDb.close();
 
-const db = new Database(dbPath, { readonly: true });
+const db = new LuxSqlite(dbPath, { readonly: true });
 
 function quote(value) {
   return `'${String(value).replace(/'/g, "''")}'`;

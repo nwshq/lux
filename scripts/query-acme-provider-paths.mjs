@@ -1,5 +1,5 @@
-import Database from 'better-sqlite3';
-const db = new Database('/tmp/lux-auctic-module-routes.db', { readonly: true });
+import { LuxSqlite } from '../dist/db/sqlite-adapter.js';
+const db = new LuxSqlite('/tmp/lux-auctic-module-routes.db', { readonly: true });
 const rows = db.prepare(`
   select file_path, symbol_name,
          json_extract(metadata, '$.path') as path,
