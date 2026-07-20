@@ -28,11 +28,13 @@ export class LuxDatabase {
     // Ensure database directory exists
     mkdirSync(dirname(dbPath), { recursive: true });
     this.db = new LuxSqlite(dbPath);
-    this.db.pragma('journal_mode = WAL');
+    // journal_mode=delete: WASM SQLite has no WAL. Benchmarked faster than `memory`
+    // (1.24x vs 1.43x the better-sqlite3/WAL baseline) and crash-safe (on-disk rollback
+    // journal). synchronous=NORMAL preserves the batched-write throughput the app rebuild
+    // and the ~818k-row vendor-pack merge depend on; the Lux DB is derived state, so the
+    // small durability trade-off is recoverable by a rebuild (ADR-4 / ADR-2).
+    this.db.pragma('journal_mode = delete');
     this.db.pragma('foreign_keys = ON');
-    // Safe under WAL (a crash can lose the last commit, never corrupt) and removes
-    // the per-commit fsync — the write path both the app rebuild and the vendor-pack
-    // merge depend on for batched-write throughput (ADR-6 / ADR-2).
     this.db.pragma('synchronous = NORMAL');
 
     // Initialize migration system
