@@ -1,7 +1,7 @@
 import type Database from 'better-sqlite3';
 
 /**
- * Prepared statements for the Lux Knowledge Platform database.
+ * Prepared statements for the Lux database.
  * These statements are initialized once and reused for better performance.
  */
 export class PreparedQueries {

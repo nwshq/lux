@@ -62,7 +62,7 @@ interface ProgressReporter {
 
 program
   .name('lux')
-  .description('Lux Knowledge Platform - semantic search and knowledge retrieval')
+  .description('Lux — structural code-analysis and overlay engine for CORPUS-indexed repositories')
   .version(version)
   .option('--db <path>', 'Database path (defaults to <corpus>/.lux/lux.db)')
   .option('--corpus <path>', 'Content root directory path (defaults to current working directory)');

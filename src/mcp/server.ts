@@ -34,7 +34,7 @@ const db = new LuxDatabase(DEFAULT_DB_PATH);
 
 const server = new Server(
   {
-    name: 'lux-knowledge-platform',
+    name: 'lux',
     version: '0.1.0',
   },
   {

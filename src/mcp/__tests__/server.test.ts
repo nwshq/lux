@@ -7,7 +7,7 @@ import { GeneralScanner } from '../../scanner/index.js';
 /**
  * MCP Server Test Suite
  *
- * Tests all MCP tools exposed by the Lux Knowledge Platform:
+ * Tests all MCP tools exposed by the Lux MCP server:
  * - lux_search: Search across all indexed documents
  * - lux_log_event: Log an event to audit trail
  * - lux_get_file: Read file content
