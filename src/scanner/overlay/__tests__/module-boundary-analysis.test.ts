@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { mkdirSync, rmSync } from 'fs';
 import { join } from 'path';
-import { LuxDatabase } from '../../db/index.js';
+import { LuxDatabase } from '../../../db/index.js';
 import {
   BOUNDARY_RUBRIC_SETTINGS,
   aggregateModuleBoundaryEvidence,
@@ -16,8 +16,8 @@ import {
   isProjectionSupportEdgeType,
   isReinforcementBoundaryEdgeType,
 } from '../module-boundary-analysis.js';
-import { persistRebuildTrustState } from '../../scanner/overlay-trust-state.js';
-import type { StructuralEdge, StructuralNode } from '../../db/types.js';
+import { persistRebuildTrustState } from '../../overlay-trust-state.js';
+import type { StructuralEdge, StructuralNode } from '../../../db/types.js';
 
 const testDir = join(import.meta.dirname, 'fixtures', 'module-boundary-analysis-test');
 

@@ -5,10 +5,10 @@ import type {
   ModuleDependency,
   StructuralEdge,
   StructuralNode,
-} from '../db/types.js';
-import type { LuxDatabase } from '../db/index.js';
-import { detectModuleBoundaries, resolveModule } from '../scanner/imports/module-boundary.js';
-import { deriveOverlayTrustLevel, type OverlayTrustLevel } from './structural-analysis.js';
+} from '../../db/types.js';
+import type { LuxDatabase } from '../../db/index.js';
+import { detectModuleBoundaries, resolveModule } from '../imports/module-boundary.js';
+import { deriveOverlayTrustLevel, type OverlayTrustLevel } from '../overlay-trust-state.js';
 
 export type BoundaryEvidenceFamily =
   | 'async-workflow'

@@ -19,7 +19,7 @@ import {
 import {
   aggregateModuleBoundaryEvidence,
   type ModuleBoundaryAggregate,
-} from '../experts/module-boundary-analysis.js';
+} from '../scanner/overlay/module-boundary-analysis.js';
 
 type BoundaryFocusDirection = 'inbound' | 'outbound' | 'both';
 type BoundaryExploreListKind = 'overview' | 'regions' | 'families';
