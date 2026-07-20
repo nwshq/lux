@@ -239,7 +239,7 @@ function matchesOperationalNeighborhoodCue(normalized: string): boolean {
   );
 }
 
-export function inferOperationalAskIntent(question: string): OperationalIntentResolution {
+function inferOperationalAskIntent(question: string): OperationalIntentResolution {
   const normalized = question.toLowerCase();
   if (
     normalized.includes('evidence') ||
@@ -963,7 +963,7 @@ function validateOptions(options: OperationalAskOptions): void {
   }
 }
 
-export function executeOperationalAsk(
+function executeOperationalAsk(
   db: LuxDatabase,
   question: string,
   options: OperationalAskOptions & { corpusPath: string }

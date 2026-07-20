@@ -33,9 +33,6 @@ import {
 import { addSearchCommand } from './search.js';
 import { addHooksCommand } from './hooks.js';
 import { addMigrateCommands } from './migrate.js';
-import { addLintCommand } from './lint.js';
-import { addExpertCommands } from './expert.js';
-import { addAskCommand } from './ask.js';
 import { addDepsCommand } from './deps.js';
 import { addVendorPackCommands } from './pack.js';
 import { addTraceCommand } from './trace.js';
@@ -885,15 +882,6 @@ addHooksCommand(program);
 
 // Add migration commands
 addMigrateCommands(program);
-
-// Add lint command
-addLintCommand(program);
-
-// Add expert commands
-addExpertCommands(program);
-
-// Add ask command
-addAskCommand(program);
 
 // Add deps command
 addDepsCommand(program);

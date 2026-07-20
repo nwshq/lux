@@ -36,7 +36,7 @@ export interface FeaturePathAskExecutionResult {
   exitCode: 0 | 1;
 }
 
-export function executeFeaturePathAsk(
+function executeFeaturePathAsk(
   db: LuxDatabase,
   question: string,
   options: FeaturePathAskOptions & { corpusPath: string }
