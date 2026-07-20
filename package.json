@@ -1,7 +1,7 @@
 {
   "name": "@nwshq/lux",
   "version": "1.2.1",
-  "description": "TypeScript MCP server for CORPUS semantic search and knowledge retrieval",
+  "description": "Structural code-analysis and overlay engine for CORPUS-indexed repositories (MCP server + CLI)",
   "type": "module",
   "main": "./dist/index.js",
   "bin": {

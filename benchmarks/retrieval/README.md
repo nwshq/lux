@@ -18,7 +18,6 @@ npx tsx benchmarks/retrieval/run.ts \
 
 ## What it validates
 
-- Top-level `lux ask --json` envelope stability for promoted retrieval.
 - Dedicated overlay JSON remains native/unwrapped.
 - Successful retrieval keeps direct evidence and context distinct.
 - Ambiguous or unresolved retrieval refuses honestly and exits nonzero.
@@ -41,7 +40,6 @@ Cases may target these surfaces:
 
 Modes:
 
-- `ask` — top-level `lux ask`.
 - `overlay` — dedicated overlay seam.
 - `status` — `lux index status --json`.
 

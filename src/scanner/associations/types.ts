@@ -300,21 +300,11 @@ export function tsSymbolNodeId(relativeFilePath: string, symbolName: string): st
   return `symbol:ts:${relativeFilePath}#${symbolName}`;
 }
 
-/** Build a route node ID from an HTTP method and path. */
-export function routeNodeId(method: string, path: string): string {
-  return `route:${method.toUpperCase()}:${path}`;
-}
-
 /** Build a contract node ID. Prefers explicit schema name if provided. */
 export function contractNodeId(schemaName?: string, routeKey?: string): string {
   if (schemaName) return `contract:schema:${schemaName}`;
   if (routeKey) return `contract:route:${routeKey}`;
   return `contract:synthetic:${Math.random().toString(36).slice(2)}`;
-}
-
-/** Build an artifact node ID from a descriptor (e.g. type bundle path). */
-export function artifactNodeId(descriptor: string): string {
-  return `artifact:${descriptor}`;
 }
 
 /**

@@ -12,7 +12,7 @@ interface BenchmarkFixture {
 }
 
 type BenchmarkSurface = 'feature-path' | 'operational' | 'status' | 'spec-evidence';
-type BenchmarkMode = 'ask' | 'overlay' | 'status';
+type BenchmarkMode = 'overlay' | 'status';
 
 interface BenchmarkCase {
   id: string;
@@ -222,12 +222,6 @@ function buildCaseCommand(
     return command;
   }
 
-  if (testCase.mode === 'ask') {
-    command.push('ask', testCase.question);
-    if (testCase.json) command.push('--json');
-    return command;
-  }
-
   command.push('overlay', testCase.surface, 'ask');
   if (testCase.json) command.push('--json');
   if (testCase.target) command.push('--target', testCase.target);
@@ -401,8 +395,6 @@ function parseTextPayload(stdout: string, testCase: BenchmarkCase): ParsedCasePa
   const targetMatch = stdout.match(/^Target:\s+(.+)$/m);
 
   return {
-    askSurface: testCase.mode === 'ask' ? testCase.surface : undefined,
-    askMode: testCase.mode === 'ask' && testCase.surface !== 'status' ? 'retrieval' : undefined,
     resolution: resolutionMatch?.[1] ?? (resolutionMatchLine ? 'resolved' : undefined),
     intent: inferTextIntent(testCase),
     targetId: targetMatch?.[1],

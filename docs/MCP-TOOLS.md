@@ -8,8 +8,6 @@ Current MCP tool surface from `src/mcp/server.ts`.
 - `lux_log_event`
 - `lux_get_file`
 - `lux_rebuild_index`
-- `lux_list_experts`
-- `lux_ask`
 - `lux_spec_derivation_evidence`
 
 ## `lux_search`
@@ -47,24 +45,6 @@ Current MCP tool surface from `src/mcp/server.ts`.
 {}
 ```
 
-## `lux_list_experts`
-
-```json
-{
-  "status": "active|inactive|all"
-}
-```
-
-## `lux_ask`
-
-```json
-{
-  "question": "string",
-  "expert_hint": "string",
-  "context": "string"
-}
-```
-
 ## `lux_spec_derivation_evidence`
 
 Returns a `SpecDerivationEvidencePacketV1` JSON packet for a single route, handler, job, listener, or command target. This is source evidence for downstream specification derivation, not a Lux-authored specification.
@@ -83,4 +63,4 @@ Deferred seed kinds such as `event`, `service`, `region`, file, and symbol are n
 
 ## Usage observability
 
-MCP search, rebuild, ask, and spec-evidence paths emit normalized local `lux_usage_event` records where the handler has enough context to do so. These events are written to the same repo-local SQLite event store used by CLI observability and can be reviewed with `lux usage report` from the CLI. External event shippers are not part of this tranche.
+MCP search, rebuild, and spec-evidence paths emit normalized local `lux_usage_event` records where the handler has enough context to do so. These events are written to the same repo-local SQLite event store used by CLI observability and can be reviewed with `lux usage report` from the CLI. External event shippers are not part of this tranche.

@@ -50,7 +50,7 @@ export function addHooksCommand(program: Command) {
       // Check if hook already exists
       if (existsSync(postCommitPath)) {
         const existing = readFileSync(postCommitPath, 'utf-8');
-        if (existing.includes('Lux Knowledge Platform')) {
+        if (existing.includes('Lux - Git post-commit hook')) {
           if (existing === packagedHook) {
             console.log('✓ Lux post-commit hook already installed');
             return;
@@ -110,7 +110,7 @@ export function addHooksCommand(program: Command) {
       }
 
       const existing = readFileSync(postCommitPath, 'utf-8');
-      if (!existing.includes('Lux Knowledge Platform')) {
+      if (!existing.includes('Lux - Git post-commit hook')) {
         console.error('Warning: post-commit hook exists but is not a Lux hook.');
         console.error('Refusing to uninstall.');
         process.exit(1);

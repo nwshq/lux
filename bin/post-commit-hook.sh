@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Lux Knowledge Platform - Git post-commit hook
+# Lux - Git post-commit hook
 # Automatically syncs index after corpus commits
 
 # Configuration

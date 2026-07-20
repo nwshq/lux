@@ -18,7 +18,7 @@ export interface AppliedMigration {
 }
 
 /**
- * Migration manager for the Lux Knowledge Platform database.
+ * Migration manager for the Lux database.
  * Handles schema versioning and migrations.
  */
 export class MigrationRunner {

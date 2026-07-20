@@ -18,14 +18,11 @@ mcporter list lux --schema
 # Call tools using key=value syntax
 mcporter call lux.lux_search query="acme" type="all"
 
-# List registered experts
-mcporter call lux.lux_list_experts
+# Trace calls across the app→vendor boundary
+mcporter call lux.lux_trace symbol="App\\Services\\OrderService::place"
 
-# Ask a question (auto-routes to the best expert)
-mcporter call lux.lux_ask question="What is the project status?"
-
-# Ask a specific expert
-mcporter call lux.lux_ask question="What is the project status?" expert_hint="my-expert"
+# Retrieve spec-derivation evidence for one target
+mcporter call lux.lux_spec_derivation_evidence question="what source evidence supports this route?" target="POST /orders/{id}/cancel" kind="route"
 ```
 
 ### Global Installation

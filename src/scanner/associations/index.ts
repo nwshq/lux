@@ -20,21 +20,14 @@ export {
   fileNodeId,
   phpSymbolNodeId,
   tsSymbolNodeId,
-  routeNodeId,
   contractNodeId,
-  artifactNodeId,
   surfaceNodeId,
 } from './types.js';
 
 export { summarizeEdgeEvidence, formatEdgeBlock, annotateFreshness } from './evidence.js';
 export type { EdgeWithEvidence } from './evidence.js';
 
-export {
-  createDefaultResolvers,
-  LaravelRoutesResolver,
-  LaravelBoundaryEvidenceResolver,
-  GeneratedTypesResolver,
-} from './framework/index.js';
+export { createDefaultResolvers, LaravelBoundaryEvidenceResolver } from './framework/index.js';
 
 export {
   createDefaultOperationalExtractors,

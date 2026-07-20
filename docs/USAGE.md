@@ -68,48 +68,6 @@ lux migrate up
 lux migrate create <name>
 ```
 
-## Lint
-
-```bash
-lux lint
-lux lint <path>
-lux lint --severity warning
-lux lint --rule <name>
-lux lint --format json
-lux lint --quiet
-```
-
-## Expert panel
-
-```bash
-lux expert list
-lux expert list --status active
-lux expert show <slug>
-lux expert add <slug> --mount <path>
-lux expert remove <slug> --yes
-lux expert discover --dry-run
-lux expert discover --accept-all
-lux expert discover --diff
-lux expert discover --count-selection-mode quality-gated-inventory --max-experts 16
-```
-
-`expert discover` reports its count policy in JSON and human output. The default
-`top-n-slice` mode preserves fixed-count benchmark and compatibility behavior.
-Use `quality-gated-inventory` when the question is how many structurally justified
-experts the repo should carry; in that mode `--max-experts` is a safety cap, not a
-product target. Runtime routing remains bounded separately from inventory size.
-
-## Ask
-
-```bash
-lux ask "question"
-lux ask "question" --expert <slug>
-lux ask "question" --verbose
-lux ask "question" --json
-lux ask "question" --stream
-lux ask "question" --no-stream
-```
-
 ## Usage observability
 
 ```bash
@@ -128,7 +86,7 @@ The event model separates:
 - retrieval attempt outcome (`answered`, `refused`, `ambiguous`, `unresolved`, `fallback`, or `not_applicable`)
 - trust/freshness state (`fresh`, `stale`, `degraded`, `content-only`, `absent`, or `unknown`)
 
-This means promoted retrieval refusals and fallbacks remain visible even when a later expert-panel path succeeds. Standard events hash query text by default and do not store raw prompts, raw model responses, or raw session identifiers. Lux-managed post-commit hooks also emit best-effort hook outcome events, so automated sync behavior is visible without making commits depend on observability writes. JSONL, GELF/Graylog, and OTLP exporters are deferred; SQLite is the canonical first-tranche sink.
+This means retrieval refusals and fallbacks remain visible in the local event stream. Standard events hash query text by default and do not store raw prompts, raw model responses, or raw session identifiers. Lux-managed post-commit hooks also emit best-effort hook outcome events, so automated sync behavior is visible without making commits depend on observability writes. JSONL, GELF/Graylog, and OTLP exporters are deferred; SQLite is the canonical first-tranche sink.
 
 ## Module dependency analysis
 

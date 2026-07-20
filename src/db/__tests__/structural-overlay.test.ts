@@ -35,7 +35,7 @@ function makeEdge(overrides: Partial<StructuralEdge> = {}): StructuralEdge {
     id: 'edge:test-1',
     source_node_id: 'file:src/app.ts',
     target_node_id: 'file:src/routes/api.ts',
-    edge_type: 'calls_endpoint',
+    edge_type: 'calls_surface',
     confidence: 0.9,
     confidence_class: 'framework-inferred',
     freshness_status: 'fresh',
@@ -168,7 +168,7 @@ describe('structural overlay — edges', () => {
     const edges = db.getStructuralEdgesForNode(edge.source_node_id);
     expect(edges).toHaveLength(1);
     expect(edges[0].id).toBe(edge.id);
-    expect(edges[0].edge_type).toBe('calls_endpoint');
+    expect(edges[0].edge_type).toBe('calls_surface');
     expect(edges[0].confidence).toBe(0.9);
     expect(edges[0].confidence_class).toBe('framework-inferred');
     expect(edges[0].freshness_status).toBe('fresh');

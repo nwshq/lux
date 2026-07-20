@@ -16,8 +16,8 @@ import type { EdgeEvidence, StructuralEdge } from '../../db/types.js';
  *
  * Format:
  * ```
- * [calls_endpoint / framework-inferred / 0.90]
- * laravel-routes via route-match: routes/api.php:42 (GET /api/users)
+ * [calls_surface / framework-inferred / 0.90]
+ * laravel-http via surface-match: routes/api.php:42 (GET /api/users)
  * ```
  */
 export function summarizeEdgeEvidence(edge: StructuralEdge, evidence: EdgeEvidence[]): string {

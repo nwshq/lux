@@ -57,7 +57,7 @@ describe('hooks command runtime path resolution', () => {
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('Post-commit hook installed successfully');
     expect(result.stdout).toContain('The index will now sync automatically after each commit.');
-    expect(readFileSync(hookPath, 'utf-8')).toContain('Lux Knowledge Platform');
+    expect(readFileSync(hookPath, 'utf-8')).toContain('Lux - Git post-commit hook');
   });
 
   it('uses LUX_CORPUS_PATH when invoked outside the repo', () => {
@@ -66,7 +66,7 @@ describe('hooks command runtime path resolution', () => {
 
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('Post-commit hook installed successfully');
-    expect(readFileSync(hookPath, 'utf-8')).toContain('Lux Knowledge Platform');
+    expect(readFileSync(hookPath, 'utf-8')).toContain('Lux - Git post-commit hook');
   });
 
   it('hints when corpus path contains a nested repo like vcs', () => {
@@ -127,7 +127,7 @@ describe('hooks command runtime path resolution', () => {
 
       expect(result.status).toBe(0);
       expect(result.stdout).toContain(`Path: ${hookPath}`);
-      expect(readFileSync(hookPath, 'utf-8')).toContain('Lux Knowledge Platform');
+      expect(readFileSync(hookPath, 'utf-8')).toContain('Lux - Git post-commit hook');
       expect(join(repoDir, '.git', 'hooks', 'post-commit')).not.toBe(hookPath);
     } finally {
       rmSync(otherRepoDir, { recursive: true, force: true });
@@ -158,7 +158,7 @@ describe('hooks command runtime path resolution', () => {
     const hookPath = join(repoDir, '.git', 'hooks', 'post-commit');
     writeFileSync(
       hookPath,
-      '#!/usr/bin/env bash\n# Lux Knowledge Platform - old hook\necho stale\n',
+      '#!/usr/bin/env bash\n# Lux - Git post-commit hook - old hook\necho stale\n',
       'utf-8'
     );
 

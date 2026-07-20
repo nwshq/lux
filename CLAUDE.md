@@ -22,9 +22,6 @@ Shared resolver: `src/utils/runtime-paths.ts`
 - `lux search`
 - `lux hooks install|uninstall`
 - `lux migrate status|up|create`
-- `lux lint`
-- `lux expert list|show|add|remove|discover`
-- `lux ask`
 - `lux deps graph|clusters|impact|coverage`
 - `lux vendor-pack build|status`
 - `lux trace <symbol>`
@@ -37,9 +34,8 @@ From `src/mcp/server.ts`:
 - `lux_log_event`
 - `lux_get_file`
 - `lux_rebuild_index`
-- `lux_list_experts`
-- `lux_ask`
 - `lux_trace`
+- `lux_spec_derivation_evidence`
 
 ## Overlay
 
@@ -61,9 +57,8 @@ Current operator-facing overlay states:
 - `src/cli/index.ts`
 - `src/cli/search.ts`
 - `src/cli/hooks.ts`
-- `src/cli/expert.ts`
-- `src/cli/ask.ts`
 - `src/cli/deps.ts`
+- `src/cli/trace.ts`
 - `src/cli/overlay.ts`
 - `src/mcp/server.ts`
 - `src/utils/runtime-paths.ts`

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { mkdirSync, rmSync } from 'fs';
 import { join } from 'path';
-import { LuxDatabase } from '../../db/index.js';
+import { LuxDatabase } from '../../../db/index.js';
 import {
   BOUNDARY_RUBRIC_SETTINGS,
   aggregateModuleBoundaryEvidence,
@@ -16,8 +16,8 @@ import {
   isProjectionSupportEdgeType,
   isReinforcementBoundaryEdgeType,
 } from '../module-boundary-analysis.js';
-import { persistRebuildTrustState } from '../../scanner/overlay-trust-state.js';
-import type { StructuralEdge, StructuralNode } from '../../db/types.js';
+import { persistRebuildTrustState } from '../../overlay-trust-state.js';
+import type { StructuralEdge, StructuralNode } from '../../../db/types.js';
 
 const testDir = join(import.meta.dirname, 'fixtures', 'module-boundary-analysis-test');
 
@@ -130,8 +130,8 @@ describe('module-boundary rubric', () => {
     expect(direct).toBeGreaterThan(0);
   });
 
-  it('classifies fallback endpoint calls as supporting-only', () => {
-    const entry = classifyBoundaryEvidence('calls_endpoint');
+  it('classifies fallback template renders as supporting-only', () => {
+    const entry = classifyBoundaryEvidence('renders_template');
 
     expect(entry.family).toBe('fallback-structure');
     expect(entry.role).toBe('supporting-only');

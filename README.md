@@ -9,30 +9,17 @@ Shared resolver: `src/utils/runtime-paths.ts`
 - corpus: `--corpus` -> `LUX_CORPUS_PATH` -> current working directory
 - db: `--db` -> `LUX_DB_PATH` -> `<resolved corpus>/.lux/lux.db`
 
-
-## AI configuration
-
-Shared AI defaults are documented in `docs/ai-config.md`.
-
-Environment-configurable surfaces now include:
-- base AI defaults: model/backend/provider/thinking
-- discovery synthesis overrides
-- ask/panel routing overrides
-- corpus/db runtime paths
-
-CLI flags still override env defaults.
-
 ## Current CLI surface
 
 - `lux index rebuild|sync|status`
 - `lux search`
 - `lux hooks install|uninstall`
 - `lux migrate status|up|create`
-- `lux lint`
-- `lux expert list|show|add|remove|discover`
-- `lux ask`
 - `lux deps graph|clusters|impact|coverage`
-- `lux overlay status|check`
+- `lux trace <symbol>`
+- `lux vendor-pack build|status`
+- `lux usage report`
+- `lux overlay status|check|ownership|boundaries|operational ask|feature-path ask|spec-evidence ask`
 
 ## Current MCP surface
 
@@ -41,8 +28,8 @@ From `src/mcp/server.ts`:
 - `lux_log_event`
 - `lux_get_file`
 - `lux_rebuild_index`
-- `lux_list_experts`
-- `lux_ask`
+- `lux_trace`
+- `lux_spec_derivation_evidence`
 
 ## Working rules
 
@@ -59,4 +46,3 @@ From `src/mcp/server.ts`:
 - `docs/USAGE.md`
 - `docs/MCP-CONFIGURATION.md`
 - `docs/MCP-TOOLS.md`
-- `docs/ai-config.md`
