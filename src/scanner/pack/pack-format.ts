@@ -100,12 +100,11 @@ export interface VendorPackManifest {
 }
 
 /**
- * Batched, transactional writer over a second better-sqlite3 handle.
+ * Batched, transactional writer over a dedicated WASM-SQLite (`LuxSqlite`) handle.
  *
- * Built with WAL for write speed; `finalize()` folds the WAL back into the main
- * file with `wal_checkpoint(TRUNCATE)` BEFORE closing, so the resulting `.db` is
- * self-contained and safe for the merge's read-only `ATTACH` (a leftover `-wal`
- * sidecar would let ATTACH read a partial DB).
+ * Uses `journal_mode=delete`, which leaves no `-wal`/`-journal` sidecar once the
+ * transactions commit, so the resulting single `.db` is self-contained and safe for
+ * the merge's read-only `ATTACH` (a leftover sidecar would let ATTACH read a partial DB).
  */
 export class VendorPackWriter {
   private db: LuxSqlite;

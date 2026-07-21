@@ -4,7 +4,7 @@ Developer and agent reference.
 
 ## Runtime
 
-- Node >= 20
+- Node >= 22.12 (WASM SQLite — no native build; `commander@15` sets the floor)
 - ESM project
 - CLI binary: `lux`
 - MCP binary: `lux-mcp`

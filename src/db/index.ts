@@ -29,10 +29,12 @@ export class LuxDatabase {
     mkdirSync(dirname(dbPath), { recursive: true });
     this.db = new LuxSqlite(dbPath);
     // journal_mode=delete: WASM SQLite has no WAL. Benchmarked faster than `memory`
-    // (1.24x vs 1.43x the better-sqlite3/WAL baseline) and crash-safe (on-disk rollback
-    // journal). synchronous=NORMAL preserves the batched-write throughput the app rebuild
-    // and the ~818k-row vendor-pack merge depend on; the Lux DB is derived state, so the
-    // small durability trade-off is recoverable by a rebuild (ADR-4 / ADR-2).
+    // (1.24x vs 1.43x the better-sqlite3/WAL baseline). synchronous=NORMAL keeps the
+    // batched-write throughput the app rebuild and the ~818k-row vendor-pack merge depend
+    // on; under a rollback journal that trades a narrow power-loss / OS-crash corruption
+    // window (a plain process crash still rolls back cleanly on reopen) — acceptable
+    // because the Lux DB is derived state, fully recoverable by `lux index rebuild`
+    // (ADR-4 / ADR-2).
     this.db.pragma('journal_mode = delete');
     this.db.pragma('foreign_keys = ON');
     this.db.pragma('synchronous = NORMAL');
@@ -360,7 +362,13 @@ export class LuxDatabase {
       importAll();
       return { nodes, edges };
     } finally {
-      this.db.run('DETACH DATABASE pack');
+      try {
+        this.db.run('DETACH DATABASE pack');
+      } catch {
+        // best-effort: a failed merge can leave the transaction open (DETACH-in-transaction
+        // is illegal), so don't let DETACH mask the original error — the pack detaches when
+        // the handle closes anyway.
+      }
     }
   }
 

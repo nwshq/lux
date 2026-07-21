@@ -1,5 +1,15 @@
-import { describe, it, expect } from 'vitest';
+import { afterEach, beforeEach, describe, it, expect } from 'vitest';
+import { spawnSync } from 'node:child_process';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { hostname, tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { LuxSqlite } from '../sqlite-adapter.js';
+
+/** A PID that is guaranteed dead: spawn a node that exits immediately, then reuse its PID. */
+function deadPid(): number {
+  const child = spawnSync(process.execPath, ['-e', '0']);
+  return child.pid ?? 2147483646;
+}
 
 /**
  * Adapter-level validation of the reconciliations that make `LuxSqlite` a faithful
@@ -94,6 +104,45 @@ describe('LuxSqlite adapter', () => {
     expect(db.run('INSERT INTO t (a, b) VALUES (?, ?)', ['p', 'q']).changes).toBe(1);
     expect((db.get('SELECT a FROM t WHERE b = ?', 'q') as { a: string }).a).toBe('p');
     expect(db.all('SELECT * FROM t').length).toBe(1);
+    // the one-shots must NOT enter the finalize registry (else the never-closed MCP DB leaks)
+    expect((db as unknown as { stmts: Set<unknown> }).stmts.size).toBe(0);
     db.close();
+  });
+
+  it('close() is idempotent (better-sqlite3 parity)', () => {
+    const db = freshDb();
+    db.close();
+    expect(() => db.close()).not.toThrow();
+  });
+
+  describe('stale-lock recovery (reclaimStaleLock)', () => {
+    let dir: string;
+    let dbPath: string;
+    beforeEach(() => {
+      dir = mkdtempSync(join(tmpdir(), 'lux-lock-'));
+      dbPath = join(dir, 'x.db');
+    });
+    afterEach(() => rmSync(dir, { recursive: true, force: true }));
+
+    it('returns false when there is no lock', () => {
+      expect(LuxSqlite.reclaimStaleLock(dbPath)).toBe(false);
+    });
+
+    it('clears a stale lock left by a dead owner', () => {
+      // simulate a crashed writer: the VFS lock dir + an owner marker for a dead PID
+      mkdirSync(`${dbPath}.lock`);
+      mkdirSync(`${dbPath}.owners`);
+      writeFileSync(`${dbPath}.owners/${deadPid()}`, hostname());
+      expect(LuxSqlite.reclaimStaleLock(dbPath)).toBe(true);
+      expect(existsSync(`${dbPath}.lock`)).toBe(false);
+    });
+
+    it('does NOT clear a lock still held by a live owner', () => {
+      mkdirSync(`${dbPath}.lock`);
+      mkdirSync(`${dbPath}.owners`);
+      writeFileSync(`${dbPath}.owners/${process.pid}`, hostname()); // this process = alive
+      expect(LuxSqlite.reclaimStaleLock(dbPath)).toBe(false);
+      expect(existsSync(`${dbPath}.lock`)).toBe(true);
+    });
   });
 });

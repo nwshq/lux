@@ -80,6 +80,6 @@
     "url": "https://github.com/nwshq/lux.git"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.12.0"
   }
 }

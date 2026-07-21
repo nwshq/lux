@@ -5,6 +5,7 @@ import { dirname, join } from 'path';
 import { existsSync, readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { LuxDatabase } from '../db/index.js';
+import { LuxSqlite } from '../db/sqlite-adapter.js';
 import { GeneralScanner } from '../scanner/index.js';
 import { attachEnrichment } from '../scanner/general.js';
 import { rebuildWithOverlay, rebuildContentOnly } from '../scanner/rebuild-orchestrator.js';
@@ -102,6 +103,12 @@ indexCmd
         console.error(`Error: Content directory not found: ${corpusPath}`);
         console.error('  Please ensure the directory exists or set --corpus <path>');
         process.exit(1);
+      }
+
+      // A prior run killed mid-write (Ctrl-C / OOM) can leave a stale WASM-SQLite lock
+      // that wedges every open; a deliberate rebuild reclaims it when no live owner remains.
+      if (LuxSqlite.reclaimStaleLock(dbPath) && options.quiet !== true) {
+        console.error('Note: cleared a stale database lock from a previously interrupted run.');
       }
 
       // Initialize database with error handling

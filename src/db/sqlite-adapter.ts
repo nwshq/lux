@@ -1,4 +1,14 @@
 import { createRequire } from 'node:module';
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmdirSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
+import { hostname } from 'node:os';
 import type {
   Database as WasmDatabase,
   Statement as WasmStatement,
@@ -56,6 +66,64 @@ function normalizeGet<T>(row: T | null): T | undefined {
   return row === null ? undefined : row;
 }
 
+// ── Crash-lock recovery ────────────────────────────────────────────────────────
+// node-sqlite3-wasm's VFS implements SQLite locking as a `${path}.lock` *directory*
+// (mkdir/rmdir), freed only on graceful close — the OS never reclaims it on process
+// death (better-sqlite3 used POSIX fcntl locks, which the kernel drops). So a hard
+// crash mid-write leaves a stale `.lock` that wedges every reopen in SQLITE_BUSY.
+// Mitigation: (a) close open DBs on SIGINT/SIGTERM/exit so the common Ctrl-C case
+// releases the lock; (b) a per-PID owner registry so a deliberate `index rebuild` can
+// reclaim a lock whose owner is provably dead, without racing a live writer.
+
+const openInstances = new Set<LuxSqlite>();
+let cleanupHooked = false;
+
+function hookProcessCleanup(): void {
+  if (cleanupHooked) return;
+  cleanupHooked = true;
+  const closeAll = (): void => {
+    for (const inst of [...openInstances]) {
+      try {
+        inst.close();
+      } catch {
+        /* best-effort on shutdown */
+      }
+    }
+  };
+  process.on('exit', closeAll);
+  process.on('SIGINT', () => {
+    closeAll();
+    process.exit(130);
+  });
+  process.on('SIGTERM', () => {
+    closeAll();
+    process.exit(143);
+  });
+}
+
+function ownersDir(path: string): string {
+  return `${path}.owners`;
+}
+
+/** Record this process as an owner of the DB at `path` (a per-PID marker; best-effort). */
+function registerOwner(path: string): void {
+  try {
+    mkdirSync(ownersDir(path), { recursive: true });
+    writeFileSync(`${ownersDir(path)}/${process.pid}`, hostname());
+  } catch {
+    /* best-effort; the registry only assists stale-lock recovery */
+  }
+}
+
+function deregisterOwner(path: string): void {
+  try {
+    rmSync(`${ownersDir(path)}/${process.pid}`, { force: true });
+    rmdirSync(ownersDir(path)); // remove the registry dir iff now empty (last owner out); throws otherwise
+  } catch {
+    /* best-effort: a live co-owner keeps the dir non-empty (rmdir throws) — fine */
+  }
+}
+
 export interface RunResult {
   changes: number;
   lastInsertRowid: number | bigint;
@@ -87,12 +155,74 @@ export class LuxSqlite {
   /** Savepoint-nesting depth → depth-unique savepoint names. (The BEGIN-vs-SAVEPOINT
    *  decision reads the engine's real `inTransaction`; depth only names savepoints.) */
   private depth = 0;
+  private readonly path: string;
+  /** true when this instance registered a PID owner-marker (file-backed read-write). */
+  private readonly registered: boolean;
+
+  /**
+   * Reclaim a stale VFS lock left by a crashed process. Clears `${path}.lock` ONLY when
+   * no live owner remains (per-PID markers in `${path}.owners`), so it never races a live
+   * concurrent writer. Intended for a deliberate `index rebuild` (derived state — safe).
+   * Returns true if a stale lock was cleared.
+   */
+  static reclaimStaleLock(path: string): boolean {
+    const lockDir = `${path}.lock`;
+    if (!existsSync(lockDir)) return false;
+    const dir = ownersDir(path);
+    let markers: string[];
+    try {
+      markers = readdirSync(dir);
+    } catch {
+      markers = [];
+    }
+    let liveOwner = false;
+    for (const m of markers) {
+      const pid = Number(m);
+      if (!Number.isInteger(pid) || pid <= 0) continue;
+      let markerHost = '';
+      try {
+        markerHost = readFileSync(`${dir}/${m}`, 'utf8').trim();
+      } catch {
+        /* ignore unreadable marker */
+      }
+      if (markerHost && markerHost !== hostname()) {
+        liveOwner = true; // different host — can't verify liveness locally; be conservative
+        continue;
+      }
+      try {
+        process.kill(pid, 0); // throws ESRCH if the process is gone
+        liveOwner = true;
+      } catch {
+        try {
+          rmSync(`${dir}/${m}`, { force: true }); // prune the dead owner's marker
+        } catch {
+          /* best-effort */
+        }
+      }
+    }
+    if (liveOwner) return false; // a live process holds the DB — respect the lock
+    try {
+      rmSync(lockDir, { recursive: true, force: true });
+      return true;
+    } catch {
+      return false;
+    }
+  }
 
   constructor(path: string, opts: LuxSqliteOptions = {}) {
+    this.path = path;
     // (7) translate option keys: better-sqlite3 `readonly` → node-sqlite3-wasm `readOnly`.
     // undefined values are falsy → engine defaults to read-write + create, matching `new Database(path)`.
     this.db = new WasmDb(path, { readOnly: opts.readonly, fileMustExist: opts.fileMustExist });
-    this.db.run('PRAGMA busy_timeout = 5000'); // WAL is gone → wait on writer overlap, don't SQLITE_BUSY
+    // WAL is gone → the whole-file lock is held for a full write transaction; wait on it
+    // generously (a large rebuild/vendor-pack merge can hold it several seconds) before SQLITE_BUSY.
+    this.db.run('PRAGMA busy_timeout = 30000');
+    this.registered = !opts.readonly && path !== ':memory:';
+    if (this.registered) registerOwner(path);
+    if (path !== ':memory:') {
+      hookProcessCleanup();
+      openInstances.add(this);
+    }
   }
 
   /** Cached, reusable prepared statement, tracked for finalize-on-close. */
@@ -154,9 +284,13 @@ export class LuxSqlite {
     };
   }
 
+  /** Idempotent (better-sqlite3 parity): node-sqlite3-wasm throws on a 2nd close, so guard it. */
   close(): void {
+    if (!this.db.isOpen) return;
     for (const s of this.stmts) s.raw.finalize();
     this.stmts.clear();
     this.db.close();
+    openInstances.delete(this);
+    if (this.registered) deregisterOwner(this.path);
   }
 }
