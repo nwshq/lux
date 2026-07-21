@@ -1,12 +1,16 @@
 import { createRequire } from 'node:module';
 import {
+  closeSync,
   existsSync,
   mkdirSync,
+  openSync,
   readdirSync,
   readFileSync,
+  readSync,
   rmdirSync,
   rmSync,
   writeFileSync,
+  writeSync,
 } from 'node:fs';
 import { hostname } from 'node:os';
 import type {
@@ -124,6 +128,39 @@ function deregisterOwner(path: string): void {
   }
 }
 
+/**
+ * node-sqlite3-wasm CANNOT open a WAL-mode database (WAL needs shared-memory the WASM VFS
+ * can't provide). Lux indexes built under v2.0.0 (better-sqlite3) are WAL, so this engine
+ * fails to read them ("unable to open database file" on the first statement). When the WAL
+ * has been checkpointed (no `${path}-wal` sidecar) the `.db` file is already complete, and it
+ * is a lossless format change away from rollback mode: the header's write/read-version bytes
+ * (offsets 18/19: 2 = WAL) become 1 = rollback. Flip them in place so the file opens. Called
+ * for writable file-backed opens only; a pending `-wal` (uncommitted frames) is refused loudly.
+ */
+function ensureRollbackJournal(path: string): void {
+  let fd: number;
+  try {
+    fd = openSync(path, 'r+');
+  } catch {
+    return; // absent / not writable — let the open proceed (or fail with the engine's own error)
+  }
+  try {
+    const hdr = Buffer.alloc(20);
+    if (readSync(fd, hdr, 0, 20, 0) < 20) return; // too small to be a SQLite header
+    if (hdr.toString('latin1', 0, 16) !== 'SQLite format 3\0') return; // not a SQLite file
+    if (hdr[18] !== 2 && hdr[19] !== 2) return; // already rollback (or freshly created) — nothing to do
+    if (existsSync(`${path}-wal`)) {
+      throw new Error(
+        `Cannot open ${path}: it is a WAL database with an un-checkpointed ${path}-wal sidecar. ` +
+          `Checkpoint it first with a WAL-capable SQLite, e.g. \`sqlite3 ${path} 'PRAGMA wal_checkpoint(TRUNCATE)'\`.`
+      );
+    }
+    writeSync(fd, Buffer.from([1, 1]), 0, 2, 18); // WAL (2/2) -> rollback (1/1)
+  } finally {
+    closeSync(fd);
+  }
+}
+
 export interface RunResult {
   changes: number;
   lastInsertRowid: number | bigint;
@@ -211,6 +248,10 @@ export class LuxSqlite {
 
   constructor(path: string, opts: LuxSqliteOptions = {}) {
     this.path = path;
+    // node-sqlite3-wasm can't open a WAL-mode DB; convert a checkpointed v2.0.0 WAL index to
+    // rollback in place before opening (writable, file-backed opens only — never mutate a
+    // read-only target, e.g. an ATTACHed kernel).
+    if (path !== ':memory:' && !opts.readonly) ensureRollbackJournal(path);
     // (7) translate option keys: better-sqlite3 `readonly` → node-sqlite3-wasm `readOnly`.
     // undefined values are falsy → engine defaults to read-write + create, matching `new Database(path)`.
     this.db = new WasmDb(path, { readOnly: opts.readonly, fileMustExist: opts.fileMustExist });
