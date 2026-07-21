@@ -15,7 +15,7 @@
 //   - `pack_meta` is a small JSON-per-key manifest read by `lux vendor-pack
 //     status` and by the cache to validate a hit.
 
-import Database from 'better-sqlite3';
+import { LuxSqlite } from '../../db/sqlite-adapter.js';
 import { mkdirSync } from 'fs';
 import { dirname } from 'path';
 import type { StructuralNode, StructuralEdge } from '../../db/types.js';
@@ -100,21 +100,22 @@ export interface VendorPackManifest {
 }
 
 /**
- * Batched, transactional writer over a second better-sqlite3 handle.
+ * Batched, transactional writer over a dedicated WASM-SQLite (`LuxSqlite`) handle.
  *
- * Built with WAL for write speed; `finalize()` folds the WAL back into the main
- * file with `wal_checkpoint(TRUNCATE)` BEFORE closing, so the resulting `.db` is
- * self-contained and safe for the merge's read-only `ATTACH` (a leftover `-wal`
- * sidecar would let ATTACH read a partial DB).
+ * Uses `journal_mode=delete`, which leaves no `-wal`/`-journal` sidecar once the
+ * transactions commit, so the resulting single `.db` is self-contained and safe for
+ * the merge's read-only `ATTACH` (a leftover sidecar would let ATTACH read a partial DB).
  */
 export class VendorPackWriter {
-  private db: Database.Database;
+  private db: LuxSqlite;
 
   constructor(packPath: string) {
     mkdirSync(dirname(packPath), { recursive: true });
-    this.db = new Database(packPath);
-    this.db.pragma('journal_mode = WAL');
-    // NORMAL is safe for a rebuildable artifact and is what the spike measured.
+    this.db = new LuxSqlite(packPath);
+    // journal_mode=delete: WASM SQLite has no WAL, and delete leaves no -wal sidecar,
+    // so a bare copy of the file is self-contained (what the ATTACH merge relies on).
+    this.db.pragma('journal_mode = delete');
+    // NORMAL is safe for a rebuildable artifact.
     this.db.pragma('synchronous = NORMAL');
     this.db.exec(PACK_SCHEMA);
   }
@@ -170,9 +171,9 @@ export class VendorPackWriter {
   }
 
   /**
-   * Persist the manifest (one row per field, JSON value), fold the WAL into the
-   * main file so the pack is self-contained, then close. After this the pack is
-   * re-openable read-only and ATTACH-able by the merge.
+   * Persist the manifest (one row per field, JSON value), then close. Under
+   * journal_mode=delete there is no WAL sidecar, so once the transactions commit the
+   * single .db file is self-contained: re-openable read-only and ATTACH-able by the merge.
    */
   finalize(manifest: VendorPackManifest): void {
     const set = this.db.prepare(`INSERT OR REPLACE INTO pack_meta (key, value) VALUES (?, ?)`);
@@ -180,19 +181,16 @@ export class VendorPackWriter {
       for (const [k, v] of Object.entries(manifest)) set.run(k, JSON.stringify(v));
     });
     tx();
-    // Fold the WAL back into the main DB file so the single .db is complete and
-    // any read-only ATTACH sees every row (self-containment — see class doc).
-    this.db.pragma('wal_checkpoint(TRUNCATE)');
     this.db.close();
   }
 }
 
 /** Read-only manifest reader over a built pack. */
 export class VendorPackReader {
-  private db: Database.Database;
+  private db: LuxSqlite;
 
   constructor(public readonly packPath: string) {
-    this.db = new Database(packPath, { readonly: true, fileMustExist: true });
+    this.db = new LuxSqlite(packPath, { readonly: true, fileMustExist: true });
   }
 
   manifest(): VendorPackManifest {

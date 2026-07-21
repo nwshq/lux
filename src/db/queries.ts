@@ -1,4 +1,4 @@
-import type Database from 'better-sqlite3';
+import type { LuxSqlite, Stmt } from './sqlite-adapter.js';
 
 /**
  * Prepared statements for the Lux database.
@@ -6,96 +6,101 @@ import type Database from 'better-sqlite3';
  */
 export class PreparedQueries {
   // Knowledge entry queries
-  readonly insertKnowledgeEntry: Database.Statement;
-  readonly getKnowledgeEntriesByType: Database.Statement;
-  readonly getAllKnowledgeEntries: Database.Statement;
-  readonly getKnowledgeEntryByPath: Database.Statement;
-  readonly deleteKnowledgeEntry: Database.Statement;
+  readonly insertKnowledgeEntry: Stmt;
+  readonly getKnowledgeEntriesByType: Stmt;
+  readonly getAllKnowledgeEntries: Stmt;
+  readonly getKnowledgeEntryByPath: Stmt;
+  readonly deleteKnowledgeEntry: Stmt;
 
   // Event queries
-  readonly insertEvent: Database.Statement;
-  readonly getRecentEvents: Database.Statement;
+  readonly insertEvent: Stmt;
+  readonly getRecentEvents: Stmt;
 
   // Stats queries
-  readonly countKnowledgeEntries: Database.Statement;
-  readonly countEvents: Database.Statement;
+  readonly countKnowledgeEntries: Stmt;
+  readonly countEvents: Stmt;
 
   // Clear queries
-  readonly clearEvents: Database.Statement;
-  readonly clearKnowledgeEntries: Database.Statement;
-  readonly clearStructuralNodes: Database.Statement;
-  readonly clearStructuralEdges: Database.Statement;
-  readonly clearEdgeEvidence: Database.Statement;
-  readonly clearOperationalBoundaries: Database.Statement;
-  readonly clearOperationalHandlers: Database.Statement;
-  readonly clearOperationalEdges: Database.Statement;
-  readonly clearOperationalContracts: Database.Statement;
+  readonly clearEvents: Stmt;
+  readonly clearKnowledgeEntries: Stmt;
+  readonly clearStructuralNodes: Stmt;
+  readonly clearStructuralEdges: Stmt;
+  readonly clearEdgeEvidence: Stmt;
+  readonly clearOperationalBoundaries: Stmt;
+  readonly clearOperationalHandlers: Stmt;
+  readonly clearOperationalEdges: Stmt;
+  readonly clearOperationalContracts: Stmt;
 
   // FTS5 search queries
-  readonly searchKnowledgeEntriesFts: Database.Statement;
+  readonly searchKnowledgeEntriesFts: Stmt;
 
   // FTS5 content-only search queries
-  readonly searchKnowledgeEntriesContentFts: Database.Statement;
+  readonly searchKnowledgeEntriesContentFts: Stmt;
 
   // Index metadata queries
-  readonly getIndexMetadata: Database.Statement;
-  readonly setIndexMetadata: Database.Statement;
-  readonly deleteIndexMetadata: Database.Statement;
+  readonly getIndexMetadata: Stmt;
+  readonly setIndexMetadata: Stmt;
+  readonly deleteIndexMetadata: Stmt;
 
   // Delete knowledge entry by path
-  readonly deleteKnowledgeEntryByPath: Database.Statement;
+  readonly deleteKnowledgeEntryByPath: Stmt;
 
   // Module dependency queries
-  readonly insertModuleDependency: Database.Statement;
-  readonly getModuleDependenciesBySource: Database.Statement;
-  readonly getModuleDependenciesByTarget: Database.Statement;
-  readonly getAllModuleDependencies: Database.Statement;
-  readonly getModuleDependency: Database.Statement;
-  readonly clearModuleDependencies: Database.Statement;
-  readonly getDistinctModules: Database.Statement;
+  readonly insertModuleDependency: Stmt;
+  readonly getModuleDependenciesBySource: Stmt;
+  readonly getModuleDependenciesByTarget: Stmt;
+  readonly getAllModuleDependencies: Stmt;
+  readonly getModuleDependency: Stmt;
+  readonly clearModuleDependencies: Stmt;
+  readonly getDistinctModules: Stmt;
 
   // Structural overlay queries — nodes
-  readonly upsertStructuralNode: Database.Statement;
-  readonly getStructuralNode: Database.Statement;
-  readonly getStructuralNodesByType: Database.Statement;
-  readonly getLocalStructuralNodesByType: Database.Statement;
-  readonly findStructuralSymbolNodes: Database.Statement;
-  readonly getStructuralNodeByFilePath: Database.Statement;
+  readonly upsertStructuralNode: Stmt;
+  readonly getStructuralNode: Stmt;
+  readonly getStructuralNodesByType: Stmt;
+  readonly getLocalStructuralNodesByType: Stmt;
+  readonly findStructuralSymbolNodes: Stmt;
+  readonly getStructuralNodeByFilePath: Stmt;
 
   // Structural overlay queries — edges
-  readonly upsertStructuralEdge: Database.Statement;
-  readonly getStructuralEdge: Database.Statement;
-  readonly getStructuralEdgesForSourceNode: Database.Statement;
-  readonly getStructuralEdgesForTargetNode: Database.Statement;
-  readonly getStructuralEdgesForNode: Database.Statement;
-  readonly invalidateEdgesForFile: Database.Statement;
-  readonly markEdgesStaleForFile: Database.Statement;
-  readonly markEdgesStaleByCommit: Database.Statement;
+  readonly upsertStructuralEdge: Stmt;
+  readonly getStructuralEdge: Stmt;
+  readonly getStructuralEdgesForSourceNode: Stmt;
+  readonly getStructuralEdgesForTargetNode: Stmt;
+  readonly getStructuralEdgesForNode: Stmt;
+  readonly invalidateEdgesForFile: Stmt;
+  readonly markEdgesStaleForFile: Stmt;
+  readonly markEdgesStaleByCommit: Stmt;
 
   // Structural overlay queries — evidence
-  readonly insertEdgeEvidence: Database.Statement;
-  readonly deleteEdgeEvidence: Database.Statement;
-  readonly getEdgeEvidence: Database.Statement;
-  readonly getEdgeEvidenceByResolver: Database.Statement;
+  readonly insertEdgeEvidence: Stmt;
+  readonly deleteEdgeEvidence: Stmt;
+  readonly getEdgeEvidence: Stmt;
+  readonly getEdgeEvidenceByResolver: Stmt;
 
   // Capability-surface queries
-  readonly getCapabilitySurfaces: Database.Statement;
-  readonly searchSurfacesByHandle: Database.Statement;
+  readonly getCapabilitySurfaces: Stmt;
+  readonly searchSurfacesByHandle: Stmt;
 
   // Operational boundary queries
-  readonly upsertOperationalBoundary: Database.Statement;
-  readonly getOperationalBoundary: Database.Statement;
-  readonly getOperationalBoundariesByKind: Database.Statement;
-  readonly getOperationalBoundariesByRepoRoot: Database.Statement;
-  readonly upsertOperationalHandler: Database.Statement;
-  readonly getOperationalHandlersForBoundary: Database.Statement;
-  readonly upsertOperationalEdge: Database.Statement;
-  readonly getOperationalEdgesForSource: Database.Statement;
-  readonly getOperationalEdgesForTarget: Database.Statement;
-  readonly upsertOperationalContract: Database.Statement;
-  readonly getOperationalContractsForBoundary: Database.Statement;
+  readonly upsertOperationalBoundary: Stmt;
+  readonly getOperationalBoundary: Stmt;
+  readonly getOperationalBoundariesByKind: Stmt;
+  readonly getOperationalBoundariesByRepoRoot: Stmt;
+  readonly upsertOperationalHandler: Stmt;
+  readonly getOperationalHandlersForBoundary: Stmt;
+  readonly upsertOperationalEdge: Stmt;
+  readonly getOperationalEdgesForSource: Stmt;
+  readonly getOperationalEdgesForTarget: Stmt;
+  readonly upsertOperationalContract: Stmt;
+  readonly getOperationalContractsForBoundary: Stmt;
 
-  constructor(db: Database.Database) {
+  // Ownership classification (E1)
+  readonly getHandlerEdgesForOwnership: Stmt;
+  readonly setEdgeOwnership: Stmt;
+  readonly getOwnershipBreakdown: Stmt;
+
+  constructor(db: LuxSqlite) {
     // Knowledge entry queries
     this.insertKnowledgeEntry = db.prepare(`
       INSERT INTO knowledge_entries (type, title, file_path, tags, metadata, content)
@@ -426,6 +431,21 @@ export class PreparedQueries {
 
     this.getOperationalContractsForBoundary = db.prepare(`
       SELECT * FROM operational_contracts WHERE boundary_id = ? ORDER BY id ASC
+    `);
+
+    // Ownership classification (E1) — cached one-shots hoisted from index.ts so the
+    // never-closed MCP DB does not accumulate a fresh statement handle every rebuild.
+    this.getHandlerEdgesForOwnership = db.prepare(`
+      SELECT id, target_node_id FROM structural_edges
+      WHERE edge_type = 'handled_by' AND source_node_id LIKE 'surface:http:%'
+    `);
+
+    this.setEdgeOwnership = db.prepare(`UPDATE structural_edges SET ownership = ? WHERE id = ?`);
+
+    this.getOwnershipBreakdown = db.prepare(`
+      SELECT ownership, COUNT(*) as count FROM structural_edges
+      WHERE edge_type = 'handled_by' AND source_node_id LIKE 'surface:http:%'
+      GROUP BY ownership ORDER BY count DESC
     `);
   }
 }
