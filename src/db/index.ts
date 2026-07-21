@@ -19,6 +19,20 @@ import type {
   OperationalContract,
 } from './types.js';
 
+/** A kernel HTTP `handled_by` route joined against the client's nodes/routes (cross-area, #62). */
+export interface CrossAreaKernelRow {
+  route: string; // surface:http:METHOD:/path
+  kernel_handler: string; // symbol:php:<FQCN>
+  client_node: string | null; // client node id matching the handler FQCN (present → client implements it)
+  client_handler: string | null; // client's own handler for the same route (present → client overrides it)
+}
+
+/** A client's own HTTP `handled_by` route (for the client-local sweep). */
+export interface CrossAreaClientRoute {
+  route: string;
+  handler: string;
+}
+
 export class LuxDatabase {
   private db: LuxSqlite;
   private queries?: PreparedQueries;
@@ -370,6 +384,80 @@ export class LuxDatabase {
         // the handle closes anyway.
       }
     }
+  }
+
+  /**
+   * Run `fn` with a sibling area's `.lux` index ATTACHed read-side as `kernel` (cross-area
+   * ownership, #62). Mirrors importVendorPack's ATTACH-outside-transaction / DETACH-in-finally,
+   * but performs NO writes on `kernel.*` — read-only is by discipline (node-sqlite3-wasm has no
+   * URI read-only open mode). Guards schema parity (client vs kernel `schema_version`) before `fn`.
+   */
+  attachKernel<T>(kernelDbPath: string, fn: () => T): T {
+    this.db.run('ATTACH DATABASE ? AS kernel', kernelDbPath); // outside any transaction
+    try {
+      const parity = this.db.get(
+        `SELECT (SELECT MAX(version) FROM main.schema_version)   AS client,
+                (SELECT MAX(version) FROM kernel.schema_version) AS kernel`
+      ) as { client: number; kernel: number };
+      if (parity.client !== parity.kernel) {
+        throw new Error(
+          `Cross-area overlay: kernel index schema v${parity.kernel} != client schema v${parity.client}; re-index one.`
+        );
+      }
+      // Engine-enforce the read-only invariant for the attach window: any INSERT/UPDATE/DELETE
+      // on kernel.* (or main.*) inside fn now hard-errors, rather than relying on discipline.
+      this.db.run('PRAGMA query_only = ON');
+      return fn();
+    } finally {
+      try {
+        this.db.run('PRAGMA query_only = OFF');
+      } catch {
+        // best-effort
+      }
+      try {
+        this.db.run('DETACH DATABASE kernel');
+      } catch {
+        // best-effort: a failed fn can leave state that makes DETACH throw; don't mask the real error.
+      }
+    }
+  }
+
+  /**
+   * Read-side rows for the cross-area ownership map (#62): every kernel HTTP `handled_by`
+   * route (the classification is by the handler FQCN's namespace, so no join to
+   * `kernel.structural_nodes` is needed), plus the client's own routes for the client-local
+   * sweep. Runs under {@link attachKernel} (read-only, no writes on `kernel.*`).
+   */
+  crossAreaOwnership(kernelDbPath: string): {
+    kernelRows: CrossAreaKernelRow[];
+    clientRoutes: CrossAreaClientRoute[];
+  } {
+    return this.attachKernel(kernelDbPath, () => {
+      // One row per kernel route (GROUP BY dedups a route with >1 handled_by edge; MIN makes
+      // the chosen handler deterministic). client_handler is a deterministic correlated subquery
+      // (ORDER BY … LIMIT 1) rather than a LEFT JOIN, so a client with >1 handler for a route
+      // cannot fan the kernel row out or pick a handler non-deterministically.
+      const kernelRows = this.db.all(
+        `SELECT ke.route,
+                ke.kernel_handler,
+                cn.id AS client_node,
+                (SELECT ce.target_node_id FROM main.structural_edges ce
+                  WHERE ce.source_node_id = ke.route AND ce.edge_type = 'handled_by'
+                  ORDER BY ce.target_node_id LIMIT 1) AS client_handler
+           FROM (SELECT source_node_id AS route, MIN(target_node_id) AS kernel_handler
+                   FROM kernel.structural_edges
+                  WHERE edge_type = 'handled_by' AND source_node_id LIKE 'surface:http:%'
+                  GROUP BY source_node_id) ke
+           LEFT JOIN main.structural_nodes cn ON cn.id = ke.kernel_handler`
+      ) as CrossAreaKernelRow[];
+      const clientRoutes = this.db.all(
+        `SELECT source_node_id AS route, MIN(target_node_id) AS handler
+           FROM main.structural_edges
+          WHERE edge_type = 'handled_by' AND source_node_id LIKE 'surface:http:%'
+          GROUP BY source_node_id`
+      ) as CrossAreaClientRoute[];
+      return { kernelRows, clientRoutes };
+    });
   }
 
   getStructuralNode(id: string): StructuralNode | null {

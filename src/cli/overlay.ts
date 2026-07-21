@@ -7,6 +7,12 @@
 import type { Command } from 'commander';
 import { LuxDatabase } from '../db/index.js';
 import { resolveCorpusPath, resolveDbPath, resolveRuntimePaths } from '../utils/runtime-paths.js';
+import { loadLspConfig } from '../scanner/config.js';
+import { resolveKernel, type ResolvedKernel } from '../scanner/associations/kernel-area.js';
+import {
+  classifyCrossAreaOwnership,
+  resolveAppNamespace,
+} from '../scanner/associations/ownership.js';
 import { runFeaturePathAsk } from './feature-path.js';
 import { runOperationalAsk } from './operational.js';
 import { runSpecEvidenceAsk } from './spec-evidence.js';
@@ -537,36 +543,123 @@ export function addOverlayCommands(program: Command): void {
         '(kernel-owned / client-override / client-gap / external).'
     )
     .option('--json', 'Emit machine-readable JSON instead of human-readable text')
-    .action((options: { json?: boolean }) => {
+    .option(
+      '--kernel [path]',
+      'Cross-area mode: classify against the vendored kernel index (overlay.kernel.package)'
+    )
+    .action((options: { json?: boolean; kernel?: string | boolean }) => {
       const opts = program.opts();
       const runtime = resolveRuntimePaths({
         corpus: opts.corpus as string | undefined,
         db: opts.db as string | undefined,
       });
       const db = new LuxDatabase(runtime.dbPath);
-      const rows = db.getOwnershipBreakdown();
-      db.close();
-      const total = rows.reduce((n, r) => n + r.count, 0);
+      try {
+        if (options.kernel !== undefined) {
+          // Cross-area mode is opt-in via --kernel; the kernel package comes from lux.yaml.
+          // (loadLspConfig is read only here, so a malformed lux.yaml can't affect single-index.)
+          const kernelCfg = loadLspConfig(runtime.corpusPath).overlay?.kernel;
+          if (!kernelCfg?.package) {
+            console.error(
+              'Error: cross-area ownership (--kernel) needs `overlay.kernel.package` in lux.yaml.'
+            );
+            process.exit(1);
+          }
+          const override = typeof options.kernel === 'string' ? options.kernel : undefined;
+          let kernel: ResolvedKernel;
+          try {
+            kernel = resolveKernel(runtime.corpusPath, kernelCfg, override);
+          } catch (error) {
+            console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
+            process.exit(1);
+          }
+          const map = classifyCrossAreaOwnership(
+            db,
+            kernel,
+            resolveAppNamespace(runtime.corpusPath)
+          );
+          const stale = Boolean(
+            kernel.indexedCommit && kernel.headCommit && kernel.indexedCommit !== kernel.headCommit
+          );
+          if (options.json) {
+            console.log(
+              JSON.stringify(
+                {
+                  kernel: {
+                    package: kernelCfg.package,
+                    worktree: kernel.worktree,
+                    indexedCommit: kernel.indexedCommit ?? null,
+                    headCommit: kernel.headCommit ?? null,
+                    stale,
+                  },
+                  summary: map.summary,
+                  routes: map.routes,
+                },
+                null,
+                2
+              )
+            );
+            return;
+          }
+          const clientLocal = map.summary['client-local'];
+          const kernelRoutes = map.routes.length - clientLocal; // the kernel-route partition
+          console.log(
+            `\nCross-area HTTP handler ownership vs ${kernelCfg.package} (${kernelRoutes} kernel route(s)):`
+          );
+          for (const label of [
+            'kernel-owned',
+            'client-override',
+            'client-gap',
+            'external',
+          ] as const) {
+            const count = map.summary[label];
+            if (count === 0) continue;
+            const pct = kernelRoutes > 0 ? ((100 * count) / kernelRoutes).toFixed(1) : '0.0';
+            console.log(`  ${label.padEnd(16)} ${String(count).padStart(5)}  (${pct}%)`);
+          }
+          if (clientLocal > 0) {
+            console.log(
+              `  ${'client-local'.padEnd(16)} ${String(clientLocal).padStart(5)}  (client's own routes)`
+            );
+          }
+          if (map.summary['client-gap'] > 0) {
+            console.log(
+              `\n  ${map.summary['client-gap']} client-gap: kernel routes with no handler implemented in this client.`
+            );
+          }
+          if (stale) {
+            console.log(
+              `\n  ⚠ kernel index (${kernel.indexedCommit?.slice(0, 7)}) differs from the vendored worktree HEAD (${kernel.headCommit?.slice(0, 7)}) — re-index the kernel.`
+            );
+          }
+          return;
+        }
 
-      if (options.json) {
-        console.log(JSON.stringify({ total, breakdown: rows }, null, 2));
-        return;
-      }
-      console.log(`\nHTTP handler ownership (${total} handler edge(s)):`);
-      if (total === 0) {
-        console.log('  (no handler edges — run `lux index rebuild`)');
-        return;
-      }
-      for (const r of rows) {
-        const label = r.ownership ?? 'unclassified';
-        const pct = ((100 * r.count) / total).toFixed(1);
-        console.log(`  ${label.padEnd(16)} ${String(r.count).padStart(5)}  (${pct}%)`);
-      }
-      const gap = rows.find((r) => r.ownership === 'client-gap');
-      if (gap && gap.count > 0) {
-        console.log(
-          `\n  ${gap.count} client-gap: kernel routes with no handler implemented in this app.`
-        );
+        // single-index mode (unchanged)
+        const rows = db.getOwnershipBreakdown();
+        const total = rows.reduce((n, r) => n + r.count, 0);
+        if (options.json) {
+          console.log(JSON.stringify({ total, breakdown: rows }, null, 2));
+          return;
+        }
+        console.log(`\nHTTP handler ownership (${total} handler edge(s)):`);
+        if (total === 0) {
+          console.log('  (no handler edges — run `lux index rebuild`)');
+          return;
+        }
+        for (const r of rows) {
+          const label = r.ownership ?? 'unclassified';
+          const pct = ((100 * r.count) / total).toFixed(1);
+          console.log(`  ${label.padEnd(16)} ${String(r.count).padStart(5)}  (${pct}%)`);
+        }
+        const gap = rows.find((r) => r.ownership === 'client-gap');
+        if (gap && gap.count > 0) {
+          console.log(
+            `\n  ${gap.count} client-gap: kernel routes with no handler implemented in this app.`
+          );
+        }
+      } finally {
+        db.close();
       }
     });
 

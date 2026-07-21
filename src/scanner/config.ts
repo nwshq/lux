@@ -78,12 +78,26 @@ export interface LuxLspConfig {
   scan?: ScanConfig;
   /** First-party package promotion (E1): globs against composer package names. */
   firstParty?: FirstPartyConfig;
+  /** Overlay features (cross-area kernel ownership, #62). */
+  overlay?: OverlayConfig;
 }
 
 /** The firstParty section of lux.yaml. */
 export interface FirstPartyConfig {
   /** Composer package-name globs to promote to app-source, e.g. ["acme/*"]. */
   packages: string[];
+}
+
+/** The overlay section of lux.yaml. */
+export interface OverlayConfig {
+  /** Cross-area kernel: classify handler ownership against a sibling kernel's built .lux index (#62). */
+  kernel?: KernelOverlayConfig;
+}
+
+/** overlay.kernel — the composer path-repo package the client vendors as the kernel. */
+export interface KernelOverlayConfig {
+  /** Composer package name, e.g. "acme/core". */
+  package: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -146,6 +160,7 @@ interface RawLuxConfig {
   ast?: unknown;
   scan?: unknown;
   firstParty?: unknown;
+  overlay?: unknown;
 }
 
 // ---------------------------------------------------------------------------
@@ -196,6 +211,7 @@ function validateConfig(raw: RawLuxConfig): LuxLspConfig {
     ast: raw.ast ? validateAstConfig(raw.ast) : DEFAULT_AST_CONFIG,
     scan: raw.scan ? validateScanConfig(raw.scan) : DEFAULT_SCAN_CONFIG,
     firstParty: validateFirstPartyConfig(raw.firstParty),
+    overlay: validateOverlayConfig(raw.overlay),
   };
 }
 
@@ -205,6 +221,19 @@ function validateFirstPartyConfig(raw: unknown): FirstPartyConfig | undefined {
   if (!Array.isArray(packages)) return undefined;
   const globs = packages.filter((p): p is string => typeof p === 'string');
   return globs.length ? { packages: globs } : undefined;
+}
+
+/** Composer package-name grammar. Structurally forbids `..`, absolute paths, and extra
+ *  separators, so `join(corpus, 'vendor', package)` in resolveKernel can't escape the corpus. */
+const COMPOSER_PACKAGE = /^[a-z0-9]([_.-]?[a-z0-9]+)*\/[a-z0-9]([_.-]?[a-z0-9]+)*$/;
+
+function validateOverlayConfig(raw: unknown): OverlayConfig | undefined {
+  if (typeof raw !== 'object' || raw === null) return undefined;
+  const kernelRaw = (raw as { kernel?: unknown }).kernel;
+  if (typeof kernelRaw !== 'object' || kernelRaw === null) return undefined;
+  const pkg = (kernelRaw as { package?: unknown }).package;
+  if (typeof pkg !== 'string' || !COMPOSER_PACKAGE.test(pkg)) return undefined;
+  return { kernel: { package: pkg } };
 }
 
 function validateAstConfig(raw: unknown): AstConfig {
