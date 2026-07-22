@@ -82,6 +82,8 @@ export interface LuxLspConfig {
   overlay?: OverlayConfig;
   /** Delta gate policy (`lux delta --check`, #delta). */
   delta?: DeltaConfig;
+  /** Scoped overlay refresh budgets (Decisions 7, 8). */
+  refresh?: RefreshConfig;
 }
 
 /** The delta section of lux.yaml — CI/local gate policy (Decision 7). */
@@ -89,6 +91,16 @@ export interface DeltaConfig {
   /** Gate categories evaluated under `lux delta --check` (overridable by --fail-on). */
   gates: string[];
 }
+
+/** The refresh section of lux.yaml — scoped overlay refresh budgets (Decisions 7, 8). */
+export interface RefreshConfig {
+  /** Changed-file ceiling; above ⇒ full rebuild (Decision 7). Default 100 (OQ1 placeholder). */
+  maxScopedFiles: number;
+  /** LSP-tier budget per scoped run in ms; exceeded ⇒ tier skipped + stale marks (Decision 8). Default 30000. */
+  lspBudgetMs: number;
+}
+
+export const DEFAULT_REFRESH_CONFIG: RefreshConfig = { maxScopedFiles: 100, lspBudgetMs: 30000 };
 
 /** The firstParty section of lux.yaml. */
 export interface FirstPartyConfig {
@@ -170,6 +182,7 @@ interface RawLuxConfig {
   firstParty?: unknown;
   overlay?: unknown;
   delta?: unknown;
+  refresh?: unknown;
 }
 
 // ---------------------------------------------------------------------------
@@ -222,7 +235,34 @@ function validateConfig(raw: RawLuxConfig): LuxLspConfig {
     firstParty: validateFirstPartyConfig(raw.firstParty),
     overlay: validateOverlayConfig(raw.overlay),
     delta: validateDeltaConfig(raw.delta),
+    refresh: validateRefreshConfig(raw.refresh),
   };
+}
+
+/**
+ * Validate the `refresh` section (scoped overlay refresh budgets, Decisions 7/8). Absent ⇒ the
+ * shipped defaults (`maxScopedFiles: 100`, `lspBudgetMs: 30000`). A non-positive `maxScopedFiles`
+ * or negative `lspBudgetMs` is a hard error — a zero/negative budget silently disables a tier.
+ */
+function validateRefreshConfig(raw: unknown): RefreshConfig {
+  if (raw === undefined || raw === null) return DEFAULT_REFRESH_CONFIG;
+  if (typeof raw !== 'object') {
+    throw new Error('lux.yaml "refresh" must be a mapping.');
+  }
+  const r = raw as { maxScopedFiles?: unknown; lspBudgetMs?: unknown };
+  const maxScopedFiles = r.maxScopedFiles ?? DEFAULT_REFRESH_CONFIG.maxScopedFiles;
+  const lspBudgetMs = r.lspBudgetMs ?? DEFAULT_REFRESH_CONFIG.lspBudgetMs;
+  if (
+    typeof maxScopedFiles !== 'number' ||
+    !Number.isInteger(maxScopedFiles) ||
+    maxScopedFiles < 1
+  ) {
+    throw new Error('lux.yaml "refresh.maxScopedFiles" must be a positive integer.');
+  }
+  if (typeof lspBudgetMs !== 'number' || lspBudgetMs < 0) {
+    throw new Error('lux.yaml "refresh.lspBudgetMs" must be a non-negative number.');
+  }
+  return { maxScopedFiles, lspBudgetMs };
 }
 
 /**

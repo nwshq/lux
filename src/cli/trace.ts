@@ -8,6 +8,7 @@ import {
   type TraceResult,
 } from '../scanner/associations/trace.js';
 import type { ConfidenceClass, EdgeType } from '../db/types.js';
+import { summarizeStaleSupport, staleSupportWarning } from '../scanner/freshness.js';
 
 export function addTraceCommand(program: Command): void {
   program
@@ -69,10 +70,18 @@ export function addTraceCommand(program: Command): void {
             includeExternal: options.external,
           });
 
+          // Stale-aware annotation (Decision 4 / SC-4): read-only — report how many of the traced
+          // path edges the maintained marks already flag `stale`. Never changes the resolution.
+          const staleSupport = summarizeStaleSupport(
+            db.getEdgeFreshnessByIds(result.edges.map((e) => e.id))
+          );
+
           if (options.json) {
-            console.log(JSON.stringify(result, null, 2));
+            console.log(JSON.stringify({ ...result, staleSupport }, null, 2));
             return;
           }
+          const staleWarning = staleSupportWarning(staleSupport);
+          if (staleWarning) console.warn('Warning: ' + staleWarning);
           printTrace(result);
         } finally {
           db.close();

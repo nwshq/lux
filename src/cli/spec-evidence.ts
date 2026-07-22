@@ -12,6 +12,11 @@ import {
 } from '../scanner/associations/spec-derivation/index.js';
 import { emitUsageEvent, createInvocationId } from '../db/observability/usage-event.js';
 import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
+import {
+  summarizeStaleSupport,
+  staleSupportWarning,
+  type StaleSupportSummary,
+} from '../scanner/freshness.js';
 
 export interface SpecEvidenceAskOptions {
   json?: boolean;
@@ -24,6 +29,8 @@ export interface SpecEvidenceAskExecutionResult {
   packet: SpecDerivationEvidencePacketV1;
   rendered: string;
   exitCode: 0 | 1;
+  /** Read-only stale-support annotation over the resolved target's structural edges (SC-4). */
+  staleSupport: StaleSupportSummary;
 }
 
 const SPEC_EVIDENCE_TARGET_KINDS: readonly SpecDerivationTargetKind[] = [
@@ -64,8 +71,15 @@ export function executeSpecEvidenceAsk(
     corpusPath: options.corpusPath,
     dbPath: options.dbPath,
   });
+  // Stale-aware annotation (Decision 4 / SC-4): read-only — summarize how many of the resolved
+  // target's incident structural edges the maintained marks flag `stale`. The packet itself stays
+  // byte-identical (the frozen MCP envelope reads `packet`, not this CLI-facing `rendered`).
+  const staleSupport = summarizeStaleSupport(
+    packet.target.resolvedNodeId ? db.getStructuralEdgesForNode(packet.target.resolvedNodeId) : []
+  );
+
   const rendered = options.json
-    ? renderSpecDerivationEvidenceJson(packet)
+    ? JSON.stringify({ ...packet, staleSupport }, null, 2)
     : renderSpecDerivationEvidenceText(packet);
 
   if (options.out) writeSpecEvidenceExport(options.out, packet);
@@ -74,6 +88,7 @@ export function executeSpecEvidenceAsk(
     packet,
     rendered,
     exitCode: packet.target.resolutionState === 'resolved' ? 0 : 1,
+    staleSupport,
   };
 }
 
@@ -106,6 +121,10 @@ export function runSpecEvidenceAsk(
   try {
     const result = executeSpecEvidenceAsk(db, question, { ...options, corpusPath, dbPath });
     console.log(result.rendered);
+    if (!options.json) {
+      const staleWarning = staleSupportWarning(result.staleSupport);
+      if (staleWarning) console.warn('Warning: ' + staleWarning);
+    }
     emitUsageEvent(db, {
       source: 'cli',
       surface: 'spec-evidence',

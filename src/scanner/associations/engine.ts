@@ -138,7 +138,11 @@ export class AssociationEngine {
    *
    * @returns Number of edges persisted.
    */
-  static persistEdges(db: LuxDatabase, edges: StructuralRelationEdge[]): number {
+  static persistEdges(
+    db: LuxDatabase,
+    edges: StructuralRelationEdge[],
+    sourceCommit?: string
+  ): number {
     const ts = Math.floor(Date.now() / 1000);
 
     // Batch all edge + evidence writes into one transaction (Lever E).
@@ -152,6 +156,10 @@ export class AssociationEngine {
           confidence: rel.confidence,
           confidence_class: rel.confidenceClass,
           freshness_status: 'fresh',
+          // Was absent (⇒ NULL), which born these tiers' edges exempt from the commit-based
+          // staleness guard (SC-8 / Decision 13). The scoped settle passes HEAD; the full-rebuild
+          // path omits it (unchanged NULL — the propagation tier's documented exclusion).
+          source_commit: sourceCommit,
           dirty_dependency_count: 0,
           provenance_summary: `${rel.provenance.resolver} [${rel.provenance.evidenceKind}]`,
           updated_at: ts,

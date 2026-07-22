@@ -29,7 +29,7 @@ export interface ChangeSetInput {
  */
 export function resolveDeltaChangeSet(
   corpusPath: string,
-  _db: LuxDatabase,
+  db: LuxDatabase,
   input: ChangeSetInput
 ): DeltaChangeSet {
   const warnings: string[] = [];
@@ -72,6 +72,35 @@ export function resolveDeltaChangeSet(
         module: moduleOf(e.path),
         indexTrust,
       });
+    }
+  }
+
+  // OQ4 (Decision 11): the maintained overlay marks are a base-honesty dimension the commit
+  // pointer alone cannot express. When delta's base is the index pointer (the default) and the
+  // pointer was advanced past an unrepaired overlay (a --mark-only / partial-refresh sync), the
+  // files whose overlay edges are `stale` are exactly the ones the commit-based change-set MISSES.
+  // Surface them so `lux delta` never reports an empty change-set over a stale overlay. This is a
+  // base-resolution addition only — the touch-set still resolves from indexPaths (Decision 3 intact).
+  if (input.base.source === 'index') {
+    const overlayStale = db.getFilePathsWithStaleEdges();
+    let injected = 0;
+    for (const filePath of overlayStale) {
+      if (files.has(filePath)) continue; // committed / working-tree already covers it
+      indexPaths.add(filePath);
+      files.set(filePath, {
+        path: filePath,
+        status: 'modified',
+        module: moduleOf(filePath),
+        indexTrust: 'index-stale', // overlay stale ⇒ index facts predate the current code
+      });
+      injected++;
+    }
+    if (injected > 0) {
+      warnings.push(
+        `${injected} file(s) surfaced from maintained overlay staleness marks (not in the ` +
+          `base..HEAD diff) — the index pointer advanced past an unrepaired overlay. ` +
+          `Run "lux index sync --scoped" (or "lux index rebuild") to repair.`
+      );
     }
   }
 

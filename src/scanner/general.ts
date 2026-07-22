@@ -798,8 +798,11 @@ export async function generalScan(
 /**
  * Build an EnricherRegistry from lux.yaml enricher entries.
  * Only creates enrichers for known language IDs with enabled=true.
+ *
+ * Exported (T3a.1) so the scoped overlay-refresh engine (spec 13 Part F `runLspTier`)
+ * reuses the exact same registry construction rather than forking it.
  */
-function buildRegistry(entries: LspEnricherEntry[]): EnricherRegistry {
+export function buildRegistry(entries: LspEnricherEntry[]): EnricherRegistry {
   const registry = new EnricherRegistry();
 
   for (const entry of entries) {

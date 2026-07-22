@@ -36,9 +36,13 @@ export interface PropagationResult {
  */
 export function propagateSurfaces(
   db: LuxDatabase,
-  context: AssociationContext
+  context: AssociationContext,
+  options?: { surfaceIds?: Set<string> }
 ): Promise<PropagationResult> {
-  const surfaces = db.getCapabilitySurfaces();
+  const all = db.getCapabilitySurfaces();
+  // Scoped refresh (Decision 13 step 6): re-propagate only surfaces touched by the victim set.
+  // Full rebuild passes no options ⇒ all surfaces (unchanged).
+  const surfaces = options?.surfaceIds ? all.filter((s) => options.surfaceIds!.has(s.id)) : all;
   if (surfaces.length === 0) {
     return Promise.resolve({ providerEdgesAdded: 0, consumerEdgesAdded: 0, artifactEdgesAdded: 0 });
   }

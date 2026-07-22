@@ -63,6 +63,8 @@ export interface RebuildResult {
   propagationStatus: 'ran' | 'skipped' | 'empty';
   /** Trust-relevant warnings. Non-empty when mode is degraded-overlay. */
   warnings: string[];
+  /** How many files were dirty in the working tree when the overlay was built. */
+  dirtyAtIndexTime?: number;
 }
 
 /** Options for orchestrated rebuild functions. */
@@ -92,6 +94,15 @@ function resolveVendorPackPath(rootPath: string): string | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Public wrapper (T3a.1) over {@link resolveVendorPackPath} for the scoped overlay-refresh
+ * engine (spec 13 Part F). Same composer.lock-keyed cached-pack lookup; `null` ⇒ the facade
+ * tier is skipped (`skipped-no-pack`).
+ */
+export function resolveVendorPackPathForRefresh(rootPath: string): string | null {
+  return resolveVendorPackPath(rootPath);
 }
 
 // ---------------------------------------------------------------------------
@@ -256,6 +267,7 @@ function classifyResult(
     enrichmentStatus: scanResult.stats.activeEnrichers > 0 ? 'active' : 'inactive',
     propagationStatus,
     warnings,
+    dirtyAtIndexTime: overlay.dirtyFileCount,
   };
 }
 

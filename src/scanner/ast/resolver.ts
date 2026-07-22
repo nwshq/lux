@@ -43,6 +43,13 @@ interface FileExtraction {
 export class AstStructuralResolver implements AssociationResolver {
   readonly name = 'ast-structural';
 
+  /**
+   * Scoped-refresh only (Decision 13): verify a cross-file target against the persisted node
+   * universe when it is absent from the in-memory (R-only) symbol set. Undefined ⇒ full-rebuild
+   * behavior — the in-memory universe IS the whole scan, so no DB fallback is needed.
+   */
+  constructor(private readonly options: { verifyExternalTarget?: (id: string) => boolean } = {}) {}
+
   supports(context: AssociationContext): boolean {
     return context.entries.some(
       (e) => langForFile(e.filePath) !== null && typeof e.metadata?.content === 'string'
@@ -93,7 +100,9 @@ export class AstStructuralResolver implements AssociationResolver {
     const edges: StructuralRelationEdge[] = [];
     for (const f of files) {
       edges.push(...sameFileEdges(f, this.name, now));
-      edges.push(...crossFileEdges(f, relPaths, symbolIds, this.name, now));
+      edges.push(
+        ...crossFileEdges(f, relPaths, symbolIds, this.name, now, this.options.verifyExternalTarget)
+      );
     }
     return edges;
   }
@@ -203,7 +212,8 @@ function crossFileEdges(
   relPaths: Set<string>,
   symbolIds: Set<string>,
   resolver: string,
-  now: number
+  now: number,
+  verifyExternalTarget?: (id: string) => boolean
 ): StructuralRelationEdge[] {
   const imports = f.extraction.imports ?? [];
   if (imports.length === 0) return [];
@@ -228,7 +238,10 @@ function crossFileEdges(
     if (!binding) continue;
 
     const targetId = resolveImportTarget(binding, f.relPath, f.lang, relPaths);
-    if (!targetId || !symbolIds.has(targetId)) continue; // only emit to real symbols
+    if (!targetId) continue;
+    // In-memory universe first (co-changed targets in R), then the persisted universe for
+    // targets OUTSIDE R (Decision 13). Full rebuild passes no verifier ⇒ in-memory only.
+    if (!symbolIds.has(targetId) && !(verifyExternalTarget?.(targetId) ?? false)) continue;
 
     const source = enclosingDef(defs, edge.range.startByte);
     if (!source || source.id === targetId) continue;

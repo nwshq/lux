@@ -5,7 +5,9 @@ import { tmpdir } from 'os';
 import {
   buildIncrementalPlan,
   collectOverlayRelevantPaths,
+  commitIncrementalSync,
   hasOverlayRelevantChanges,
+  type IncrementalSyncWriter,
 } from '../incremental.js';
 import type { GitDiffResult } from '../git.js';
 
@@ -142,5 +144,74 @@ describe('buildIncrementalPlan', () => {
 
     expect(collectOverlayRelevantPaths(diff)).toEqual([]);
     expect(hasOverlayRelevantChanges(diff)).toBe(false);
+  });
+});
+
+describe('commitIncrementalSync — crash-atomic ordering (MAJOR 1 / OQ4)', () => {
+  /** A spy writer recording the order of the ordering-sensitive calls. `transaction` runs its fn
+   *  synchronously (mirrors the WASM adapter) so the recorded order is the real commit order. */
+  function spyWriter(): { db: IncrementalSyncWriter; calls: string[] } {
+    const calls: string[] = [];
+    const db: IncrementalSyncWriter = {
+      transaction<T>(fn: () => T): T {
+        calls.push('transaction:begin');
+        const r = fn();
+        calls.push('transaction:commit');
+        return r;
+      },
+      markEdgesStaleForFiles(paths) {
+        calls.push('markEdgesStaleForFiles');
+        return paths.length;
+      },
+      markEdgesStaleByEvidencePaths(paths) {
+        calls.push('markEdgesStaleByEvidencePaths');
+        return paths.length;
+      },
+      setIndexMetadata(key) {
+        calls.push(`setIndexMetadata:${key}`);
+      },
+    };
+    return { db, calls };
+  }
+
+  it('writes both stale-mark dimensions BEFORE the last_indexed_commit pointer (mark-only)', () => {
+    const { db, calls } = spyWriter();
+    const counts = commitIncrementalSync(db, () => calls.push('writeContent'), {
+      overlayRelevantPaths: ['routes/web.php', 'app/Handler.php'],
+      headCommit: 'deadbeef',
+      markOnly: true,
+    });
+
+    // The invariant: content writes → both marks → pointer, all inside one transaction.
+    expect(calls).toEqual([
+      'transaction:begin',
+      'writeContent',
+      'markEdgesStaleForFiles',
+      'markEdgesStaleByEvidencePaths',
+      'setIndexMetadata:last_indexed_commit',
+      'transaction:commit',
+    ]);
+    // The crash-atomicity guard: neither mark may follow the pointer advance.
+    const pointerIdx = calls.indexOf('setIndexMetadata:last_indexed_commit');
+    expect(calls.indexOf('markEdgesStaleForFiles')).toBeLessThan(pointerIdx);
+    expect(calls.indexOf('markEdgesStaleByEvidencePaths')).toBeLessThan(pointerIdx);
+    expect(counts).toEqual({ edgesMarkedNodePath: 2, edgesMarkedEvidence: 2 });
+  });
+
+  it('non-mark-only sync advances the pointer but writes no marks', () => {
+    const { db, calls } = spyWriter();
+    const counts = commitIncrementalSync(db, () => calls.push('writeContent'), {
+      overlayRelevantPaths: [],
+      headCommit: 'cafe',
+      markOnly: false,
+    });
+
+    expect(calls).toEqual([
+      'transaction:begin',
+      'writeContent',
+      'setIndexMetadata:last_indexed_commit',
+      'transaction:commit',
+    ]);
+    expect(counts).toEqual({ edgesMarkedNodePath: 0, edgesMarkedEvidence: 0 });
   });
 });

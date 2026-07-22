@@ -71,6 +71,8 @@ export class PreparedQueries {
   readonly invalidateEdgesForFile: Stmt;
   readonly markEdgesStaleForFile: Stmt;
   readonly markEdgesStaleByCommit: Stmt;
+  readonly getEdgeFreshnessCounts: Stmt;
+  readonly getStaleOverlayFilePaths: Stmt;
 
   // Structural overlay queries — evidence
   readonly insertEdgeEvidence: Stmt;
@@ -307,13 +309,19 @@ export class PreparedQueries {
       ORDER BY confidence DESC
     `);
 
+    // Only downgrades `fresh` edges (matches the evidence-dimension fence
+    // invalidateEdgesByEvidencePaths, index.ts): a pre-existing `stale` mark is a real
+    // claim about changed cited code and must survive the fence, and an unconditional
+    // overwrite would clobber it back to `dirty-dependent` (masking the honest stale).
+    // The crash-floor contract is preserved — no `fresh` edge in the victim set survives.
     this.invalidateEdgesForFile = db.prepare(`
       UPDATE structural_edges SET freshness_status = 'dirty-dependent', updated_at = unixepoch()
-      WHERE id IN (
-        SELECT se.id FROM structural_edges se
-        JOIN structural_nodes sn ON se.source_node_id = sn.id OR se.target_node_id = sn.id
-        WHERE sn.file_path = ?
-      )
+      WHERE freshness_status = 'fresh'
+        AND id IN (
+          SELECT se.id FROM structural_edges se
+          JOIN structural_nodes sn ON se.source_node_id = sn.id OR se.target_node_id = sn.id
+          WHERE sn.file_path = ?
+        )
     `);
 
     this.markEdgesStaleForFile = db.prepare(`
@@ -331,6 +339,26 @@ export class PreparedQueries {
       WHERE freshness_status = 'fresh'
         AND source_commit IS NOT NULL
         AND source_commit != ?
+    `);
+
+    this.getEdgeFreshnessCounts = db.prepare(`
+      SELECT freshness_status AS status, COUNT(*) AS n
+      FROM structural_edges
+      GROUP BY freshness_status
+    `);
+
+    // UNION already deduplicates across the two dimensions, so no outer SELECT DISTINCT is needed.
+    this.getStaleOverlayFilePaths = db.prepare(`
+      SELECT sn.file_path AS file_path
+        FROM structural_edges se
+        JOIN structural_nodes sn
+          ON sn.id = se.source_node_id OR sn.id = se.target_node_id
+       WHERE se.freshness_status = 'stale' AND sn.file_path IS NOT NULL
+      UNION
+      SELECT ev.file_path AS file_path
+        FROM structural_edges se
+        JOIN edge_evidence ev ON ev.edge_id = se.id
+       WHERE se.freshness_status = 'stale' AND ev.file_path IS NOT NULL
     `);
 
     // Structural overlay — evidence queries

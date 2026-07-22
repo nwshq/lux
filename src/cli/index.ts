@@ -12,12 +12,20 @@ import { rebuildWithOverlay, rebuildContentOnly } from '../scanner/rebuild-orche
 import type { RebuildResult } from '../scanner/rebuild-orchestrator.js';
 import {
   describeOverlayTrustInspection,
+  deriveOverlayTrustLevel,
   deriveOverlayTrustLevelFromMode,
   deriveOverlayTrustLevelFromState,
   inspectOverlayTrustState,
   persistRebuildTrustState,
+  persistRefreshTrustState,
   markOverlayTrustAfterSync,
 } from '../scanner/overlay-trust-state.js';
+import { refreshOverlayScoped } from '../scanner/associations/overlay-refresh.js';
+import type { ChangedFile } from '../scanner/associations/overlay-refresh.js';
+import { loadLspConfig } from '../scanner/config.js';
+import { decideScopedEligibility, decideForcedScoped } from '../scanner/sync-escalation.js';
+import type { ScopedDecision } from '../scanner/sync-escalation.js';
+import { persistStructuralConfigFingerprint } from '../scanner/config-fingerprint.js';
 import { buildIndexStatusPayload } from './status-payload.js';
 import {
   isGitRepository,
@@ -29,8 +37,10 @@ import {
 import {
   buildIncrementalPlan,
   collectOverlayRelevantPaths,
+  commitIncrementalSync,
   hasOverlayRelevantChanges,
 } from '../scanner/incremental.js';
+import { assessWorkingTreeFreshness, renderFreshnessText } from '../scanner/freshness.js';
 import { addSearchCommand } from './search.js';
 import { addHooksCommand } from './hooks.js';
 import { addMigrateCommands } from './migrate.js';
@@ -277,6 +287,7 @@ indexCmd
         persistRebuildTrustState(db, overlayResult, {
           lastIndexedCommit: headCommitForTrustState,
         });
+        persistStructuralConfigFingerprint(corpusPath, db);
       }
 
       progress.finish('index rebuild complete');
@@ -334,482 +345,628 @@ indexCmd
   .description('Incrementally update index based on git changes')
   .option('--quiet', 'Suppress output')
   .option('--force', 'Ignore stored commit, do full rebuild')
-  .action(async (options: { quiet?: boolean; force?: boolean }) => {
-    const { corpusPath, dbPath } = getRuntimePaths(program);
-    const invocationId = createInvocationId();
-    const startedAt = Date.now();
-    let db: LuxDatabase | undefined;
+  .option(
+    '--mark-only',
+    'Downgrade overlay edges for structural changes instead of rebuilding (Phase 2)'
+  )
+  .option(
+    '--scoped',
+    'Force scoped refresh (repair changed files + reverse-import closure), overriding the escalation policy (preconditions still apply)'
+  )
+  .option(
+    '--full',
+    'Force a full overlay rebuild instead of the scoped-by-default refresh (Phase 3b)'
+  )
+  .action(
+    async (options: {
+      quiet?: boolean;
+      force?: boolean;
+      markOnly?: boolean;
+      scoped?: boolean;
+      full?: boolean;
+    }) => {
+      const { corpusPath, dbPath } = getRuntimePaths(program);
+      const invocationId = createInvocationId();
+      const startedAt = Date.now();
+      let db: LuxDatabase | undefined;
 
-    try {
-      // Validate content directory
-      if (!existsSync(corpusPath)) {
-        console.error(`Error: Content directory not found: ${corpusPath}`);
-        process.exit(1);
-      }
-
-      // Check if this is a git repo
-      if (!isGitRepository(corpusPath)) {
-        console.error('Error: Content directory is not a git repository');
-        const nestedRepo = findLikelyNestedGitRoot(corpusPath);
-        if (nestedRepo) {
-          console.error(`  Hint: found a nested git repository at ${nestedRepo}`);
-          console.error('  Try rerunning with --corpus pointed at that repo root.');
-        } else {
-          console.error('  Use "lux index rebuild" for non-git directories');
-        }
-        process.exit(1);
-      }
-
-      // Initialize database
       try {
-        db = new LuxDatabase(dbPath);
-      } catch (error) {
-        console.error(`Error: Failed to initialize database: ${dbPath}`);
-        console.error(`  ${error instanceof Error ? error.message : String(error)}`);
-        process.exit(1);
-      }
+        // Validate content directory
+        if (!existsSync(corpusPath)) {
+          console.error(`Error: Content directory not found: ${corpusPath}`);
+          process.exit(1);
+        }
 
-      if (!db.isSchemaUpToDate()) {
-        console.error('Error: Database schema is not up to date');
-        console.error('  Run "lux migrate" to update the schema');
-        db.close();
-        process.exit(1);
-      }
-
-      const lastCommit = db.getIndexMetadata('last_indexed_commit');
-
-      // If --force or no stored commit, fall back to full rebuild
-      if (options.force || !lastCommit) {
-        if (!options.quiet) {
-          if (options.force) {
-            console.log('Force flag set, running full rebuild...');
+        // Check if this is a git repo
+        if (!isGitRepository(corpusPath)) {
+          console.error('Error: Content directory is not a git repository');
+          const nestedRepo = findLikelyNestedGitRoot(corpusPath);
+          if (nestedRepo) {
+            console.error(`  Hint: found a nested git repository at ${nestedRepo}`);
+            console.error('  Try rerunning with --corpus pointed at that repo root.');
           } else {
-            console.log('No previous index commit found, running full rebuild...');
+            console.error('  Use "lux index rebuild" for non-git directories');
           }
+          process.exit(1);
         }
+
+        // Initialize database
         try {
-          const scanner = new GeneralScanner(corpusPath);
-          const progress = createProgressReporter(options.quiet === true);
-          progress.start('index rebuild (overlay-complete)');
-          progress.log(`Scanning content directory: ${corpusPath}`);
-
-          const { result, scanResult } = await rebuildWithOverlay(db, corpusPath, {
-            onProgress: (msg) => progress.log(msg),
-          });
-          const indexedScan = {
-            ...scanResult.scan,
-            knowledge: scanResult.scan.knowledge.map((entry) =>
-              attachEnrichment(entry, scanResult.enrichments)
-            ),
-          };
-          await persistKnowledgeIndex(db, scanner, indexedScan, progress);
-          const headCommit = getHeadCommit(corpusPath);
-          db.setIndexMetadata('last_indexed_commit', headCommit);
-          persistRebuildTrustState(db, result, {
-            lastIndexedCommit: headCommit,
-          });
-          progress.finish('index rebuild complete');
-
-          if (!options.quiet) {
-            printRebuildTrustSummary(result);
-            console.log(
-              `\n✓ Full rebuild complete (${result.surfaceCount} surfaces, commit ${headCommit.slice(0, 8)})`
-            );
-          }
-
-          db.close();
-          return;
+          db = new LuxDatabase(dbPath);
         } catch (error) {
-          console.error('Error: Failed to run full overlay rebuild');
+          console.error(`Error: Failed to initialize database: ${dbPath}`);
           console.error(`  ${error instanceof Error ? error.message : String(error)}`);
+          process.exit(1);
+        }
+
+        if (!db.isSchemaUpToDate()) {
+          console.error('Error: Database schema is not up to date');
+          console.error('  Run "lux migrate" to update the schema');
           db.close();
           process.exit(1);
         }
-      }
 
-      // Verify stored commit still exists
-      if (!commitExists(corpusPath, lastCommit)) {
-        if (!options.quiet) {
-          console.warn(
-            'Warning: Stored commit no longer exists (possible force push), running full rebuild...'
-          );
-        }
-        try {
-          const scanner = new GeneralScanner(corpusPath);
-          const progress = createProgressReporter(options.quiet === true);
-          progress.start('index rebuild (overlay-complete)');
-          progress.log(`Scanning content directory: ${corpusPath}`);
+        const lastCommit = db.getIndexMetadata('last_indexed_commit');
 
-          const { result, scanResult } = await rebuildWithOverlay(db, corpusPath, {
-            onProgress: (msg) => progress.log(msg),
-          });
-          const indexedScan = {
-            ...scanResult.scan,
-            knowledge: scanResult.scan.knowledge.map((entry) =>
-              attachEnrichment(entry, scanResult.enrichments)
-            ),
-          };
-          await persistKnowledgeIndex(db, scanner, indexedScan, progress);
-          const headCommit = getHeadCommit(corpusPath);
-          db.setIndexMetadata('last_indexed_commit', headCommit);
-          persistRebuildTrustState(db, result, {
-            lastIndexedCommit: headCommit,
-          });
-          progress.finish('index rebuild complete');
-
+        // If --force or no stored commit, fall back to full rebuild
+        if (options.force || !lastCommit) {
           if (!options.quiet) {
-            printRebuildTrustSummary(result);
-            console.log(
-              `\n✓ Full rebuild complete (${result.surfaceCount} surfaces, commit ${headCommit.slice(0, 8)})`
-            );
+            if (options.force) {
+              console.log('Force flag set, running full rebuild...');
+            } else {
+              console.log('No previous index commit found, running full rebuild...');
+            }
           }
-
-          db.close();
-          return;
-        } catch (error) {
-          console.error('Error: Failed to run full overlay rebuild');
-          console.error(`  ${error instanceof Error ? error.message : String(error)}`);
-          db.close();
-          process.exit(1);
-        }
-      }
-
-      // Get HEAD commit
-      const headCommit = getHeadCommit(corpusPath);
-
-      // Check if already up to date
-      if (headCommit === lastCommit) {
-        if (!options.quiet) {
-          console.log('Index is up to date');
-        }
-        db.close();
-        return;
-      }
-
-      if (!options.quiet) {
-        console.log(`Syncing index: ${lastCommit.slice(0, 8)}..${headCommit.slice(0, 8)}`);
-      }
-
-      // Get git diff
-      let diff;
-      try {
-        diff = getGitDiff(corpusPath, lastCommit, headCommit);
-      } catch {
-        if (!options.quiet) {
-          console.warn('Warning: git diff failed, running full rebuild...');
-        }
-        try {
-          const scanner = new GeneralScanner(corpusPath);
-          const progress = createProgressReporter(options.quiet === true);
-          progress.start('index rebuild (overlay-complete)');
-          progress.log(`Scanning content directory: ${corpusPath}`);
-
-          const { result, scanResult } = await rebuildWithOverlay(db, corpusPath, {
-            onProgress: (msg) => progress.log(msg),
-          });
-          const indexedScan = {
-            ...scanResult.scan,
-            knowledge: scanResult.scan.knowledge.map((entry) =>
-              attachEnrichment(entry, scanResult.enrichments)
-            ),
-          };
-          await persistKnowledgeIndex(db, scanner, indexedScan, progress);
-          db.setIndexMetadata('last_indexed_commit', headCommit);
-          persistRebuildTrustState(db, result, {
-            lastIndexedCommit: headCommit,
-          });
-          progress.finish('index rebuild complete');
-          if (!options.quiet) {
-            printRebuildTrustSummary(result);
-            console.log(`\n✓ Full rebuild complete (${result.surfaceCount} surfaces)`);
-          }
-          db.close();
-          return;
-        } catch (error) {
-          console.error('Error: Failed to run full overlay rebuild');
-          console.error(`  ${error instanceof Error ? error.message : String(error)}`);
-          db.close();
-          process.exit(1);
-        }
-      }
-
-      const overlayRelevantPaths = collectOverlayRelevantPaths(diff);
-      const requiresOverlayRebuild = hasOverlayRelevantChanges(diff);
-
-      if (requiresOverlayRebuild) {
-        if (!options.quiet) {
-          console.log(
-            `Sync path: canonical overlay rebuild (${overlayRelevantPaths.length} structural source file(s) changed).`
-          );
-        }
-        try {
-          const scanner = new GeneralScanner(corpusPath);
-          const progress = createProgressReporter(options.quiet === true);
-          progress.start('index rebuild (overlay-complete)');
-          progress.log(`Scanning content directory: ${corpusPath}`);
-
-          const { result, scanResult } = await rebuildWithOverlay(db, corpusPath, {
-            onProgress: (msg) => progress.log(msg),
-          });
-          const indexedScan = {
-            ...scanResult.scan,
-            knowledge: scanResult.scan.knowledge.map((entry) =>
-              attachEnrichment(entry, scanResult.enrichments)
-            ),
-          };
-          await persistKnowledgeIndex(db, scanner, indexedScan, progress);
-          db.setIndexMetadata('last_indexed_commit', headCommit);
-          persistRebuildTrustState(db, result, {
-            lastIndexedCommit: headCommit,
-          });
-          progress.finish('index rebuild complete');
-
           try {
-            db.insertEvent({
-              source: 'cli',
-              event_type: 'index_sync',
-              summary: `Sync escalated to overlay rebuild: ${overlayRelevantPaths.length} structural source file(s) changed`,
-            });
-          } catch {
-            // Non-fatal
-          }
-          emitUsageEvent(db, {
-            source: 'cli',
-            surface: 'index-sync',
-            action: 'overlay-rebuild',
-            invocationId,
-            commandOutcome: 'success',
-            retrievalOutcome: 'not_applicable',
-            trustState: safeUsageTrustState(result.mode),
-            durationMs: Date.now() - startedAt,
-            exitCode: 0,
-            corpusPath,
-            dbPath,
-            repoCommit: headCommit,
-            attributes: {
-              overlayRelevantPaths: overlayRelevantPaths.length,
-              surfaceCount: result.surfaceCount,
-            },
-          });
+            const scanner = new GeneralScanner(corpusPath);
+            const progress = createProgressReporter(options.quiet === true);
+            progress.start('index rebuild (overlay-complete)');
+            progress.log(`Scanning content directory: ${corpusPath}`);
 
+            const { result, scanResult } = await rebuildWithOverlay(db, corpusPath, {
+              onProgress: (msg) => progress.log(msg),
+            });
+            const indexedScan = {
+              ...scanResult.scan,
+              knowledge: scanResult.scan.knowledge.map((entry) =>
+                attachEnrichment(entry, scanResult.enrichments)
+              ),
+            };
+            await persistKnowledgeIndex(db, scanner, indexedScan, progress);
+            const headCommit = getHeadCommit(corpusPath);
+            db.setIndexMetadata('last_indexed_commit', headCommit);
+            persistRebuildTrustState(db, result, {
+              lastIndexedCommit: headCommit,
+            });
+            persistStructuralConfigFingerprint(corpusPath, db);
+            progress.finish('index rebuild complete');
+
+            if (!options.quiet) {
+              printRebuildTrustSummary(result);
+              console.log(
+                `\n✓ Full rebuild complete (${result.surfaceCount} surfaces, commit ${headCommit.slice(0, 8)})`
+              );
+            }
+
+            db.close();
+            return;
+          } catch (error) {
+            console.error('Error: Failed to run full overlay rebuild');
+            console.error(`  ${error instanceof Error ? error.message : String(error)}`);
+            db.close();
+            process.exit(1);
+          }
+        }
+
+        // Verify stored commit still exists
+        if (!commitExists(corpusPath, lastCommit)) {
           if (!options.quiet) {
-            printRebuildTrustSummary(result);
-            console.log(
-              `\n✓ Sync escalated to full overlay rebuild (${result.surfaceCount} surfaces, commit ${headCommit.slice(0, 8)})`
+            console.warn(
+              'Warning: Stored commit no longer exists (possible force push), running full rebuild...'
             );
           }
+          try {
+            const scanner = new GeneralScanner(corpusPath);
+            const progress = createProgressReporter(options.quiet === true);
+            progress.start('index rebuild (overlay-complete)');
+            progress.log(`Scanning content directory: ${corpusPath}`);
 
-          db.close();
-          return;
-        } catch (error) {
-          console.error('Error: Failed to run overlay rebuild during sync');
-          console.error(`  ${error instanceof Error ? error.message : String(error)}`);
-          db.close();
-          process.exit(1);
-        }
-      }
-
-      // Build incremental plan
-      const plan = buildIncrementalPlan(corpusPath, diff);
-
-      if (!options.quiet) {
-        console.log('Sync path: incremental content sync (no structural source changes detected).');
-        console.log(
-          `Changes: +${diff.added.length} added, ~${diff.modified.length} modified, -${diff.deleted.length} deleted`
-        );
-        console.log(
-          `Indexable: ${plan.toIndex.length} to index, ${plan.toDelete.length} to delete`
-        );
-      }
-
-      // Delete removed entries from DB
-      for (const filePath of plan.toDelete) {
-        db.deleteKnowledgeEntryByPath(filePath);
-      }
-
-      // LSP enrichment for changed source files only
-      const sourceFilesToEnrich = plan.toIndex
-        .filter((entry) => entry.type === 'source-code')
-        .map((entry) => entry.filePath);
-
-      if (sourceFilesToEnrich.length > 0) {
-        try {
-          const { loadLspConfig } = await import('../scanner/config.js');
-          const { EnricherRegistry } = await import('../scanner/lsp/index.js');
-          const { PhpLspEnricher } = await import('../scanner/lsp/php.js');
-          const config = loadLspConfig(corpusPath);
-
-          if (config.lsp.enabled) {
-            if (!options.quiet) {
-              console.log(`Enriching ${sourceFilesToEnrich.length} source files via LSP...`);
-            }
-
-            // Build enricher registry from config (same as generalScan but targeted)
-            const registry = new EnricherRegistry();
-            const ENRICHER_FACTORIES: Record<
-              string,
-              (entry: (typeof config.lsp.enrichers)[0]) => InstanceType<typeof PhpLspEnricher>
-            > = {
-              php: (entry) =>
-                new PhpLspEnricher({
-                  serverCommand: entry.serverCommand,
-                  serverArgs: entry.serverArgs,
-                  maxConcurrency: entry.maxConcurrency,
-                  requestTimeoutMs: entry.requestTimeoutMs,
-                  initTimeoutMs: entry.initTimeoutMs,
-                }),
+            const { result, scanResult } = await rebuildWithOverlay(db, corpusPath, {
+              onProgress: (msg) => progress.log(msg),
+            });
+            const indexedScan = {
+              ...scanResult.scan,
+              knowledge: scanResult.scan.knowledge.map((entry) =>
+                attachEnrichment(entry, scanResult.enrichments)
+              ),
             };
+            await persistKnowledgeIndex(db, scanner, indexedScan, progress);
+            const headCommit = getHeadCommit(corpusPath);
+            db.setIndexMetadata('last_indexed_commit', headCommit);
+            persistRebuildTrustState(db, result, {
+              lastIndexedCommit: headCommit,
+            });
+            persistStructuralConfigFingerprint(corpusPath, db);
+            progress.finish('index rebuild complete');
 
-            for (const entry of config.lsp.enrichers) {
-              if (entry.enabled === false) continue;
-              const factory = ENRICHER_FACTORIES[entry.languageId];
-              if (!factory) continue;
-              try {
-                registry.register(factory(entry));
-              } catch {
-                /* skip */
+            if (!options.quiet) {
+              printRebuildTrustSummary(result);
+              console.log(
+                `\n✓ Full rebuild complete (${result.surfaceCount} surfaces, commit ${headCommit.slice(0, 8)})`
+              );
+            }
+
+            db.close();
+            return;
+          } catch (error) {
+            console.error('Error: Failed to run full overlay rebuild');
+            console.error(`  ${error instanceof Error ? error.message : String(error)}`);
+            db.close();
+            process.exit(1);
+          }
+        }
+
+        // Get HEAD commit
+        const headCommit = getHeadCommit(corpusPath);
+
+        // Check if already up to date (commit-wise) — but report the working tree honestly.
+        if (headCommit === lastCommit) {
+          if (!options.quiet) {
+            const freshness = assessWorkingTreeFreshness(corpusPath, db);
+            if (freshness.assessment === 'clean') {
+              console.log(`Index matches HEAD (${headCommit.slice(0, 8)}); working tree clean.`);
+            } else if (freshness.assessment === 'dirty-content') {
+              console.log(
+                `Index matches HEAD (${headCommit.slice(0, 8)}); working tree dirty: ` +
+                  `${freshness.dirtyFiles.length} non-structural file(s).`
+              );
+            } else {
+              // dirty-structural
+              console.log(
+                `Index matches HEAD (${headCommit.slice(0, 8)}); working tree dirty: ` +
+                  `${freshness.dirtyStructural.length} structural file(s).`
+              );
+              for (const p of freshness.dirtyStructural.slice(0, 20)) {
+                console.log(`  → overlay facts for ${p} describe the last indexed state`);
               }
-            }
-
-            // Initialize enrichers
-            const workspaceRoot = config.lsp.workspaceRoot ?? corpusPath;
-            for (const enricher of registry.getAll()) {
-              try {
-                await enricher.initialize(workspaceRoot);
-              } catch {
-                /* skip */
-              }
-            }
-
-            // Enrich ONLY the changed files
-            const path = await import('path');
-            const enrichmentMap = new Map<
-              string,
-              import('../scanner/lsp/index.js').EnrichmentResult
-            >();
-
-            for (const filePath of sourceFilesToEnrich) {
-              const ext = path.extname(filePath);
-              const enricher = registry.getByExtension(ext);
-              if (!enricher?.isReady) continue;
-              try {
-                const result = await enricher.enrich(filePath);
-                if (result) enrichmentMap.set(filePath, result);
-              } catch {
-                /* skip individual file errors */
-              }
-            }
-
-            // Shut down enrichers
-            try {
-              await registry.shutdownAll();
-            } catch {
-              /* ignore */
-            }
-
-            // Apply enrichments to changed files
-            for (let i = 0; i < plan.toIndex.length; i++) {
-              const entry = plan.toIndex[i];
-              if (enrichmentMap.has(entry.filePath)) {
-                plan.toIndex[i] = attachEnrichment(entry, enrichmentMap);
-              }
-            }
-
-            if (!options.quiet && enrichmentMap.size > 0) {
-              console.log(`  Enriched ${enrichmentMap.size} files via LSP`);
             }
           }
+          db.close();
+          return;
+        }
+
+        if (!options.quiet) {
+          console.log(`Syncing index: ${lastCommit.slice(0, 8)}..${headCommit.slice(0, 8)}`);
+        }
+
+        // Get git diff
+        let diff;
+        try {
+          diff = getGitDiff(corpusPath, lastCommit, headCommit);
         } catch {
           if (!options.quiet) {
-            console.warn('Warning: LSP enrichment failed, continuing without enrichment');
+            console.warn('Warning: git diff failed, running full rebuild...');
+          }
+          try {
+            const scanner = new GeneralScanner(corpusPath);
+            const progress = createProgressReporter(options.quiet === true);
+            progress.start('index rebuild (overlay-complete)');
+            progress.log(`Scanning content directory: ${corpusPath}`);
+
+            const { result, scanResult } = await rebuildWithOverlay(db, corpusPath, {
+              onProgress: (msg) => progress.log(msg),
+            });
+            const indexedScan = {
+              ...scanResult.scan,
+              knowledge: scanResult.scan.knowledge.map((entry) =>
+                attachEnrichment(entry, scanResult.enrichments)
+              ),
+            };
+            await persistKnowledgeIndex(db, scanner, indexedScan, progress);
+            db.setIndexMetadata('last_indexed_commit', headCommit);
+            persistRebuildTrustState(db, result, {
+              lastIndexedCommit: headCommit,
+            });
+            persistStructuralConfigFingerprint(corpusPath, db);
+            progress.finish('index rebuild complete');
+            if (!options.quiet) {
+              printRebuildTrustSummary(result);
+              console.log(`\n✓ Full rebuild complete (${result.surfaceCount} surfaces)`);
+            }
+            db.close();
+            return;
+          } catch (error) {
+            console.error('Error: Failed to run full overlay rebuild');
+            console.error(`  ${error instanceof Error ? error.message : String(error)}`);
+            db.close();
+            process.exit(1);
           }
         }
-      }
 
-      // Index new/modified entries
-      for (const entry of plan.toIndex) {
-        db.insertKnowledgeEntry({
-          type: entry.type,
-          title: entry.title,
-          file_path: entry.filePath,
-          tags: entry.tags,
-          metadata: entry.frontmatter,
-          content: entry.content,
-        });
-      }
+        const overlayRelevantPaths = collectOverlayRelevantPaths(diff);
+        const requiresOverlayRebuild = hasOverlayRelevantChanges(diff);
 
-      // Store new commit hash
-      db.setIndexMetadata('last_indexed_commit', headCommit);
+        // Phase 2 (Decisions 3/4/11): --mark-only downgrades a structural change (marks edges + trust)
+        // instead of escalating to a full rebuild. It skips the escalation and falls through to the
+        // incremental-content path, where the two dimension marks + the trust downgrade are applied
+        // before the pointer settles. OQ4-safe: `lux delta` now reads the maintained marks (spec 12).
+        if (requiresOverlayRebuild && !options.markOnly) {
+          // Phase 3b (T3b.4, spec 15 Part E): scoped refresh is the DEFAULT sync path under budget,
+          // routed by decideScopedEligibility (the whole escalation policy — no-overlay /
+          // pending-migration / first-party / config-changed / over-budget). `--full` forces the
+          // full-rebuild escalation; `--scoped` forces scoped via decideForcedScoped (operator
+          // override: the two HARD preconditions still apply, but the fingerprint/first-party/budget
+          // POLICY is bypassed). This is the ONE precondition implementation — the Phase-3a inline
+          // check is now subsumed by decideForcedScoped.
+          const decision: ScopedDecision = options.full
+            ? { path: 'full', reason: 'config-changed' } // --full: operator forces full
+            : options.scoped
+              ? decideForcedScoped(db, corpusPath) // --scoped: force scoped unless a HARD precondition blocks
+              : decideScopedEligibility(db, corpusPath, overlayRelevantPaths.length);
 
-      const syncTrustState = markOverlayTrustAfterSync(db, {
-        lastIndexedCommit: headCommit,
-        overlayRelevantPaths,
-        addedCount: diff.added.length,
-        modifiedCount: diff.modified.length,
-        deletedCount: diff.deleted.length,
-        indexedCount: plan.toIndex.length,
-        deletedEntryCount: plan.toDelete.length,
-      });
+          if (decision.path === 'scoped') {
+            const changed: ChangedFile[] = collectOverlayRelevantPaths(diff).map((relPath) => ({
+              relPath,
+              status: diff.deleted.includes(relPath)
+                ? 'deleted'
+                : diff.added.includes(relPath)
+                  ? 'added'
+                  : 'modified',
+            }));
+            const prior = inspectOverlayTrustState(db).state;
+            const config = loadLspConfig(corpusPath);
+            const progress = createProgressReporter(options.quiet === true);
+            progress.start('scoped overlay refresh');
+            const result = await refreshOverlayScoped(db, corpusPath, changed, config, {
+              onProgress: (m) => progress.log(m),
+              lspBudgetMs: decision.lspBudgetMs, // Phase 3b: sourced from refresh.lspBudgetMs (spec 15 C/E)
+            });
+            // Content index still reflects HEAD (the incremental content sync runs for docs).
+            const plan = buildIncrementalPlan(corpusPath, diff);
+            for (const p of plan.toDelete) db.deleteKnowledgeEntryByPath(p);
+            for (const entry of plan.toIndex) {
+              db.insertKnowledgeEntry({
+                type: entry.type,
+                title: entry.title,
+                file_path: entry.filePath,
+                tags: entry.tags,
+                metadata: entry.frontmatter,
+                content: entry.content,
+              });
+            }
+            db.setIndexMetadata('last_indexed_commit', headCommit); // OQ4-safe (Phase 2 mark-read landed)
+            if (prior) {
+              persistRefreshTrustState(db, prior, {
+                lastIndexedCommit: headCommit,
+                residualStaleEdges: result.residualStaleEdges,
+              });
+            }
+            emitUsageEvent(db, {
+              source: 'cli',
+              surface: 'index-refresh',
+              action: 'scoped',
+              invocationId,
+              commandOutcome: 'success',
+              retrievalOutcome: 'not_applicable',
+              trustState: safeUsageTrustState(deriveOverlayTrustLevel(db)),
+              durationMs: Date.now() - startedAt,
+              exitCode: 0,
+              corpusPath,
+              dbPath,
+              repoCommit: headCommit,
+              attributes: {
+                refreshedFiles: result.refreshedFiles,
+                changedFiles: result.changedFiles,
+                closureFiles: result.closureFiles,
+                residualStaleEdges: result.residualStaleEdges,
+                tierAst: result.tiers.ast,
+                tierLsp: result.tiers.lsp,
+                tierFacade: result.tiers.facade,
+              },
+            });
+            progress.finish(
+              `scoped refresh complete (${result.refreshedFiles} file(s), ${result.residualStaleEdges} residual stale)`
+            );
+            db.close();
+            return;
+          }
 
-      // Log event
-      try {
-        db.insertEvent({
-          source: 'cli',
-          event_type: 'index_sync',
-          summary: `Synced index: +${plan.toIndex.length} indexed, -${plan.toDelete.length} deleted`,
-        });
-      } catch {
-        // Non-fatal
-      }
-      emitUsageEvent(db, {
-        source: 'cli',
-        surface: 'index-sync',
-        action: 'incremental',
-        invocationId,
-        commandOutcome: 'success',
-        retrievalOutcome: 'not_applicable',
-        trustState: safeUsageTrustState(deriveOverlayTrustLevelFromState(syncTrustState)),
-        durationMs: Date.now() - startedAt,
-        exitCode: 0,
-        corpusPath,
-        dbPath,
-        repoCommit: headCommit,
-        attributes: {
-          indexedCount: plan.toIndex.length,
-          deletedEntryCount: plan.toDelete.length,
+          // decision.path === 'full' — full-rebuild escalation (unchanged) + fingerprint baseline.
+          if (!options.quiet) {
+            console.log(`Sync path: full rebuild (${decision.reason}).`);
+          }
+          try {
+            const scanner = new GeneralScanner(corpusPath);
+            const progress = createProgressReporter(options.quiet === true);
+            progress.start('index rebuild (overlay-complete)');
+            progress.log(`Scanning content directory: ${corpusPath}`);
+
+            const { result, scanResult } = await rebuildWithOverlay(db, corpusPath, {
+              onProgress: (msg) => progress.log(msg),
+            });
+            const indexedScan = {
+              ...scanResult.scan,
+              knowledge: scanResult.scan.knowledge.map((entry) =>
+                attachEnrichment(entry, scanResult.enrichments)
+              ),
+            };
+            await persistKnowledgeIndex(db, scanner, indexedScan, progress);
+            db.setIndexMetadata('last_indexed_commit', headCommit);
+            persistRebuildTrustState(db, result, {
+              lastIndexedCommit: headCommit,
+            });
+            persistStructuralConfigFingerprint(corpusPath, db);
+            progress.finish('index rebuild complete');
+
+            try {
+              db.insertEvent({
+                source: 'cli',
+                event_type: 'index_sync',
+                summary: `Sync escalated to overlay rebuild: ${overlayRelevantPaths.length} structural source file(s) changed`,
+              });
+            } catch {
+              // Non-fatal
+            }
+            emitUsageEvent(db, {
+              source: 'cli',
+              surface: 'index-sync',
+              action: 'overlay-rebuild',
+              invocationId,
+              commandOutcome: 'success',
+              retrievalOutcome: 'not_applicable',
+              trustState: safeUsageTrustState(result.mode),
+              durationMs: Date.now() - startedAt,
+              exitCode: 0,
+              corpusPath,
+              dbPath,
+              repoCommit: headCommit,
+              attributes: {
+                overlayRelevantPaths: overlayRelevantPaths.length,
+                surfaceCount: result.surfaceCount,
+              },
+            });
+
+            if (!options.quiet) {
+              printRebuildTrustSummary(result);
+              console.log(
+                `\n✓ Sync escalated to full overlay rebuild (${result.surfaceCount} surfaces, commit ${headCommit.slice(0, 8)})`
+              );
+            }
+
+            db.close();
+            return;
+          } catch (error) {
+            console.error('Error: Failed to run overlay rebuild during sync');
+            console.error(`  ${error instanceof Error ? error.message : String(error)}`);
+            db.close();
+            process.exit(1);
+          }
+        }
+
+        // Build incremental plan
+        const plan = buildIncrementalPlan(corpusPath, diff);
+
+        if (!options.quiet) {
+          console.log(
+            'Sync path: incremental content sync (no structural source changes detected).'
+          );
+          console.log(
+            `Changes: +${diff.added.length} added, ~${diff.modified.length} modified, -${diff.deleted.length} deleted`
+          );
+          console.log(
+            `Indexable: ${plan.toIndex.length} to index, ${plan.toDelete.length} to delete`
+          );
+        }
+
+        // Delete removed entries from DB
+        for (const filePath of plan.toDelete) {
+          db.deleteKnowledgeEntryByPath(filePath);
+        }
+
+        // LSP enrichment for changed source files only
+        const sourceFilesToEnrich = plan.toIndex
+          .filter((entry) => entry.type === 'source-code')
+          .map((entry) => entry.filePath);
+
+        if (sourceFilesToEnrich.length > 0) {
+          try {
+            const { loadLspConfig } = await import('../scanner/config.js');
+            const { EnricherRegistry } = await import('../scanner/lsp/index.js');
+            const { PhpLspEnricher } = await import('../scanner/lsp/php.js');
+            const config = loadLspConfig(corpusPath);
+
+            if (config.lsp.enabled) {
+              if (!options.quiet) {
+                console.log(`Enriching ${sourceFilesToEnrich.length} source files via LSP...`);
+              }
+
+              // Build enricher registry from config (same as generalScan but targeted)
+              const registry = new EnricherRegistry();
+              const ENRICHER_FACTORIES: Record<
+                string,
+                (entry: (typeof config.lsp.enrichers)[0]) => InstanceType<typeof PhpLspEnricher>
+              > = {
+                php: (entry) =>
+                  new PhpLspEnricher({
+                    serverCommand: entry.serverCommand,
+                    serverArgs: entry.serverArgs,
+                    maxConcurrency: entry.maxConcurrency,
+                    requestTimeoutMs: entry.requestTimeoutMs,
+                    initTimeoutMs: entry.initTimeoutMs,
+                  }),
+              };
+
+              for (const entry of config.lsp.enrichers) {
+                if (entry.enabled === false) continue;
+                const factory = ENRICHER_FACTORIES[entry.languageId];
+                if (!factory) continue;
+                try {
+                  registry.register(factory(entry));
+                } catch {
+                  /* skip */
+                }
+              }
+
+              // Initialize enrichers
+              const workspaceRoot = config.lsp.workspaceRoot ?? corpusPath;
+              for (const enricher of registry.getAll()) {
+                try {
+                  await enricher.initialize(workspaceRoot);
+                } catch {
+                  /* skip */
+                }
+              }
+
+              // Enrich ONLY the changed files
+              const path = await import('path');
+              const enrichmentMap = new Map<
+                string,
+                import('../scanner/lsp/index.js').EnrichmentResult
+              >();
+
+              for (const filePath of sourceFilesToEnrich) {
+                const ext = path.extname(filePath);
+                const enricher = registry.getByExtension(ext);
+                if (!enricher?.isReady) continue;
+                try {
+                  const result = await enricher.enrich(filePath);
+                  if (result) enrichmentMap.set(filePath, result);
+                } catch {
+                  /* skip individual file errors */
+                }
+              }
+
+              // Shut down enrichers
+              try {
+                await registry.shutdownAll();
+              } catch {
+                /* ignore */
+              }
+
+              // Apply enrichments to changed files
+              for (let i = 0; i < plan.toIndex.length; i++) {
+                const entry = plan.toIndex[i];
+                if (enrichmentMap.has(entry.filePath)) {
+                  plan.toIndex[i] = attachEnrichment(entry, enrichmentMap);
+                }
+              }
+
+              if (!options.quiet && enrichmentMap.size > 0) {
+                console.log(`  Enriched ${enrichmentMap.size} files via LSP`);
+              }
+            }
+          } catch {
+            if (!options.quiet) {
+              console.warn('Warning: LSP enrichment failed, continuing without enrichment');
+            }
+          }
+        }
+
+        // Phase 2 (Decision 3/4/11): commit the content-index inserts, the two --mark-only stale-mark
+        // dimensions (node-path: endpoints in a changed file; evidence: a changed file cited by an
+        // edge whose endpoints are elsewhere — e.g. a routes-file handled_by edge), and the
+        // last_indexed_commit pointer advance as ONE transaction, with the MARKS WRITTEN BEFORE THE
+        // POINTER. Marks-before-pointer is the crash-atomic order (OQ4): a crash after the marks but
+        // before the pointer leaves the pointer behind HEAD, so `lux delta base..HEAD` still catches
+        // the files; advancing the pointer first would strand a clean tree over an unmarked overlay.
+        const database = db; // const so the narrowed (non-undefined) type survives into the closure
+        const { edgesMarkedNodePath, edgesMarkedEvidence } = commitIncrementalSync(
+          database,
+          () => {
+            for (const entry of plan.toIndex) {
+              database.insertKnowledgeEntry({
+                type: entry.type,
+                title: entry.title,
+                file_path: entry.filePath,
+                tags: entry.tags,
+                metadata: entry.frontmatter,
+                content: entry.content,
+              });
+            }
+          },
+          { overlayRelevantPaths, headCommit, markOnly: options.markOnly === true }
+        );
+
+        const syncTrustState = markOverlayTrustAfterSync(db, {
+          lastIndexedCommit: headCommit,
+          overlayRelevantPaths,
           addedCount: diff.added.length,
           modifiedCount: diff.modified.length,
           deletedCount: diff.deleted.length,
-        },
-      });
+          indexedCount: plan.toIndex.length,
+          deletedEntryCount: plan.toDelete.length,
+        });
 
-      if (!options.quiet) {
-        const syncTrustLevel = deriveOverlayTrustLevelFromState(syncTrustState);
-        console.log(
-          `Overlay trust after sync: ${syncTrustLevel} (persisted mode: ${syncTrustState.mode}, ${syncTrustState.fileNodeCount} files, ${syncTrustState.symbolNodeCount} symbols)`
-        );
-        for (const warning of syncTrustState.warnings) {
-          console.warn(`Warning: ${warning}`);
-        }
-        console.log(
-          `✓ Synced: +${plan.toIndex.length} indexed, -${plan.toDelete.length} deleted (commit ${headCommit.slice(0, 8)})`
-        );
-      }
-
-      db.close();
-    } catch (error) {
-      console.error('Error: Unexpected error during index sync');
-      console.error(`  ${error instanceof Error ? error.message : String(error)}`);
-      if (db) {
+        // Log event
         try {
-          db.close();
+          db.insertEvent({
+            source: 'cli',
+            event_type: 'index_sync',
+            summary: `Synced index: +${plan.toIndex.length} indexed, -${plan.toDelete.length} deleted`,
+          });
         } catch {
-          /* ignore */
+          // Non-fatal
         }
+        const markOnlyRun = options.markOnly === true && overlayRelevantPaths.length > 0;
+        emitUsageEvent(db, {
+          source: 'cli',
+          surface: 'index-sync',
+          action: markOnlyRun ? 'mark-only' : 'incremental',
+          invocationId,
+          commandOutcome: 'success',
+          retrievalOutcome: 'not_applicable',
+          trustState: safeUsageTrustState(deriveOverlayTrustLevelFromState(syncTrustState)),
+          durationMs: Date.now() - startedAt,
+          exitCode: 0,
+          corpusPath,
+          dbPath,
+          repoCommit: headCommit,
+          attributes: {
+            indexedCount: plan.toIndex.length,
+            deletedEntryCount: plan.toDelete.length,
+            addedCount: diff.added.length,
+            modifiedCount: diff.modified.length,
+            deletedCount: diff.deleted.length,
+            overlayRelevantPaths: overlayRelevantPaths.length,
+            edgesMarkedNodePath,
+            edgesMarkedEvidence,
+          },
+        });
+
+        if (!options.quiet) {
+          if (markOnlyRun) {
+            console.log(
+              `Sync path: mark-only edge downgrade (${overlayRelevantPaths.length} structural source file(s) changed; ` +
+                `${edgesMarkedNodePath} edge(s) by node-path, ${edgesMarkedEvidence} by evidence marked stale — overlay NOT rebuilt).`
+            );
+          }
+          const syncTrustLevel = deriveOverlayTrustLevelFromState(syncTrustState);
+          console.log(
+            `Overlay trust after sync: ${syncTrustLevel} (persisted mode: ${syncTrustState.mode}, ${syncTrustState.fileNodeCount} files, ${syncTrustState.symbolNodeCount} symbols)`
+          );
+          for (const warning of syncTrustState.warnings) {
+            console.warn(`Warning: ${warning}`);
+          }
+          console.log(
+            `✓ Synced: +${plan.toIndex.length} indexed, -${plan.toDelete.length} deleted (commit ${headCommit.slice(0, 8)})`
+          );
+        }
+
+        db.close();
+      } catch (error) {
+        console.error('Error: Unexpected error during index sync');
+        console.error(`  ${error instanceof Error ? error.message : String(error)}`);
+        if (db) {
+          try {
+            db.close();
+          } catch {
+            /* ignore */
+          }
+        }
+        process.exit(1);
       }
-      process.exit(1);
     }
-  });
+  );
 
 indexCmd
   .command('status')
@@ -878,6 +1035,11 @@ indexCmd
       }
     }
     console.log();
+
+    // Freshness (Decision 1) — computed on read, never persisted.
+    for (const line of renderFreshnessText(assessWorkingTreeFreshness(runtime.corpusPath, db))) {
+      console.log(line);
+    }
 
     db.close();
   });

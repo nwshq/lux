@@ -16,18 +16,72 @@ export interface IncrementalPlan {
   unchanged: number; // Count of files not affected
 }
 
+/** True when a relative source path can invalidate the structural overlay
+ *  (source-code extension, not an excluded/generated path). Single source of
+ *  truth shared by the sync escalation check and the freshness assessment. */
+export function isOverlayRelevantPath(filePath: string): boolean {
+  const ext = extname(filePath);
+  return SOURCE_CODE_EXTENSIONS.includes(ext) && !isExcludedPath(filePath);
+}
+
 /** Relative source-code paths whose changes can invalidate the structural overlay. */
 export function collectOverlayRelevantPaths(diff: GitDiffResult): string[] {
   const allChanged = [...diff.added, ...diff.modified, ...diff.deleted];
-  return allChanged.filter((filePath) => {
-    const ext = extname(filePath);
-    return SOURCE_CODE_EXTENSIONS.includes(ext) && !isExcludedPath(filePath);
-  });
+  return allChanged.filter(isOverlayRelevantPath);
 }
 
 /** Whether a diff contains source changes that require canonical overlay rebuild. */
 export function hasOverlayRelevantChanges(diff: GitDiffResult): boolean {
   return collectOverlayRelevantPaths(diff).length > 0;
+}
+
+/** The narrow LuxDatabase surface commitIncrementalSync writes through. Kept structural (not the
+ *  full LuxDatabase) so the crash-atomicity ordering can be unit-tested against a spy. */
+export interface IncrementalSyncWriter {
+  transaction<T>(fn: () => T): T;
+  markEdgesStaleForFiles(filePaths: string[]): number;
+  markEdgesStaleByEvidencePaths(filePaths: string[]): number;
+  setIndexMetadata(key: string, value: string): void;
+}
+
+export interface MarkOnlySyncCounts {
+  edgesMarkedNodePath: number;
+  edgesMarkedEvidence: number;
+}
+
+/**
+ * Commit a content sync's writes as ONE transaction with the crash-atomic ordering (spec 11 Part B /
+ * OQ4 / Decisions 3-4-11): first the content-index writes (via `writeContent`), then — for a
+ * `--mark-only` structural sync — the two stale-mark dimensions, and LAST the `last_indexed_commit`
+ * pointer advance.
+ *
+ * Marks-BEFORE-pointer is the crash-safe order: if the process dies after the marks but before the
+ * pointer, the pointer stays BEHIND HEAD, so a later `lux delta base..HEAD` still sees the changed
+ * files and re-marks them. Advancing the pointer first would strand a clean tree over an UNMARKED
+ * overlay — the OQ4 empty-change-set hazard (pointer-at-HEAD + overlay-unmarked reads as "nothing
+ * changed"). Wrapping the batch in one transaction is the braces to that ordering's belt: no crash
+ * can observe a half-applied state, and the ordering keeps the invariant honest even if the
+ * transaction guarantee is ever weakened on the underlying adapter.
+ */
+export function commitIncrementalSync(
+  db: IncrementalSyncWriter,
+  writeContent: () => void,
+  opts: { overlayRelevantPaths: string[]; headCommit: string; markOnly: boolean }
+): MarkOnlySyncCounts {
+  let edgesMarkedNodePath = 0;
+  let edgesMarkedEvidence = 0;
+  db.transaction(() => {
+    // 1. content index inserts (the matching deletes for toDelete are applied upstream).
+    writeContent();
+    // 2. structural stale-marks (both dimensions), BEFORE the pointer advance.
+    if (opts.markOnly && opts.overlayRelevantPaths.length > 0) {
+      edgesMarkedNodePath = db.markEdgesStaleForFiles(opts.overlayRelevantPaths);
+      edgesMarkedEvidence = db.markEdgesStaleByEvidencePaths(opts.overlayRelevantPaths);
+    }
+    // 3. pointer advance LAST — a crash before here leaves the pointer behind (recoverable).
+    db.setIndexMetadata('last_indexed_commit', opts.headCommit);
+  });
+  return { edgesMarkedNodePath, edgesMarkedEvidence };
 }
 
 /** Set of indexable extensions (markdown + source code). */
@@ -68,8 +122,11 @@ function isIndexableFile(relativePath: string): boolean {
 
 /**
  * Build a ScannedKnowledge entry for a file, using the same logic as GeneralScanner.
+ *
+ * Exported (T3a.1) so the scoped overlay-refresh engine and its reverse-import closure
+ * (spec 13 Parts E/F) reuse the exact per-file entry builder rather than re-reading files.
  */
-function buildEntry(rootPath: string, relativePath: string): ScannedKnowledge | null {
+export function buildEntry(rootPath: string, relativePath: string): ScannedKnowledge | null {
   const filePath = join(rootPath, relativePath);
   const ext = extname(relativePath);
 

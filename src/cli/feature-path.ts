@@ -11,14 +11,16 @@ import type { Command } from 'commander';
 import { LuxDatabase } from '../db/index.js';
 import { assembleFeaturePathAnswer } from '../scanner/associations/feature-path/assemble.js';
 import { inferFeaturePathIntent } from '../scanner/associations/feature-path/intents.js';
-import {
-  renderFeaturePathAnswerJson,
-  renderFeaturePathAnswerText,
-} from '../scanner/associations/feature-path/render.js';
+import { renderFeaturePathAnswerText } from '../scanner/associations/feature-path/render.js';
 import { resolveFeaturePathTarget } from '../scanner/associations/feature-path/resolve.js';
 import { emitUsageEvent, createInvocationId } from '../db/observability/usage-event.js';
 import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
 import type { FeaturePathAnswer } from '../scanner/associations/feature-path/contract.js';
+import {
+  summarizeStaleSupport,
+  staleSupportWarning,
+  type StaleSupportSummary,
+} from '../scanner/freshness.js';
 
 export interface FeaturePathAskOptions {
   json?: boolean;
@@ -34,6 +36,8 @@ export interface FeaturePathAskExecutionResult {
   answer: FeaturePathAnswer;
   rendered: string;
   exitCode: 0 | 1;
+  /** Read-only stale-support annotation over the resolved surface's structural edges (SC-4). */
+  staleSupport: StaleSupportSummary;
 }
 
 function executeFeaturePathAsk(
@@ -58,12 +62,21 @@ function executeFeaturePathAsk(
     repoRoot: options.corpusPath,
   });
 
+  // Stale-aware annotation (Decision 4 / SC-4): read-only — summarize how many of the resolved
+  // surface's supporting structural edges the maintained marks flag `stale`. The `handled_by`
+  // provider edge lives on the surface node (source_node_id === surface id), so the surface's
+  // incident edges are exactly the structural claims backing this answer. Never mutates freshness.
+  const staleSupport = summarizeStaleSupport(
+    answer.target ? db.getStructuralEdgesForNode(answer.target.id) : []
+  );
+
   return {
     answer,
     rendered: options.json
-      ? renderFeaturePathAnswerJson(answer)
+      ? JSON.stringify({ ...answer, staleSupport }, null, 2)
       : renderFeaturePathAnswerText(answer),
     exitCode: resolution.status === 'resolved' ? 0 : 1,
+    staleSupport,
   };
 }
 
@@ -89,6 +102,10 @@ export function runFeaturePathAsk(
   const result = executeFeaturePathAsk(db, question, { ...options, corpusPath });
 
   console.log(result.rendered);
+  if (!options.json) {
+    const staleWarning = staleSupportWarning(result.staleSupport);
+    if (staleWarning) console.warn('Warning: ' + staleWarning);
+  }
   emitUsageEvent(db, {
     source: 'cli',
     surface: 'feature-path',

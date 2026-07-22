@@ -58,11 +58,15 @@ describe('delta touch-set dynamic-IN DB methods (spec 11 Part A)', () => {
 
   it('completes the union across a >500-path chunk boundary', () => {
     const paths: string[] = [];
-    for (let i = 0; i < 501; i++) {
-      const p = `src/f${i}.php`;
-      paths.push(p);
-      db.upsertStructuralNode(node(`file:${p}`));
-    }
+    // one transaction — 501 individual WASM inserts fsync per statement and can exceed the
+    // 20s test timeout under full-suite parallel load; batching keeps this deterministic.
+    db.transaction(() => {
+      for (let i = 0; i < 501; i++) {
+        const p = `src/f${i}.php`;
+        paths.push(p);
+        db.upsertStructuralNode(node(`file:${p}`));
+      }
+    });
     const rows = db.getStructuralNodesForFilePaths(paths);
     expect(rows).toHaveLength(501);
   });

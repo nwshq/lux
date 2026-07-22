@@ -49,7 +49,8 @@ export async function runDetectors(
   db: LuxDatabase,
   context: AssociationContext,
   detectors?: CapabilitySurfaceDetector[],
-  report: (msg: string) => void = () => {}
+  report: (msg: string) => void = () => {},
+  sourceCommit?: string
 ): Promise<DetectorRunResult> {
   const pack = detectors ?? createDefaultDetectors();
   let surfacesDetected = 0;
@@ -77,9 +78,10 @@ export async function runDetectors(
       surfacesDetected++;
     }
 
-    // Persist boundary edges + evidence using the engine's static helper
+    // Persist boundary edges + evidence using the engine's static helper.
+    // sourceCommit is threaded on the scoped-refresh path (SC-8); undefined on full rebuild.
     if (batch.edges.length > 0) {
-      const stored = AssociationEngine.persistEdges(db, batch.edges);
+      const stored = AssociationEngine.persistEdges(db, batch.edges, sourceCommit);
       surfaceEdgesStored += stored;
     }
 

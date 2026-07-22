@@ -120,6 +120,20 @@ export type ConfidenceClass = 'proven' | 'artifact-backed' | 'framework-inferred
 
 export type FreshnessStatus = 'fresh' | 'stale' | 'dirty-dependent' | 'unknown';
 
+/** Aggregate structural-edge counts by maintained freshness status
+ *  (returned by LuxDatabase.countEdgesByFreshness). Reports the four first-class
+ *  buckets; `other` catches any truly unrecognized status (expected 0 — a regression sentinel). */
+export interface EdgeFreshnessCounts {
+  fresh: number;
+  'dirty-dependent': number;
+  stale: number;
+  /** Legitimately-`unknown` edges (schema-008 default; e.g. a vendor-pack edge). Its own
+   *  bucket so it never reads as a false `other` regression sentinel. */
+  unknown: number;
+  /** Any row with a TRULY unrecognized status (expected 0 — a regression sentinel). */
+  other: number;
+}
+
 /**
  * Provenance of a structural node (ADR-3). 'local' = materialized from the
  * scanned project corpus; 'vendor-pack' = imported from a merged vendor pack.

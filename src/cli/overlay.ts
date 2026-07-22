@@ -17,6 +17,7 @@ import { runFeaturePathAsk } from './feature-path.js';
 import { runOperationalAsk } from './operational.js';
 import { runSpecEvidenceAsk } from './spec-evidence.js';
 import { buildOverlayStatusPayload } from './status-payload.js';
+import { assessWorkingTreeFreshness, renderFreshnessText } from '../scanner/freshness.js';
 import {
   describeOverlayTrustInspection,
   deriveOverlayTrustLevelFromState,
@@ -477,6 +478,15 @@ export function addOverlayCommands(program: Command): void {
         }
         for (const w of overlay.warnings) {
           console.warn(`Warning: ${w}`);
+        }
+      }
+
+      // Freshness (Decision 1) — computed on read, never persisted.
+      if (!options.json) {
+        for (const line of renderFreshnessText(
+          assessWorkingTreeFreshness(runtime.corpusPath, db)
+        )) {
+          console.log(line);
         }
       }
 

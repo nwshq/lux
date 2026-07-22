@@ -212,8 +212,10 @@ describe('index sync CLI', () => {
     const check = runCli(repoDir, dbPath, ['overlay', 'check']);
 
     expect(result.status).toBe(0);
-    expect(result.stdout).toContain('Sync path: canonical overlay rebuild (');
-    expect(result.stdout).toContain('structural source file(s) changed).');
+    // Phase 3b: enableTypeScriptLsp rewrote lux.yaml after the fingerprint was baselined at
+    // rebuild, so the structural sync escalates to a full rebuild via the config-fingerprint
+    // mismatch (Decision 7) rather than the pre-3b unconditional escalation.
+    expect(result.stdout).toContain('Sync path: full rebuild (config-changed).');
     expect(result.stdout).toContain('Trust Level: overlay-complete');
     expect(result.stdout).toContain('✓ Sync escalated to full overlay rebuild');
     expect(result.stdout).not.toContain('✓ Synced:');

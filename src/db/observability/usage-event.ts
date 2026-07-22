@@ -16,6 +16,7 @@ export type UsageEventSurface =
   | 'overlay-status'
   | 'index-sync'
   | 'index-rebuild'
+  | 'index-refresh'
   | 'discovery'
   | 'delta'
   | 'hook';

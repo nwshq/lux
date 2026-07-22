@@ -3,7 +3,7 @@ import type { RebuildMode, RebuildResult } from './rebuild-orchestrator.js';
 
 export const OVERLAY_TRUST_STATE_KEY = 'overlay_trust_state';
 
-export type OverlayTrustStateSource = 'index-rebuild' | 'index-sync' | 'derived';
+export type OverlayTrustStateSource = 'index-rebuild' | 'index-sync' | 'index-refresh' | 'derived';
 
 export interface PersistedOverlayTrustState extends RebuildResult {
   recordedAt: string;
@@ -60,6 +60,29 @@ export function persistRebuildTrustState(
   });
 }
 
+/**
+ * Settle trust after a scoped overlay refresh (Decision 12): zero residual not-fresh edges restores
+ * the prior mode (overlay-complete stays overlay-complete). `meta.residualStaleEdges` counts BOTH
+ * `stale` AND `dirty-dependent` (overlay-refresh step 9b drives dirty-dependent to zero on a
+ * complete refresh; any leftover of either is an honest settle failure), so a non-zero residual
+ * yields degraded-overlay ⇒ stale-overlay via the source-action derivation. Records sourceAction
+ * 'index-refresh' — provenance, not a new trust level (the five levels are frozen).
+ */
+export function persistRefreshTrustState(
+  db: LuxDatabase,
+  result: RebuildResult,
+  meta: { lastIndexedCommit?: string; residualStaleEdges: number }
+): PersistedOverlayTrustState {
+  const mode: RebuildMode = meta.residualStaleEdges === 0 ? result.mode : 'degraded-overlay';
+  return persistOverlayTrustState(db, {
+    ...result,
+    mode,
+    recordedAt: new Date().toISOString(),
+    lastIndexedCommit: meta.lastIndexedCommit,
+    sourceAction: 'index-refresh',
+  });
+}
+
 export function loadOverlayTrustState(db: LuxDatabase): PersistedOverlayTrustState | null {
   const raw = db.getIndexMetadata(OVERLAY_TRUST_STATE_KEY);
   if (!raw) return null;
@@ -98,9 +121,12 @@ export function loadOverlayTrustState(db: LuxDatabase): PersistedOverlayTrustSta
       sourceAction:
         parsed.sourceAction === 'index-rebuild' ||
         parsed.sourceAction === 'index-sync' ||
+        parsed.sourceAction === 'index-refresh' ||
         parsed.sourceAction === 'derived'
           ? parsed.sourceAction
           : 'derived',
+      dirtyAtIndexTime:
+        typeof parsed.dirtyAtIndexTime === 'number' ? parsed.dirtyAtIndexTime : undefined,
     };
   } catch {
     return null;
@@ -128,7 +154,10 @@ export function deriveOverlayTrustLevelFromMode(
   if (mode === 'none') return 'no-overlay';
   if (mode === 'content-only') return 'content-only';
   if (mode === 'overlay-complete') return 'overlay-complete';
-  if (mode === 'degraded-overlay' && sourceAction === 'index-sync') {
+  if (
+    mode === 'degraded-overlay' &&
+    (sourceAction === 'index-sync' || sourceAction === 'index-refresh')
+  ) {
     return 'stale-overlay';
   }
   return 'degraded-overlay';

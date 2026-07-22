@@ -17,6 +17,7 @@ import type {
   OperationalHandler,
   OperationalEdge,
   OperationalContract,
+  EdgeFreshnessCounts,
 } from './types.js';
 
 /** A kernel HTTP `handled_by` route joined against the client's nodes/routes (cross-area, #62). */
@@ -101,6 +102,12 @@ export class LuxDatabase {
    */
   isSchemaUpToDate(): boolean {
     return this.migrations.isUpToDate();
+  }
+
+  /** The highest applied migration version (the schema_version the fingerprint pins to). */
+  getAppliedSchemaVersion(): number {
+    const row = this.db.get('SELECT MAX(version) AS v FROM schema_version') as { v: number | null };
+    return row?.v ?? 0;
   }
 
   // Knowledge entry operations
@@ -808,6 +815,32 @@ export class LuxDatabase {
   }
 
   /**
+   * Mark stale every `fresh` edge whose recorded EVIDENCE cites any of the given changed paths —
+   * the write-side sibling of getEvidenceEdgesForFilePaths (db/index.ts:607-616), reusing the same
+   * chunked IN over idx_edge_evidence_file_path. Closes the node-path-only gap (Decision 3): a
+   * handled_by edge whose endpoints are untouched but whose evidence line sits in a changed routes
+   * file is invalidated here. Returns the number of edges newly marked stale.
+   */
+  markEdgesStaleByEvidencePaths(filePaths: string[]): number {
+    if (filePaths.length === 0) return 0;
+    let total = 0;
+    for (let i = 0; i < filePaths.length; i += LuxDatabase.DELTA_IN_CHUNK) {
+      const chunk = filePaths.slice(i, i + LuxDatabase.DELTA_IN_CHUNK);
+      if (chunk.length === 0) continue;
+      const ph = LuxDatabase.deltaPlaceholders(chunk.length);
+      const info = this.db.run(
+        `UPDATE structural_edges SET freshness_status = 'stale', updated_at = unixepoch()
+          WHERE freshness_status = 'fresh'
+            AND id IN (SELECT DISTINCT ev.edge_id FROM edge_evidence ev
+                        WHERE ev.file_path IN (${ph}))`,
+        chunk
+      );
+      total += info.changes;
+    }
+    return total;
+  }
+
+  /**
    * Mark all `fresh` edges whose source_commit differs from the given commit as stale.
    * Call this at the start of a rebuild when the HEAD commit has advanced.
    * Returns the number of edges marked stale.
@@ -815,6 +848,264 @@ export class LuxDatabase {
   markEdgesStaleByCommit(currentCommit: string): number {
     const info = this.getQueries().markEdgesStaleByCommit.run(currentCommit);
     return info.changes;
+  }
+
+  /** Repo-relative files touched by any `stale` structural edge (node-path OR evidence dimension).
+   *  Read-only. The base-honesty dimension `lux delta` consults so a pointer advanced past an
+   *  unrepaired overlay does not read as "nothing changed" (OQ4 / Decision 11). */
+  getFilePathsWithStaleEdges(): string[] {
+    return (this.getQueries().getStaleOverlayFilePaths.all() as Array<{ file_path: string }>).map(
+      (r) => r.file_path
+    );
+  }
+
+  /** Maintained freshness status for a set of structural-edge ids (read-only). Backs the
+   *  stale-aware consumer annotations (Decision 4 / SC-4): a consumer holds the ids of the edges
+   *  backing its result and asks what the marks already say — it never mutates freshness. Chunked
+   *  over the same DELTA_IN_CHUNK machinery as the delta touch-set queries. */
+  getEdgeFreshnessByIds(edgeIds: string[]): Array<Pick<StructuralEdge, 'id' | 'freshness_status'>> {
+    return this.deltaChunkedIn<Pick<StructuralEdge, 'id' | 'freshness_status'>>(
+      edgeIds,
+      (ph) => `SELECT id, freshness_status FROM structural_edges WHERE id IN (${ph})`
+    );
+  }
+
+  /** Aggregate structural-edge counts by maintained freshness status. Rides
+   *  idx_structural_edges_freshness (008:38). Reports the four first-class buckets
+   *  (fresh / dirty-dependent / stale / unknown — the schema-008 default); `other`
+   *  catches any TRULY unrecognized status (expected 0 — a regression sentinel).
+   *  `unknown` is a legitimate state (vendor-pack edges default to it), so it is
+   *  classified explicitly and never folded into the `other` sentinel. */
+  countEdgesByFreshness(): EdgeFreshnessCounts {
+    const rows = this.getQueries().getEdgeFreshnessCounts.all() as Array<{
+      status: string;
+      n: number;
+    }>;
+    const counts: EdgeFreshnessCounts = {
+      fresh: 0,
+      'dirty-dependent': 0,
+      stale: 0,
+      unknown: 0,
+      other: 0,
+    };
+    for (const row of rows) {
+      if (
+        row.status === 'fresh' ||
+        row.status === 'dirty-dependent' ||
+        row.status === 'stale' ||
+        row.status === 'unknown'
+      ) {
+        counts[row.status] = row.n;
+      } else {
+        counts.other += row.n;
+      }
+    }
+    return counts;
+  }
+
+  // ── Scoped overlay-refresh helpers (Phase 3a / spec 13 Part A) ────────────────
+  //    All on the shipped deltaChunkedIn / deltaPlaceholders / this.db.run layer. Evidence rows
+  //    are removed with the edges (no FK cascade on edge_evidence in the schema).
+
+  /** Delete structural_nodes (file/symbol/surface) declared in any of the given rel paths. */
+  deleteStructuralNodesForFiles(relPaths: string[]): number {
+    let total = 0;
+    for (let i = 0; i < relPaths.length; i += LuxDatabase.DELTA_IN_CHUNK) {
+      const chunk = relPaths.slice(i, i + LuxDatabase.DELTA_IN_CHUNK);
+      if (chunk.length === 0) continue;
+      const ph = LuxDatabase.deltaPlaceholders(chunk.length);
+      total += this.db.run(
+        `DELETE FROM structural_nodes WHERE file_path IN (${ph})`,
+        chunk
+      ).changes;
+    }
+    return total;
+  }
+
+  /** Delete edges whose SOURCE node is in nodeIds (R's outbound edges) + their evidence. With
+   *  `keepLsp`, edges whose id ends ':lsp' (typed-receiver) are preserved so the caller can mark
+   *  them stale when the LSP tier is skipped (Decision 8). */
+  deleteEdgesBySourceNodes(nodeIds: string[], opts?: { keepLsp?: boolean }): number {
+    const guard = opts?.keepLsp ? " AND id NOT LIKE '%:lsp'" : '';
+    let total = 0;
+    for (let i = 0; i < nodeIds.length; i += LuxDatabase.DELTA_IN_CHUNK) {
+      const chunk = nodeIds.slice(i, i + LuxDatabase.DELTA_IN_CHUNK);
+      if (chunk.length === 0) continue;
+      const ph = LuxDatabase.deltaPlaceholders(chunk.length);
+      this.db.run(
+        `DELETE FROM edge_evidence WHERE edge_id IN
+           (SELECT id FROM structural_edges WHERE source_node_id IN (${ph})${guard})`,
+        chunk
+      );
+      total += this.db.run(
+        `DELETE FROM structural_edges WHERE source_node_id IN (${ph})${guard}`,
+        chunk
+      ).changes;
+    }
+    return total;
+  }
+
+  /** Delete edges whose recorded EVIDENCE cites any of relPaths (source-side cross-file edges) +
+   *  their evidence. An inbound edge C→A (A∈R, C∉R) cites C, so it is NOT matched — inbound edges
+   *  from outside R are preserved (Decision 5). `keepLsp` as above. */
+  deleteEdgesByEvidencePaths(relPaths: string[], opts?: { keepLsp?: boolean }): number {
+    const guard = opts?.keepLsp ? " AND se.id NOT LIKE '%:lsp'" : '';
+    let total = 0;
+    for (let i = 0; i < relPaths.length; i += LuxDatabase.DELTA_IN_CHUNK) {
+      const chunk = relPaths.slice(i, i + LuxDatabase.DELTA_IN_CHUNK);
+      if (chunk.length === 0) continue;
+      const ph = LuxDatabase.deltaPlaceholders(chunk.length);
+      const edgeIds = (
+        this.db.all(
+          `SELECT DISTINCT se.id AS id FROM structural_edges se
+             JOIN edge_evidence ev ON ev.edge_id = se.id
+            WHERE ev.file_path IN (${ph})${guard}`,
+          chunk
+        ) as Array<{ id: string }>
+      ).map((r) => r.id);
+      total += this.deleteEdgesByIds(edgeIds);
+    }
+    return total;
+  }
+
+  /** Delete a set of edges by id + their evidence. */
+  private deleteEdgesByIds(edgeIds: string[]): number {
+    let total = 0;
+    for (let i = 0; i < edgeIds.length; i += LuxDatabase.DELTA_IN_CHUNK) {
+      const chunk = edgeIds.slice(i, i + LuxDatabase.DELTA_IN_CHUNK);
+      if (chunk.length === 0) continue;
+      const ph = LuxDatabase.deltaPlaceholders(chunk.length);
+      this.db.run(`DELETE FROM edge_evidence WHERE edge_id IN (${ph})`, chunk);
+      total += this.db.run(`DELETE FROM structural_edges WHERE id IN (${ph})`, chunk).changes;
+    }
+    return total;
+  }
+
+  /** Mark stale the ':lsp' (typed-receiver) edges whose source node is in nodeIds — the residual
+   *  when the LSP tier is skipped under budget (Decision 8 / spec 14's LSP-skipped fixture).
+   *
+   *  Promotes both `fresh` and `dirty-dependent`: the scoped refresh's step-1 fence transiently
+   *  marks R's edges `dirty-dependent` before this runs, so a `fresh`-only guard would leave the
+   *  kept :lsp residual `dirty-dependent` and out of `residualStaleEdges` (SC-9). A skipped :lsp
+   *  edge of a changed file is definitively stale until the LSP tier re-verifies it. */
+  markEdgesStaleLspBySourceNodes(nodeIds: string[]): number {
+    let total = 0;
+    for (let i = 0; i < nodeIds.length; i += LuxDatabase.DELTA_IN_CHUNK) {
+      const chunk = nodeIds.slice(i, i + LuxDatabase.DELTA_IN_CHUNK);
+      if (chunk.length === 0) continue;
+      const ph = LuxDatabase.deltaPlaceholders(chunk.length);
+      total += this.db.run(
+        `UPDATE structural_edges SET freshness_status = 'stale', updated_at = unixepoch()
+          WHERE freshness_status IN ('fresh', 'dirty-dependent')
+            AND id LIKE '%:lsp' AND source_node_id IN (${ph})`,
+        chunk
+      ).changes;
+    }
+    return total;
+  }
+
+  /** Mark stale surviving edges whose TARGET is one of the given (removed) node ids — the
+   *  orphaned-inbound residual (Decision 5): an unchanged caller's edge into a symbol that
+   *  vanished on re-derivation. Never deleted — the claim about the caller is real.
+   *
+   *  Promotes both `fresh` and `dirty-dependent`: the scoped refresh's step-1 fence
+   *  (invalidateEdgesForFiles is source-OR-target) transiently marks these inbound edges
+   *  `dirty-dependent` before the clear, so a `fresh`-only guard could never reach the orphan.
+   *  After a settle, any surviving edge into a removed symbol is definitively stale regardless of
+   *  the transient fence state (an already-`stale` edge is left untouched). */
+  markEdgesStaleByTargetNodes(nodeIds: string[]): number {
+    let total = 0;
+    for (let i = 0; i < nodeIds.length; i += LuxDatabase.DELTA_IN_CHUNK) {
+      const chunk = nodeIds.slice(i, i + LuxDatabase.DELTA_IN_CHUNK);
+      if (chunk.length === 0) continue;
+      const ph = LuxDatabase.deltaPlaceholders(chunk.length);
+      total += this.db.run(
+        `UPDATE structural_edges SET freshness_status = 'stale', updated_at = unixepoch()
+          WHERE freshness_status IN ('fresh', 'dirty-dependent') AND target_node_id IN (${ph})`,
+        chunk
+      ).changes;
+    }
+    return total;
+  }
+
+  /** Promote surviving inbound edges (dirty-dependent → fresh) whose TARGET is one of the given
+   *  (surviving, re-materialized) node ids — the symmetric complement of markEdgesStaleByTargetNodes.
+   *
+   *  The step-1 fence marks EVERY edge touching R dirty-dependent (source OR target in R). The
+   *  settle re-derives R's own outbound edges (fresh) and orphans inbound edges into REMOVED symbols
+   *  (stale), but a surviving-target inbound edge C→A (A∈R survives, C∉R, not re-derived) is left
+   *  untouched — it would stay dirty-dependent forever and drop out of the `fresh` slice, violating
+   *  the equivalence contract (SC-7) that a full rebuild leaves C→A `fresh`. This restores it, so a
+   *  complete refresh settles to ZERO residual dirty-dependent.
+   *
+   *  Only promotes `dirty-dependent`: a legitimately `stale` edge (orphaned target, or a skipped-LSP
+   *  residual) is left stale; a re-derived edge is already `fresh` and is not matched. */
+  markEdgesFreshByTargetNodes(nodeIds: string[]): number {
+    let total = 0;
+    for (let i = 0; i < nodeIds.length; i += LuxDatabase.DELTA_IN_CHUNK) {
+      const chunk = nodeIds.slice(i, i + LuxDatabase.DELTA_IN_CHUNK);
+      if (chunk.length === 0) continue;
+      const ph = LuxDatabase.deltaPlaceholders(chunk.length);
+      total += this.db.run(
+        `UPDATE structural_edges SET freshness_status = 'fresh', updated_at = unixepoch()
+          WHERE freshness_status = 'dirty-dependent' AND target_node_id IN (${ph})`,
+        chunk
+      ).changes;
+    }
+    return total;
+  }
+
+  /** Evidence-dimension dirty-dependent mark for the pre-repair fence (mirrors invalidateEdgesForFiles
+   *  which is node-path only). Marks the victim set's evidence-cited edges dirty-dependent. */
+  invalidateEdgesByEvidencePaths(relPaths: string[]): number {
+    let total = 0;
+    for (let i = 0; i < relPaths.length; i += LuxDatabase.DELTA_IN_CHUNK) {
+      const chunk = relPaths.slice(i, i + LuxDatabase.DELTA_IN_CHUNK);
+      if (chunk.length === 0) continue;
+      const ph = LuxDatabase.deltaPlaceholders(chunk.length);
+      total += this.db.run(
+        `UPDATE structural_edges SET freshness_status = 'dirty-dependent', updated_at = unixepoch()
+          WHERE freshness_status = 'fresh'
+            AND id IN (SELECT DISTINCT ev.edge_id FROM edge_evidence ev WHERE ev.file_path IN (${ph}))`,
+        chunk
+      ).changes;
+    }
+    return total;
+  }
+
+  /** Delete operational rows (boundaries + their handlers/contracts/edges) declared in relPaths.
+   *  Operational inserts are not idempotent, so R's operational slice is cleared before re-extraction. */
+  deleteOperationalForFiles(relPaths: string[]): number {
+    const boundaryIds = this.deltaChunkedIn<{ id: string }>(
+      relPaths,
+      (ph) => `SELECT id FROM operational_boundaries WHERE file_path IN (${ph})`
+    ).map((r) => r.id);
+    if (boundaryIds.length === 0) return 0;
+    let removed = 0;
+    for (let i = 0; i < boundaryIds.length; i += LuxDatabase.DELTA_IN_CHUNK) {
+      const chunk = boundaryIds.slice(i, i + LuxDatabase.DELTA_IN_CHUNK);
+      if (chunk.length === 0) continue;
+      const ph = LuxDatabase.deltaPlaceholders(chunk.length);
+      this.db.run(`DELETE FROM operational_handlers WHERE boundary_id IN (${ph})`, chunk);
+      this.db.run(`DELETE FROM operational_contracts WHERE boundary_id IN (${ph})`, chunk);
+      this.db.run(
+        `DELETE FROM operational_edges WHERE source_id IN (${ph}) OR target_id IN (${ph})`,
+        [...chunk, ...chunk]
+      );
+      removed += this.db.run(
+        `DELETE FROM operational_boundaries WHERE id IN (${ph})`,
+        chunk
+      ).changes;
+    }
+    return removed;
+  }
+
+  /** Symbol node ids declared in the given files — reuses getStructuralNodesForFilePaths (Decision 14
+   *  growth gate + orphan detection). */
+  getSymbolNodeIdsForFiles(relPaths: string[]): string[] {
+    return this.getStructuralNodesForFilePaths(relPaths)
+      .filter((n) => n.node_type === 'symbol')
+      .map((n) => n.id);
   }
 
   /**

@@ -6,6 +6,32 @@ import {
   type OverlayTrustDiagnostics,
   type PersistedOverlayTrustState,
 } from '../scanner/overlay-trust-state.js';
+import { assessWorkingTreeFreshness, type WorkingTreeFreshness } from '../scanner/freshness.js';
+
+export interface FreshnessStatusPayload {
+  assessment: WorkingTreeFreshness['assessment'];
+  indexedCommit: string | null;
+  headCommit: string | null;
+  headMatchesIndex: boolean;
+  dirtyFiles: number;
+  dirtyStructural: string[];
+  dirtyAtIndexTime: number | null;
+  edgeFreshness: WorkingTreeFreshness['edgeFreshness'];
+}
+
+function buildFreshnessPayload(db: LuxDatabase, corpusPath: string): FreshnessStatusPayload {
+  const f = assessWorkingTreeFreshness(corpusPath, db);
+  return {
+    assessment: f.assessment,
+    indexedCommit: f.indexedCommit ?? null,
+    headCommit: f.headCommit ?? null,
+    headMatchesIndex: f.headMatchesIndex,
+    dirtyFiles: f.dirtyFiles.length,
+    dirtyStructural: f.dirtyStructural,
+    dirtyAtIndexTime: f.dirtyAtIndexTime ?? null,
+    edgeFreshness: f.edgeFreshness,
+  };
+}
 
 export type OverlayTrustPayload =
   | (PersistedOverlayTrustState & {
@@ -20,12 +46,14 @@ export type OverlayStatusPayload = OverlayTrustPayload | OverlayStatusPayloadWit
 export interface OverlayStatusPayloadWithRuntime {
   overlay: OverlayTrustPayload;
   runtime: RuntimeStatusPayload;
+  freshness?: FreshnessStatusPayload;
 }
 
 export interface IndexStatusPayload {
   stats: ReturnType<LuxDatabase['getStats']>;
   overlay: OverlayTrustPayload;
   runtime?: RuntimeStatusPayload;
+  freshness?: FreshnessStatusPayload;
 }
 
 export interface RuntimeStatusPayload {
@@ -63,7 +91,13 @@ export function buildOverlayStatusPayload(
   runtime?: RuntimePathResolution
 ): OverlayStatusPayload {
   const overlay = buildOverlayTrustPayload(db);
-  return runtime ? { overlay, runtime: buildRuntimeStatusPayload(runtime) } : overlay;
+  return runtime
+    ? {
+        overlay,
+        runtime: buildRuntimeStatusPayload(runtime),
+        freshness: buildFreshnessPayload(db, runtime.corpusPath),
+      }
+    : overlay;
 }
 
 export function buildIndexStatusPayload(
@@ -74,5 +108,6 @@ export function buildIndexStatusPayload(
     stats: db.getStats(),
     overlay: buildOverlayTrustPayload(db),
     ...(runtime ? { runtime: buildRuntimeStatusPayload(runtime) } : {}),
+    ...(runtime ? { freshness: buildFreshnessPayload(db, runtime.corpusPath) } : {}),
   };
 }
