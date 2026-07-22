@@ -1,0 +1,96 @@
+{
+  "startId": "sym:show",
+  "options": {
+    "maxDepth": 8,
+    "maxNodes": 2000,
+    "maxFanout": 64,
+    "edgeTypes": [
+      "calls",
+      "references"
+    ],
+    "minConfidenceClass": "framework-inferred",
+    "includeExternal": true
+  },
+  "nodes": [
+    {
+      "id": "sym:show",
+      "label": "App\\Http\\OfferController::show",
+      "languageId": "php",
+      "filePath": null,
+      "depth": 0,
+      "external": false
+    },
+    {
+      "id": "sym:find",
+      "label": "App\\Services\\OfferService::find",
+      "languageId": "php",
+      "filePath": null,
+      "depth": 1,
+      "external": false
+    },
+    {
+      "id": "sym:model",
+      "label": "Illuminate\\Database\\Eloquent\\Model::save",
+      "languageId": "php",
+      "filePath": null,
+      "depth": 2,
+      "external": true
+    },
+    {
+      "id": "sym:dispatch",
+      "label": "Illuminate\\Bus\\Dispatcher::dispatch",
+      "languageId": "php",
+      "filePath": null,
+      "depth": 2,
+      "external": true,
+      "terminus": "dynamic-dispatch-boundary",
+      "dispatch": {
+        "dispatchKind": "job",
+        "reentryDeferred": true,
+        "via": "catalog-symbol",
+        "note": "Command/job bus dispatch; handler resolved from the container (re-entry deferred)."
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "sym:show->sym:find:calls",
+      "sourceId": "sym:show",
+      "targetId": "sym:find",
+      "edgeType": "calls",
+      "confidence": 0.95,
+      "confidenceClass": "proven",
+      "revisit": false
+    },
+    {
+      "id": "sym:find->sym:model:calls",
+      "sourceId": "sym:find",
+      "targetId": "sym:model",
+      "edgeType": "calls",
+      "confidence": 0.95,
+      "confidenceClass": "proven",
+      "revisit": false
+    },
+    {
+      "id": "sym:find->sym:dispatch:calls",
+      "sourceId": "sym:find",
+      "targetId": "sym:dispatch",
+      "edgeType": "calls",
+      "confidence": 0.95,
+      "confidenceClass": "proven",
+      "revisit": false
+    }
+  ],
+  "stats": {
+    "nodeCount": 4,
+    "edgeCount": 3,
+    "externalCount": 2,
+    "maxDepthReached": 2,
+    "dispatchBoundaries": 1,
+    "truncated": false
+  },
+  "staleSupport": {
+    "staleCount": 0,
+    "staleEdgeIds": []
+  }
+}

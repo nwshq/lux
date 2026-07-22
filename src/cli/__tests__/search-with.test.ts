@@ -1,0 +1,146 @@
+// `lux search --with` (spec 13C / T2.4 / Decisions 5,6 / SC-5,9). Opt-in federation: repo-grouped,
+// independently-ranked result groups; --json carries the federation block. An unresolvable sibling
+// warns + the query still answers. The single-repo path is untouched (covered by
+// federation-regression.test.ts).
+
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { spawnSync } from 'node:child_process';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { LuxDatabase } from '../../db/index.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const PROJECT_ROOT = join(__dirname, '..', '..', '..');
+const CLI_ENTRY = join(PROJECT_ROOT, 'src', 'cli', 'index.ts');
+const TSX_LOADER = join(PROJECT_ROOT, 'node_modules', 'tsx', 'dist', 'loader.mjs');
+
+function runCli(corpus: string, args: string[]) {
+  return spawnSync(process.execPath, ['--import', TSX_LOADER, CLI_ENTRY, ...args], {
+    cwd: corpus,
+    encoding: 'utf-8',
+    env: { ...process.env, NO_COLOR: '1', FORCE_COLOR: '0' },
+  });
+}
+
+function addDoc(db: LuxDatabase, title: string, path: string, content: string): void {
+  db.insertKnowledgeEntry({ type: 'documentation', title, file_path: path, content });
+}
+
+let root: string;
+let corpus: string;
+
+beforeEach(() => {
+  root = mkdtempSync(join(tmpdir(), 'lux-search-with-'));
+  corpus = join(root, 'client');
+  mkdirSync(corpus, { recursive: true });
+
+  const primary = new LuxDatabase(join(corpus, '.lux', 'lux.db'));
+  addDoc(primary, 'Client Settlement Notes', '/client/settlement.md', 'settlement in the client');
+  primary.close();
+
+  const kernelDir = join(root, 'core');
+  const siblingDbPath = join(kernelDir, '.lux', 'lux.db');
+  const kernel = new LuxDatabase(siblingDbPath);
+  addDoc(kernel, 'Kernel Settlement Engine', '/kernel/engine.md', 'settlement engine internals');
+  kernel.close();
+
+  writeFileSync(join(corpus, 'lux.yaml'), `siblings:\n  core:\n    db: ${siblingDbPath}\n`);
+});
+afterEach(() => rmSync(root, { recursive: true, force: true }));
+
+describe('lux search --with', () => {
+  it('returns repo-grouped groups with the federation block (--json, SC-5/SC-9)', () => {
+    const res = runCli(corpus, [
+      '--corpus',
+      corpus,
+      'search',
+      'settlement',
+      '--with',
+      'core',
+      '--json',
+    ]);
+    expect(res.status).toBe(0);
+    const result = JSON.parse(res.stdout) as {
+      groups: Array<{ repo: string; results: Array<{ path: string }> }>;
+      federation: { siblings: Array<{ name: string; attached: boolean }> };
+    };
+    expect(result.groups.map((g) => g.repo)).toEqual(['main', 'core']);
+    expect(result.groups[0].results[0].path).toBe('/client/settlement.md');
+    expect(result.groups[1].results[0].path).toBe('/kernel/engine.md');
+    expect(result.federation.siblings[0]).toMatchObject({ name: 'core', attached: true });
+  });
+
+  it('renders repo-grouped text output', () => {
+    const res = runCli(corpus, ['--corpus', corpus, 'search', 'settlement', '--with', 'core']);
+    expect(res.status).toBe(0);
+    expect(res.stdout).toContain('[main]');
+    expect(res.stdout).toContain('[core]');
+    expect(res.stdout).toContain('/kernel/engine.md');
+  });
+
+  it('warns on an unresolvable sibling and still answers the main group (Decision 6)', () => {
+    const res = runCli(corpus, [
+      '--corpus',
+      corpus,
+      'search',
+      'settlement',
+      '--with',
+      'ghost',
+      '--json',
+    ]);
+    expect(res.status).toBe(0);
+    expect(res.stderr).toContain('ghost');
+    const result = JSON.parse(res.stdout) as {
+      groups: Array<{ repo: string }>;
+      federation: { siblings: Array<{ name: string; attached: boolean }> };
+    };
+    expect(result.groups[0].repo).toBe('main');
+    expect(result.federation.siblings.find((s) => s.name === 'ghost')).toMatchObject({
+      attached: false,
+    });
+  });
+
+  it('honors --json on the single-repo path (no --with) — FIX 4', () => {
+    // Previously --json was read only inside the --with branch, so a single-repo `search … --json`
+    // parsed the flag and silently dropped it (text out). Now it emits the ranked results as a JSON
+    // array (matching the MCP single-repo shape); `[]` when nothing matches.
+    const hit = runCli(corpus, ['--corpus', corpus, 'search', 'settlement', '--json']);
+    expect(hit.status).toBe(0);
+    const results = JSON.parse(hit.stdout) as Array<{ type: string; title: string; path: string }>;
+    expect(Array.isArray(results)).toBe(true);
+    expect(results.find((r) => r.path === '/client/settlement.md')).toMatchObject({
+      type: 'document',
+      title: 'Client Settlement Notes',
+    });
+
+    const miss = runCli(corpus, ['--corpus', corpus, 'search', 'zzznotfoundzzz', '--json']);
+    expect(miss.status).toBe(0);
+    expect(JSON.parse(miss.stdout)).toEqual([]);
+  });
+
+  it('emits a federated search usage event with attributes.federated + sibling names (SC-10)', () => {
+    const res = runCli(corpus, ['--corpus', corpus, 'search', 'settlement', '--with', 'core']);
+    expect(res.status).toBe(0);
+    const db = new LuxDatabase(join(corpus, '.lux', 'lux.db'));
+    try {
+      const usage = db
+        .getRecentEvents(10)
+        .find(
+          (e) =>
+            e.event_type === 'lux_usage_event' && (e.payload ?? '').includes('"federated":true')
+        );
+      expect(usage).toBeDefined();
+      const payload = JSON.parse(usage!.payload!) as {
+        surface: string;
+        attributes?: { federated?: boolean; with?: string[] };
+      };
+      expect(payload.surface).toBe('search');
+      expect(payload.attributes?.federated).toBe(true);
+      expect(payload.attributes?.with).toEqual(['core']);
+    } finally {
+      db.close();
+    }
+  });
+});

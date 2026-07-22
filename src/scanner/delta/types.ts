@@ -1,5 +1,6 @@
 import type { ConfidenceClass } from '../../db/types.js';
 import type { OperationalBoundary } from '../../db/types.js';
+import type { SiblingFreshness } from '../siblings.js';
 
 // ── Options (from CLI / MCP) ───────────────────────────────────────────────
 
@@ -22,6 +23,8 @@ export interface DeltaOptions {
   failOn?: string[];
   /** Phase 4: sibling .lux index at the base ref for true overlay-vs-overlay diff. */
   baselineDb?: string;
+  /** Cross-repo delta: registered sibling names to report affected surfaces in (Decision 9). */
+  against?: string[];
   /** Emit the machine envelope instead of text. */
   json?: boolean;
 }
@@ -142,6 +145,26 @@ export interface BaselineDiff {
   crossModuleEdgesAdded: Array<{ source: string; target: string; edgeType: string }>;
 }
 
+// ── Cross-repo delta (Phase 3 / Decision 9) ────────────────────────────────
+
+export interface CrossRepoSiblingImpact {
+  name: string;
+  attached: boolean;
+  /** present when the sibling resolved (Decision 8). */
+  freshness?: SiblingFreshness;
+  /** present when the sibling did NOT resolve (the structured refusal message). */
+  refusal?: string;
+  seedsTotal?: number;
+  seedsMatched?: number;
+  entrySurfaces?: EntrySurfaceImpact[];
+  asyncBoundaries?: AsyncBoundary[];
+  budget?: { depth: number; maxNodes: number; truncated: boolean };
+}
+
+export interface CrossRepoImpact {
+  siblings: CrossRepoSiblingImpact[];
+}
+
 // ── The report ─────────────────────────────────────────────────────────────
 
 /** The report's changeSet is the trimmed public projection of DeltaChangeSet — `indexPaths` and
@@ -177,6 +200,7 @@ export interface DeltaReportV1 {
   };
   gate?: GateResult; // present only with --check
   baselineDiff?: BaselineDiff; // present only with --baseline-db (Phase 4)
+  crossRepoImpact?: CrossRepoImpact; // present only with --against (Phase 3, additive)
 }
 
 // ── Structured refusals (Decision 14/18) ───────────────────────────────────

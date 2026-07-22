@@ -1,0 +1,9 @@
+
+Search results for "settlement" (2):
+
+[document] Settlement Runbook
+  Path: /corpus/docs/settlement.md
+
+[document] Offer Service Guide
+  Path: /corpus/docs/offer-service.md
+

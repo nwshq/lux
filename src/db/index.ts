@@ -1,5 +1,5 @@
 import { LuxSqlite } from './sqlite-adapter.js';
-import { mkdirSync } from 'fs';
+import { existsSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
 import { PreparedQueries } from './queries.js';
 import { MigrationRunner } from './migrations.js';
@@ -34,15 +34,30 @@ export interface CrossAreaClientRoute {
   handler: string;
 }
 
+export interface LuxDatabaseOptions {
+  /** Open the underlying file strictly read-only (sibling graph walks — Decision 4). When set:
+   *  the constructor SKIPS the directory-creating mkdir and the `journal_mode = delete` write, and
+   *  the adapter skips the pid owner-marker + WAL-header flip. Pair with `autoMigrate=false`. */
+  readOnly?: boolean;
+}
+
 export class LuxDatabase {
   private db: LuxSqlite;
   private queries?: PreparedQueries;
   private migrations: MigrationRunner;
 
-  constructor(dbPath: string, autoMigrate = true) {
-    // Ensure database directory exists
-    mkdirSync(dirname(dbPath), { recursive: true });
-    this.db = new LuxSqlite(dbPath);
+  constructor(dbPath: string, autoMigrate = true, options: LuxDatabaseOptions = {}) {
+    const readOnly = options.readOnly ?? false;
+
+    // Read-only opens (openSiblingReadOnly) must never write to someone else's index. Skip the
+    // directory-creating mkdir (never build a tree under a sibling worktree) — the two writable
+    // paths keep it. The adapter (below) already skips the pid owner-marker + WAL-header flip for
+    // readonly opens (sqlite-adapter.ts:254,261).
+    if (!readOnly) {
+      mkdirSync(dirname(dbPath), { recursive: true });
+    }
+    this.db = new LuxSqlite(dbPath, readOnly ? { readonly: true, fileMustExist: true } : {});
+
     // journal_mode=delete: WASM SQLite has no WAL. Benchmarked faster than `memory`
     // (1.24x vs 1.43x the better-sqlite3/WAL baseline). synchronous=NORMAL keeps the
     // batched-write throughput the app rebuild and the ~818k-row vendor-pack merge depend
@@ -50,7 +65,13 @@ export class LuxDatabase {
     // window (a plain process crash still rolls back cleanly on reopen) — acceptable
     // because the Lux DB is derived state, fully recoverable by `lux index rebuild`
     // (ADR-4 / ADR-2).
-    this.db.pragma('journal_mode = delete');
+    //
+    // `journal_mode = delete` rewrites the DB header — a write. Skip it for read-only opens; a
+    // read-only connection issues no journal anyway. `foreign_keys`/`synchronous` are
+    // per-connection settings (no file write), so they stay for query correctness on both paths.
+    if (!readOnly) {
+      this.db.pragma('journal_mode = delete');
+    }
     this.db.pragma('foreign_keys = ON');
     this.db.pragma('synchronous = NORMAL');
 
@@ -62,6 +83,40 @@ export class LuxDatabase {
       this.runMigrations();
       this.initQueries();
     }
+  }
+
+  /**
+   * Open a sibling `.lux` strictly read-only for graph walks (Decision 4), returning a LuxDatabase
+   * whose existing prepared wrappers (getStructuralNode, getOutgoingStructuralEdges,
+   * getIncomingStructuralEdges, getOperationalBoundariesForSymbols, the FTS statements) work
+   * unchanged. NEW plumbing: no shipped path yields a read-only LuxDatabase (resolveKernel opens the
+   * raw adapter; openDeltaDatabase opens read-write).
+   *
+   * The open:
+   *   - threads `readOnly` → the adapter {readonly:true, fileMustExist:true} (skips pid-marker +
+   *     WAL-flip) and skips the constructor's mkdir + journal_mode=delete write;
+   *   - keeps autoMigrate=false and checks schema parity BEFORE initReadQueries() (prepare-order is
+   *     load-bearing: initQueries() eagerly prepares ~65 statements that throw on a stale sibling —
+   *     the openDeltaDatabase ordering, preflight.ts:27-45).
+   *
+   * `resolveSiblings` already pre-screens skew at resolve time (Decision 7), so the parity throw
+   * here is belt-and-suspenders. Throws on absence or skew; the caller owns close().
+   */
+  static openSiblingReadOnly(dbPath: string, expectedSchemaVersion: number): LuxDatabase {
+    if (!existsSync(dbPath)) {
+      throw new Error(`openSiblingReadOnly: no index at ${dbPath}`);
+    }
+    const db = new LuxDatabase(dbPath, /* autoMigrate */ false, { readOnly: true });
+    const actual = db.getAppliedSchemaVersion();
+    if (actual !== expectedSchemaVersion) {
+      db.close();
+      throw new Error(
+        `openSiblingReadOnly(${dbPath}): schema v${actual} != primary v${expectedSchemaVersion}; ` +
+          `re-index the sibling at the current schema.`
+      );
+    }
+    db.initReadQueries(); // schema confirmed current → safe to prepare
+    return db;
   }
 
   /**
@@ -559,6 +614,37 @@ export class LuxDatabase {
       }>;
       return { surfacesRemoved, surfacesAdded, newEdges };
     });
+  }
+
+  /**
+   * Which of `seedIds` exist as nodes (or edge targets) in THIS index — the cheap in-engine filter
+   * before a cross-repo walk (Decision 9). Designed to run on an `openSiblingReadOnly` handle: it is
+   * a pure `id IN (chunk)` SELECT, so it is engine-read-only and keeps the sibling's rows off the JS
+   * heap (only the matched ids — at most `seedIds.length` — cross back). Chunked at DELTA_IN_CHUNK
+   * with a cross-chunk `found` Set (a seed present as both a node and an edge target dedups to one).
+   *
+   * NB: this deliberately does NOT ATTACH the sibling onto the primary connection. A prior write on
+   * the primary handle (the long-lived MCP server appends a usage-event per call; a startup
+   * migration also writes) leaves node-sqlite3-wasm unable to DETACH the sibling — the swallowed
+   * DETACH then deadlocks the subsequent `openSiblingReadOnly` of the same file on the busy-timeout.
+   * Running the filter on the sibling's own read-only connection sidesteps that coupling entirely,
+   * with the identical heap profile the in-engine ATTACH filter was chosen for.
+   */
+  siblingNodeIntersection(seedIds: string[]): string[] {
+    if (seedIds.length === 0) return [];
+    const found = new Set<string>();
+    for (let i = 0; i < seedIds.length; i += LuxDatabase.DELTA_IN_CHUNK) {
+      const chunk = seedIds.slice(i, i + LuxDatabase.DELTA_IN_CHUNK);
+      const ph = LuxDatabase.deltaPlaceholders(chunk.length);
+      const rows = this.db.all(
+        `SELECT id FROM structural_nodes WHERE id IN (${ph})
+           UNION
+         SELECT target_node_id AS id FROM structural_edges WHERE target_node_id IN (${ph})`,
+        [...chunk, ...chunk]
+      ) as Array<{ id: string }>;
+      for (const r of rows) found.add(r.id);
+    }
+    return [...found];
   }
 
   // ── delta touch-set + reverse walk: dynamic-IN queries over indexed columns (Decision 3 /

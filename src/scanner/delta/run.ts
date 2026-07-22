@@ -18,6 +18,7 @@ import { walkDownstream } from './downstream.js';
 import { resolveOwnershipIntersection } from './ownership.js';
 import { resolveInvalidatedSpecTargets } from './spec-evidence.js';
 import { diffBaseline } from './baseline.js';
+import { computeCrossRepoImpact } from './cross-repo.js';
 import { evaluateGates, resolveGateCategories } from './gate.js';
 import { assembleDeltaReport, renderDeltaText, type AssembleInput } from './report.js';
 import type { DeltaOptions, DeltaRefusal, DeltaReportV1 } from './types.js';
@@ -125,6 +126,31 @@ export function computeDelta(
     });
   }
 
+  // Cross-repo delta (Decision 9): --against runs delta's downstream machinery inside each named
+  // sibling's read-only graph, seeded by portable touched ids. Strictly additive — the envelope
+  // stays schemaVersion:1. Decision 6: analysis mode warns per refusal + continues; --check turns
+  // an explicitly-named unresolvable sibling into a refusal (no silent pass).
+  let crossRepoImpact: DeltaReportV1['crossRepoImpact'];
+  if (opts.against && opts.against.length) {
+    const { impact, refusals } = computeCrossRepoImpact(db, corpusPath, touch, opts.against, {
+      depth: opts.depth,
+      maxNodes: opts.maxNodes,
+      maxFanout: opts.maxFanout,
+      minConfidence: opts.minConfidence,
+    });
+    crossRepoImpact = impact;
+    for (const ref of refusals) warnings.push(`--against ${ref.name}: ${ref.message}`);
+    if (opts.check && refusals.length > 0) {
+      return {
+        refusal: {
+          reason: 'config-error',
+          message: `--against: ${refusals.map((r) => `${r.name} (${r.reason})`).join(', ')}`,
+          remediation: refusals[0].remediation,
+        },
+      };
+    }
+  }
+
   const input: AssembleInput = {
     changeSet,
     touch,
@@ -140,6 +166,7 @@ export function computeDelta(
     budget: { depth: opts.depth, maxNodes: opts.maxNodes },
     gate,
     baselineDiff,
+    crossRepoImpact,
     warnings,
   };
   return { report: assembleDeltaReport(input) };
@@ -243,6 +270,16 @@ export function runDeltaCli(program: Command, opts: DeltaOptions): void {
         entrySurfaces: report.downstream.entrySurfaces.length,
         truncated: report.downstream.budget.truncated,
         gateViolations: report.gate?.violations.length ?? 0,
+        // Federated dimensions ride in the attributes bag only when --against is set, so a
+        // non-federated delta event is byte-identical to the shipped shape (SC-9 / spec 15A).
+        ...(opts.against && opts.against.length
+          ? {
+              federated: true,
+              against: opts.against,
+              crossRepoSiblings:
+                report.crossRepoImpact?.siblings.filter((s) => s.attached).length ?? 0,
+            }
+          : {}),
       },
     });
     process.exitCode = exitCode;

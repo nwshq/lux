@@ -17,6 +17,9 @@ import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
 import { getHeadCommit, isGitRepository } from '../scanner/git.js';
 import { executeSpecEvidenceAsk } from '../cli/spec-evidence.js';
 import { resolveStartNode, traceFrom } from '../scanner/associations/trace.js';
+import { traceFromFederated } from '../scanner/associations/federation-trace.js';
+import { runFederatedSearch } from '../scanner/search-federation.js';
+import { openFederationHandles } from './federation-handles.js';
 import { computeDelta } from '../scanner/delta/run.js';
 import type { ConfidenceClass, EdgeType } from '../db/types.js';
 import {
@@ -85,6 +88,13 @@ const TOOLS: Tool[] = [
           type: 'number',
           description: 'Maximum number of results',
           default: 20,
+        },
+        with: {
+          type: 'array',
+          items: { type: 'string' },
+          description:
+            "Federate across registered siblings by name (or ['all']). Returns repo-grouped, " +
+            'independently-ranked result groups plus a per-sibling freshness block.',
         },
       },
       required: ['query'],
@@ -198,6 +208,13 @@ const TOOLS: Tool[] = [
           description: 'Follow edges into vendor nodes',
           default: true,
         },
+        with: {
+          type: 'array',
+          items: { type: 'string' },
+          description:
+            "Federate across registered siblings by name (or ['all']). Crosses repo boundaries " +
+            'only on portable ids (namespace-qualified PHP FQCNs; HTTP surfaces toward the kernel).',
+        },
       },
       required: ['symbol'],
     },
@@ -229,6 +246,13 @@ const TOOLS: Tool[] = [
           description: 'Lowest confidence class to follow',
           default: 'framework-inferred',
         },
+        against: {
+          type: 'array',
+          items: { type: 'string' },
+          description:
+            "Report cross-repo impact in registered siblings by name (or ['all']). Read-only join; " +
+            'the sibling entry surfaces this diff affects.',
+        },
       },
     },
   },
@@ -254,6 +278,32 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           type?: string;
           limit?: number;
         };
+
+        // Federated branch (Decision 5): opt-in via `with`, strictly additive. The single-repo path
+        // below is unchanged. Sibling handles are read-only and closed in a finally (SC-7).
+        const searchWith = Array.isArray(args?.with) ? (args.with as string[]) : undefined;
+        if (searchWith && searchWith.length) {
+          const fed = openFederationHandles(db, DEFAULT_CORPUS_PATH, searchWith);
+          try {
+            const result = runFederatedSearch(db, fed.handles, query, fed.federation, limit);
+            emitUsageEvent(db, {
+              source: 'mcp',
+              surface: 'search',
+              action: 'query',
+              invocationId: createInvocationId(),
+              commandOutcome: 'success',
+              retrievalOutcome: 'not_applicable',
+              exitCode: 0,
+              corpusPath: DEFAULT_CORPUS_PATH,
+              dbPath: DEFAULT_DB_PATH,
+              queryText: query,
+              attributes: { federated: true, with: fed.handles.map((h) => h.name), type, limit },
+            });
+            return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+          } finally {
+            fed.close();
+          }
+        }
 
         const results: Array<{
           type: string;
@@ -554,6 +604,43 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           };
         }
 
+        // Federated branch (Decision 5): opt-in via `with`, strictly additive. Returns BEFORE the
+        // plain traceFrom below. Sibling handles are read-only and closed in a finally (SC-7).
+        const traceWith = Array.isArray(args?.with) ? (args.with as string[]) : undefined;
+        if (traceWith && traceWith.length) {
+          const fed = openFederationHandles(db, DEFAULT_CORPUS_PATH, traceWith);
+          try {
+            const result = traceFromFederated(db, fed.handles, resolved.nodeId, fed.federation, {
+              maxDepth: depth,
+              maxNodes,
+              edgeTypes: edgeTypes as EdgeType[],
+              minConfidenceClass: minConfidence as ConfidenceClass,
+              includeExternal,
+            });
+            emitUsageEvent(db, {
+              source: 'mcp',
+              surface: 'trace',
+              action: 'query',
+              invocationId: createInvocationId(),
+              commandOutcome: 'success',
+              retrievalOutcome: 'answered',
+              exitCode: 0,
+              corpusPath: DEFAULT_CORPUS_PATH,
+              dbPath: DEFAULT_DB_PATH,
+              queryText: symbol,
+              attributes: {
+                federated: true,
+                with: fed.handles.map((h) => h.name),
+                nodeCount: result.stats.nodeCount,
+                bridged: result.stats.bridgedCount,
+              },
+            });
+            return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+          } finally {
+            fed.close();
+          }
+        }
+
         const result = traceFrom(db, resolved.nodeId, {
           maxDepth: depth,
           maxNodes,
@@ -587,6 +674,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'lux_delta': {
         const base = typeof args?.base === 'string' ? args.base : undefined;
+        // Cross-repo impact (Decision 9): `against` names registered siblings; computeDelta resolves
+        // + opens/closes their read-only handles internally, so the handler only forwards the names.
+        // An unresolvable name surfaces as attached:false in crossRepoImpact, never silently dropped.
+        const against = Array.isArray(args?.against) ? (args.against as string[]) : undefined;
         // --base is validated inside computeDelta (resolveDeltaBase → isSafeGitRef) BEFORE any git
         // call (Decision 17). MCP exposes this verb to prompt-injectable agents, so validation +
         // argv-form git (no shell) is mandatory here, not optional hardening.
@@ -597,6 +688,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           maxNodes: typeof args?.max_nodes === 'number' ? args.max_nodes : 2000,
           maxFanout: 64,
           minConfidence: resolveMinConfidence(args?.min_confidence),
+          against,
           json: true,
         });
         emitUsageEvent(db, {
@@ -608,6 +700,21 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             'refusal' in result ? 'unknown' : safeUsageTrustState(result.report.trust.overlay),
           corpusPath: DEFAULT_CORPUS_PATH,
           dbPath: DEFAULT_DB_PATH,
+          // Federated dimensions only when `against` is set — a non-federated delta event is
+          // byte-identical to the shipped shape (SC-9 / spec 15A).
+          ...(against && against.length
+            ? {
+                attributes: {
+                  federated: true,
+                  against,
+                  crossRepoSiblings:
+                    'refusal' in result
+                      ? 0
+                      : (result.report.crossRepoImpact?.siblings.filter((s) => s.attached).length ??
+                        0),
+                },
+              }
+            : {}),
         });
         const payload = 'refusal' in result ? { error: result.refusal } : result.report;
         return { content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }] };

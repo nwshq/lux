@@ -19,6 +19,7 @@ export type UsageEventSurface =
   | 'index-refresh'
   | 'discovery'
   | 'delta'
+  | 'siblings'
   | 'hook';
 
 export type UsageCommandOutcome = 'success' | 'error';

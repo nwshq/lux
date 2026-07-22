@@ -9,6 +9,18 @@ import {
 } from '../scanner/associations/trace.js';
 import type { ConfidenceClass, EdgeType } from '../db/types.js';
 import { summarizeStaleSupport, staleSupportWarning } from '../scanner/freshness.js';
+import {
+  resolveSiblings,
+  buildFederationBlock,
+  siblingFaultRefusal,
+  type SiblingResolution,
+} from '../scanner/siblings.js';
+import {
+  traceFromFederated,
+  type FederatedTraceNode,
+  type FederatedTraceResult,
+} from '../scanner/associations/federation-trace.js';
+import { createInvocationId, emitUsageEvent } from '../db/observability/usage-event.js';
 
 export function addTraceCommand(program: Command): void {
   program
@@ -23,6 +35,7 @@ export function addTraceCommand(program: Command): void {
       'framework-inferred'
     )
     .option('--no-external', 'Do not follow edges into vendor nodes')
+    .option('--with <list>', 'Federate the trace across registered siblings (name[,name…]|all)')
     .option('--json', 'Output as JSON')
     .action(
       (
@@ -33,6 +46,7 @@ export function addTraceCommand(program: Command): void {
           edgeTypes: string;
           minConfidence: string;
           external: boolean;
+          with?: string;
           json?: boolean;
         }
       ) => {
@@ -59,6 +73,87 @@ export function addTraceCommand(program: Command): void {
             }
             console.error('Re-run with a fully-qualified name or the exact node id.');
             process.exitCode = 1;
+            return;
+          }
+
+          // Federated branch (Decision 5): opt-in via --with, strictly additive. Returns BEFORE the
+          // shipped traceFrom + staleSupport path below, so a no-`--with` invocation is byte-identical
+          // to current main (688c5e8). Sibling handles are read-only and closed in a finally (SC-7).
+          if (options.with) {
+            const primarySchema = db.getAppliedSchemaVersion();
+            const names =
+              options.with === 'all'
+                ? ('all' as const)
+                : options.with
+                    .split(',')
+                    .map((s) => s.trim())
+                    .filter(Boolean);
+            const resolutions = resolveSiblings(corpusPath, names, primarySchema);
+            const handles: Array<{ name: string; role: 'kernel' | 'peer'; db: LuxDatabase }> = [];
+            // FIX 1: opening a resolved sibling runs AFTER resolve, so a post-resolve fault (TOCTOU
+            // delete/re-index, cross-process busy-timeout, or a file that faults on re-open) must
+            // degrade THAT sibling — not abort the whole federated trace. Rewrite its resolution to a
+            // refusal so the federation block stays consistent (attached:false + reason), warn, and
+            // continue with the healthy handles. The finally below closes every opened handle (SC-7).
+            const effectiveResolutions: SiblingResolution[] = [];
+            const invocationId = createInvocationId();
+            const startedAt = Date.now();
+            try {
+              for (const r of resolutions) {
+                if (!('sibling' in r)) {
+                  // Decision 6: an unresolvable named sibling degrades — warn, never silently drop
+                  // (it stays visible as attached:false in the federation block).
+                  effectiveResolutions.push(r);
+                  console.error(`  ⚠ sibling '${r.name}': ${r.refusal.message}`);
+                  continue;
+                }
+                try {
+                  const handle = LuxDatabase.openSiblingReadOnly(r.sibling.dbPath, primarySchema);
+                  handles.push({ name: r.sibling.name, role: r.sibling.role, db: handle });
+                  effectiveResolutions.push(r);
+                } catch (error) {
+                  const refusal = siblingFaultRefusal(r.sibling.name, error);
+                  effectiveResolutions.push({ name: r.sibling.name, refusal });
+                  console.error(`  ⚠ sibling '${r.sibling.name}': ${refusal.message}`);
+                }
+              }
+              const result = traceFromFederated(
+                db,
+                handles,
+                resolved.nodeId,
+                buildFederationBlock(effectiveResolutions),
+                {
+                  maxDepth: options.depth,
+                  maxNodes: options.maxNodes,
+                  edgeTypes: options.edgeTypes.split(',').map((s) => s.trim()) as EdgeType[],
+                  minConfidenceClass: options.minConfidence as ConfidenceClass,
+                  includeExternal: options.external,
+                }
+              );
+              console.log(
+                options.json ? JSON.stringify(result, null, 2) : renderFederatedTrace(result)
+              );
+              emitUsageEvent(db, {
+                source: 'cli',
+                surface: 'trace',
+                action: 'query',
+                invocationId,
+                commandOutcome: 'success',
+                exitCode: 0,
+                corpusPath,
+                queryText: symbol,
+                durationMs: Date.now() - startedAt,
+                attributes: {
+                  federated: true,
+                  with: handles.map((h) => h.name),
+                  nodeCount: result.stats.nodeCount,
+                  bridged: result.stats.bridgedCount,
+                  reposReached: result.stats.reposReached,
+                },
+              });
+            } finally {
+              for (const h of handles) h.db.close();
+            }
             return;
           }
 
@@ -164,4 +259,46 @@ function terminusLabel(n: TraceNode): string {
     default:
       return '';
   }
+}
+
+/** Compact renderer for a federated trace: nodes grouped by repo, bridged/×N/vendor marks, then the
+ *  per-sibling freshness block (SC-9). Distinct from printTrace — a different result shape. */
+function renderFederatedTrace(r: FederatedTraceResult): string {
+  const lines: string[] = [];
+  const start = r.nodes.find((n) => n.id === r.startId);
+  lines.push(`\nFederated trace from ${start?.label ?? r.startId}`);
+  lines.push(
+    `  repos: ${r.stats.reposReached.join(', ')}  ·  ${r.stats.nodeCount} nodes, ` +
+      `${r.stats.edgeCount} edges, ${r.stats.bridgedCount} bridged` +
+      (r.stats.truncated ? ' (truncated — raise --depth/--max-nodes)' : '')
+  );
+  const byRepo = new Map<string, FederatedTraceNode[]>();
+  for (const n of r.nodes) {
+    if (!byRepo.has(n.repo)) byRepo.set(n.repo, []);
+    byRepo.get(n.repo)!.push(n);
+  }
+  for (const [repo, ns] of byRepo) {
+    lines.push(`\n  [${repo}] (${ns.length})`);
+    for (const n of ns.slice(0, 40)) {
+      const marks = [
+        n.bridged ? 'bridged' : '',
+        n.repos && n.repos.length > 1 ? `×${n.repos.length}` : '',
+        n.external ? 'vendor' : '',
+      ]
+        .filter(Boolean)
+        .join(' ');
+      lines.push(`    ${n.label}${marks ? `  [${marks}]` : ''}`);
+    }
+  }
+  lines.push('');
+  for (const s of r.federation.siblings) {
+    if (s.attached && s.freshness) {
+      const drift =
+        s.freshness.stale == null ? 'drift unknown' : s.freshness.stale ? 'STALE' : 'fresh';
+      lines.push(`  sibling ${s.name}: schema ${s.freshness.dbSchemaVersion ?? '?'}  ${drift}`);
+    } else if (s.refusal) {
+      lines.push(`  ⚠ sibling ${s.name}: ${s.refusal.message}`);
+    }
+  }
+  return lines.join('\n');
 }

@@ -1,13 +1,13 @@
-import { existsSync, realpathSync } from 'fs';
+import { realpathSync } from 'fs';
 import { join } from 'path';
-import { LuxSqlite } from '../../db/sqlite-adapter.js';
+import { packageToSiblingName, resolveSibling, SiblingResolveError } from '../siblings.js';
 import { getHeadCommit } from '../git.js';
-import { resolveAppNamespace } from './ownership.js';
 import type { KernelOverlayConfig } from '../config.js';
 
 /**
  * A resolved cross-area kernel: the sibling area (a composer path-repo the client vendors)
  * whose already-built `.lux` index is joined read-only for ownership classification (#62).
+ * Unchanged public shape — the ownership map's contract.
  */
 export interface ResolvedKernel {
   /** `<worktree>/.lux/lux.db` — the kernel's built index. */
@@ -23,29 +23,26 @@ export interface ResolvedKernel {
 }
 
 /**
- * Resolve the kernel from the client's `vendor/<package>` symlink (NOT a free-form path —
- * the vendored worktree is authoritative). Fails loud, never silently classifying against
- * the wrong kernel:
- *   - `vendor/<package>` absent / not a symlink → error
- *   - `override` path disagrees with the symlink realpath → error
- *   - the vendored worktree has no `.lux` index → fail fast ("index it first")
- *
- * The kernel index is opened with the raw read-only `LuxSqlite` adapter (never `LuxDatabase`,
- * whose autoMigrate would write the kernel file) to read schema/commit metadata.
+ * Resolve the kernel from `vendor/<package>` via the general sibling resolver, as a `role: kernel`
+ * entry. Fail-loud with the shipped `Cross-area overlay:` messages so `overlay ownership --kernel`
+ * behaves identically (Decision 1 sugar). An `override` must equal the vendored worktree realpath.
  */
 export function resolveKernel(
   corpusPath: string,
   cfg: KernelOverlayConfig,
   override?: string
 ): ResolvedKernel {
-  const vendorPath = join(corpusPath, 'vendor', cfg.package);
-  let worktree: string;
+  let sib;
   try {
-    worktree = realpathSync(vendorPath);
-  } catch {
-    throw new Error(
-      `Cross-area overlay: vendor/${cfg.package} not found under ${corpusPath} — expected a symlinked path-repo kernel.`
-    );
+    sib = resolveSibling(corpusPath, packageToSiblingName(cfg.package), {
+      package: cfg.package,
+      role: 'kernel',
+    });
+  } catch (error) {
+    if (error instanceof SiblingResolveError) {
+      throw new Error(kernelMessage(error, cfg, corpusPath), { cause: error });
+    }
+    throw error;
   }
 
   if (override) {
@@ -55,39 +52,56 @@ export function resolveKernel(
     } catch {
       throw new Error(`Cross-area overlay: --kernel path not found: ${override}`);
     }
-    if (overrideReal !== worktree) {
+    if (overrideReal !== sib.worktree) {
       throw new Error(
-        `Cross-area overlay: --kernel (${overrideReal}) disagrees with the vendored kernel (${worktree}).`
+        `Cross-area overlay: --kernel (${overrideReal}) disagrees with the vendored kernel (${sib.worktree}).`
       );
     }
   }
 
-  let headCommit: string | undefined;
-  try {
-    headCommit = getHeadCommit(worktree);
-  } catch {
-    headCommit = undefined;
-  }
-
-  const dbPath = join(worktree, '.lux', 'lux.db');
-  if (!existsSync(dbPath)) {
-    const at = headCommit ? ` @ ${headCommit.slice(0, 7)}` : '';
+  if (!sib.worktree) {
     throw new Error(
-      `Cross-area overlay: the kernel you vendor (${worktree}${at}) has no Lux index — run \`lux index rebuild\` there first.`
+      `Cross-area overlay: kernel '${cfg.package}' has no worktree to classify against.`
     );
   }
-
-  const namespace = resolveAppNamespace(worktree);
-
-  let indexedCommit: string | undefined;
-  const kdb = new LuxSqlite(dbPath, { readonly: true, fileMustExist: true });
-  try {
-    const row = kdb.get("SELECT value FROM index_metadata WHERE key = 'last_indexed_commit'") as
-      { value?: string } | undefined;
-    indexedCommit = row?.value ?? undefined;
-  } finally {
-    kdb.close();
+  if (!sib.namespace) {
+    throw new Error(
+      `Cross-area overlay: could not resolve the kernel namespace from ${sib.worktree}/composer.json.`
+    );
   }
+  return {
+    dbPath: sib.dbPath,
+    worktree: sib.worktree,
+    namespace: sib.namespace,
+    indexedCommit: sib.indexedCommit,
+    headCommit: sib.headCommit,
+  };
+}
 
-  return { dbPath, worktree, namespace, indexedCommit, headCommit };
+/** Translate the generic sibling refusal back to the shipped kernel-area error strings. */
+function kernelMessage(
+  e: SiblingResolveError,
+  cfg: KernelOverlayConfig,
+  corpusPath: string
+): string {
+  switch (e.reason) {
+    case 'worktree-missing':
+      return `Cross-area overlay: vendor/${cfg.package} not found under ${corpusPath} — expected a symlinked path-repo kernel.`;
+    case 'db-absent': {
+      // FIX 3: restore the shipped `(${worktree}${at})` suffix (worktree realpath + ` @ <7-char
+      // HEAD>`) that the sibling-resolver refactor dropped. resolveSibling threw before returning a
+      // ResolvedSibling, so recompute the way main did: realpath(vendor/<package>) — already
+      // known-resolvable here, since worktree-missing is a distinct earlier refusal — plus git HEAD.
+      const worktree = realpathSync(join(corpusPath, 'vendor', cfg.package));
+      let at: string;
+      try {
+        at = ` @ ${getHeadCommit(worktree).slice(0, 7)}`;
+      } catch {
+        at = '';
+      }
+      return `Cross-area overlay: the kernel you vendor (${worktree}${at}) has no Lux index — run \`lux index rebuild\` there first.`;
+    }
+    default:
+      return e.message;
+  }
 }

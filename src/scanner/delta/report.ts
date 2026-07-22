@@ -1,5 +1,6 @@
 import type {
   BaselineDiff,
+  CrossRepoImpact,
   DeltaChangeSet,
   DeltaReportV1,
   DeltaTouchSet,
@@ -21,6 +22,7 @@ export interface AssembleInput {
   budget: { depth: number; maxNodes: number };
   gate?: GateResult;
   baselineDiff?: BaselineDiff;
+  crossRepoImpact?: CrossRepoImpact;
   warnings: string[];
 }
 
@@ -59,6 +61,7 @@ export function assembleDeltaReport(inp: AssembleInput): DeltaReportV1 {
     },
     gate: inp.gate,
     baselineDiff: inp.baselineDiff,
+    crossRepoImpact: inp.crossRepoImpact,
   };
 }
 
@@ -130,6 +133,28 @@ export function renderDeltaText(r: DeltaReportV1): string {
       `  baseline diff: -${r.baselineDiff.surfacesRemoved.length} / +${r.baselineDiff.surfacesAdded.length} surface(s), ` +
         `+${r.baselineDiff.crossModuleEdgesAdded.length} cross-module edge(s)`
     );
+  }
+  if (r.crossRepoImpact) {
+    lines.push(`  cross-repo impact (${r.crossRepoImpact.siblings.length} sibling(s)):`);
+    for (const s of r.crossRepoImpact.siblings) {
+      if (!s.attached) {
+        lines.push(`    ⚠ ${s.name}: ${s.refusal ?? 'unresolved'}`);
+        continue;
+      }
+      const drift =
+        s.freshness?.stale == null ? 'drift unknown' : s.freshness.stale ? 'STALE' : 'fresh';
+      lines.push(
+        `    ${s.name}: ${s.seedsMatched ?? 0}/${s.seedsTotal ?? 0} seed(s) matched · ` +
+          `${s.entrySurfaces?.length ?? 0} surface(s)` +
+          (s.budget?.truncated ? ' (truncated)' : '') +
+          ` · ${drift}`
+      );
+      for (const es of (s.entrySurfaces ?? []).slice(0, 10)) {
+        const hop = es.hops !== undefined ? ` hops=${es.hops}` : '';
+        const wc = es.weakestConfidence ? ` weakest=${es.weakestConfidence}` : '';
+        lines.push(`      [${es.kind}] ${es.id}  via ${es.resolvedVia}${hop}${wc}`);
+      }
+    }
   }
   lines.push(
     `  trust: overlay=${r.trust.overlay} indexed=${r.trust.indexedCommit?.slice(0, 7) ?? 'none'} ` +

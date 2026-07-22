@@ -4,6 +4,7 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  realpathSync,
   rmSync,
   statSync,
   symlinkSync,
@@ -75,11 +76,21 @@ describe('resolveKernel', () => {
     expect(() => resolveKernel(corpus, { package: 'acme/core' }, other)).toThrow(/disagrees/i);
   });
 
-  it('fails fast when the vendored kernel has no .lux index', () => {
+  it('fails fast when the vendored kernel has no .lux index (FIX 3: names the worktree + commit)', () => {
     const kernel = join(root, 'core');
     makeKernelWorktree(kernel, { indexed: false });
     const corpus = makeClientCorpus('acme/core', kernel);
-    expect(() => resolveKernel(corpus, { package: 'acme/core' })).toThrow(/no Lux index/i);
+    let message = '';
+    try {
+      resolveKernel(corpus, { package: 'acme/core' });
+    } catch (e) {
+      message = (e as Error).message;
+    }
+    expect(message).toMatch(/no Lux index/i);
+    // FIX 3: the shipped message names the vendored worktree realpath and the short HEAD commit —
+    // `(<worktree> @ <7-hex>)` — the suffix the sibling-resolver refactor had dropped.
+    expect(message).toContain(realpathSync(kernel));
+    expect(message).toMatch(/ @ [0-9a-f]{7}\)/);
   });
 });
 

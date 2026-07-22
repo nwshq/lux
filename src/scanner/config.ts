@@ -84,6 +84,8 @@ export interface LuxLspConfig {
   delta?: DeltaConfig;
   /** Scoped overlay refresh budgets (Decisions 7, 8). */
   refresh?: RefreshConfig;
+  /** Named cross-repo sibling-index registry (federation, Decision 1). */
+  siblings?: SiblingsConfig;
 }
 
 /** The delta section of lux.yaml — CI/local gate policy (Decision 7). */
@@ -118,6 +120,24 @@ export interface OverlayConfig {
 export interface KernelOverlayConfig {
   /** Composer package name, e.g. "acme/core". */
   package: string;
+}
+
+export type SiblingRole = 'kernel' | 'peer';
+
+/** One entry in the top-level `siblings:` registry. Exactly one of package|path|db (validated). */
+export interface SiblingEntry {
+  /** composer path-repo mode: worktree = realpath(vendor/<package>). */
+  package?: string;
+  /** explicit worktree mode (relative to corpus or absolute; realpath-resolved). */
+  path?: string;
+  /** index-only mode (CI artifact) — no worktree ⇒ drift reported as unknown. */
+  db?: string;
+  /** kernel ⇒ surface-id bridging + ownership sugar; default peer. */
+  role?: SiblingRole;
+}
+
+export interface SiblingsConfig {
+  [name: string]: SiblingEntry;
 }
 
 // ---------------------------------------------------------------------------
@@ -183,6 +203,7 @@ interface RawLuxConfig {
   overlay?: unknown;
   delta?: unknown;
   refresh?: unknown;
+  siblings?: unknown;
 }
 
 // ---------------------------------------------------------------------------
@@ -227,15 +248,17 @@ export function loadLspConfig(rootPath: string): LuxLspConfig {
  * Validate and normalize a raw parsed YAML object into a LuxLspConfig.
  */
 function validateConfig(raw: RawLuxConfig): LuxLspConfig {
+  const overlay = validateOverlayConfig(raw.overlay); // hoisted so the sibling kernel-sugar cross-check can see it
   return {
     lsp: raw.lsp ? validateLspConfig(raw.lsp) : DEFAULT_LSP_CONFIG,
     deps: raw.deps ? validateDepsConfig(raw.deps) : DEFAULT_DEPS_CONFIG,
     ast: raw.ast ? validateAstConfig(raw.ast) : DEFAULT_AST_CONFIG,
     scan: raw.scan ? validateScanConfig(raw.scan) : DEFAULT_SCAN_CONFIG,
     firstParty: validateFirstPartyConfig(raw.firstParty),
-    overlay: validateOverlayConfig(raw.overlay),
+    overlay,
     delta: validateDeltaConfig(raw.delta),
     refresh: validateRefreshConfig(raw.refresh),
+    siblings: validateSiblingsConfig(raw.siblings, overlay),
   };
 }
 
@@ -298,6 +321,80 @@ function validateOverlayConfig(raw: unknown): OverlayConfig | undefined {
   const pkg = (kernelRaw as { package?: unknown }).package;
   if (typeof pkg !== 'string' || !COMPOSER_PACKAGE.test(pkg)) return undefined;
   return { kernel: { package: pkg } };
+}
+
+/** Registry name grammar (the --with/--against handle). */
+const SIBLING_NAME = /^[A-Za-z][A-Za-z0-9_-]*$/;
+/** OQ6: reserve the three names that map to hardcoded aliases (`sib_` prefix aside, `attachKernel`
+ *  uses `kernel`, the baseline diff uses `baseline`, and `main` is the primary) — reject them as
+ *  registry names for operator clarity. */
+const RESERVED_SIBLING_NAMES = new Set(['kernel', 'baseline', 'main']);
+
+/**
+ * Validate the `siblings:` registry (Decision 1). Fail-loud: any structural violation throws
+ * (surfaced to the operator at config load — the `config-invalid` refusal class). Enforces the
+ * name grammar, reserved names, exactly-one-of package|path|db, role ∈ {kernel,peer}, the
+ * single-kernel invariant, and the kernel-sugar non-conflict.
+ */
+function validateSiblingsConfig(
+  raw: unknown,
+  overlay: OverlayConfig | undefined
+): SiblingsConfig | undefined {
+  if (raw === undefined || raw === null) return undefined;
+  if (typeof raw !== 'object') {
+    throw new Error('lux.yaml siblings: must be a map of name → { package|path|db, role? }.');
+  }
+  const out: SiblingsConfig = {};
+  let kernelCount = 0;
+  for (const [name, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (!SIBLING_NAME.test(name)) {
+      throw new Error(`lux.yaml siblings: invalid name '${name}' (must match ${SIBLING_NAME}).`);
+    }
+    if (RESERVED_SIBLING_NAMES.has(name)) {
+      throw new Error(`lux.yaml siblings: '${name}' is a reserved name — choose another.`);
+    }
+    if (typeof value !== 'object' || value === null) {
+      throw new Error(
+        `lux.yaml siblings.${name}: must be an object with exactly one of package|path|db.`
+      );
+    }
+    const v = value as Record<string, unknown>;
+    const pkg = typeof v.package === 'string' ? v.package : undefined;
+    const path = typeof v.path === 'string' ? v.path : undefined;
+    const db = typeof v.db === 'string' ? v.db : undefined;
+    const modes = [pkg, path, db].filter((m) => m !== undefined);
+    if (modes.length !== 1) {
+      throw new Error(
+        `lux.yaml siblings.${name}: exactly one of package|path|db is required (got ${modes.length}).`
+      );
+    }
+    if (pkg !== undefined && !COMPOSER_PACKAGE.test(pkg)) {
+      throw new Error(
+        `lux.yaml siblings.${name}.package '${pkg}' is not a valid composer package name.`
+      );
+    }
+    let role: SiblingRole = 'peer';
+    if (v.role !== undefined) {
+      if (v.role !== 'kernel' && v.role !== 'peer') {
+        throw new Error(`lux.yaml siblings.${name}.role must be 'kernel' or 'peer'.`);
+      }
+      role = v.role;
+    }
+    if (role === 'kernel') kernelCount++;
+    out[name] = { package: pkg, path, db, role };
+  }
+  if (kernelCount > 1) {
+    throw new Error(
+      'lux.yaml siblings: at most one sibling may declare role: kernel (single-kernel invariant, Decision 1).'
+    );
+  }
+  if (kernelCount === 1 && overlay?.kernel?.package) {
+    throw new Error(
+      'lux.yaml: declaring both overlay.kernel.package and a role: kernel sibling is ambiguous — ' +
+        'use one (single-kernel invariant, Decision 1).'
+    );
+  }
+  return Object.keys(out).length ? out : undefined;
 }
 
 function validateAstConfig(raw: unknown): AstConfig {

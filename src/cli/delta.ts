@@ -27,6 +27,10 @@ export function addDeltaCommand(program: Command): void {
       '--baseline-db <path>',
       'Phase 4: sibling .lux index at the base ref for a true overlay diff'
     )
+    .option(
+      '--against <list>',
+      'Cross-repo impact: affected surfaces in registered siblings (name[,name…]|all)'
+    )
     .option('--json', 'Emit the stable machine envelope')
     .action(
       (options: {
@@ -38,6 +42,7 @@ export function addDeltaCommand(program: Command): void {
         check?: boolean;
         failOn?: string;
         baselineDb?: string;
+        against?: string;
         json?: boolean;
       }) => {
         const minConfidence: ConfidenceClass = CONFIDENCE_CLASSES.includes(options.minConfidence)
@@ -58,6 +63,12 @@ export function addDeltaCommand(program: Command): void {
                 .filter(Boolean)
             : undefined,
           baselineDb: options.baselineDb,
+          against: options.against
+            ? options.against
+                .split(',')
+                .map((s) => s.trim())
+                .filter(Boolean)
+            : undefined,
           json: options.json === true,
         });
       }

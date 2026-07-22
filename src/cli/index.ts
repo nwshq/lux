@@ -50,6 +50,7 @@ import { addTraceCommand } from './trace.js';
 import { addOverlayCommands } from './overlay.js';
 import { addUsageCommands } from './usage.js';
 import { addDeltaCommand } from './delta.js';
+import { addSiblingsCommand } from './siblings.js';
 import {
   createInvocationId,
   emitUsageEvent,
@@ -1070,6 +1071,9 @@ addUsageCommands(program);
 
 // Add delta command
 addDeltaCommand(program);
+
+// Add siblings command
+addSiblingsCommand(program);
 
 program.parse();
 

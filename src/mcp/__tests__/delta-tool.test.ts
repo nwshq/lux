@@ -155,14 +155,36 @@ describe.skipIf(!existsSync(DIST_SERVER))(
       rmSync(root, { recursive: true, force: true });
     });
 
-    it('lists lux_delta with the documented input schema', async () => {
+    it('lists lux_delta with the documented input schema (incl. the against cross-repo param)', async () => {
       const { tools } = await client.listTools();
       const delta = tools.find((t) => t.name === 'lux_delta');
       expect(delta).toBeDefined();
       const props = (delta!.inputSchema.properties ?? {}) as Record<string, unknown>;
-      for (const key of ['base', 'committed_only', 'depth', 'max_nodes', 'min_confidence']) {
+      for (const key of [
+        'base',
+        'committed_only',
+        'depth',
+        'max_nodes',
+        'min_confidence',
+        'against',
+      ]) {
         expect(props[key]).toBeDefined();
       }
+    });
+
+    it('CallTool with against:[ghost] returns crossRepoImpact with the sibling attached:false (never dropped, SC-8)', async () => {
+      const res = await client.callTool({
+        name: 'lux_delta',
+        arguments: { against: ['ghost'] },
+      });
+      const content = (res.content as Array<{ type: string; text: string }>)[0];
+      const payload = JSON.parse(content.text) as {
+        schemaVersion?: number;
+        crossRepoImpact?: { siblings: Array<{ name: string; attached: boolean }> };
+      };
+      expect(payload.schemaVersion).toBe(1); // additive — no bump (SC-9)
+      const ghost = payload.crossRepoImpact?.siblings.find((s) => s.name === 'ghost');
+      expect(ghost).toMatchObject({ name: 'ghost', attached: false });
     });
 
     it('CallTool with a benign base returns a parseable schemaVersion:1 envelope', async () => {

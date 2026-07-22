@@ -3,6 +3,13 @@ import { LuxDatabase } from '../db/index.js';
 import { detectModuleBoundaries, resolveModule } from '../scanner/imports/module-boundary.js';
 import { emitUsageEvent, createInvocationId } from '../db/observability/usage-event.js';
 import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
+import {
+  resolveSiblings,
+  buildFederationBlock,
+  siblingFaultRefusal,
+  type SiblingResolution,
+} from '../scanner/siblings.js';
+import { runFederatedSearch } from '../scanner/search-federation.js';
 
 export function addSearchCommand(program: Command) {
   program
@@ -11,6 +18,8 @@ export function addSearchCommand(program: Command) {
     .option('--type <type>', 'Filter by entity type (all|knowledge)', 'all')
     .option('--limit <n>', 'Limit results', '20')
     .option('--content', 'Search only file content (not metadata)')
+    .option('--with <list>', 'Federate search across registered siblings (name[,name…]|all)')
+    .option('--json', 'Output as JSON')
     .action(
       (
         query: string,
@@ -18,6 +27,8 @@ export function addSearchCommand(program: Command) {
           type: string;
           limit: string;
           content?: boolean;
+          with?: string;
+          json?: boolean;
         }
       ) => {
         const opts = program.opts();
@@ -29,6 +40,85 @@ export function addSearchCommand(program: Command) {
         const limit = parseInt(options.limit, 10);
         const invocationId = createInvocationId();
         const startedAt = Date.now();
+
+        // Federated branch (Decision 5): opt-in via --with, strictly additive. Returns BEFORE the
+        // shipped single-repo path, so a no-`--with` invocation (text + usage events) is unchanged
+        // (SC-5). Sibling handles are read-only and closed in a finally (SC-7).
+        if (options.with) {
+          const primarySchema = db.getAppliedSchemaVersion();
+          const names =
+            options.with === 'all'
+              ? ('all' as const)
+              : options.with
+                  .split(',')
+                  .map((s) => s.trim())
+                  .filter(Boolean);
+          const resolutions = resolveSiblings(corpusPath, names, primarySchema);
+          const handles: Array<{ name: string; db: LuxDatabase }> = [];
+          // FIX 1: opening a resolved sibling runs AFTER resolve, so a post-resolve fault (TOCTOU
+          // delete/re-index, cross-process busy-timeout, or a file that faults on re-open) must
+          // degrade THAT sibling — not abort the whole federated search. Rewrite its resolution to a
+          // refusal so the federation block stays consistent (attached:false + reason), warn, and
+          // continue with the healthy handles. The finally below closes every opened handle (SC-7).
+          const effectiveResolutions: SiblingResolution[] = [];
+          try {
+            for (const r of resolutions) {
+              if (!('sibling' in r)) {
+                // Decision 6: warn per unresolvable sibling, never silently drop.
+                effectiveResolutions.push(r);
+                console.error(`  ⚠ sibling '${r.name}': ${r.refusal.message}`);
+                continue;
+              }
+              try {
+                const handle = LuxDatabase.openSiblingReadOnly(r.sibling.dbPath, primarySchema);
+                handles.push({ name: r.sibling.name, db: handle });
+                effectiveResolutions.push(r);
+              } catch (error) {
+                const refusal = siblingFaultRefusal(r.sibling.name, error);
+                effectiveResolutions.push({ name: r.sibling.name, refusal });
+                console.error(`  ⚠ sibling '${r.sibling.name}': ${refusal.message}`);
+              }
+            }
+            const fed = runFederatedSearch(
+              db,
+              handles,
+              query,
+              buildFederationBlock(effectiveResolutions),
+              limit
+            );
+            if (options.json) {
+              console.log(JSON.stringify(fed, null, 2));
+            } else {
+              for (const g of fed.groups) {
+                console.log(`\n[${g.repo}] (${g.results.length})`);
+                for (const res of g.results) console.log(`  ${res.title}\n    ${res.path}`);
+              }
+            }
+            emitUsageEvent(db, {
+              source: 'cli',
+              surface: 'search',
+              action: 'query',
+              invocationId,
+              commandOutcome: 'success',
+              retrievalOutcome: 'not_applicable',
+              exitCode: 0,
+              corpusPath,
+              queryText: query,
+              durationMs: Date.now() - startedAt,
+              attributes: {
+                federated: true,
+                with: handles.map((h) => h.name),
+                type: options.type,
+                limit,
+              },
+            });
+          } finally {
+            for (const h of handles) h.db.close();
+          }
+          db.close();
+          return;
+        }
+
         const results: Array<{
           type: string;
           title: string;
@@ -120,6 +210,17 @@ export function addSearchCommand(program: Command) {
             totalMatches: results.length,
           },
         });
+
+        // FIX 4: honor `--json` on the single-repo path too. Previously `--json` was read only inside
+        // the `--with` branch, so `lux search foo --json` (no `--with`) parsed the flag and silently
+        // dropped it (text out, exit 0) — on main it errored as an unknown option. Emit the ranked
+        // results as JSON, matching the MCP single-repo `lux_search` shape (a plain array of
+        // {type,title,path,context?}); `[]` when empty. The no-`--json` text path below is untouched.
+        if (options.json) {
+          console.log(JSON.stringify(limitedResults, null, 2));
+          db.close();
+          return;
+        }
 
         if (limitedResults.length === 0) {
           console.log(

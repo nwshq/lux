@@ -1,0 +1,10 @@
+
+Trace from App\Http\OfferController::show
+  depth≤8  edges:calls/references  min-confidence:framework-inferred
+
+App\Http\OfferController::show
+App\Services\OfferService::find  {prv 0.95}
+Illuminate\Database\Eloquent\Model::save [vendor]  {prv 0.95}
+Illuminate\Bus\Dispatcher::dispatch [vendor]  {prv 0.95}  ⟿ dispatch boundary (job, re-entry deferred)
+
+4 nodes, 3 edges, 2 vendor, 1 dispatch boundaries
