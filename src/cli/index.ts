@@ -39,6 +39,7 @@ import { addVendorPackCommands } from './pack.js';
 import { addTraceCommand } from './trace.js';
 import { addOverlayCommands } from './overlay.js';
 import { addUsageCommands } from './usage.js';
+import { addDeltaCommand } from './delta.js';
 import {
   createInvocationId,
   emitUsageEvent,
@@ -904,6 +905,9 @@ addOverlayCommands(program);
 
 // Add usage observability commands
 addUsageCommands(program);
+
+// Add delta command
+addDeltaCommand(program);
 
 program.parse();
 

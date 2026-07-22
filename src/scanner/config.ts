@@ -80,6 +80,14 @@ export interface LuxLspConfig {
   firstParty?: FirstPartyConfig;
   /** Overlay features (cross-area kernel ownership, #62). */
   overlay?: OverlayConfig;
+  /** Delta gate policy (`lux delta --check`, #delta). */
+  delta?: DeltaConfig;
+}
+
+/** The delta section of lux.yaml — CI/local gate policy (Decision 7). */
+export interface DeltaConfig {
+  /** Gate categories evaluated under `lux delta --check` (overridable by --fail-on). */
+  gates: string[];
 }
 
 /** The firstParty section of lux.yaml. */
@@ -161,6 +169,7 @@ interface RawLuxConfig {
   scan?: unknown;
   firstParty?: unknown;
   overlay?: unknown;
+  delta?: unknown;
 }
 
 // ---------------------------------------------------------------------------
@@ -212,7 +221,22 @@ function validateConfig(raw: RawLuxConfig): LuxLspConfig {
     scan: raw.scan ? validateScanConfig(raw.scan) : DEFAULT_SCAN_CONFIG,
     firstParty: validateFirstPartyConfig(raw.firstParty),
     overlay: validateOverlayConfig(raw.overlay),
+    delta: validateDeltaConfig(raw.delta),
   };
+}
+
+/**
+ * Validate the `delta` section (CI/local gate policy, Decision 7). Category *names* are
+ * deliberately NOT validated here — the unknown-category hard-error happens once, at
+ * gate-resolution time (`resolveGateCategories`), so `--fail-on` and `delta.gates` hit the
+ * identical check (no silent gate passes).
+ */
+function validateDeltaConfig(raw: unknown): DeltaConfig | undefined {
+  if (typeof raw !== 'object' || raw === null) return undefined;
+  const gates = (raw as { gates?: unknown }).gates;
+  if (!Array.isArray(gates)) return undefined;
+  const list = gates.filter((g): g is string => typeof g === 'string');
+  return list.length ? { gates: list } : undefined;
 }
 
 function validateFirstPartyConfig(raw: unknown): FirstPartyConfig | undefined {

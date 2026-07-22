@@ -25,6 +25,7 @@ Shared resolver: `src/utils/runtime-paths.ts`
 - `lux deps graph|clusters|impact|coverage`
 - `lux vendor-pack build|status`
 - `lux trace <symbol>`
+- `lux delta [--base <ref>] [--check] [--fail-on <list>] [--json]`
 - `lux overlay status|check|ownership|operational ask|boundaries ...`
 
 ## Current MCP surface
@@ -35,7 +36,31 @@ From `src/mcp/server.ts`:
 - `lux_get_file`
 - `lux_rebuild_index`
 - `lux_trace`
+- `lux_delta`
 - `lux_spec_derivation_evidence`
+
+## Diff-scoped structural delta (`lux delta`)
+
+Change-shaped entry point: from a git diff, report touched symbols/surfaces, downstream
+HTTP/operational entry surfaces, module dependents, kernel/client ownership transitions, and
+invalidated spec-evidence. Read-only w.r.t. structural/overlay state; `--base` is validated
+(argv-form git, no shell) before any git call. `--json` emits the frozen `schemaVersion:1` envelope,
+mirrored by the `lux_delta` MCP tool.
+
+`--check` gates in CI: exit nonzero on a gate violation or degraded overlay, else 0. Categories come
+from `--fail-on <comma-list>` > `lux.yaml delta.gates` > default `overlay-not-complete`. Unknown
+categories hard-error; a configured-but-unevaluable gate (e.g. `client-gap-created` without a fresh
+kernel index; a Phase-4 gate with no `--baseline-db`) fails loud — never a silent pass.
+
+```yaml
+# lux.yaml
+delta:
+  gates: [overlay-not-complete, client-gap-created, budget-truncated]
+```
+
+CI: `actions/checkout` with `fetch-depth: 0` (the base commit must be reachable — a shallow clone
+refuses `baseline-unavailable`), then `lux delta --check --fail-on ... --base "$GITHUB_BASE_REF"`.
+Pre-push hook: `lux delta --check --fail-on overlay-not-complete || exit 1`.
 
 ## Overlay
 

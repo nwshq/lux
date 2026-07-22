@@ -59,6 +59,51 @@
           "Specification:"
         ]
       }
+    },
+    {
+      "id": "core-delta-analyze-envelope",
+      "surface": "delta",
+      "mode": "delta",
+      "question": "what does the last commit touch structurally?",
+      "base": "HEAD~1",
+      "committedOnly": true,
+      "json": true,
+      "expect": {
+        "exitCode": 0,
+        "deltaSchemaVersion": 1,
+        "deltaSurface": "delta",
+        "minTouchedFiles": 1
+      }
+    },
+    {
+      "id": "core-delta-refusal-injection-base",
+      "surface": "delta",
+      "mode": "delta",
+      "question": "an injection-shaped --base must refuse under --check without a shell",
+      "base": "--output=/tmp/lux-delta-benchmark-probe",
+      "check": true,
+      "json": true,
+      "expect": {
+        "exitCode": 1
+      }
+    },
+    {
+      "id": "core-delta-gate-failloud-unconfigured-kernel",
+      "surface": "delta",
+      "mode": "delta",
+      "question": "client-gap-created must fail loud when no kernel is configured (SC-5)",
+      "base": "HEAD~1",
+      "committedOnly": true,
+      "check": true,
+      "failOn": "client-gap-created",
+      "json": true,
+      "expect": {
+        "exitCode": 1,
+        "deltaSchemaVersion": 1,
+        "deltaGateCategoriesInclude": [
+          "client-gap-created"
+        ]
+      }
     }
   ]
 }

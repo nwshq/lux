@@ -17,12 +17,30 @@ import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
 import { getHeadCommit, isGitRepository } from '../scanner/git.js';
 import { executeSpecEvidenceAsk } from '../cli/spec-evidence.js';
 import { resolveStartNode, traceFrom } from '../scanner/associations/trace.js';
+import { computeDelta } from '../scanner/delta/run.js';
 import type { ConfidenceClass, EdgeType } from '../db/types.js';
 import {
   createInvocationId,
   emitUsageEvent,
   safeUsageTrustState,
 } from '../db/observability/usage-event.js';
+
+/** Confidence classes delta/trace understand. Mirrors the CLI guard (`src/cli/delta.ts`): an
+ *  out-of-enum `min_confidence` (e.g. "high") must NOT reach the reverse-walk as an unknown class —
+ *  its rank would be `undefined`, the floor comparison always false, and the agent would get a
+ *  confidently-wrong EMPTY (non-truncated) result. Fall back to the documented default instead. */
+const CONFIDENCE_CLASSES: readonly ConfidenceClass[] = [
+  'proven',
+  'artifact-backed',
+  'framework-inferred',
+  'heuristic',
+];
+
+function resolveMinConfidence(value: unknown): ConfidenceClass {
+  return typeof value === 'string' && (CONFIDENCE_CLASSES as readonly string[]).includes(value)
+    ? (value as ConfidenceClass)
+    : 'framework-inferred';
+}
 
 const DEFAULT_CORPUS_PATH = resolveCorpusPath({ corpus: process.env.LUX_CORPUS_PATH });
 const DEFAULT_DB_PATH = resolveDbPath({
@@ -182,6 +200,36 @@ const TOOLS: Tool[] = [
         },
       },
       required: ['symbol'],
+    },
+  },
+  {
+    name: 'lux_delta',
+    description:
+      'Analyze what a git change touches structurally: touched symbols and declared surfaces, ' +
+      'downstream HTTP/operational entry surfaces (with honest async-boundary annotations), module ' +
+      'dependents, kernel/client ownership transitions, and invalidated spec-evidence targets. ' +
+      'Read-only with respect to structural state. Returns the schemaVersion:1 delta envelope.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        base: {
+          type: 'string',
+          description: 'Diff baseline ref/SHA (default: the index last_indexed_commit)',
+        },
+        committed_only: {
+          type: 'boolean',
+          description: 'Exclude uncommitted working-tree changes',
+          default: false,
+        },
+        depth: { type: 'number', description: 'Reverse-walk depth budget', default: 6 },
+        max_nodes: { type: 'number', description: 'Reverse-walk node budget', default: 2000 },
+        min_confidence: {
+          type: 'string',
+          enum: ['proven', 'artifact-backed', 'framework-inferred', 'heuristic'],
+          description: 'Lowest confidence class to follow',
+          default: 'framework-inferred',
+        },
+      },
     },
   },
 ];
@@ -535,6 +583,34 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         });
 
         return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      }
+
+      case 'lux_delta': {
+        const base = typeof args?.base === 'string' ? args.base : undefined;
+        // --base is validated inside computeDelta (resolveDeltaBase → isSafeGitRef) BEFORE any git
+        // call (Decision 17). MCP exposes this verb to prompt-injectable agents, so validation +
+        // argv-form git (no shell) is mandatory here, not optional hardening.
+        const result = computeDelta(db, DEFAULT_CORPUS_PATH, {
+          base,
+          committedOnly: args?.committed_only === true,
+          depth: typeof args?.depth === 'number' ? args.depth : 6,
+          maxNodes: typeof args?.max_nodes === 'number' ? args.max_nodes : 2000,
+          maxFanout: 64,
+          minConfidence: resolveMinConfidence(args?.min_confidence),
+          json: true,
+        });
+        emitUsageEvent(db, {
+          source: 'mcp',
+          surface: 'delta',
+          action: 'analyze',
+          commandOutcome: 'refusal' in result ? 'error' : 'success',
+          trustState:
+            'refusal' in result ? 'unknown' : safeUsageTrustState(result.report.trust.overlay),
+          corpusPath: DEFAULT_CORPUS_PATH,
+          dbPath: DEFAULT_DB_PATH,
+        });
+        const payload = 'refusal' in result ? { error: result.refusal } : result.report;
+        return { content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }] };
       }
 
       default:

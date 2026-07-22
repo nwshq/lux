@@ -11,8 +11,8 @@ interface BenchmarkFixture {
   cases: BenchmarkCase[];
 }
 
-type BenchmarkSurface = 'feature-path' | 'operational' | 'status' | 'spec-evidence';
-type BenchmarkMode = 'overlay' | 'status';
+type BenchmarkSurface = 'feature-path' | 'operational' | 'status' | 'spec-evidence' | 'delta';
+type BenchmarkMode = 'overlay' | 'status' | 'delta';
 
 interface BenchmarkCase {
   id: string;
@@ -23,6 +23,13 @@ interface BenchmarkCase {
   target?: string;
   kind?: string;
   export?: 'json' | 'md';
+  // delta-surface options (spec 14/16) — mirror the `lux delta` CLI flags.
+  base?: string;
+  committedOnly?: boolean;
+  check?: boolean;
+  failOn?: string;
+  depth?: number;
+  maxNodes?: number;
   expect: BenchmarkExpectation;
 }
 
@@ -71,6 +78,19 @@ interface BenchmarkExpectation {
   conflictingEvidenceIncludes?: string;
   exportPathExists?: boolean;
   forbiddenTextIncludes?: string[];
+  // delta-surface expectations (spec 14/16, SC-9).
+  deltaSchemaVersion?: number;
+  deltaSurface?: string;
+  minTouchedFiles?: number;
+  minTouchedSymbols?: number;
+  minModulesChanged?: number;
+  minEntrySurfaces?: number;
+  /** Assert an EMPTY (not errored) projection — the lux-TS PHP-projection contract (SC-9). */
+  emptyEntrySurfaces?: boolean;
+  emptyOwnershipTransitions?: boolean;
+  emptySpecTargets?: boolean;
+  deltaTruncated?: boolean;
+  deltaGateCategoriesInclude?: string[];
 }
 
 interface ParsedCasePayload {
@@ -114,6 +134,17 @@ interface ParsedCasePayload {
   conflictingEvidence?: string[];
   exportPath?: string;
   stdout?: string;
+  // delta-surface parse (envelope on stdout; a preflight refusal prints to stderr with empty stdout).
+  deltaSchemaVersion?: number;
+  deltaSurface?: string;
+  touchedFiles?: number;
+  touchedSymbols?: number;
+  modulesChangedCount?: number;
+  entrySurfacesCount?: number;
+  ownershipTransitionsCount?: number;
+  specTargetsCount?: number;
+  deltaTruncated?: boolean;
+  gateViolationCategories?: string[];
 }
 
 interface CommandResult {
@@ -222,6 +253,17 @@ function buildCaseCommand(
     return command;
   }
 
+  if (testCase.surface === 'delta') {
+    command.push('delta', '--json');
+    if (testCase.base) command.push('--base', testCase.base);
+    if (testCase.committedOnly) command.push('--committed-only');
+    if (testCase.depth !== undefined) command.push('--depth', String(testCase.depth));
+    if (testCase.maxNodes !== undefined) command.push('--max-nodes', String(testCase.maxNodes));
+    if (testCase.check) command.push('--check');
+    if (testCase.failOn) command.push('--fail-on', testCase.failOn);
+    return command;
+  }
+
   command.push('overlay', testCase.surface, 'ask');
   if (testCase.json) command.push('--json');
   if (testCase.target) command.push('--target', testCase.target);
@@ -295,6 +337,7 @@ function parseCasePayload(testCase: BenchmarkCase, stdout: string): ParsedCasePa
   const root = asRecord(parsed);
   if (testCase.surface === 'status') return parseStatusPayload(root);
   if (testCase.surface === 'spec-evidence') return parseSpecEvidencePayload(root, stdout);
+  if (testCase.surface === 'delta') return parseDeltaPayload(root, stdout);
 
   const payload = asRecord(root.payload ?? root);
   const resolution = asRecord(payload.resolution);
@@ -477,6 +520,36 @@ function parseStatusPayload(root: Record<string, unknown>): ParsedCasePayload {
     overlayMode: asString(overlay.mode),
     surfaceCount: asNumber(overlay.surfaceCount),
     knowledgeEntries: asNumber(stats.knowledge_entries),
+  };
+}
+
+/**
+ * Parse the `lux delta --json` envelope (spec 15). `root` is the schemaVersion:1 report. A `--check`
+ * gate violation still prints the report on stdout (with `gate.violations`); a preflight refusal
+ * (bad --base, non-git) prints nothing on stdout and is asserted via exitCode.
+ */
+function parseDeltaPayload(root: Record<string, unknown>, stdout: string): ParsedCasePayload {
+  const touched = asRecord(root.touched);
+  const downstream = asRecord(root.downstream);
+  const budget = asRecord(downstream.budget);
+  const modules = asRecord(root.modules);
+  const ownership = asRecord(root.ownership);
+  const invalidated = asRecord(root.invalidatedEvidence);
+  const gate = asRecord(root.gate);
+  return {
+    deltaSchemaVersion: asNumber(root.schemaVersion),
+    deltaSurface: asString(root.surface),
+    touchedFiles: asNumber(touched.files),
+    touchedSymbols: asNumber(touched.symbols),
+    modulesChangedCount: asArray(modules.changed).length,
+    entrySurfacesCount: asArray(downstream.entrySurfaces).length,
+    ownershipTransitionsCount: asArray(ownership.transitions).length,
+    specTargetsCount: asArray(invalidated.specTargets).length,
+    deltaTruncated: asBoolean(budget.truncated),
+    gateViolationCategories: asArray(gate.violations)
+      .map((violation) => asString(asRecord(violation).category))
+      .filter((category): category is string => Boolean(category)),
+    stdout,
   };
 }
 
@@ -675,6 +748,56 @@ function validateExpectation(
     if (actual.stdout?.includes(forbidden)) {
       failures.push(`stdout must not include ${JSON.stringify(forbidden)}`);
     }
+  }
+  if (
+    expect.deltaSchemaVersion !== undefined &&
+    actual.deltaSchemaVersion !== expect.deltaSchemaVersion
+  )
+    failures.push(
+      `deltaSchemaVersion expected ${expect.deltaSchemaVersion}, got ${actual.deltaSchemaVersion ?? 'missing'}`
+    );
+  if (expect.deltaSurface && actual.deltaSurface !== expect.deltaSurface)
+    failures.push(`deltaSurface expected ${expect.deltaSurface}, got ${actual.deltaSurface ?? 'missing'}`);
+  if (expect.minTouchedFiles !== undefined && (actual.touchedFiles ?? 0) < expect.minTouchedFiles)
+    failures.push(`touchedFiles expected >= ${expect.minTouchedFiles}, got ${actual.touchedFiles ?? 0}`);
+  if (
+    expect.minTouchedSymbols !== undefined &&
+    (actual.touchedSymbols ?? 0) < expect.minTouchedSymbols
+  )
+    failures.push(
+      `touchedSymbols expected >= ${expect.minTouchedSymbols}, got ${actual.touchedSymbols ?? 0}`
+    );
+  if (
+    expect.minModulesChanged !== undefined &&
+    (actual.modulesChangedCount ?? 0) < expect.minModulesChanged
+  )
+    failures.push(
+      `modulesChanged expected >= ${expect.minModulesChanged}, got ${actual.modulesChangedCount ?? 0}`
+    );
+  if (
+    expect.minEntrySurfaces !== undefined &&
+    (actual.entrySurfacesCount ?? 0) < expect.minEntrySurfaces
+  )
+    failures.push(
+      `entrySurfaces expected >= ${expect.minEntrySurfaces}, got ${actual.entrySurfacesCount ?? 0}`
+    );
+  if (expect.emptyEntrySurfaces && (actual.entrySurfacesCount ?? 0) !== 0)
+    failures.push(
+      `entrySurfaces expected EMPTY (not errored), got ${actual.entrySurfacesCount ?? 0}`
+    );
+  if (expect.emptyOwnershipTransitions && (actual.ownershipTransitionsCount ?? 0) !== 0)
+    failures.push(
+      `ownership transitions expected EMPTY (not errored), got ${actual.ownershipTransitionsCount ?? 0}`
+    );
+  if (expect.emptySpecTargets && (actual.specTargetsCount ?? 0) !== 0)
+    failures.push(`spec targets expected EMPTY (not errored), got ${actual.specTargetsCount ?? 0}`);
+  if (expect.deltaTruncated !== undefined && actual.deltaTruncated !== expect.deltaTruncated)
+    failures.push(
+      `delta truncated expected ${expect.deltaTruncated}, got ${actual.deltaTruncated ?? 'missing'}`
+    );
+  for (const category of expect.deltaGateCategoriesInclude ?? []) {
+    if (!actual.gateViolationCategories?.includes(category))
+      failures.push(`gate violation missing category ${category}`);
   }
   return failures;
 }

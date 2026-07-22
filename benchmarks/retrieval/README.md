@@ -37,11 +37,20 @@ Cases may target these surfaces:
 - `feature-path`
 - `operational`
 - `status`
+- `spec-evidence`
+- `delta` — `lux delta --json` diff-scoped structural delta (spec 14/15/16). Case fields mirror the
+  CLI flags: `base`, `committedOnly`, `depth`, `maxNodes`, `check`, `failOn`. Expectations cover the
+  envelope (`deltaSchemaVersion`, `deltaSurface`, `minTouchedFiles`/`minTouchedSymbols`,
+  `minModulesChanged`, `minEntrySurfaces`, `deltaTruncated`, `deltaGateCategoriesInclude`) and the
+  SC-9 empty-not-errored contract on non-PHP repos (`emptyEntrySurfaces`,
+  `emptyOwnershipTransitions`, `emptySpecTargets`). Delta cases are live-repro: the corpus needs a
+  current `.lux` index (`lux index rebuild`) so the default base (`last_indexed_commit`) is reachable.
 
 Modes:
 
 - `overlay` — dedicated overlay seam.
 - `status` — `lux index status --json`.
+- `delta` — `lux delta --json`.
 
 ## Output
 

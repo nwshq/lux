@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "repoId": "lux-ts",
+  "repoPath": "/path/to/lux/vcs",
+  "cases": [
+    {
+      "id": "lux-ts-delta-touch-and-empty-php-projections",
+      "surface": "delta",
+      "mode": "delta",
+      "question": "SC-9: on a TS repo the touch-set + module rollup produce output while the PHP-specific projections are EMPTY, not errored",
+      "base": "HEAD~1",
+      "committedOnly": true,
+      "json": true,
+      "expect": {
+        "exitCode": 0,
+        "deltaSchemaVersion": 1,
+        "deltaSurface": "delta",
+        "minTouchedFiles": 1,
+        "emptyEntrySurfaces": true,
+        "emptyOwnershipTransitions": true,
+        "emptySpecTargets": true
+      }
+    }
+  ]
+}

@@ -460,6 +460,244 @@ export class LuxDatabase {
     });
   }
 
+  /**
+   * Run `fn` with a sibling `.lux` index ATTACHed read-only under `alias` (Phase 4 baseline diff,
+   * Decision 9). Mirrors attachKernel: ATTACH outside any transaction, schema-parity guard,
+   * `PRAGMA query_only = ON` window (engine-enforced read-only for both DBs), DETACH in `finally`.
+   * The alias is validated as a SQL identifier (it cannot be a bound parameter in `ATTACH … AS`).
+   */
+  attachSibling<T>(dbPath: string, alias: string, fn: () => T): T {
+    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(alias)) {
+      throw new Error(`attachSibling: unsafe alias ${JSON.stringify(alias)}`);
+    }
+    this.db.run(`ATTACH DATABASE ? AS ${alias}`, dbPath); // outside any transaction
+    try {
+      const parity = this.db.get(
+        `SELECT (SELECT MAX(version) FROM main.schema_version)    AS main,
+                (SELECT MAX(version) FROM ${alias}.schema_version) AS sibling`
+      ) as { main: number; sibling: number };
+      if (parity.main !== parity.sibling) {
+        throw new Error(
+          `attachSibling(${alias}): schema v${parity.sibling} != main v${parity.main}; ` +
+            `re-index the baseline at the current schema (cache key is (base SHA, schema_version)).`
+        );
+      }
+      this.db.run('PRAGMA query_only = ON');
+      return fn();
+    } finally {
+      try {
+        this.db.run('PRAGMA query_only = OFF');
+      } catch {
+        /* best-effort */
+      }
+      try {
+        this.db.run(`DETACH DATABASE ${alias}`);
+      } catch {
+        /* best-effort */
+      }
+    }
+  }
+
+  /**
+   * Structural diff of the primary (head) overlay against a baseline `.lux` ATTACHed read-only
+   * (Phase 4). Returns surfaces added/removed by id, plus the raw new edges (present at head,
+   * absent in baseline) with source/target file paths — module resolution happens in the caller
+   * (which has corpusPath + boundary patterns). Runs entirely in-engine under attachSibling.
+   */
+  baselineStructuralDiff(baselineDbPath: string): {
+    surfacesRemoved: string[];
+    surfacesAdded: string[];
+    newEdges: Array<{
+      source: string;
+      target: string;
+      edgeType: string;
+      sourceFile: string;
+      targetFile: string;
+    }>;
+  } {
+    return this.attachSibling(baselineDbPath, 'baseline', () => {
+      const surfacesRemoved = (
+        this.db.all(
+          `SELECT b.id FROM baseline.structural_nodes b
+             LEFT JOIN main.structural_nodes h ON h.id = b.id
+            WHERE (b.node_type = 'capability-surface' OR b.id LIKE 'surface:http:%')
+              AND h.id IS NULL`
+        ) as Array<{ id: string }>
+      ).map((r) => r.id);
+      const surfacesAdded = (
+        this.db.all(
+          `SELECT h.id FROM main.structural_nodes h
+             LEFT JOIN baseline.structural_nodes b ON b.id = h.id
+            WHERE (h.node_type = 'capability-surface' OR h.id LIKE 'surface:http:%')
+              AND b.id IS NULL`
+        ) as Array<{ id: string }>
+      ).map((r) => r.id);
+      const newEdges = this.db.all(
+        `SELECT he.source_node_id AS source, he.target_node_id AS target, he.edge_type AS edgeType,
+                sn.file_path AS sourceFile, tn.file_path AS targetFile
+           FROM main.structural_edges he
+           LEFT JOIN baseline.structural_edges be
+             ON be.source_node_id = he.source_node_id
+            AND be.target_node_id = he.target_node_id
+            AND be.edge_type = he.edge_type
+           LEFT JOIN main.structural_nodes sn ON sn.id = he.source_node_id
+           LEFT JOIN main.structural_nodes tn ON tn.id = he.target_node_id
+          WHERE be.id IS NULL AND sn.file_path IS NOT NULL AND tn.file_path IS NOT NULL`
+      ) as Array<{
+        source: string;
+        target: string;
+        edgeType: string;
+        sourceFile: string;
+        targetFile: string;
+      }>;
+      return { surfacesRemoved, surfacesAdded, newEdges };
+    });
+  }
+
+  // ── delta touch-set + reverse walk: dynamic-IN queries over indexed columns (Decision 3 /
+  //    Phase 2a). A variadic IN(...) can't be a fixed prepared statement — use the one-shot
+  //    db.all path with generated placeholders + chunking (mirrors crossAreaOwnership). ──
+
+  /** Well under SQLite's variable limit (999 legacy / 32766 modern) — chunk large branch diffs. */
+  private static readonly DELTA_IN_CHUNK = 500;
+
+  private static deltaPlaceholders(n: number): string {
+    return new Array(n).fill('?').join(',');
+  }
+
+  /**
+   * Run a placeholder-`IN` SELECT across chunked values, unioning the rows with a cross-chunk
+   * DISTINCT (a per-chunk `JOIN … DISTINCT` only dedups within one chunk). The dedup key defaults
+   * to `row.id`; callers whose row identity is composite (e.g. boundary × symbol) pass their own
+   * key so a legitimately repeated row is not over-deduped. A row with no key (falsy) is not
+   * deduped.
+   */
+  private deltaChunkedIn<T>(
+    values: string[],
+    sql: (placeholders: string) => string,
+    key?: (row: T) => string
+  ): T[] {
+    const out: T[] = [];
+    const seen = new Set<string>();
+    const keyOf = key ?? ((r: T) => (r as { id?: string }).id ?? '');
+    for (let i = 0; i < values.length; i += LuxDatabase.DELTA_IN_CHUNK) {
+      const chunk = values.slice(i, i + LuxDatabase.DELTA_IN_CHUNK);
+      if (chunk.length === 0) continue;
+      const rows = this.db.all(sql(LuxDatabase.deltaPlaceholders(chunk.length)), chunk) as T[];
+      for (const r of rows) {
+        const k = keyOf(r);
+        if (k) {
+          if (seen.has(k)) continue;
+          seen.add(k);
+        }
+        out.push(r);
+      }
+    }
+    return out;
+  }
+
+  /** structural_nodes (files + symbols declared in changed files) for the given rel paths. */
+  getStructuralNodesForFilePaths(relPaths: string[]): StructuralNode[] {
+    return this.deltaChunkedIn<StructuralNode>(
+      relPaths,
+      (ph) => `SELECT * FROM structural_nodes WHERE file_path IN (${ph})`
+    );
+  }
+
+  /** DISTINCT structural_edges whose recorded evidence cites any changed file (invalidation set). */
+  getEvidenceEdgesForFilePaths(relPaths: string[]): StructuralEdge[] {
+    return this.deltaChunkedIn<StructuralEdge>(
+      relPaths,
+      (ph) =>
+        `SELECT DISTINCT e.* FROM edge_evidence ev
+           JOIN structural_edges e ON e.id = ev.edge_id
+          WHERE ev.file_path IN (${ph})`
+    );
+  }
+
+  /** operational_boundaries declared in any changed file. */
+  getOperationalBoundariesForFilePaths(relPaths: string[]): OperationalBoundary[] {
+    return this.deltaChunkedIn<OperationalBoundary>(
+      relPaths,
+      (ph) => `SELECT * FROM operational_boundaries WHERE file_path IN (${ph})`
+    );
+  }
+
+  /**
+   * operational_boundaries reachable from the given symbols via operational_handlers.symbol_id
+   * (Phase 2b — the operational graph is separate from structural_edges; this is the only bridge).
+   * Carries the matched symbol_id so callers can attribute the reach + async-boundary annotation.
+   */
+  getOperationalBoundariesForSymbols(
+    symbolIds: string[]
+  ): Array<OperationalBoundary & { symbol_id: string }> {
+    return this.deltaChunkedIn<OperationalBoundary & { symbol_id: string }>(
+      symbolIds,
+      (ph) =>
+        `SELECT DISTINCT b.id, b.repo_root, b.kind, b.name, b.trust_tier, b.file_path, h.symbol_id
+           FROM operational_handlers h
+           JOIN operational_boundaries b ON b.id = h.boundary_id
+          WHERE h.symbol_id IN (${ph})`,
+      (r) => `${r.id}::${r.symbol_id}` // identity is (boundary, symbol) — keep every pairing
+    );
+  }
+
+  /**
+   * Single-index ownership labels (E1) for `handled_by` edges targeting any touched handler
+   * symbol. `ownership` is the column added by migration 013 (NULL unless a first-party pass ran).
+   */
+  getHandlerOwnershipForSymbols(
+    symbolIds: string[]
+  ): Array<{ route: string; handler: string; ownership: string | null }> {
+    return this.deltaChunkedIn<{ route: string; handler: string; ownership: string | null }>(
+      symbolIds,
+      (ph) =>
+        `SELECT source_node_id AS route, target_node_id AS handler, ownership
+           FROM structural_edges
+          WHERE edge_type = 'handled_by' AND target_node_id IN (${ph})`
+    );
+  }
+
+  /** Incoming structural edges (target_node_id = nodeId), confidence-ordered — the reverse walk
+   *  frontier (Phase 2a). Wraps the existing prepared `getStructuralEdgesForTargetNode`
+   *  (`queries.ts:300-302`), which had no public wrapper.
+   *
+   *  With `bound`, the frontier is filtered and capped IN SQL: only the given edge types and
+   *  confidence classes, `ORDER BY confidence DESC LIMIT bound.limit`. This stops a hub node from
+   *  materializing its whole in-degree into JS before the caller's fanout cap. The filter lives in
+   *  SQL (not JS-after) so the LIMIT applies to the *qualifying* set — a burst of higher-confidence
+   *  non-matching edges can never crowd the real reverse edges out of the window. Callers pass
+   *  `maxFanout + 1` so their `length > maxFanout` truncation test still fires. */
+  getIncomingStructuralEdges(
+    nodeId: string,
+    bound?: { edgeTypes: readonly string[]; confidenceClasses: readonly string[]; limit: number }
+  ): StructuralEdge[] {
+    if (!bound) {
+      return this.getQueries().getStructuralEdgesForTargetNode.all(nodeId) as StructuralEdge[];
+    }
+    if (bound.edgeTypes.length === 0 || bound.confidenceClasses.length === 0) return [];
+    const etPh = LuxDatabase.deltaPlaceholders(bound.edgeTypes.length);
+    const ccPh = LuxDatabase.deltaPlaceholders(bound.confidenceClasses.length);
+    return this.db.all(
+      `SELECT * FROM structural_edges
+         WHERE target_node_id = ?
+           AND edge_type IN (${etPh})
+           AND confidence_class IN (${ccPh})
+         ORDER BY confidence DESC
+         LIMIT ?`,
+      [nodeId, ...bound.edgeTypes, ...bound.confidenceClasses, bound.limit]
+    ) as StructuralEdge[];
+  }
+
+  /** Explicitly initialize the read-query layer — Decision 14: `autoMigrate=false` skips it.
+   *  ⚠️ Must be called only AFTER `isSchemaUpToDate()` confirms the schema is current: the wrapped
+   *  `initQueries()` constructs `PreparedQueries`, which eagerly `db.prepare(...)`s ~65 statements
+   *  against current-schema tables/columns; on a stale index (missing migration 011/013 objects)
+   *  those prepares throw. `openDeltaDatabase` (spec 10 Part B) enforces this ordering. */
+  initReadQueries(): void {
+    this.initQueries();
+  }
+
   getStructuralNode(id: string): StructuralNode | null {
     return (this.getQueries().getStructuralNode.get(id) as StructuralNode | undefined) ?? null;
   }

@@ -17,6 +17,7 @@ export type UsageEventSurface =
   | 'index-sync'
   | 'index-rebuild'
   | 'discovery'
+  | 'delta'
   | 'hook';
 
 export type UsageCommandOutcome = 'success' | 'error';
