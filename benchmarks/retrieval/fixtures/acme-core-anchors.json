@@ -261,7 +261,7 @@
       "id": "anchors-invalid-query",
       "surface": "anchors",
       "mode": "anchors",
-      "question": "\"unterminated phrase",
+      "question": "!!! ??? ...",
       "k": 10,
       "owner": "Example Maintainer",
       "expect": { "exitCode": 1, "anchorRefusalReason": "invalid-query" }

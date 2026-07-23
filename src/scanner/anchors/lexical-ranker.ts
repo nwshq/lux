@@ -1,12 +1,14 @@
 // src/scanner/anchors/lexical-ranker.ts
 //
-// The lexical half of the anchor ranker (Decision 3/4). Reuses the L0 FTS5 match-expression builder
-// (search-query.ts) so `lux anchors` speaks the same FTS5 grammar and classifies the same invalid
-// queries the same way `lux search` does — refusal classification, not a new query DSL (Non-Goals).
-// NON-fenced: imports nothing from scanner/embeddings/.
+// The lexical half of the anchor ranker (Decision 3/4). Builds the FTS5 match expression with the
+// anchor-specific OR-expanding builder (anchor-query.ts) — `lux anchors` takes a natural-language
+// query, so bare terms are OR-expanded (not L0's keyword-AND) and the weighted bm25 ranks the
+// multi-term/rare-term hits to the top. Invalid-query classification stays identical to L0 (same
+// error class, re-keyed by classifyAnchorFtsError) — refusal classification, not a new query DSL
+// (Non-Goals). NON-fenced: imports nothing from scanner/embeddings/.
 
 import type { LuxDatabase, LexicalAnchorRow } from '../../db/index.js';
-import { buildFtsMatchExpression } from '../../db/search-query.js';
+import { buildAnchorMatchExpression } from './anchor-query.js';
 import { classifyAnchorFtsError } from './anchor-refusal.js';
 
 export interface LexicalAnchorHit {
@@ -20,8 +22,8 @@ export interface LexicalAnchorHit {
 }
 
 /**
- * Rank anchors lexically. Throws AnchorRefusalError('invalid-query') for an empty/malformed query
- * (via buildFtsMatchExpression) and AnchorRefusalError('fts-unavailable'|'invalid-query') for a
+ * Rank anchors lexically. Throws AnchorRefusalError('invalid-query') for an empty/tokenless query
+ * (via buildAnchorMatchExpression) and AnchorRefusalError('fts-unavailable'|'invalid-query') for a
  * MATCH-time failure (via classifyAnchorFtsError) — never a silent empty. `limit` is validated by
  * the caller.
  */
@@ -30,10 +32,11 @@ export function rankAnchorsLexical(
   query: string,
   limit: number
 ): LexicalAnchorHit[] {
-  // buildFtsMatchExpression throws SearchRefusalError('invalid-query') on an empty query; re-key it.
+  // buildAnchorMatchExpression throws SearchRefusalError('invalid-query') on an empty/tokenless query;
+  // re-key it to AnchorRefusalError (identical L0 behavior).
   let expression: string;
   try {
-    expression = buildFtsMatchExpression(query, {});
+    expression = buildAnchorMatchExpression(query);
   } catch (error) {
     throw classifyAnchorFtsError(error, query);
   }

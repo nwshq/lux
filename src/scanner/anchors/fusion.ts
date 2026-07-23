@@ -45,6 +45,13 @@ export const ANCHOR_MIN_FUSED_SCORE = 0.025 as const;
  * warning and results are still returned. Net: conservative for overlays ≥ the calibration size,
  * merely over-cautious below it. The value's live-index validation is deferred to the owner-run T1.8
  * battery (Phase 2). NOT configurable.
+ *
+ * Holds under OR-expansion (anchor-query.ts). FTS5 bm25 sums only the terms a node actually matches,
+ * so OR-expanding the query does not change a matched node's score — it only lets more candidates in
+ * for bm25 to rank. Re-measured on the live concept→node battery (LIFT-PROBE-RESULTS.md): every
+ * gold-is-top case lands at bm25 ≤ -18 (all correctly lowConfidence:false, zero confident anchors
+ * wrongly flagged); only the weakest single-common-word tops rise above -2.0. On a large overlay the
+ * OR-expanded multi-term match drives confident hits strongly negative, so -2.0 stays conservative.
  */
 export const ANCHOR_MIN_LEXICAL_BM25 = -2.0 as const;
 

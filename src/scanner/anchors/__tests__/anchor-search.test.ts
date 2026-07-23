@@ -192,7 +192,8 @@ describe('runAnchorSearch', () => {
 
   it('surfaces the name-derivable contract for a concept-name query (SC-Spread, contract side)', async () => {
     seed(db);
-    // "payment gateway" (implicit-AND) hits the contract whose split identifiers carry both tokens.
+    // "payment gateway" OR-expands; PaymentGateway matches BOTH terms on its split identifiers
+    // (weight 4), so it ranks above single-term matches and is surfaced.
     const { results } = await runAnchorSearch(db, 'payment gateway', { limit: 10 });
     expect(results.map((r) => r.nodeId)).toContain('symbol:php:App\\Contracts\\PaymentGateway');
   });
@@ -240,6 +241,51 @@ describe('runAnchorSearch', () => {
     const thin = await runAnchorSearch(db, 'handles', { limit: 10 });
     expect(thin.results.length).toBeGreaterThan(0);
     expect(thin.lowConfidence).toBe(true);
+  });
+
+  it('confidence floor: a MULTI-term OR query whose only match is a thin single-term collision IS lowConfidence', async () => {
+    seed(db);
+    // The case OR-expansion newly reaches: a multi-term query where one term is a common context-only
+    // word and the rest match nothing. Under verbatim-AND this returned nothing (no node has all
+    // terms); under OR the sole hit is the thin "handles" context collision. OR must NOT inflate its
+    // confidence — the floor gates the top node's raw bm25, unshifted by the non-matching OR terms, so
+    // it stays lowConfidence:true exactly like the single-term "handles" query. (A node matching TWO
+    // real terms, by contrast, accumulates enough bm25 to read as confident — verified separately.)
+    const thin = await runAnchorSearch(db, 'handles zzqqxnotaword', { limit: 10 });
+    expect(thin.results.length).toBeGreaterThan(0);
+    expect(thin.lowConfidence).toBe(true);
+  });
+
+  it('defangs an FTS5-operator-laden query end-to-end (injection closed, not a refusal)', async () => {
+    seed(db);
+    // Operator/quote characters are tokenization delimiters, stripped before quoting, so a hostile
+    // query cannot inject FTS5 grammar — it executes as its literal words. Assert a CLEAN answer
+    // (results, not an invalid-query/fts-unavailable throw): 'stripe" OR "x', 'foo NEAR bar', 'a:b',
+    // 'read-only' all run. The quote-break case must resolve to the same as benign 'stripe x'.
+    for (const q of [
+      'stripe" OR "x',
+      'foo NEAR bar',
+      'a:b service',
+      'read-only handle',
+      "'; DROP TABLE t;--",
+    ]) {
+      const { results } = await runAnchorSearch(db, q, { limit: 10 });
+      expect(Array.isArray(results)).toBe(true); // no throw = defanged + parses in FTS5
+    }
+    const injected = await runAnchorSearch(db, 'stripe" OR "x', { limit: 10 });
+    expect(injected.results[0]?.nodeId).toBe('symbol:php:App\\Services\\Payments\\StripeService');
+  });
+
+  it('answers a non-Latin-script / accented query instead of mis-refusing it as empty', async () => {
+    seed(db);
+    // The Unicode-aware tokenizer mirrors the index (fold diacritics, split on non-letter/number). A
+    // non-ASCII query tokenizes to real terms, so it gets a clean (possibly empty) answer like L0 —
+    // NOT an invalid-query refusal with a misleading "empty query" message. 'stripé' folds to 'stripe'
+    // and still finds StripeService.
+    const accented = await runAnchorSearch(db, 'stripé service', { limit: 10 });
+    expect(accented.results[0]?.nodeId).toBe('symbol:php:App\\Services\\Payments\\StripeService');
+    const cjk = await runAnchorSearch(db, '日本語のクエリ', { limit: 10 });
+    expect(Array.isArray(cjk.results)).toBe(true); // answers (empty), does not throw invalid-query
   });
 
   it('reports accurate refusal coverage on a non-overlay refusal over a populated index', async () => {
