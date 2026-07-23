@@ -56,6 +56,10 @@ class FakeTxDb {
     (this.inTx ? this.stagedEvidence : this.committedEvidence).push(...evidence);
   }
 
+  // materializeAstSymbols also upserts anchor texts (mig 014) in the same transaction — a no-op here
+  // (this fake models edge/node/evidence atomicity, not the anchor plane).
+  upsertNodeAnchorText(): void {}
+
   upsertStructuralNode(node: StructuralNode): void {
     (this.inTx ? this.stagedNodes : this.committedNodes).push(node);
   }

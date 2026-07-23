@@ -81,6 +81,32 @@ export interface RankedSearchResult {
 }
 
 // ---------------------------------------------------------------------------
+// Node anchor lexical index (migration 014)
+// ---------------------------------------------------------------------------
+
+/** Input for `upsertNodeAnchorText` — the prepared-text row + its split FTS fields, flattened. */
+export interface NodeAnchorTextInsert {
+  node_id: string;
+  prepared: string;
+  content_hash: string;
+  name: string;
+  identifiers: string;
+  qualified: string;
+  path_segments: string;
+  context: string;
+}
+
+/** One lexical anchor hit: node metadata (from structural_nodes) + weighted bm25 rank. */
+export interface LexicalAnchorRow {
+  node_id: string;
+  symbol_kind: string;
+  symbol_name: string;
+  qualified_name: string | null;
+  file_path: string;
+  rank: number; // weighted bm25 (negative, lower = better)
+}
+
+// ---------------------------------------------------------------------------
 // Structural overlay types (migration 008)
 // ---------------------------------------------------------------------------
 

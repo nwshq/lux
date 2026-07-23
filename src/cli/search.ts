@@ -393,6 +393,8 @@ export function addSearchCommand(program: Command) {
           console.log(
             `No results found for: ${query}${contentOnly ? ' (content-only search)' : ''}`
           );
+          // Cross-surface hand-off (03 §The surface): symbols/entry points live on the anchor surface.
+          console.log('  (symbols/entry points? try `lux anchors`.)');
           db.close();
           return;
         }

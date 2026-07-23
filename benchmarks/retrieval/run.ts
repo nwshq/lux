@@ -17,8 +17,9 @@ type BenchmarkSurface =
   | 'status'
   | 'spec-evidence'
   | 'delta'
-  | 'search';
-type BenchmarkMode = 'overlay' | 'status' | 'delta' | 'search';
+  | 'search'
+  | 'anchors';
+type BenchmarkMode = 'overlay' | 'status' | 'delta' | 'search' | 'anchors';
 
 interface BenchmarkCase {
   id: string;
@@ -45,6 +46,13 @@ interface BenchmarkCase {
   knownMiss?: boolean;
   /** optional content-scoping / type override for the search command. */
   content?: boolean;
+  // anchors-surface fields (spec 12). `question` carries the concept query text; `k`/`knownMiss` are
+  // shared with the search surface above.
+  /** expected structural node ids; a result whose `nodeId` equals one is a hit. Exact match — the
+   *  surface's contract is node ids, deterministic (astSymbolIdentity), so no suffix/contains fuzz. */
+  expectNodeIdsTopK?: string[];
+  /** the human accountable for this case set's gold (Decision 10 — a named owner per case set). */
+  owner?: string;
   expect: BenchmarkExpectation;
 }
 
@@ -115,6 +123,13 @@ interface BenchmarkExpectation {
   expectResultCount?: number;
   /** require a refusal of this class (the invalid-query case). */
   searchRefusalReason?: 'invalid-query' | 'fts-unavailable';
+  // anchors-surface expectations (spec 12). `minMrr` is shared with the search surface above.
+  /** require ≥1 gold node id in top-k (non-knownMiss cases). */
+  anchorHit?: boolean;
+  /** require a refusal of this class. */
+  anchorRefusalReason?: 'invalid-query' | 'fts-unavailable' | 'overlay-missing' | 'anchor-texts-absent';
+  /** require lowConfidence to be exactly this (the confidence-floor guard case). */
+  lowConfidence?: boolean;
 }
 
 interface ParsedCasePayload {
@@ -175,6 +190,12 @@ interface ParsedCasePayload {
   searchHitRank?: number;
   searchResultCount?: number;
   searchRefusalReason?: string;
+  // anchors-surface parse.
+  anchorResultNodeIds?: string[];
+  /** 1-based rank of the first gold node id in top-k, or 0 if none. */
+  anchorHitRank?: number;
+  anchorLowConfidence?: boolean;
+  anchorRefusalReason?: string;
 }
 
 interface CommandResult {
@@ -306,6 +327,12 @@ function buildCaseCommand(
     return command;
   }
 
+  if (testCase.surface === 'anchors') {
+    const k = testCase.k ?? 10;
+    command.push('anchors', testCase.question, '--json', '--limit', String(k));
+    return command;
+  }
+
   command.push('overlay', testCase.surface, 'ask');
   if (testCase.json) command.push('--json');
   if (testCase.target) command.push('--target', testCase.target);
@@ -381,6 +408,7 @@ function parseCasePayload(testCase: BenchmarkCase, stdout: string): ParsedCasePa
   if (testCase.surface === 'spec-evidence') return parseSpecEvidencePayload(root, stdout);
   if (testCase.surface === 'delta') return parseDeltaPayload(root, stdout);
   if (testCase.surface === 'search') return parseSearchPayload(root, testCase);
+  if (testCase.surface === 'anchors') return parseAnchorPayload(root, testCase);
 
   const payload = asRecord(root.payload ?? root);
   const resolution = asRecord(payload.resolution);
@@ -625,6 +653,33 @@ function parseSearchPayload(
   };
 }
 
+/** Parse the AnchorReportV1 envelope (spec 11): gold-hit rank over node ids, lowConfidence, refusal. */
+function parseAnchorPayload(
+  root: Record<string, unknown>,
+  testCase: BenchmarkCase
+): ParsedCasePayload {
+  const results = asArray(root.results).map(asRecord);
+  const nodeIds = results.map((r) => asString(r.nodeId)).filter((n): n is string => Boolean(n));
+  const refusal = asRecord(root.refusal);
+  const gold = testCase.expectNodeIdsTopK ?? [];
+  const k = testCase.k ?? 10;
+  const topK = nodeIds.slice(0, k);
+  let hitRank = 0;
+  for (let i = 0; i < topK.length; i++) {
+    if (gold.includes(topK[i])) {
+      hitRank = i + 1;
+      break;
+    }
+  }
+  return {
+    anchorResultNodeIds: nodeIds,
+    anchorHitRank: hitRank,
+    anchorLowConfidence: root.lowConfidence === true,
+    anchorRefusalReason: asString(refusal.reason),
+    stdout: JSON.stringify(root),
+  };
+}
+
 function targetMatches(actual: string | undefined, expected: string): boolean {
   if (actual === expected) return true;
   if (!actual) return false;
@@ -642,11 +697,28 @@ function targetMatches(actual: string | undefined, expected: string): boolean {
 function validateExpectation(
   expect: BenchmarkExpectation,
   actual: ParsedCasePayload,
-  exitCode: number
+  exitCode: number,
+  testCase: BenchmarkCase
 ): string[] {
   const failures: string[] = [];
   if (exitCode !== expect.exitCode)
     failures.push(`exitCode expected ${expect.exitCode}, got ${exitCode}`);
+  // anchors-surface scoring (spec 12 Part E). runCase returns EARLY for knownMiss anchor cases, so
+  // those never reach here and never fail CI (Decision 10); the `!knownMiss` guard is belt-and-braces.
+  if (testCase.surface === 'anchors' && !testCase.knownMiss) {
+    if (expect.anchorRefusalReason && actual.anchorRefusalReason !== expect.anchorRefusalReason)
+      failures.push(
+        `anchor refusal expected ${expect.anchorRefusalReason}, got ${actual.anchorRefusalReason ?? 'none'}`
+      );
+    if (expect.anchorHit && (actual.anchorHitRank ?? 0) === 0)
+      failures.push(`expected a gold node id in top-k, got none`);
+    if (expect.minMrr !== undefined) {
+      const mrr = (actual.anchorHitRank ?? 0) > 0 ? 1 / actual.anchorHitRank! : 0;
+      if (mrr < expect.minMrr) failures.push(`MRR expected >= ${expect.minMrr}, got ${mrr.toFixed(3)}`);
+    }
+    if (expect.lowConfidence !== undefined && actual.anchorLowConfidence !== expect.lowConfidence)
+      failures.push(`lowConfidence expected ${expect.lowConfidence}, got ${actual.anchorLowConfidence}`);
+  }
   // search-surface scoring (spec 14 Part E). This block runs only for a parsed search payload
   // (parseSearchPayload always sets searchResultPaths); runCase returns EARLY for knownMiss cases,
   // so those never reach here and never fail CI (D6).
@@ -992,7 +1064,35 @@ function runCase(
     };
   }
 
-  const failures = validateExpectation(testCase.expect, parsed, result.exitCode);
+  // knownMiss (Decision 10) for the anchors surface: a vocabulary-mismatch case the lexical tier
+  // provably cannot reach. Measured + tallied but excluded from CI pass/fail; `closable` when a tier
+  // now surfaces gold in top-k — which, for the anchor plane, is what the Phase-3 semantic half must
+  // flip (its lift evidence). The exit-code invariant still holds (a crash reddens, as with search).
+  if (testCase.surface === 'anchors' && testCase.knownMiss) {
+    const closable = (parsed.anchorHitRank ?? 0) > 0;
+    const exitOk = result.exitCode === testCase.expect.exitCode;
+    return {
+      id: testCase.id,
+      repoId: fixture.repoId,
+      surface: testCase.surface,
+      mode: testCase.mode,
+      command,
+      exitCode: result.exitCode,
+      expectedExitCode: testCase.expect.exitCode,
+      passed: exitOk, // retrieval miss never reddens; a crash (unexpected exit) does
+      failures: exitOk
+        ? []
+        : [`knownMiss exitCode expected ${testCase.expect.exitCode}, got ${result.exitCode}`],
+      durationMs: result.durationMs,
+      stdoutPath,
+      stderrPath,
+      parsed,
+      knownMiss: true,
+      knownMissClosable: closable,
+    };
+  }
+
+  const failures = validateExpectation(testCase.expect, parsed, result.exitCode, testCase);
 
   return {
     id: testCase.id,

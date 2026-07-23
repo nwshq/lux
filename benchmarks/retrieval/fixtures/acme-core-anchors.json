@@ -1,0 +1,270 @@
+{
+  "schemaVersion": 1,
+  "repoId": "auctic-core-anchors",
+  "repoPath": "/path/to/auctic-core/vcs",
+  "cases": [
+    {
+      "id": "anchors-q2-payment-gateway",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "how does the app process payments",
+      "k": 10,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": [
+        "symbol:php:App\\Contracts\\PaymentGateway",
+        "symbol:php:App\\Services\\Payments\\StripeService",
+        "symbol:php:App\\Services\\Payments\\BraintreeService"
+      ],
+      "expect": { "exitCode": 0, "anchorHit": true, "minMrr": 0.2 }
+    },
+    {
+      "id": "anchors-q1-settlement",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "seller settlement service",
+      "k": 10,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": ["symbol:php:App\\Services\\Settlement\\SettlementService"],
+      "expect": { "exitCode": 0, "anchorHit": true, "minMrr": 0.25 }
+    },
+    {
+      "id": "anchors-stripe-integration",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "stripe payment integration",
+      "k": 10,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": ["symbol:php:App\\Services\\Payments\\StripeService"],
+      "expect": { "exitCode": 0, "anchorHit": true, "minMrr": 0.25 }
+    },
+    {
+      "id": "anchors-braintree-gateway",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "braintree gateway",
+      "k": 10,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": ["symbol:php:App\\Services\\Payments\\BraintreeService"],
+      "expect": { "exitCode": 0, "anchorHit": true, "minMrr": 0.3 }
+    },
+    {
+      "id": "anchors-payments-path",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "payments",
+      "k": 10,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": [
+        "symbol:php:App\\Services\\Payments\\StripeService",
+        "symbol:php:App\\Services\\Payments\\BraintreeService",
+        "symbol:php:App\\Services\\Payments\\AnetService"
+      ],
+      "expect": { "exitCode": 0, "anchorHit": true, "minMrr": 0.2 }
+    },
+    {
+      "id": "anchors-invoice-job",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "send invoice job",
+      "k": 10,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": ["symbol:php:App\\Jobs\\SendInvoice"],
+      "expect": { "exitCode": 0, "anchorHit": true, "minMrr": 0.25 }
+    },
+    {
+      "id": "anchors-order-controller",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "order http controller",
+      "k": 10,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": ["symbol:php:App\\Http\\Controllers\\OrderController"],
+      "expect": { "exitCode": 0, "anchorHit": true, "minMrr": 0.25 }
+    },
+    {
+      "id": "anchors-auction-created-listener",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "auction created listener",
+      "k": 10,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": ["symbol:php:App\\Listeners\\AuctionCreatedListener"],
+      "expect": { "exitCode": 0, "anchorHit": true, "minMrr": 0.25 }
+    },
+    {
+      "id": "anchors-notification-service",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "notification dispatch service",
+      "k": 10,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": ["symbol:php:App\\Services\\Notifications\\NotificationService"],
+      "expect": { "exitCode": 0, "anchorHit": true, "minMrr": 0.2 }
+    },
+    {
+      "id": "anchors-token-service",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "api token service",
+      "k": 10,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": ["symbol:php:App\\Services\\Auth\\TokenService"],
+      "expect": { "exitCode": 0, "anchorHit": true, "minMrr": 0.25 }
+    },
+    {
+      "id": "anchors-product-catalog",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "product catalog service",
+      "k": 10,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": ["symbol:php:App\\Services\\Catalog\\ProductService"],
+      "expect": { "exitCode": 0, "anchorHit": true, "minMrr": 0.25 }
+    },
+    {
+      "id": "anchors-email-registrants",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "email the event registrants",
+      "k": 10,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": ["symbol:php:App\\Mail\\EmailEventRegistrants"],
+      "expect": { "exitCode": 0, "anchorHit": true, "minMrr": 0.2 }
+    },
+    {
+      "id": "anchors-money-value-object",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "money value object",
+      "k": 10,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": ["symbol:php:App\\Support\\Money"],
+      "expect": { "exitCode": 0, "anchorHit": true, "minMrr": 0.25 }
+    },
+    {
+      "id": "anchors-exact-EmailEventRegistrants",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "EmailEventRegistrants",
+      "k": 5,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": ["symbol:php:App\\Mail\\EmailEventRegistrants"],
+      "expect": { "exitCode": 0, "anchorHit": true, "minMrr": 0.5 }
+    },
+    {
+      "id": "anchors-exact-StripeService",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "StripeService",
+      "k": 5,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": ["symbol:php:App\\Services\\Payments\\StripeService"],
+      "expect": { "exitCode": 0, "anchorHit": true, "minMrr": 0.5 }
+    },
+    {
+      "id": "anchors-exact-SettlementService",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "SettlementService",
+      "k": 5,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": ["symbol:php:App\\Services\\Settlement\\SettlementService"],
+      "expect": { "exitCode": 0, "anchorHit": true, "minMrr": 0.5 }
+    },
+    {
+      "id": "anchors-knownmiss-seller-payouts",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "where are seller payouts split by marketplace",
+      "k": 10,
+      "knownMiss": true,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": ["symbol:php:App\\Services\\Settlement\\SettlementService::splitByPlatform"],
+      "expect": { "exitCode": 0 }
+    },
+    {
+      "id": "anchors-knownmiss-double-charge-guard",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "stop a buyer being billed twice for one order",
+      "k": 10,
+      "knownMiss": true,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": ["symbol:php:App\\Services\\Payments\\IdempotencyGuard::ensureUnique"],
+      "expect": { "exitCode": 0 }
+    },
+    {
+      "id": "anchors-knownmiss-refund-window",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "how long does a buyer have to return an item",
+      "k": 10,
+      "knownMiss": true,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": ["symbol:php:App\\Policies\\RefundPolicy::withinWindow"],
+      "expect": { "exitCode": 0 }
+    },
+    {
+      "id": "anchors-knownmiss-fraud-screening",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "block suspicious transactions before capture",
+      "k": 10,
+      "knownMiss": true,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": ["symbol:php:App\\Services\\Risk\\RiskScreeningService"],
+      "expect": { "exitCode": 0 }
+    },
+    {
+      "id": "anchors-knownmiss-abandoned-checkout",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "remind shoppers who did not complete checkout",
+      "k": 10,
+      "knownMiss": true,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": ["symbol:php:App\\Jobs\\AbandonedCheckoutReminder"],
+      "expect": { "exitCode": 0 }
+    },
+    {
+      "id": "anchors-knownmiss-tax-calc",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "work out how much sales tax to add to an order",
+      "k": 10,
+      "knownMiss": true,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": ["symbol:php:App\\Services\\Tax\\TaxCalculator::compute"],
+      "expect": { "exitCode": 0 }
+    },
+    {
+      "id": "anchors-knownmiss-soft-hide",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "hide a record from listings without deleting it",
+      "k": 10,
+      "knownMiss": true,
+      "owner": "Example Maintainer",
+      "expectNodeIdsTopK": ["symbol:php:App\\Models\\Concerns\\Archivable"],
+      "expect": { "exitCode": 0 }
+    },
+    {
+      "id": "anchors-confidence-floor-thin",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "handles",
+      "k": 10,
+      "owner": "Example Maintainer",
+      "expect": { "exitCode": 0, "lowConfidence": true }
+    },
+    {
+      "id": "anchors-invalid-query",
+      "surface": "anchors",
+      "mode": "anchors",
+      "question": "\"unterminated phrase",
+      "k": 10,
+      "owner": "Example Maintainer",
+      "expect": { "exitCode": 1, "anchorRefusalReason": "invalid-query" }
+    }
+  ]
+}

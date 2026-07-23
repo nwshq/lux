@@ -11,6 +11,7 @@ import type { StructuralNode } from '../../db/types.js';
 import { extractSource, getGrammars, langForFile, type Extraction } from './extract.js';
 import type { SharedExtractions } from './extraction-cache.js';
 import { buildAstSymbolNodes } from './symbols.js';
+import { buildAnchorTexts, type PreparedNodeText } from '../anchors/prepare-node-text.js';
 
 /**
  * Extract and persist AST symbol nodes for all source-code files in a scan.
@@ -36,6 +37,7 @@ export async function materializeAstSymbols(
   const grammars = extractions ? null : await getGrammars();
   const seen = new Set<string>();
   const nodes: StructuralNode[] = [];
+  const anchorTexts: PreparedNodeText[] = [];
 
   for (const entry of scan.knowledge) {
     if (entry.type !== 'source-code' || !entry.content) continue;
@@ -59,6 +61,9 @@ export async function materializeAstSymbols(
       }
     }
     nodes.push(...buildAstSymbolNodes(relPath, extraction, lang, now));
+    // Anchor prep (Decision 5): the extraction's byte ranges + entry.content are both in hand HERE
+    // and nowhere downstream — buildAnchorTexts renders one prepared unit per anchor-viable node.
+    anchorTexts.push(...buildAnchorTexts(relPath, extraction, lang, entry.content));
   }
 
   // Batch all upserts into one transaction (Lever E) — WAL + synchronous=NORMAL
@@ -71,6 +76,21 @@ export async function materializeAstSymbols(
         seen.add(node.id);
         count++;
       }
+    }
+    // Anchor texts second — the FTS join needs the node row to exist. One row per anchor-viable node
+    // (Decision 6); a re-materialised same-id node REPLACEs its text + rewrites its FTS row, so a
+    // changed body/signature under a stable id yields a fresh content_hash the Phase-3 queue detects.
+    for (const text of anchorTexts) {
+      db.upsertNodeAnchorText({
+        node_id: text.nodeId,
+        prepared: text.embedText,
+        content_hash: text.contentHash,
+        name: text.fields.name,
+        identifiers: text.fields.identifiers,
+        qualified: text.fields.qualified,
+        path_segments: text.fields.pathSegments,
+        context: text.fields.context,
+      });
     }
   });
 

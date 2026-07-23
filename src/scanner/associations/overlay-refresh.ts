@@ -210,6 +210,12 @@ export async function refreshOverlayScoped(
   //    they become the enumerated stale residual, not an under-production.
   const keepLsp = lspTier !== 'ran';
   const victimNodeIds = db.getStructuralNodesForFilePaths(R).map((n) => n.id);
+  // Anchor freshness (Decision 5): drop the victims' prepared-text/FTS rows (Phase 3 extends this to
+  // embeddings, spec 16 Part C) next to the edge deletes. The re-materialisation below re-creates
+  // surviving nodes' rows with fresh content; vanished nodes' rows stay deleted. Without this, a
+  // NULL-only Phase-3 queue would keep a stale vector behind a live, changed node whose deterministic
+  // id never churned.
+  db.deleteNodeAnchorRowsForNodeIds(victimNodeIds);
   let edgesReplaced = 0;
   edgesReplaced += db.deleteEdgesBySourceNodes(victimNodeIds, { keepLsp });
   edgesReplaced += db.deleteEdgesByEvidencePaths(R, { keepLsp });

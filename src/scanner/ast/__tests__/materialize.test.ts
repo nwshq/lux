@@ -7,6 +7,9 @@ import { materializeAstSymbols } from '../materialize.js';
 function mockDb(sink: StructuralNode[]): LuxDatabase {
   return {
     upsertStructuralNode: (n: StructuralNode) => sink.push(n),
+    // materializeAstSymbols also upserts anchor texts (mig 014) in the same transaction — a no-op
+    // here; the anchor write path has its own coverage in scanner/anchors/__tests__.
+    upsertNodeAnchorText: () => {},
     // materializeAstSymbols batches upserts in a transaction (Lever E).
     transaction: <T>(fn: () => T): T => fn(),
   } as unknown as LuxDatabase;

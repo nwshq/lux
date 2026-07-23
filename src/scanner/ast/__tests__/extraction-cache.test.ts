@@ -17,6 +17,8 @@ import { AstStructuralResolver } from '../resolver.js';
 function mockDb(sink: StructuralNode[]): LuxDatabase {
   return {
     upsertStructuralNode: (n: StructuralNode) => sink.push(n),
+    // materializeAstSymbols also upserts anchor texts (mig 014) in the same transaction — no-op here.
+    upsertNodeAnchorText: () => {},
     transaction: <T>(fn: () => T): T => fn(),
   } as unknown as LuxDatabase;
 }

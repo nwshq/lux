@@ -11,6 +11,8 @@ import type {
   EventInsert,
   SearchQueryOptions,
   RankedSearchResult,
+  NodeAnchorTextInsert,
+  LexicalAnchorRow,
   ModuleDependency,
   StructuralNode,
   StructuralEdge,
@@ -27,6 +29,9 @@ import type {
 // (federated CLI + MCP, single-repo MCP) imports the ONE rule from here.
 export { SearchRefusalError, coerceSearchLimit } from './search-query.js';
 export type { SearchRefusalReason } from './search-query.js';
+// Re-export the lexical anchor row so the non-fenced ranker (scanner/anchors/lexical-ranker.ts) can
+// import it from the DB barrel without reaching into ./types.js directly (mig 014).
+export type { LexicalAnchorRow } from './types.js';
 
 /** A kernel HTTP `handled_by` route joined against the client's nodes/routes (cross-area, #62). */
 export interface CrossAreaKernelRow {
@@ -256,6 +261,61 @@ export class LuxDatabase {
 
   deleteKnowledgeEntry(id: number): void {
     this.getQueries().deleteKnowledgeEntry.run(id);
+  }
+
+  // Node anchor lexical index (migration 014 — Decision 4/5). The FTS is standalone, so each write
+  // deletes-then-inserts the node's FTS row; the structural_node_texts upsert REPLACEs. Callers run
+  // these inside the materialization transaction (materialize.ts).
+  upsertNodeAnchorText(row: NodeAnchorTextInsert): void {
+    const q = this.getQueries();
+    q.upsertNodeAnchorTextRow.run({
+      node_id: row.node_id,
+      prepared: row.prepared,
+      content_hash: row.content_hash,
+    });
+    q.deleteNodeFtsRow.run(row.node_id);
+    q.insertNodeFtsRow.run({
+      node_id: row.node_id,
+      name: row.name,
+      identifiers: row.identifiers,
+      qualified: row.qualified,
+      path_segments: row.path_segments,
+      context: row.context,
+    });
+  }
+
+  /** Weighted-bm25 lexical anchor ranking over structural_node_fts joined to structural_nodes.
+   *  Throws whatever the FTS MATCH raises (the surface classifies it via classifyAnchorFtsError). */
+  rankAnchorsLexical(matchExpression: string, limit: number): LexicalAnchorRow[] {
+    return this.getQueries().rankAnchorsLexical.all(matchExpression, limit) as LexicalAnchorRow[];
+  }
+
+  /** Delete a victim node's sibling anchor rows (structural_node_texts + structural_node_fts) so a
+   *  re-materialized node re-enters the embed queue clean — the scoped-refresh victim delete
+   *  (Decision 5). Chunked IN-delete, mirroring deleteStructuralNodesForFiles (:997-1009). Phase 3
+   *  EXTENDS this to structural_node_embeddings (spec 16 Part C). Returns nothing — no caller uses a
+   *  count (the re-materialization at overlay-refresh.ts:223 restores surviving nodes' rows). */
+  deleteNodeAnchorRowsForNodeIds(nodeIds: string[]): void {
+    for (let i = 0; i < nodeIds.length; i += LuxDatabase.DELTA_IN_CHUNK) {
+      const chunk = nodeIds.slice(i, i + LuxDatabase.DELTA_IN_CHUNK);
+      if (chunk.length === 0) continue;
+      const ph = LuxDatabase.deltaPlaceholders(chunk.length);
+      this.db.run(`DELETE FROM structural_node_texts WHERE node_id IN (${ph})`, chunk);
+      this.db.run(`DELETE FROM structural_node_fts   WHERE node_id IN (${ph})`, chunk);
+    }
+  }
+
+  /** Count of anchor-viable nodes with prepared text (the coverage denominator + the
+   *  anchor-texts-absent detector for the surface's refusal logic). */
+  getAnchorViableNodeCount(): number {
+    return (this.getQueries().countNodeAnchorTexts.get() as { n: number }).n;
+  }
+
+  /** True iff the structural overlay has ever been built (≥1 structural_nodes row) — distinguishes
+   *  `overlay-missing` (never built) from `anchor-texts-absent` (built, but no anchor texts, e.g.
+   *  ast.enabled=false) for the surface's extended refusals (03 §The surface). */
+  hasStructuralOverlay(): boolean {
+    return (this.getQueries().countStructuralNodes.get() as { n: number }).n > 0;
   }
 
   // Index metadata operations
@@ -1338,6 +1398,13 @@ export class LuxDatabase {
     queries.clearEdgeEvidence.run();
     queries.clearStructuralEdges.run();
     queries.clearStructuralNodes.run();
+    // Anchor plane clear (Decision 5) — a full rebuild regenerates every node id, so it re-indexes
+    // (and, Phase 3, re-embeds) the whole anchor plane; clearing here, in the one method that resets
+    // the overlay, keeps a populated-then-rebuilt corpus orphan-free. LuxDatabase has no `.exec`; use
+    // `this.db.run` (the adapter's raw-SQL entry), the same form the victim delete uses.
+    this.db.run('DELETE FROM structural_node_texts');
+    this.db.run('DELETE FROM structural_node_fts');
+    // (Phase 3 adds one line here: this.db.run('DELETE FROM structural_node_embeddings') — spec 16 Part C.)
     queries.clearOperationalContracts.run();
     queries.clearOperationalEdges.run();
     queries.clearOperationalHandlers.run();

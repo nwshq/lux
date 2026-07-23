@@ -28,6 +28,9 @@ import {
   emitUsageEvent,
   safeUsageTrustState,
 } from '../db/observability/usage-event.js';
+import { runAnchorSearch, anchorRefusalCoverage } from '../cli/anchor-search.js';
+import { AnchorRefusalError } from '../scanner/anchors/anchor-refusal.js';
+import { buildAnchorReport, buildAnchorRefusalReport } from '../cli/anchors-envelope.js';
 
 /** Confidence classes delta/trace understand. Mirrors the CLI guard (`src/cli/delta.ts`): an
  *  out-of-enum `min_confidence` (e.g. "high") must NOT reach the reverse-walk as an unknown class —
@@ -226,6 +229,22 @@ const TOOLS: Tool[] = [
         },
       },
       required: ['symbol'],
+    },
+  },
+  {
+    name: 'lux_anchors',
+    description:
+      'Rank structural-node anchors (symbols) from a natural-language concept query. Returns real ' +
+      'structural node ids that lux_trace / feature-path / deps accept verbatim — the entry points ' +
+      'for the structural ops on concept-spread questions. Symbols/entry points; for documents/' +
+      'content use lux_search.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'The concept to mint anchors from' },
+        limit: { type: 'number', description: 'Maximum anchors to return', default: 10 },
+      },
+      required: ['query'],
     },
   },
   {
@@ -787,6 +806,73 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         });
         const payload = 'refusal' in result ? { error: result.refusal } : result.report;
         return { content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }] };
+      }
+
+      case 'lux_anchors': {
+        const { query = '', limit: rawLimit = 10 } = args as { query?: string; limit?: number };
+        const limit = Number.isFinite(rawLimit) && rawLimit >= 1 ? Math.trunc(rawLimit) : 10;
+        try {
+          const result = await runAnchorSearch(db, query, { limit });
+          const report = buildAnchorReport({
+            query,
+            limit,
+            results: result.results,
+            lowConfidence: result.lowConfidence,
+            coverage: result.coverage,
+          });
+          emitUsageEvent(db, {
+            source: 'mcp',
+            surface: 'anchors',
+            action: 'query',
+            invocationId: createInvocationId(),
+            commandOutcome: 'success',
+            retrievalOutcome: result.results.length > 0 ? 'answered' : 'unresolved',
+            exitCode: 0,
+            corpusPath: DEFAULT_CORPUS_PATH,
+            dbPath: DEFAULT_DB_PATH,
+            queryText: query,
+            attributes: {
+              limit,
+              resultsCount: result.results.length,
+              lowConfidence: result.lowConfidence,
+            },
+          });
+          return { content: [{ type: 'text', text: JSON.stringify(report, null, 2) }] };
+        } catch (error) {
+          if (error instanceof AnchorRefusalError) {
+            const report = buildAnchorRefusalReport({
+              query,
+              limit,
+              // Accurate anchor-viable count even for a non-overlay refusal over a populated index
+              // (anchor-search.ts anchorRefusalCoverage); a genuine 0 for overlay/texts-absent.
+              coverage: anchorRefusalCoverage(db),
+              refusal: {
+                reason: error.reason,
+                expression: error.expression,
+                message: error.message,
+              },
+            });
+            emitUsageEvent(db, {
+              source: 'mcp',
+              surface: 'anchors',
+              action: 'query',
+              invocationId: createInvocationId(),
+              commandOutcome: 'error',
+              retrievalOutcome: 'refused',
+              exitCode: 1,
+              corpusPath: DEFAULT_CORPUS_PATH,
+              dbPath: DEFAULT_DB_PATH,
+              queryText: query,
+              attributes: { limit },
+              error: { code: error.reason },
+            });
+            return {
+              content: [{ type: 'text', text: JSON.stringify(report, null, 2) }],
+              isError: true,
+            };
+          }
+          throw error;
+        }
       }
 
       default:

@@ -42,6 +42,7 @@ import {
 } from '../scanner/incremental.js';
 import { assessWorkingTreeFreshness, renderFreshnessText } from '../scanner/freshness.js';
 import { addSearchCommand } from './search.js';
+import { registerAnchorsCommand } from './anchors.js';
 import { addHooksCommand } from './hooks.js';
 import { addMigrateCommands } from './migrate.js';
 import { addDepsCommand } from './deps.js';
@@ -1047,6 +1048,9 @@ indexCmd
 
 // Add search command
 addSearchCommand(program);
+
+// Add anchors command (concept→structural-node anchor minting)
+registerAnchorsCommand(program);
 
 // Add hooks command
 addHooksCommand(program);

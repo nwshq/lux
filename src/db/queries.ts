@@ -100,6 +100,14 @@ export class PreparedQueries {
   readonly setEdgeOwnership: Stmt;
   readonly getOwnershipBreakdown: Stmt;
 
+  // Node anchor lexical index (Decision 4/5). Standalone FTS maintained by delete-then-insert.
+  readonly upsertNodeAnchorTextRow: Stmt;
+  readonly deleteNodeFtsRow: Stmt;
+  readonly insertNodeFtsRow: Stmt;
+  readonly rankAnchorsLexical: Stmt;
+  readonly countNodeAnchorTexts: Stmt;
+  readonly countStructuralNodes: Stmt;
+
   constructor(db: LuxSqlite) {
     // Knowledge entry queries
     this.insertKnowledgeEntry = db.prepare(`
@@ -480,5 +488,36 @@ export class PreparedQueries {
       WHERE edge_type = 'handled_by' AND source_node_id LIKE 'surface:http:%'
       GROUP BY ownership ORDER BY count DESC
     `);
+
+    // structural_node_texts upsert (INSERT OR REPLACE on the node_id PK: a re-materialization of the
+    // same id fully replaces the row, including content_hash + updated_at).
+    this.upsertNodeAnchorTextRow = db.prepare(`
+      INSERT OR REPLACE INTO structural_node_texts (node_id, prepared, content_hash, updated_at)
+      VALUES (@node_id, @prepared, @content_hash, unixepoch())
+    `);
+
+    // structural_node_fts is a standalone (non-external-content) table keyed on an UNINDEXED node_id,
+    // so it has no INSERT OR REPLACE semantics — maintained by delete-then-insert per node.
+    this.deleteNodeFtsRow = db.prepare(`DELETE FROM structural_node_fts WHERE node_id = ?`);
+    this.insertNodeFtsRow = db.prepare(`
+      INSERT INTO structural_node_fts (node_id, name, identifiers, qualified, path_segments, context)
+      VALUES (@node_id, @name, @identifiers, @qualified, @path_segments, @context)
+    `);
+
+    // Weighted-bm25 lexical anchor ranking (Decision 4). Column order for bm25 is
+    // (0)node_id[UNINDEXED] (1)name (2)identifiers (3)qualified (4)path_segments (5)context — the
+    // weight vector favours name/identifier hits over context hits; benchmark-tuned in T1.8 (spec 12).
+    this.rankAnchorsLexical = db.prepare(`
+      SELECT n.id AS node_id, n.symbol_kind, n.symbol_name, n.qualified_name, n.file_path,
+             bm25(structural_node_fts, 0.0, 5.0, 4.0, 2.0, 2.0, 1.0) AS rank
+      FROM structural_node_fts
+      JOIN structural_nodes n ON n.id = structural_node_fts.node_id
+      WHERE structural_node_fts MATCH ?
+      ORDER BY rank
+      LIMIT ?
+    `);
+
+    this.countNodeAnchorTexts = db.prepare(`SELECT COUNT(*) AS n FROM structural_node_texts`);
+    this.countStructuralNodes = db.prepare(`SELECT COUNT(*) AS n FROM structural_nodes`);
   }
 }

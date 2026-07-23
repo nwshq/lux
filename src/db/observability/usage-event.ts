@@ -5,6 +5,7 @@ export type UsageEventSource = 'cli' | 'mcp' | 'hook' | 'agent' | 'benchmark';
 
 export type UsageEventSurface =
   | 'search'
+  | 'anchors'
   | 'ask'
   | 'feature-path'
   | 'operational'
