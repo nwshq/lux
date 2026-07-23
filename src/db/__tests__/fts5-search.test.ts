@@ -30,7 +30,7 @@ describe('FTS5 search parity (WASM SQLite)', () => {
     add('Settlement Guide', 'settlement settlement settlement clearing settlement netting', 'a.md');
     add('Misc Notes', 'this document mentions settlement exactly once', 'b.md');
 
-    const results = db.searchKnowledgeEntries('settlement');
+    const results = db.searchDocumentsRanked('settlement', { limit: 20 });
     expect(results.length).toBe(2);
     // the term-dense, title-matching doc must rank ahead of the incidental mention
     expect(results[0].title).toBe('Settlement Guide');
@@ -39,22 +39,28 @@ describe('FTS5 search parity (WASM SQLite)', () => {
   it('tokenizes and finds unicode / accented content', () => {
     add('Café Menu', 'The café serves crème brûlée and pain au chocolat in Zürich', 'c.md');
 
-    expect(db.searchKnowledgeEntries('café').map((r) => r.title)).toContain('Café Menu');
-    expect(db.searchKnowledgeEntries('Zürich').map((r) => r.title)).toContain('Café Menu');
-    expect(db.searchKnowledgeEntries('chocolat').map((r) => r.title)).toContain('Café Menu');
+    expect(db.searchDocumentsRanked('café', { limit: 20 }).map((r) => r.title)).toContain(
+      'Café Menu'
+    );
+    expect(db.searchDocumentsRanked('Zürich', { limit: 20 }).map((r) => r.title)).toContain(
+      'Café Menu'
+    );
+    expect(db.searchDocumentsRanked('chocolat', { limit: 20 }).map((r) => r.title)).toContain(
+      'Café Menu'
+    );
   });
 
   it('supports prefix queries (term*)', () => {
     add('Refund Policy', 'refunded and refunding are both refund operations', 'd.md');
     add('Shipping', 'packages ship worldwide', 'e.md');
 
-    const hits = db.searchKnowledgeEntries('refund*').map((r) => r.title);
+    const hits = db.searchDocumentsRanked('refund*', { limit: 20 }).map((r) => r.title);
     expect(hits).toContain('Refund Policy'); // matches refunded / refunding / refund
     expect(hits).not.toContain('Shipping');
   });
 
   it('returns empty (not an error) for a term with no matches', () => {
     add('Anything', 'some content here', 'f.md');
-    expect(db.searchKnowledgeEntries('zzzznonexistent')).toEqual([]);
+    expect(db.searchDocumentsRanked('zzzznonexistent', { limit: 20 })).toEqual([]);
   });
 });

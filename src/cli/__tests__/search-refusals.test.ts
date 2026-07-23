@@ -1,0 +1,132 @@
+// `lux search` structured refusals + usage errors end-to-end (spec 11, D3/D5, SC-3/SC-4). Exercises
+// the CLI exit-code contract and the SearchReportV1 refusal envelope over the real built action:
+//   invalid FTS5 syntax → exit 1 invalid-query · missing/dropped FTS table → exit 1 fts-unavailable
+//   (the B.0 prepare-time open guard) · unknown --type / bad --limit → exit 2 · genuine zero → exit 0.
+// A refusal never prints "No results found"; a zero-result never carries a refusal.
+
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { spawnSync } from 'node:child_process';
+import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { LuxDatabase } from '../../db/index.js';
+import { LuxSqlite } from '../../db/sqlite-adapter.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const PROJECT_ROOT = join(__dirname, '..', '..', '..');
+const CLI_ENTRY = join(PROJECT_ROOT, 'src', 'cli', 'index.ts');
+const TSX_LOADER = join(PROJECT_ROOT, 'node_modules', 'tsx', 'dist', 'loader.mjs');
+
+function runCli(corpus: string, args: string[]) {
+  return spawnSync(process.execPath, ['--import', TSX_LOADER, CLI_ENTRY, ...args], {
+    cwd: corpus,
+    encoding: 'utf-8',
+    env: { ...process.env, NO_COLOR: '1', FORCE_COLOR: '0' },
+  });
+}
+
+let root: string;
+let corpus: string;
+let dbPath: string;
+
+beforeEach(() => {
+  root = mkdtempSync(join(tmpdir(), 'lux-search-refusals-'));
+  corpus = join(root, 'client');
+  mkdirSync(corpus, { recursive: true });
+  dbPath = join(corpus, '.lux', 'lux.db');
+  const db = new LuxDatabase(dbPath);
+  db.insertKnowledgeEntry({
+    type: 'documentation',
+    title: 'Settlement Notes',
+    file_path: '/client/settlement.md',
+    content: 'settlement clearing and netting',
+  });
+  db.close();
+});
+afterEach(() => rmSync(root, { recursive: true, force: true }));
+
+describe('lux search refusals + usage errors (SC-3)', () => {
+  it('invalid FTS5 query → exit 1, invalid-query refusal, expression echoed, no crash', () => {
+    const res = runCli(corpus, ['--corpus', corpus, 'search', '"unterminated phrase', '--json']);
+    expect(res.status).toBe(1);
+    expect(res.stderr).toBe(''); // clean: no node-sqlite3-wasm dump at close
+    const report = JSON.parse(res.stdout) as {
+      results: unknown[];
+      refusal?: { reason: string; expression: string };
+    };
+    expect(report.results).toEqual([]);
+    expect(report.refusal?.reason).toBe('invalid-query');
+    expect(report.refusal?.expression).toBe('"unterminated phrase');
+  });
+
+  it('invalid FTS5 query (text) → exit 1 and never prints "No results found"', () => {
+    const res = runCli(corpus, ['--corpus', corpus, 'search', '"unterminated phrase']);
+    expect(res.status).toBe(1);
+    expect(res.stdout).not.toContain('No results found');
+    expect(res.stderr).toContain('Invalid FTS5 query');
+  });
+
+  it('missing/dropped FTS table → exit 1 fts-unavailable on the DEFAULT type (B.0 open guard)', () => {
+    const raw = new LuxSqlite(dbPath);
+    raw.exec('DROP TABLE IF EXISTS knowledge_entries_fts;');
+    raw.close();
+    const res = runCli(corpus, ['--corpus', corpus, 'search', 'settlement', '--json']);
+    expect(res.status).toBe(1);
+    const report = JSON.parse(res.stdout) as { refusal?: { reason: string } };
+    expect(report.refusal?.reason).toBe('fts-unavailable');
+  });
+
+  it('unknown --type → exit 2 usage error (not a fabricated empty answer)', () => {
+    const res = runCli(corpus, ['--corpus', corpus, 'search', 'settlement', '--type', 'bogus']);
+    expect(res.status).toBe(2);
+    expect(res.stderr).toContain("--type must be 'all' or 'knowledge'");
+  });
+
+  it('NaN --limit → exit 2 usage error', () => {
+    const res = runCli(corpus, ['--corpus', corpus, 'search', 'settlement', '--limit', 'abc']);
+    expect(res.status).toBe(2);
+    expect(res.stderr).toContain('--limit must be a positive integer');
+  });
+
+  it('genuine zero-result → exit 0 + "No results found" + unresolved usage outcome (D5)', () => {
+    const res = runCli(corpus, ['--corpus', corpus, 'search', 'zzznomatchzzz']);
+    expect(res.status).toBe(0);
+    expect(res.stdout).toContain('No results found');
+    const db = new LuxDatabase(dbPath);
+    try {
+      // The only usage event this fresh corpus emitted is the zero-result search.
+      const ev = db.getRecentEvents(20).find((e) => e.event_type === 'lux_usage_event');
+      const payload = JSON.parse(ev!.payload!) as { surface: string; retrievalOutcome: string };
+      expect(payload.surface).toBe('search');
+      expect(payload.retrievalOutcome).toBe('unresolved');
+    } finally {
+      db.close();
+    }
+  });
+
+  it('a refusal records retrievalOutcome:refused with an error.code (D5)', () => {
+    runCli(corpus, ['--corpus', corpus, 'search', '"unterminated phrase']);
+    const db = new LuxDatabase(dbPath);
+    try {
+      const ev = db
+        .getRecentEvents(20)
+        .find(
+          (e) =>
+            e.event_type === 'lux_usage_event' &&
+            (e.payload ?? '').includes('"retrievalOutcome":"refused"')
+        );
+      expect(ev).toBeDefined();
+      const payload = JSON.parse(ev!.payload!) as {
+        surface: string;
+        retrievalOutcome: string;
+        error?: { code?: string };
+      };
+      expect(payload.surface).toBe('search');
+      expect(payload.retrievalOutcome).toBe('refused');
+      expect(payload.error?.code).toBe('invalid_query');
+    } finally {
+      db.close();
+    }
+  });
+});

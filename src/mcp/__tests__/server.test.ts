@@ -84,36 +84,39 @@ Exploring API design patterns.
 
   describe('lux_search', () => {
     it('should search for knowledge entries', () => {
-      const results = db.searchKnowledgeEntries('Testing');
+      const results = db.searchDocumentsRanked('Testing', { limit: 20 });
       expect(results).toHaveLength(1);
       expect(results[0].title).toBe('Testing Methodology');
     });
 
     it('should handle empty search results', () => {
-      const results = db.searchKnowledgeEntries('NonExistent');
+      const results = db.searchDocumentsRanked('NonExistent', { limit: 20 });
       expect(results).toHaveLength(0);
     });
 
     it('should search with FTS5 operators', () => {
       // Phrase search
-      const results = db.searchKnowledgeEntries('"Testing Methodology"');
+      const results = db.searchDocumentsRanked('"Testing Methodology"', { limit: 20 });
       expect(results).toHaveLength(1);
     });
 
-    it('should search all documents with unified search', () => {
-      const results = db.searchAllDocuments('Testing');
+    it('should search all documents with ranked search', () => {
+      const results = db.searchDocumentsRanked('Testing', { limit: 20 });
       expect(results.length).toBeGreaterThan(0);
 
-      // Each result has the required shape
+      // Each result carries the ranked shape with a REAL bm25 rank (the regression that would
+      // have caught the old rank:0 lie): raw bm25 is negative, lower = better.
       for (const doc of results) {
-        expect(doc).toHaveProperty('file_path');
+        expect(doc).toHaveProperty('filePath');
         expect(doc).toHaveProperty('title');
         expect(doc).toHaveProperty('rank');
+        expect(typeof doc.rank).toBe('number');
+        expect(doc.rank).toBeLessThan(0);
       }
     });
 
-    it('should return empty from unified search for non-matching query', () => {
-      const results = db.searchAllDocuments('xyznonexistent');
+    it('should return empty from ranked search for non-matching query', () => {
+      const results = db.searchDocumentsRanked('xyznonexistent', { limit: 20 });
       expect(results).toHaveLength(0);
     });
   });
@@ -302,11 +305,11 @@ A newly added process document.
   describe('Integration Tests', () => {
     it('should handle full workflow: search, read file', () => {
       // 1. Search for knowledge entry
-      const searchResults = db.searchKnowledgeEntries('Testing');
+      const searchResults = db.searchDocumentsRanked('Testing', { limit: 20 });
       expect(searchResults).toHaveLength(1);
 
       // 2. Read the file
-      const content = readFileSync(searchResults[0].file_path, 'utf-8');
+      const content = readFileSync(searchResults[0].filePath, 'utf-8');
       expect(content).toContain('Testing Methodology');
     });
   });

@@ -11,8 +11,14 @@ interface BenchmarkFixture {
   cases: BenchmarkCase[];
 }
 
-type BenchmarkSurface = 'feature-path' | 'operational' | 'status' | 'spec-evidence' | 'delta';
-type BenchmarkMode = 'overlay' | 'status' | 'delta';
+type BenchmarkSurface =
+  | 'feature-path'
+  | 'operational'
+  | 'status'
+  | 'spec-evidence'
+  | 'delta'
+  | 'search';
+type BenchmarkMode = 'overlay' | 'status' | 'delta' | 'search';
 
 interface BenchmarkCase {
   id: string;
@@ -30,6 +36,15 @@ interface BenchmarkCase {
   failOn?: string;
   depth?: number;
   maxNodes?: number;
+  // search-surface fields (spec 14). `question` carries the query text.
+  /** top-K cutoff for hit@k / MRR (default 10). */
+  k?: number;
+  /** relative gold paths; a result whose absolute file_path ends-with/contains one is a hit. */
+  expectPathsTopK?: string[];
+  /** true = characterize a CURRENT miss: measured + tallied, EXCLUDED from CI pass/fail. */
+  knownMiss?: boolean;
+  /** optional content-scoping / type override for the search command. */
+  content?: boolean;
   expect: BenchmarkExpectation;
 }
 
@@ -91,6 +106,15 @@ interface BenchmarkExpectation {
   emptySpecTargets?: boolean;
   deltaTruncated?: boolean;
   deltaGateCategoriesInclude?: string[];
+  // search-surface expectations (spec 14, SC-5).
+  /** require ≥1 gold path in top-k (non-knownMiss cases). */
+  searchHit?: boolean;
+  /** require MRR ≥ this (first-gold reciprocal rank). */
+  minMrr?: number;
+  /** require an exact result count (the content-scoping benchmark case). */
+  expectResultCount?: number;
+  /** require a refusal of this class (the invalid-query case). */
+  searchRefusalReason?: 'invalid-query' | 'fts-unavailable';
 }
 
 interface ParsedCasePayload {
@@ -145,6 +169,12 @@ interface ParsedCasePayload {
   specTargetsCount?: number;
   deltaTruncated?: boolean;
   gateViolationCategories?: string[];
+  // search-surface parse.
+  searchResultPaths?: string[];
+  /** 1-based rank of the first gold hit in top-k, or 0 if none. */
+  searchHitRank?: number;
+  searchResultCount?: number;
+  searchRefusalReason?: string;
 }
 
 interface CommandResult {
@@ -169,6 +199,10 @@ interface CaseResult {
   stdoutPath: string;
   stderrPath: string;
   parsed: ParsedCasePayload;
+  /** true for a knownMiss case — excluded from the CI pass/fail count (D6). */
+  knownMiss?: boolean;
+  /** for a knownMiss case: true iff a tier now surfaces gold in top-k (promote it). */
+  knownMissClosable?: boolean;
 }
 
 interface RepoResult {
@@ -264,6 +298,14 @@ function buildCaseCommand(
     return command;
   }
 
+  if (testCase.surface === 'search') {
+    const k = testCase.k ?? 10;
+    command.push('search', testCase.question, '--json', '--limit', String(k));
+    if (testCase.content) command.push('--content');
+    // default --type all; a case may pin --type via `kind` if ever needed (unused in v1 seeds).
+    return command;
+  }
+
   command.push('overlay', testCase.surface, 'ask');
   if (testCase.json) command.push('--json');
   if (testCase.target) command.push('--target', testCase.target);
@@ -338,6 +380,7 @@ function parseCasePayload(testCase: BenchmarkCase, stdout: string): ParsedCasePa
   if (testCase.surface === 'status') return parseStatusPayload(root);
   if (testCase.surface === 'spec-evidence') return parseSpecEvidencePayload(root, stdout);
   if (testCase.surface === 'delta') return parseDeltaPayload(root, stdout);
+  if (testCase.surface === 'search') return parseSearchPayload(root, testCase);
 
   const payload = asRecord(root.payload ?? root);
   const resolution = asRecord(payload.resolution);
@@ -553,6 +596,35 @@ function parseDeltaPayload(root: Record<string, unknown>, stdout: string): Parse
   };
 }
 
+/** Parse the SearchReportV1 envelope (spec 12): gold-hit rank, result count, refusal reason. */
+function parseSearchPayload(
+  root: Record<string, unknown>,
+  testCase: BenchmarkCase
+): ParsedCasePayload {
+  const results = asArray(root.results).map(asRecord);
+  const paths = results
+    .map((r) => asString(r.filePath))
+    .filter((p): p is string => Boolean(p));
+  const refusal = asRecord(root.refusal);
+  const gold = testCase.expectPathsTopK ?? [];
+  const k = testCase.k ?? 10;
+  const topK = paths.slice(0, k);
+  let hitRank = 0;
+  for (let i = 0; i < topK.length; i++) {
+    if (gold.some((g) => topK[i] === g || topK[i].endsWith(g) || topK[i].includes(g))) {
+      hitRank = i + 1;
+      break;
+    }
+  }
+  return {
+    searchResultPaths: paths,
+    searchHitRank: hitRank,
+    searchResultCount: paths.length,
+    searchRefusalReason: asString(refusal.reason),
+    stdout: JSON.stringify(root),
+  };
+}
+
 function targetMatches(actual: string | undefined, expected: string): boolean {
   if (actual === expected) return true;
   if (!actual) return false;
@@ -575,6 +647,29 @@ function validateExpectation(
   const failures: string[] = [];
   if (exitCode !== expect.exitCode)
     failures.push(`exitCode expected ${expect.exitCode}, got ${exitCode}`);
+  // search-surface scoring (spec 14 Part E). This block runs only for a parsed search payload
+  // (parseSearchPayload always sets searchResultPaths); runCase returns EARLY for knownMiss cases,
+  // so those never reach here and never fail CI (D6).
+  if (actual.searchResultPaths !== undefined) {
+    if (expect.searchRefusalReason && actual.searchRefusalReason !== expect.searchRefusalReason)
+      failures.push(
+        `search refusal expected ${expect.searchRefusalReason}, got ${actual.searchRefusalReason ?? 'none'}`
+      );
+    if (expect.searchHit && (actual.searchHitRank ?? 0) === 0)
+      failures.push(`expected a gold hit in top-k, got none`);
+    if (expect.minMrr !== undefined) {
+      const mrr = (actual.searchHitRank ?? 0) > 0 ? 1 / actual.searchHitRank! : 0;
+      if (mrr < expect.minMrr)
+        failures.push(`MRR expected >= ${expect.minMrr}, got ${mrr.toFixed(3)}`);
+    }
+    if (
+      expect.expectResultCount !== undefined &&
+      actual.searchResultCount !== expect.expectResultCount
+    )
+      failures.push(
+        `result count expected ${expect.expectResultCount}, got ${actual.searchResultCount ?? 0}`
+      );
+  }
   if (expect.corpusSource && actual.corpusSource !== expect.corpusSource)
     failures.push(
       `corpusSource expected ${expect.corpusSource}, got ${actual.corpusSource ?? 'missing'}`
@@ -867,6 +962,36 @@ function runCase(
   writeText(stdoutPath, result.stdout);
   writeText(stderrPath, result.stderr);
   const parsed = { ...parseCasePayload(testCase, result.stdout), exportPath };
+
+  // knownMiss (D6): the RETRIEVAL-QUALITY assertions (searchHit/minMrr) are measured but excluded
+  // from CI pass/fail. A case is `closable` when a tier now surfaces gold in top-k (the author should
+  // promote it to a real assertion). The one invariant a knownMiss still carries is the exit code —
+  // a case that starts CRASHING (a nonzero exit where exit 0 was expected) must redden, not stay
+  // green on the strength of `passed:true` (n9).
+  if (testCase.surface === 'search' && testCase.knownMiss) {
+    const closable = (parsed.searchHitRank ?? 0) > 0;
+    const exitOk = result.exitCode === testCase.expect.exitCode;
+    return {
+      id: testCase.id,
+      repoId: fixture.repoId,
+      surface: testCase.surface,
+      mode: testCase.mode,
+      command,
+      exitCode: result.exitCode,
+      expectedExitCode: testCase.expect.exitCode,
+      passed: exitOk, // retrieval miss never reddens; a crash (unexpected exit) does
+      failures: exitOk
+        ? []
+        : [`knownMiss exitCode expected ${testCase.expect.exitCode}, got ${result.exitCode}`],
+      durationMs: result.durationMs,
+      stdoutPath,
+      stderrPath,
+      parsed,
+      knownMiss: true,
+      knownMissClosable: closable,
+    };
+  }
+
   const failures = validateExpectation(testCase.expect, parsed, result.exitCode);
 
   return {
@@ -892,6 +1017,9 @@ function main(): void {
   const repos = options.fixtures.map((fixture) => runFixture(fixture, options));
   const cases = repos.flatMap((repo) => repo.cases);
   const failedCases = cases.filter((testCase) => !testCase.passed);
+  const knownMisses = cases.filter((c) => c.knownMiss);
+  const knownMissOpen = knownMisses.filter((c) => !c.knownMissClosable).length;
+  const knownMissClosable = knownMisses.filter((c) => c.knownMissClosable).length;
   const summary = {
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
@@ -902,6 +1030,11 @@ function main(): void {
       cases: cases.length,
       passed: cases.length - failedCases.length,
       failed: failedCases.length,
+    },
+    knownMiss: {
+      total: knownMisses.length,
+      open: knownMissOpen,
+      closable: knownMissClosable,
     },
     repos,
   };
@@ -915,6 +1048,8 @@ function main(): void {
       `${repo.repoId}: ${passed}/${repo.cases.length} cases passed (${repo.status.overlayMode ?? 'unknown trust'})`
     );
   }
+  if (knownMisses.length > 0)
+    console.log(`knownMiss: ${knownMissOpen} open, ${knownMissClosable} newly-closable`);
   console.log(`summary: ${summaryPath}`);
 
   if (failedCases.length > 0) {

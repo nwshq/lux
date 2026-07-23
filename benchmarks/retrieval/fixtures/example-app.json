@@ -34,6 +34,23 @@
           "Validated by Lux"
         ]
       }
+    },
+    {
+      "id": "chirocat-search-invalid-query",
+      "surface": "search",
+      "mode": "search",
+      "question": "\"unterminated phrase",
+      "k": 10,
+      "expect": { "exitCode": 1, "searchRefusalReason": "invalid-query" }
+    },
+    {
+      "id": "chirocat-search-content-scoped",
+      "surface": "search",
+      "mode": "search",
+      "question": "appointment",
+      "content": true,
+      "k": 100,
+      "expect": { "exitCode": 0 }
     }
   ]
 }

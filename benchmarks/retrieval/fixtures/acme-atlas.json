@@ -191,6 +191,23 @@
         "resolution": "ambiguous",
         "summaryIncludes": "could not resolve"
       }
+    },
+    {
+      "id": "atlas-search-invalid-query",
+      "surface": "search",
+      "mode": "search",
+      "question": "\"unterminated phrase",
+      "k": 10,
+      "expect": { "exitCode": 1, "searchRefusalReason": "invalid-query" }
+    },
+    {
+      "id": "atlas-search-content-scoped",
+      "surface": "search",
+      "mode": "search",
+      "question": "client",
+      "content": true,
+      "k": 100,
+      "expect": { "exitCode": 0 }
     }
   ]
 }

@@ -56,12 +56,28 @@ export interface ModuleDependency {
   created_at: number;
 }
 
-/** Unified search result from querying across all FTS5 tables. */
-export interface DocumentSearchResult {
-  file_path: string;
+/** Options for the ranked document search contract (replaces the rank-zeroing funnel). */
+export interface SearchQueryOptions {
+  /** Scope the whole match expression to the `content` column (D4). Valid under every --type. */
+  contentOnly?: boolean;
+  /** Emit an FTS5 snippet() for each returned row (D2). Off by default — one aux call per row. */
+  snippets?: boolean;
+  /** Row cap pushed into SQL as `LIMIT ?` (D2). Validated by the caller (>= 1, not NaN). */
+  limit: number;
+}
+
+/** One ranked search hit. `rank` is raw bm25 (negative, lower = better) — never synthesized (D1). */
+export interface RankedSearchResult {
+  entryId: number;
+  /** knowledge_entries.type — 'source-code' | 'general' | 'architecture' | 'spec' | … */
+  entryType: string;
   title: string;
-  content?: string;
+  /** absolute, as stored in knowledge_entries.file_path */
+  filePath: string;
+  /** raw bm25 (or weighted bm25 once L1 candidate 2 ships) */
   rank: number;
+  /** FTS5 snippet(), present only when opts.snippets was set (D2) */
+  snippet?: string;
 }
 
 // ---------------------------------------------------------------------------

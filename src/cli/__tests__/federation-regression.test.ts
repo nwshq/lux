@@ -1,8 +1,12 @@
-// SC-3 / SC-5 byte-identical single-repo regression. The goldens under
-// fixtures/federation-regression/ were captured from the current-main (688c5e8 / b1620c1) build
-// BEFORE the federation branch existed. A `trace`/`search` with NO `--with` must reproduce them
-// byte-for-byte — the additive `--with` branch returns before the shipped code path, so the plain
-// path (incl. freshness #67's `staleSupport` block on `trace --json`) is untouched.
+// Single-repo regression (no `--with`). The `trace` goldens under fixtures/federation-regression/
+// were captured from current-main (688c5e8 / b1620c1); a `trace` with NO `--with` must reproduce
+// them byte-for-byte — trace is a STRUCTURAL surface the retrieval-lexical L0 does not touch
+// (SC-11 lexical guard), and the additive `--with` branch returns before the shipped code path.
+//
+// `search` is NO LONGER byte-identical to that baseline by design: retrieval-lexical L0 makes the
+// single-repo search path RANKED (real bm25 rank in the text, `[<entryType>]` from the real row,
+// bm25 ordering) — so the search case asserts the new ranked contract structurally rather than a
+// frozen byte golden (the bm25 float would make a byte golden brittle across engine builds).
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { spawnSync } from 'node:child_process';
@@ -117,8 +121,15 @@ describe('byte-identical single-repo regression (no --with)', () => {
     expect(out).toBe(golden('trace.json'));
   });
 
-  it('search text output is byte-identical to the b1620c1 baseline', () => {
+  it('search text output follows the ranked contract (bm25 rank + real entryType, best-first)', () => {
     const out = runCli(corpus, ['--corpus', corpus, 'search', 'settlement']);
-    expect(out).toBe(golden('search.txt'));
+    expect(out).toContain('Search results for "settlement" (2):');
+    // Real entryType from the row (not the old unified 'document'), with a bm25 rank suffix.
+    expect(out).toContain('[documentation] Settlement Runbook  (rank ');
+    expect(out).toContain('[documentation] Offer Service Guide  (rank ');
+    expect(out).toContain('  Path: /corpus/docs/settlement.md');
+    expect(out).toContain('  Path: /corpus/docs/offer-service.md');
+    // bm25 orders the term-dense settlement doc ahead of the incidental mention.
+    expect(out.indexOf('Settlement Runbook')).toBeLessThan(out.indexOf('Offer Service Guide'));
   });
 });

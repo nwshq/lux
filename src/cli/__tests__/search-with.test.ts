@@ -102,22 +102,68 @@ describe('lux search --with', () => {
     });
   });
 
-  it('honors --json on the single-repo path (no --with) — FIX 4', () => {
-    // Previously --json was read only inside the --with branch, so a single-repo `search … --json`
-    // parsed the flag and silently dropped it (text out). Now it emits the ranked results as a JSON
-    // array (matching the MCP single-repo shape); `[]` when nothing matches.
+  it('honors --json on the single-repo path (no --with) — SearchReportV1 envelope (supersedes FIX 4)', () => {
+    // Retrieval-lexical L0 upgrades the single-repo `--json` from FIX-4's plain array to the frozen
+    // schemaVersion:1 SearchReportV1 envelope (spec 12), in lockstep with the MCP single-repo shape.
     const hit = runCli(corpus, ['--corpus', corpus, 'search', 'settlement', '--json']);
     expect(hit.status).toBe(0);
-    const results = JSON.parse(hit.stdout) as Array<{ type: string; title: string; path: string }>;
-    expect(Array.isArray(results)).toBe(true);
-    expect(results.find((r) => r.path === '/client/settlement.md')).toMatchObject({
-      type: 'document',
-      title: 'Client Settlement Notes',
-    });
+    const report = JSON.parse(hit.stdout) as {
+      schemaVersion: number;
+      surface: string;
+      type: string;
+      contentOnly: boolean;
+      limit: number;
+      results: Array<{ entryType: string; title: string; filePath: string; rank: number }>;
+      refusal?: unknown;
+    };
+    expect(report.schemaVersion).toBe(1);
+    expect(report.surface).toBe('search');
+    expect(report.refusal).toBeUndefined();
+    const hitRow = report.results.find((r) => r.filePath === '/client/settlement.md');
+    expect(hitRow).toMatchObject({ entryType: 'documentation', title: 'Client Settlement Notes' });
+    expect(hitRow!.rank).toBeLessThan(0); // real bm25, not the old rank:0 lie
 
     const miss = runCli(corpus, ['--corpus', corpus, 'search', 'zzznotfoundzzz', '--json']);
     expect(miss.status).toBe(0);
-    expect(JSON.parse(miss.stdout)).toEqual([]);
+    const missReport = JSON.parse(miss.stdout) as { results: unknown[]; refusal?: unknown };
+    expect(missReport.results).toEqual([]);
+    expect(missReport.refusal).toBeUndefined(); // honest zero-result, NOT a refusal
+  });
+
+  it('refuses a federated invalid query with exit 1 + a refusal block, not a fabricated all-empty (M1)', () => {
+    // `nosuchcol:settlement` is an FTS5 no-such-column QUERY error — it fails identically for main and
+    // every sibling. Pre-fix this returned all-empty groups + a valid federation block + exit 0 (the
+    // exact fabricated-empty the single-repo path refuses). It must now refuse like single-repo.
+    const res = runCli(corpus, [
+      '--corpus',
+      corpus,
+      'search',
+      'nosuchcol:settlement',
+      '--with',
+      'core',
+      '--json',
+    ]);
+    expect(res.status).toBe(1);
+    const report = JSON.parse(res.stdout) as {
+      results: unknown[];
+      refusal?: { reason: string; expression: string };
+    };
+    expect(report.refusal?.reason).toBe('invalid-query');
+    expect(report.refusal?.expression).toBe('nosuchcol:settlement');
+    expect(report.results).toEqual([]);
+  });
+
+  it('echoes the offending expression on a federated invalid query (text mode, exit 1)', () => {
+    const res = runCli(corpus, [
+      '--corpus',
+      corpus,
+      'search',
+      'nosuchcol:settlement',
+      '--with',
+      'core',
+    ]);
+    expect(res.status).toBe(1);
+    expect(res.stderr).toContain('FTS5 expression: nosuchcol:settlement');
   });
 
   it('emits a federated search usage event with attributes.federated + sibling names (SC-10)', () => {

@@ -4,7 +4,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { LuxDatabase } from '../../db/index.js';
+import { LuxDatabase, SearchRefusalError } from '../../db/index.js';
+import { LuxSqlite } from '../../db/sqlite-adapter.js';
 import { runFederatedSearch } from '../search-federation.js';
 import type { FederationBlock } from '../siblings.js';
 
@@ -92,5 +93,49 @@ describe('runFederatedSearch', () => {
     expect(result.groups[0].results).toHaveLength(2);
 
     primary.close();
+  });
+
+  it('RE-THROWS an invalid-query (fails identically for every group) instead of a fabricated empty (M1)', () => {
+    const primary = makeDb('client');
+    addDoc(primary, 'Client Settlement Notes', '/client/settlement.md', 'settlement in the client');
+    // `nosuchcol:term` is a FTS5 no-such-column QUERY error — it fails identically for main AND every
+    // sibling, so swallowing it would fabricate an all-empty answer. The union must surface it.
+    let refusal: unknown;
+    try {
+      runFederatedSearch(primary, [], 'nosuchcol:settlement', { siblings: [] }, 20);
+    } catch (e) {
+      refusal = e;
+    }
+    expect(refusal).toBeInstanceOf(SearchRefusalError);
+    expect((refusal as SearchRefusalError).reason).toBe('invalid-query');
+
+    primary.close();
+  });
+
+  it('degrades a sibling with a missing FTS table (fts-unavailable) to an empty group, not a throw (M1)', () => {
+    const primary = makeDb('client');
+    const kernel = makeDb('kernel');
+    addDoc(primary, 'Client Settlement Notes', '/client/settlement.md', 'settlement in the client');
+    addDoc(kernel, 'Kernel Settlement Engine', '/kernel/engine.md', 'settlement engine internals');
+    // Drop the kernel's FTS table out from under the open handle → its next MATCH raises
+    // fts-unavailable at execution, which safeSearch degrades (repo-level fault), not re-throws.
+    const kernelDbPath = join(root, 'kernel', '.lux', 'lux.db');
+    const raw = new LuxSqlite(kernelDbPath);
+    raw.exec('DROP TABLE IF EXISTS knowledge_entries_fts;');
+    raw.close();
+
+    const result = runFederatedSearch(
+      primary,
+      [{ name: 'sib_kernel', db: kernel }],
+      'settlement',
+      BLOCK,
+      20
+    );
+    expect(result.groups[0].results.length).toBeGreaterThan(0); // main still answers
+    expect(result.groups[1].repo).toBe('sib_kernel');
+    expect(result.groups[1].results).toHaveLength(0); // sibling degraded, union intact
+
+    primary.close();
+    kernel.close();
   });
 });

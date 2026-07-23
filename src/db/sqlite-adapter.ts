@@ -168,15 +168,54 @@ export interface RunResult {
 
 /** A prepared statement, reused for the life of the owning `LuxSqlite`. */
 export class Stmt {
-  constructor(readonly raw: WasmStatement) {}
+  /** Re-prepared on a failed execution (see exec), so NOT readonly. */
+  raw: WasmStatement;
+  constructor(
+    private readonly db: WasmDatabase,
+    private readonly sql: string,
+    raw: WasmStatement
+  ) {
+    this.raw = raw;
+  }
+
+  /**
+   * Run a raw statement call, self-healing on failure. node-sqlite3-wasm leaves a statement that
+   * threw mid-execution (e.g. an FTS5 MATCH that hit `no such column` on a user's `col:term` query)
+   * in a state where its NEXT auto-reset throws once ("Could not reset statement prior to binding
+   * new values") — poisoning the following query on a long-lived handle (the MCP singleton). Finalize
+   * the poisoned statement and re-prepare a clean one, then re-throw the ORIGINAL error so the caller
+   * classifies it unchanged. Recovery runs only on the failure path — the success path is untouched.
+   */
+  private exec<T>(fn: () => T): T {
+    try {
+      return fn();
+    } catch (e) {
+      try {
+        this.raw.finalize();
+      } catch {
+        /* the poisoned statement may re-throw its deferred error at finalize — discard it */
+      }
+      try {
+        this.raw = this.db.prepare(this.sql);
+      } catch {
+        // Re-prepare can itself fail (a dropped table, real corruption). The caller must still see the
+        // ORIGINAL error `e` — never let a re-prepare failure mask/replace it — so swallow this one and
+        // fall through to `throw e`. `this.raw` is left at the finalized handle; that is safe because
+        // close() tolerates finalizing an already-finalized statement, and the next call self-heals or
+        // re-throws through this same path (m5).
+      }
+      throw e;
+    }
+  }
+
   run(...p: unknown[]): RunResult {
-    return this.raw.run(bindArgs(p));
+    return this.exec(() => this.raw.run(bindArgs(p)));
   }
   get(...p: unknown[]): unknown {
-    return normalizeGet(this.raw.get(bindArgs(p)));
+    return this.exec(() => normalizeGet(this.raw.get(bindArgs(p))));
   }
   all(...p: unknown[]): unknown[] {
-    return this.raw.all(bindArgs(p));
+    return this.exec(() => this.raw.all(bindArgs(p)));
   }
 }
 
@@ -266,9 +305,10 @@ export class LuxSqlite {
     }
   }
 
-  /** Cached, reusable prepared statement, tracked for finalize-on-close. */
+  /** Cached, reusable prepared statement, tracked for finalize-on-close. Carries its SQL + db so a
+   *  failed execution can finalize + re-prepare it instead of poisoning the next call (see Stmt.exec). */
   prepare(sql: string): Stmt {
-    const s = new Stmt(this.db.prepare(sql));
+    const s = new Stmt(this.db, sql, this.db.prepare(sql));
     this.stmts.add(s);
     return s;
   }
@@ -328,7 +368,20 @@ export class LuxSqlite {
   /** Idempotent (better-sqlite3 parity): node-sqlite3-wasm throws on a 2nd close, so guard it. */
   close(): void {
     if (!this.db.isOpen) return;
-    for (const s of this.stmts) s.raw.finalize();
+    for (const s of this.stmts) {
+      try {
+        s.raw.finalize();
+      } catch {
+        // A cached statement's finalize can throw for two reasons, both non-actionable at teardown:
+        // (1) node-sqlite3-wasm re-throws a statement's DEFERRED execution error at finalize (e.g. a
+        // `searchRanked` FTS5 MATCH that failed on invalid user input — the refusal path classifies
+        // that at `.all()` then closes the DB); (2) Stmt.exec already finalized this handle and a
+        // re-prepare failed (m5), so it is an already-finalized handle that finalizes again here. The
+        // handle is being torn down, so swallow it best-effort (mirroring the process-cleanup closeAll
+        // above) rather than let one statement abort close() and crash the process AFTER the honest
+        // refusal already printed.
+      }
+    }
     this.stmts.clear();
     this.db.close();
     openInstances.delete(this);

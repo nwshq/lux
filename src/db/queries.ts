@@ -31,11 +31,9 @@ export class PreparedQueries {
   readonly clearOperationalEdges: Stmt;
   readonly clearOperationalContracts: Stmt;
 
-  // FTS5 search queries
-  readonly searchKnowledgeEntriesFts: Stmt;
-
-  // FTS5 content-only search queries
-  readonly searchKnowledgeEntriesContentFts: Stmt;
+  // FTS5 ranked search queries (D1/D2): raw bm25 rank out, LIMIT + projection in SQL.
+  readonly searchRanked: Stmt;
+  readonly searchRankedWithSnippet: Stmt;
 
   // Index metadata queries
   readonly getIndexMetadata: Stmt;
@@ -155,21 +153,28 @@ export class PreparedQueries {
     this.clearOperationalHandlers = db.prepare(`DELETE FROM operational_handlers`);
     this.clearOperationalBoundaries = db.prepare(`DELETE FROM operational_boundaries`);
 
-    // FTS5 search queries
-    // Search knowledge entries using FTS5 - returns full knowledge entry records
-    this.searchKnowledgeEntriesFts = db.prepare(`
-      SELECT k.* FROM knowledge_entries k
+    // Ranked document search (D1/D2): raw bm25 rank flows out; LIMIT + projection in SQL; no content
+    // hauled. Column order for bm25/snippet is (0)type (1)title (2)tags (3)metadata (4)content.
+    this.searchRanked = db.prepare(`
+      SELECT k.id, k.type, k.title, k.file_path,
+             knowledge_entries_fts.rank AS rank
+      FROM knowledge_entries k
       JOIN knowledge_entries_fts ON k.id = knowledge_entries_fts.rowid
       WHERE knowledge_entries_fts MATCH ?
       ORDER BY rank
+      LIMIT ?
     `);
 
-    // Content-only search queries - search only the content field
-    this.searchKnowledgeEntriesContentFts = db.prepare(`
-      SELECT k.* FROM knowledge_entries k
+    // Same, plus a query-term-centered snippet from the content column (index 4) — opt-in --snippets.
+    this.searchRankedWithSnippet = db.prepare(`
+      SELECT k.id, k.type, k.title, k.file_path,
+             knowledge_entries_fts.rank AS rank,
+             snippet(knowledge_entries_fts, 4, '<mark>', '</mark>', '…', 12) AS snippet
+      FROM knowledge_entries k
       JOIN knowledge_entries_fts ON k.id = knowledge_entries_fts.rowid
-      WHERE knowledge_entries_fts MATCH 'content:' || ?
+      WHERE knowledge_entries_fts MATCH ?
       ORDER BY rank
+      LIMIT ?
     `);
 
     // Index metadata queries

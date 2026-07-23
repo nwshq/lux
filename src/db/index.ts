@@ -3,12 +3,14 @@ import { existsSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
 import { PreparedQueries } from './queries.js';
 import { MigrationRunner } from './migrations.js';
+import { buildFtsMatchExpression, classifySearchError } from './search-query.js';
 import type {
   KnowledgeEntry,
   Event,
   KnowledgeEntryInsert,
   EventInsert,
-  DocumentSearchResult,
+  SearchQueryOptions,
+  RankedSearchResult,
   ModuleDependency,
   StructuralNode,
   StructuralEdge,
@@ -19,6 +21,12 @@ import type {
   OperationalContract,
   EdgeFreshnessCounts,
 } from './types.js';
+
+// Re-export the refusal type from the DB barrel so CLI/MCP can `instanceof`-check without reaching
+// into search-query.js (D3). The shared limit coercer rides the same barrel so every coercing caller
+// (federated CLI + MCP, single-repo MCP) imports the ONE rule from here.
+export { SearchRefusalError, coerceSearchLimit } from './search-query.js';
+export type { SearchRefusalReason } from './search-query.js';
 
 /** A kernel HTTP `handled_by` route joined against the client's nodes/routes (cross-area, #62). */
 export interface CrossAreaKernelRow {
@@ -208,45 +216,37 @@ export class LuxDatabase {
 
   // FTS5 Search operations
   /**
-   * Search knowledge entries using FTS5 full-text search.
-   * @param query - FTS5 query
-   * @returns Array of matching knowledge entries ordered by relevance
+   * Ranked full-text search over knowledge_entries (D1–D4). Raw bm25 rank flows to the caller;
+   * LIMIT + projection are in SQL (no content materialization); --content scopes the whole
+   * expression. Throws SearchRefusalError(invalid-query|fts-unavailable) — never a silent empty
+   * answer. A genuine zero-result query returns [].
    */
-  searchKnowledgeEntries(query: string): KnowledgeEntry[] {
-    return this.getQueries().searchKnowledgeEntriesFts.all(query) as KnowledgeEntry[];
-  }
-
-  /**
-   * Search knowledge entries' content field only using FTS5 full-text search.
-   * @param query - FTS5 query
-   * @returns Array of matching knowledge entries ordered by relevance
-   */
-  searchKnowledgeEntriesContent(query: string): KnowledgeEntry[] {
-    return this.getQueries().searchKnowledgeEntriesContentFts.all(query) as KnowledgeEntry[];
-  }
-
-  /**
-   * Search across all FTS5 tables and return unified results.
-   * Queries knowledge entries and normalizes results into a common shape.
-   * Silently skips any FTS5 table that is unavailable.
-   */
-  searchAllDocuments(query: string): DocumentSearchResult[] {
-    const results: DocumentSearchResult[] = [];
-
+  searchDocumentsRanked(query: string, opts: SearchQueryOptions): RankedSearchResult[] {
+    const expression = buildFtsMatchExpression(query, { contentOnly: opts.contentOnly });
+    const stmt = opts.snippets
+      ? this.getQueries().searchRankedWithSnippet
+      : this.getQueries().searchRanked;
+    let rows: Array<{
+      id: number;
+      type: string;
+      title: string;
+      file_path: string;
+      rank: number;
+      snippet?: string;
+    }>;
     try {
-      for (const entry of this.searchKnowledgeEntries(query)) {
-        results.push({
-          file_path: entry.file_path,
-          title: entry.title,
-          content: entry.content ?? undefined,
-          rank: 0,
-        });
-      }
-    } catch {
-      // FTS5 not available for knowledge entries
+      rows = stmt.all(expression, opts.limit) as typeof rows;
+    } catch (error) {
+      throw classifySearchError(error, expression);
     }
-
-    return results;
+    return rows.map((row) => ({
+      entryId: row.id,
+      entryType: row.type,
+      title: row.title,
+      filePath: row.file_path,
+      rank: row.rank,
+      snippet: row.snippet ?? undefined,
+    }));
   }
 
   // Knowledge entry deletion by path

@@ -1,8 +1,22 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { spawnSync } from 'node:child_process';
 import { join } from 'path';
-import { mkdirSync, rmSync, existsSync } from 'fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync, existsSync } from 'fs';
+import { tmpdir } from 'node:os';
 import { LuxDatabase } from '../../db/index.js';
 import { detectModuleBoundaries, resolveModule } from '../../scanner/imports/module-boundary.js';
+
+const PROJECT_ROOT = join(__dirname, '..', '..', '..');
+const CLI_ENTRY = join(PROJECT_ROOT, 'src', 'cli', 'index.ts');
+const TSX_LOADER = join(PROJECT_ROOT, 'node_modules', 'tsx', 'dist', 'loader.mjs');
+
+function runCli(corpus: string, args: string[]) {
+  return spawnSync(process.execPath, ['--import', TSX_LOADER, CLI_ENTRY, ...args], {
+    cwd: corpus,
+    encoding: 'utf-8',
+    env: { ...process.env, NO_COLOR: '1', FORCE_COLOR: '0' },
+  });
+}
 
 describe('Search Module Annotations', () => {
   const testDir = join(__dirname, 'fixtures', 'search-deps-test');
@@ -77,14 +91,61 @@ describe('Search Module Annotations', () => {
   });
 
   it('should not annotate non-source-code results', () => {
-    // Non-source-code entries (knowledge, methodology, etc.) should not have module annotations
-    // This is ensured by the `result.context === 'source-code'` check in search.ts
-    const result = { type: 'knowledge', title: 'Test', path: '/test', context: 'methodology' };
-    expect(result.context).not.toBe('source-code');
+    // Non-source-code entries (documentation, methodology, etc.) should not have module annotations.
+    // This is ensured by the `result.entryType === 'source-code'` check in search.ts (the field was
+    // renamed from the dead `context`; the real branch is exercised by the CLI test below).
+    const result = { entryType: 'documentation', title: 'Test', filePath: '/test' };
+    expect(result.entryType).not.toBe('source-code');
   });
 
   it('should handle modules with no dependents gracefully', () => {
     const dependents = db.getModuleDependencies('NonExistent', 'target');
     expect(dependents).toHaveLength(0);
+  });
+});
+
+// Exercises the real source-code annotation branch (search.ts:355-367) end-to-end via the CLI — the
+// prior file only asserted the discrimination in isolation, leaving `if (entryType === 'source-code')`
+// (module + dependents lookup) covered by no test (m6).
+describe('Search source-code annotation (CLI)', () => {
+  let root: string;
+  let corpus: string;
+
+  beforeEach(() => {
+    root = mkdtempSync(join(tmpdir(), 'lux-search-deps-cli-'));
+    corpus = join(root, 'app');
+    // Two module dirs so detectModuleBoundaries infers the `src/Module/{name}` pattern.
+    mkdirSync(join(corpus, 'src', 'Module', 'Users'), { recursive: true });
+    mkdirSync(join(corpus, 'src', 'Module', 'Orders'), { recursive: true });
+    const servicePath = join(corpus, 'src', 'Module', 'Users', 'UserService.php');
+    writeFileSync(servicePath, '<?php // settlement clearing service');
+
+    const db = new LuxDatabase(join(corpus, '.lux', 'lux.db'));
+    // A source-code hit whose file lives under the Users module, so the annotation branch resolves a
+    // module and prints its dependents.
+    db.insertKnowledgeEntry({
+      type: 'source-code',
+      title: 'UserService',
+      file_path: servicePath,
+      content: 'settlement clearing netting',
+    });
+    // Invoicing depends ON Users → the branch prints "Depended on by: Invoicing (3 refs)".
+    db.insertModuleDependency({
+      source_module: 'Invoicing',
+      target_module: 'Users',
+      reference_count: 3,
+      sample_files: null,
+    });
+    db.close();
+  });
+
+  afterEach(() => rmSync(root, { recursive: true, force: true }));
+
+  it('annotates a source-code hit with its module + dependents', () => {
+    const res = runCli(corpus, ['--corpus', corpus, 'search', 'settlement']);
+    expect(res.status).toBe(0);
+    expect(res.stdout).toContain('[source-code] UserService');
+    expect(res.stdout).toContain('Module: Users');
+    expect(res.stdout).toContain('Depended on by: Invoicing (3 refs)');
   });
 });

@@ -53,7 +53,7 @@ describe('LuxDatabase.openSiblingReadOnly (spec 11)', () => {
       expect(db.getStructuralNode('symbol:php:A')?.id).toBe('symbol:php:A');
       expect(db.getOutgoingStructuralEdges('symbol:php:A').length).toBe(1);
       expect(db.getIncomingStructuralEdges('symbol:php:B').length).toBe(1);
-      expect(db.searchAllDocuments('settlement').length).toBeGreaterThan(0);
+      expect(db.searchDocumentsRanked('settlement', { limit: 20 }).length).toBeGreaterThan(0);
     } finally {
       db.close();
     }
@@ -82,7 +82,7 @@ describe('LuxDatabase.openSiblingReadOnly (spec 11)', () => {
     const db = LuxDatabase.openSiblingReadOnly(path, schema);
     db.getStructuralNode('symbol:php:A');
     db.getOutgoingStructuralEdges('symbol:php:A');
-    db.searchAllDocuments('settlement');
+    db.searchDocumentsRanked('settlement', { limit: 20 });
     db.close();
 
     const after = statSync(path);

@@ -7,7 +7,8 @@ import {
   ListToolsRequestSchema,
   Tool,
 } from '@modelcontextprotocol/sdk/types.js';
-import { LuxDatabase } from '../db/index.js';
+import { LuxDatabase, SearchRefusalError, coerceSearchLimit } from '../db/index.js';
+import { buildSearchReport, buildSearchRefusalReport } from '../cli/search-envelope.js';
 import { GeneralScanner } from '../scanner/index.js';
 import { attachEnrichment } from '../scanner/general.js';
 import { rebuildWithOverlay } from '../scanner/rebuild-orchestrator.js';
@@ -21,7 +22,7 @@ import { traceFromFederated } from '../scanner/associations/federation-trace.js'
 import { runFederatedSearch } from '../scanner/search-federation.js';
 import { openFederationHandles } from './federation-handles.js';
 import { computeDelta } from '../scanner/delta/run.js';
-import type { ConfidenceClass, EdgeType } from '../db/types.js';
+import type { ConfidenceClass, EdgeType, RankedSearchResult } from '../db/types.js';
 import {
   createInvocationId,
   emitUsageEvent,
@@ -88,6 +89,14 @@ const TOOLS: Tool[] = [
           type: 'number',
           description: 'Maximum number of results',
           default: 20,
+        },
+        content_only: {
+          type: 'boolean',
+          description: 'Scope the query to file content only (whole-expression column filter).',
+        },
+        snippets: {
+          type: 'boolean',
+          description: 'Include a query-centered FTS5 snippet per result.',
         },
         with: {
           type: 'array',
@@ -278,6 +287,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           type?: string;
           limit?: number;
         };
+        // Validate/coerce the limit BEFORE it can reach `LIMIT ?` on EITHER branch (M2). An
+        // injectable agent limit (negative → unbounded dump, 0 → fabricated empty, non-integer →
+        // WASM hard-abort) is neutralized by the same shared rule the CLI/federated paths use.
+        const safeLimit = coerceSearchLimit(limit);
 
         // Federated branch (Decision 5): opt-in via `with`, strictly additive. The single-repo path
         // below is unchanged. Sibling handles are read-only and closed in a finally (SC-7).
@@ -285,19 +298,80 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         if (searchWith && searchWith.length) {
           const fed = openFederationHandles(db, DEFAULT_CORPUS_PATH, searchWith);
           try {
-            const result = runFederatedSearch(db, fed.handles, query, fed.federation, limit);
+            let result;
+            try {
+              result = runFederatedSearch(db, fed.handles, query, fed.federation, safeLimit);
+            } catch (error) {
+              if (!(error instanceof SearchRefusalError)) throw error; // outer catch renders it
+              // M1: an invalid FTS5 query fails identically for every group including `main`, so it is
+              // a query-level refusal, not a per-sibling degrade. Surface the same structured refusal
+              // (isError + refusal.reason, expression echoed) the single-repo path returns.
+              emitUsageEvent(db, {
+                source: 'mcp',
+                surface: 'search',
+                action: 'query',
+                invocationId: createInvocationId(),
+                commandOutcome: 'error',
+                retrievalOutcome: 'refused',
+                exitCode: 1,
+                corpusPath: DEFAULT_CORPUS_PATH,
+                dbPath: DEFAULT_DB_PATH,
+                queryText: query,
+                attributes: {
+                  federated: true,
+                  with: fed.handles.map((h) => h.name),
+                  type,
+                  limit: safeLimit,
+                },
+                error: {
+                  code: error.reason === 'invalid-query' ? 'invalid_query' : 'fts_unavailable',
+                },
+              });
+              return {
+                content: [
+                  {
+                    type: 'text',
+                    text: JSON.stringify(
+                      buildSearchRefusalReport({
+                        query,
+                        type: type === 'knowledge' ? 'knowledge' : 'all',
+                        contentOnly: false,
+                        limit: safeLimit,
+                        refusal: {
+                          reason: error.reason,
+                          expression: error.expression,
+                          message: error.message,
+                        },
+                      }),
+                      null,
+                      2
+                    ),
+                  },
+                ],
+                isError: true,
+              };
+            }
             emitUsageEvent(db, {
               source: 'mcp',
               surface: 'search',
               action: 'query',
               invocationId: createInvocationId(),
               commandOutcome: 'success',
-              retrievalOutcome: 'not_applicable',
+              // m7: derive answered/unresolved from union non-emptiness (now invalid-query re-throws),
+              // so a federated zero-result feeds usage clustering like a single-repo one.
+              retrievalOutcome: result.groups.some((g) => g.results.length > 0)
+                ? 'answered'
+                : 'unresolved',
               exitCode: 0,
               corpusPath: DEFAULT_CORPUS_PATH,
               dbPath: DEFAULT_DB_PATH,
               queryText: query,
-              attributes: { federated: true, with: fed.handles.map((h) => h.name), type, limit },
+              attributes: {
+                federated: true,
+                with: fed.handles.map((h) => h.name),
+                type,
+                limit: safeLimit,
+              },
             });
             return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
           } finally {
@@ -305,60 +379,62 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           }
         }
 
-        const results: Array<{
-          type: string;
-          title: string;
-          path: string;
-          context?: string;
-        }> = [];
+        const contentOnly = args?.content_only === true;
+        const snippets = args?.snippets === true;
 
+        let ranked: RankedSearchResult[];
         try {
-          if (type === 'all') {
-            // Unified document search across all entity types
-            const docs = db.searchAllDocuments(query);
-            for (const doc of docs) {
-              results.push({
-                type: 'document',
-                title: doc.title,
-                path: doc.file_path,
-              });
-            }
-          } else if (type === 'knowledge') {
-            const entries = db.searchKnowledgeEntries(query);
-            for (const entry of entries) {
-              results.push({
-                type: 'knowledge',
-                title: entry.title,
-                path: entry.file_path,
-                context: entry.type,
-              });
-            }
-          }
+          ranked = db.searchDocumentsRanked(query, { contentOnly, snippets, limit: safeLimit });
         } catch (error) {
-          const message = [
-            'FTS5 search unavailable.',
-            `Cause: ${(error as Error).message}`,
-            'Run `lux migrate up` and `lux index rebuild`, then try again.',
-          ].join(' ');
-
-          console.error(message);
-          return {
-            content: [{ type: 'text', text: message }],
-            isError: true,
-          };
+          if (error instanceof SearchRefusalError) {
+            const report = buildSearchRefusalReport({
+              query,
+              type: type === 'knowledge' ? 'knowledge' : 'all',
+              contentOnly,
+              limit: safeLimit,
+              refusal: {
+                reason: error.reason,
+                expression: error.expression,
+                message: error.message,
+              },
+            });
+            emitUsageEvent(db, {
+              source: 'mcp',
+              surface: 'search',
+              action: 'query',
+              invocationId: createInvocationId(),
+              commandOutcome: 'error',
+              retrievalOutcome: 'refused',
+              exitCode: 1,
+              corpusPath: DEFAULT_CORPUS_PATH,
+              dbPath: DEFAULT_DB_PATH,
+              queryText: query,
+              attributes: { type, contentOnly, limit: safeLimit },
+              error: {
+                code: error.reason === 'invalid-query' ? 'invalid_query' : 'fts_unavailable',
+              },
+            });
+            return {
+              content: [{ type: 'text', text: JSON.stringify(report, null, 2) }],
+              isError: true,
+            };
+          }
+          throw error;
         }
 
-        // Log search event
+        const report = buildSearchReport({
+          query,
+          type: type === 'knowledge' ? 'knowledge' : 'all',
+          contentOnly,
+          limit: safeLimit,
+          results: ranked,
+        });
+
         db.insertEvent({
           source: 'mcp',
           event_type: 'search',
-          summary: `Search query: "${query}" (type: ${type}, results: ${results.length})`,
-          payload: {
-            query,
-            type,
-            limit,
-            results_count: results.length,
-          },
+          summary: `Search query: "${query}" (type: ${type}, results: ${ranked.length})`,
+          payload: { query, type, limit: safeLimit, results_count: ranked.length },
         });
         emitUsageEvent(db, {
           source: 'mcp',
@@ -366,22 +442,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           action: 'query',
           invocationId: createInvocationId(),
           commandOutcome: 'success',
-          retrievalOutcome: 'not_applicable',
+          retrievalOutcome: ranked.length > 0 ? 'answered' : 'unresolved',
           exitCode: 0,
           corpusPath: DEFAULT_CORPUS_PATH,
           dbPath: DEFAULT_DB_PATH,
           queryText: query,
-          attributes: { type, limit, resultsCount: results.length },
+          attributes: { type, contentOnly, limit: safeLimit, resultsCount: ranked.length },
         });
 
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(results.slice(0, limit), null, 2),
-            },
-          ],
-        };
+        return { content: [{ type: 'text', text: JSON.stringify(report, null, 2) }] };
       }
 
       case 'lux_log_event': {

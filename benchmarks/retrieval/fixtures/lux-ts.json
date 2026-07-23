@@ -20,6 +20,33 @@
         "emptyOwnershipTransitions": true,
         "emptySpecTargets": true
       }
+    },
+    {
+      "id": "lux-ts-search-invalid-query",
+      "surface": "search",
+      "mode": "search",
+      "question": "\"unterminated phrase",
+      "k": 10,
+      "expect": { "exitCode": 1, "searchRefusalReason": "invalid-query" }
+    },
+    {
+      "id": "lux-ts-search-content-scoped",
+      "surface": "search",
+      "mode": "search",
+      "question": "search",
+      "content": true,
+      "k": 100,
+      "expect": { "exitCode": 0 }
+    },
+    {
+      "id": "lux-ts-search-knownmiss-docplane-vocab",
+      "surface": "search",
+      "mode": "search",
+      "question": "how do we prevent charging a customer twice",
+      "k": 10,
+      "knownMiss": true,
+      "expectPathsTopK": ["docs/architecture/idempotency-and-retries.md"],
+      "expect": { "exitCode": 0 }
     }
   ]
 }

@@ -104,6 +104,57 @@
           "client-gap-created"
         ]
       }
+    },
+    {
+      "id": "search-answered-settlement",
+      "surface": "search",
+      "mode": "search",
+      "question": "settlement report",
+      "k": 10,
+      "expectPathsTopK": ["docs/settlements/"],
+      "expect": { "exitCode": 0, "searchHit": true, "minMrr": 0.2 }
+    },
+    {
+      "id": "search-content-scoped",
+      "surface": "search",
+      "mode": "search",
+      "question": "settlement report",
+      "content": true,
+      "k": 100,
+      "expect": { "exitCode": 0 }
+    },
+    {
+      "id": "search-invalid-query",
+      "surface": "search",
+      "mode": "search",
+      "question": "\"unterminated phrase",
+      "k": 10,
+      "expect": { "exitCode": 1, "searchRefusalReason": "invalid-query" }
+    },
+    {
+      "id": "search-knownmiss-payments-settlements",
+      "surface": "search",
+      "mode": "search",
+      "question": "payments and settlements",
+      "k": 10,
+      "knownMiss": true,
+      "expectPathsTopK": [
+        "Contracts/PaymentGateway",
+        "Services/Payments/Stripe",
+        "Services/Payments/Braintree",
+        "Providers/CoreServiceProvider"
+      ],
+      "expect": { "exitCode": 0 }
+    },
+    {
+      "id": "search-knownmiss-docplane-vocab",
+      "surface": "search",
+      "mode": "search",
+      "question": "how do we prevent charging a customer twice",
+      "k": 10,
+      "knownMiss": true,
+      "expectPathsTopK": ["docs/architecture/idempotency-and-retries.md"],
+      "expect": { "exitCode": 0 }
     }
   ]
 }
