@@ -7,9 +7,8 @@
 // CACHED-ONLY: it never fetches model weights (it degrades to lexical-only instead), mirroring the
 // index tail's stance (cli/index.ts runNodeEmbedTail).
 
-import { existsSync } from 'node:fs';
-import { join } from 'node:path';
 import type { LuxDatabase } from '../db/index.js';
+import { loadLspConfig } from '../scanner/config.js';
 import { rankAnchorsLexical, type LexicalAnchorHit } from '../scanner/anchors/lexical-ranker.js';
 import { anchorQueryContentTokens } from '../scanner/anchors/anchor-query.js';
 import { splitIdentifiers } from '../scanner/anchors/prepare-node-text.js';
@@ -22,22 +21,24 @@ import {
 import { AnchorRefusalError } from '../scanner/anchors/anchor-refusal.js';
 import type { AnchorResultV1, AnchorCoverageV1 } from './anchors-envelope.js';
 // Semantic half (Phase 3) — the embeddings read surface. The barrel is this file's designated import
-// door (scanner/embeddings/index.ts doc-comment); the semantic floor + the cached-weights probe bits
-// are not on the barrel, so they come from their own fenced modules.
+// door (scanner/embeddings/index.ts doc-comment); the semantic floor + the active-model reconciliation
+// (Phase 4) come from their own fenced modules.
+import { createEmbedder, topCosine, type Embedder } from '../scanner/embeddings/index.js';
+import type { EmbeddingConfig } from '../scanner/embeddings/embedder.js';
+import { ANCHOR_MIN_COSINE } from '../scanner/embeddings/model-pin.js';
 import {
-  createEmbedder,
-  topCosine,
-  ANCHOR_EMBED_MODEL,
-  type Embedder,
-} from '../scanner/embeddings/index.js';
-import {
-  ANCHOR_MIN_COSINE,
-  ANCHOR_EMBED_MODEL_ARTIFACTS,
-} from '../scanner/embeddings/model-pin.js';
-import { resolveModelCacheDir } from '../scanner/embeddings/model-cache.js';
+  activeEmbeddingModel,
+  embeddingReadAvailable,
+} from '../scanner/embeddings/active-model.js';
 
 export interface AnchorSearchOptions {
   limit: number;
+  /** Phase 4: the corpus root, so runAnchorSearch can `loadLspConfig(corpusPath).embedding` and resolve
+   *  the ACTIVE model + read availability (activeEmbeddingModel/embeddingReadAvailable) — the read path's
+   *  coverage filter and the embedder it builds must key on the SAME model the index tail wrote under.
+   *  Both production callers pass it (cli/anchors.ts, mcp/server.ts). Absent (a caller that doesn't pass
+   *  it, or a test) ⇒ fall back to the local model (undefined config); never crash. */
+  corpusPath?: string;
   /** Phase 3: when false, skip the semantic half even if vectors exist. NOTE (reconciled to reality):
    *  no caller currently passes `false` — both the CLI (`lux anchors`) and the MCP mirror attempt the
    *  semantic half identically whenever the plane is populated AND the weights are cached. The
@@ -72,15 +73,16 @@ const ANCHOR_MAX_QUERY_CHARS = 8192;
  * queries (the model + WASM session stay resident → the warm-p50 latency target); the cold CLI process
  * constructs it once per invocation. Mirrors the write-path memo in cli/index.ts. A REJECTED promise is
  * NOT cached — a transient weight-load failure on one query must not poison later queries in the same
- * process. PHASE 3: local-only via `createEmbedder(undefined)` (the tokenless WasmLocalEmbedder); Phase
- * 4 (spec 19 §Part D) threads `loadLspConfig(corpusPath).embedding` through this SAME memo, touching
- * only the `createEmbedder(...)` argument, not the caching contract.
+ * process. PHASE 4: the `embedding` config (from `loadLspConfig(corpusPath).embedding`, resolved once in
+ * runAnchorSearch) is threaded through this SAME memo, so `createEmbedder(config)` selects the
+ * ApiEmbedder when `LUX_EMBEDDING_TOKEN` is set — touching only the `createEmbedder(...)` argument, not
+ * the caching contract (config is process-stable, so the first call fixes the embedder).
  */
 let sharedEmbedderPromise: Promise<Embedder> | null = null;
 
 /**
  * Test seam (clearly test-only — never an operator surface). Production embeds through
- * `createEmbedder(undefined)`, gated cached-only by `semanticReadAvailable`. A test injects a
+ * `createEmbedder(config)`, gated cached-only by `semanticReadAvailable`. A test injects a
  * deterministic StubEmbedder factory here to exercise the semantic half network-free; setting a factory
  * ALSO makes `semanticReadAvailable` true (a stub needs no on-disk weights) and resets the memo. `null`
  * restores the production factory + the cached-only gate.
@@ -94,9 +96,9 @@ export function __setReadPathEmbedderFactoryForTests(
   sharedEmbedderPromise = null;
 }
 
-function getSharedEmbedder(): Promise<Embedder> {
+function getSharedEmbedder(config: EmbeddingConfig | undefined): Promise<Embedder> {
   if (!sharedEmbedderPromise) {
-    const construct = readPathEmbedderFactoryForTests ?? (() => createEmbedder(undefined));
+    const construct = readPathEmbedderFactoryForTests ?? (() => createEmbedder(config));
     sharedEmbedderPromise = construct().catch((error: unknown) => {
       sharedEmbedderPromise = null; // never cache a failure — allow a retry on the next query
       throw error;
@@ -107,20 +109,17 @@ function getSharedEmbedder(): Promise<Embedder> {
 
 /**
  * Is a semantic read available WITHOUT a network fetch? A test factory (a stub — no weights) is always
- * available. In production the pinned weights must already be present in the per-machine cache: a pure
- * presence check on `resolveModelCacheDir()` (no sha re-hash — that is the embedder-create /
- * `--embeddings` job). This is what keeps the READ path cached-only, exactly like the index tail
- * (cli/index.ts `anchorModelWeightsCached`): a `lux anchors` query NEVER triggers a weight fetch — a
- * weights-absent machine degrades to lexical-only. `lux index rebuild --embeddings` is the one fetch
- * path. Gated behind the cheap coverage>0 check in the caller, so this disk probe runs only when there
- * is actually a populated embedding plane to read.
+ * available. Otherwise delegate to the ACTIVE-model availability (active-model.ts, mirrors
+ * createEmbedder's branch): a token set ⇒ the API path is available on the token alone; tokenless ⇒ the
+ * pinned bge weights must already be present in the per-machine cache. This is what keeps the READ path
+ * cached-only, exactly like the index tail (cli/index.ts): a `lux anchors` query NEVER triggers a bge
+ * weight fetch — a weights-absent, tokenless machine degrades to lexical-only. `lux index rebuild
+ * --embeddings` is the one fetch path. Gated behind the cheap coverage>0 check in the caller, so this
+ * probe runs only when there is actually a populated embedding plane to read.
  */
-function semanticReadAvailable(): boolean {
+function semanticReadAvailable(config: EmbeddingConfig | undefined): boolean {
   if (readPathEmbedderFactoryForTests !== null) return true;
-  const dir = resolveModelCacheDir();
-  return Object.keys(ANCHOR_EMBED_MODEL_ARTIFACTS.files).every((file) =>
-    existsSync(join(dir, file))
-  );
+  return embeddingReadAvailable(config);
 }
 
 /**
@@ -194,6 +193,23 @@ export async function runAnchorSearch(
     );
   }
 
+  // Phase 4 active-model resolution. Load the corpus's `embedding` config (if the caller passed a
+  // corpusPath — both production callers do; a test/absent caller falls back to the local model via
+  // undefined config, never crashing) and resolve the ACTIVE model + read availability. Both mirror
+  // createEmbedder's env-token branch (active-model.ts), so the coverage filter and the embedder built
+  // below key on the SAME model the index tail wrote under — reads never mix embedding spaces (D11).
+  // loadLspConfig THROWS on a malformed lux.yaml (a bad section, or an inline embedding.token). On the
+  // READ path that must NOT crash `lux anchors` with a raw stacktrace where the lexical-only tier would
+  // still answer — degrade to undefined config (→ the local model; lexical-first stays intact), matching
+  // this path's cached-only / degrade / never-throw ethos. The index/config-WRITE paths still fail loud.
+  let embeddingConfig: EmbeddingConfig | undefined;
+  try {
+    embeddingConfig = opts.corpusPath ? loadLspConfig(opts.corpusPath).embedding : undefined;
+  } catch {
+    embeddingConfig = undefined;
+  }
+  const activeModel = activeEmbeddingModel(embeddingConfig);
+
   // Lexical half — always runs (throws its own invalid-query/fts-unavailable refusals).
   const lexical: LexicalAnchorHit[] = rankAnchorsLexical(db, query, opts.limit);
 
@@ -203,9 +219,10 @@ export async function runAnchorSearch(
   // index tail's cached-only stance (cli/index.ts runNodeEmbedTail): a read NEVER fetches weights. When
   // vectors or weights are absent, the surface degrades to lexical-only and says so via coverage.model
   // = null — never an error, never silent (a user opts the tier in with `lux index rebuild
-  // --embeddings`). The coverage read is scoped to the STATIC ANCHOR_EMBED_MODEL (Phase 3: identical to
-  // the active embedder.model; Phase 4 re-reads under embedder.model alongside the config threading).
-  const coverage = db.getAnchorEmbeddingCoverage(ANCHOR_EMBED_MODEL);
+  // --embeddings`). The coverage read is scoped to the ACTIVE model (Phase 4): ANCHOR_EMBED_MODEL for
+  // the tokenless local default, or `openai:<model>` when LUX_EMBEDDING_TOKEN selects the API path —
+  // identical to the embedder.model built below, so coverage and the cosine scan never mix spaces.
+  const coverage = db.getAnchorEmbeddingCoverage(activeModel);
   let semantic: SemanticRef[] = [];
   let semanticModel: string | null = null;
   let embeddedNodes = 0;
@@ -219,12 +236,12 @@ export async function runAnchorSearch(
   // availability check (only relevant when embeddings are enabled), evaluated AFTER the lexical rank and
   // BEFORE getSharedEmbedder so no model load happens on the short-circuit path.
   const semanticAvailable =
-    opts.semantic !== false && coverage.embeddedNodes > 0 && semanticReadAvailable();
+    opts.semantic !== false && coverage.embeddedNodes > 0 && semanticReadAvailable(embeddingConfig);
   const exactIdentifierTop =
     lexical.length > 0 && topHitIsExactIdentifierMatch(query, lexical[0].symbolName);
   if (semanticAvailable && !exactIdentifierTop) {
     try {
-      const embedder = await getSharedEmbedder();
+      const embedder = await getSharedEmbedder(embeddingConfig);
       // embedQuery applies BGE_QUERY_PREFIX (the passage/query asymmetry, OQ2); the passage side never
       // prefixes. topCosine scans ONLY the active model's vectors (D11), cut at ANCHOR_MIN_COSINE to
       // drop the sub-floor nearest-anything noise. Survivors keep descending order, so the 1-based

@@ -38,6 +38,9 @@ export default [
         Response: 'readonly',
         Request: 'readonly',
         Headers: 'readonly',
+        // AbortController/AbortSignal — Node 22 globals bounding the ApiEmbedder fetch (Phase 4, Fix 4).
+        AbortController: 'readonly',
+        AbortSignal: 'readonly',
       },
     },
     plugins: {

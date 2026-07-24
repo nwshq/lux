@@ -219,6 +219,32 @@ describe('anchor embed-pass CLI wiring — queue-gated + cached-only (network-fr
     expect(existsSync(join(homeDir, '.lux', 'embeddings'))).toBe(false);
   });
 
+  it('tail degrades (no crash, exit 0) when lux.yaml is malformed on the no-change resume seam (Fix 5)', () => {
+    writeSymbolRepo(repoDir);
+
+    // First index cleanly (valid lux.yaml, weights absent via empty HOME) — the anchor queue stays
+    // NON-EMPTY (cached-only skip), and last_indexed_commit == HEAD.
+    const rebuild = runCli(repoDir, dbPath, ['index', 'rebuild'], { HOME: homeDir });
+    expect(rebuild.status).toBe(0);
+
+    // Now poison lux.yaml with an inline embedding.token — loadLspConfig THROWS on this. No new commit,
+    // so `lux index sync` takes the no-change resume seam, which reaches runNodeEmbedTail as the ONLY
+    // config parse on that path. Without the tail's wrap-and-degrade this crashes with a raw stacktrace;
+    // with it, the tail degrades to the local model, skips cached-only (weights absent), and exits 0.
+    writeFileSync(
+      join(repoDir, 'lux.yaml'),
+      'embedding:\n  token: sk-leaked-into-a-committed-file\n'
+    );
+    const sync = runCli(repoDir, dbPath, ['index', 'sync'], { HOME: homeDir });
+    const combined = `${sync.stdout}\n${sync.stderr}`;
+
+    expect(sync.status).toBe(0); // never throws — the tail is contractually crash-proof
+    expect(combined).toContain('Index matches HEAD'); // took the no-change resume seam
+    // The raw config error must NOT surface as an uncaught crash.
+    expect(combined).not.toContain('embedding.token` is not permitted');
+    expect(sync.stderr).not.toContain('Error: Failed');
+  });
+
   it.skipIf(!REAL_WEIGHTS_PRESENT)(
     '--embeddings (A1) loads the cached model and DRAINS the anchor queue to full coverage',
     () => {

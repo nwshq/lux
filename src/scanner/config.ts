@@ -6,6 +6,11 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { parse as parseYaml } from 'yaml';
+// EmbeddingConfig lives in the NON-fenced scanner/anchors/ (spec 19 §Note, resolution 2): config.ts is
+// forbidden by the path-fence from importing scanner/embeddings/ at all — even a type-only import
+// resolves to the fenced prefix — so the type is defined outside the fence and the embeddings seam
+// re-exports it. This keeps `lint:architecture` green without widening the fence allowlist to config.ts.
+import type { EmbeddingConfig } from './anchors/embedding-config.js';
 
 // ---------------------------------------------------------------------------
 // Configuration types
@@ -86,6 +91,10 @@ export interface LuxLspConfig {
   refresh?: RefreshConfig;
   /** Named cross-repo sibling-index registry (federation, Decision 1). */
   siblings?: SiblingsConfig;
+  /** Anchor-embedding provider/model (Phase 4, Decision 7/11). Absent ⇒ native-free local default,
+   *  zero config. NO token here — the API key is env-only (LUX_EMBEDDING_TOKEN); an inline token
+   *  fails the load (validateEmbeddingConfig). */
+  embedding?: EmbeddingConfig;
 }
 
 /** The delta section of lux.yaml — CI/local gate policy (Decision 7). */
@@ -204,6 +213,7 @@ interface RawLuxConfig {
   delta?: unknown;
   refresh?: unknown;
   siblings?: unknown;
+  embedding?: unknown;
 }
 
 // ---------------------------------------------------------------------------
@@ -259,6 +269,70 @@ function validateConfig(raw: RawLuxConfig): LuxLspConfig {
     delta: validateDeltaConfig(raw.delta),
     refresh: validateRefreshConfig(raw.refresh),
     siblings: validateSiblingsConfig(raw.siblings, overlay),
+    embedding: validateEmbeddingConfig(raw.embedding),
+  };
+}
+
+/**
+ * Validate the optional `embedding` section (Phase 4, Decision 7/11).
+ *  - provider = 'openai' (optional; the sole shipped provider — spec 19 §Part B on why not Voyage).
+ *  - model: an optional non-empty string (provider default applies).
+ *  - token: REJECTED. lux.yaml is a committed file and lux's history already carries a leaked key
+ *    (the OSS-prep rotation is on record), so an inline `embedding.token` is a committed-secret
+ *    footgun BY CONSTRUCTION. The API key is read from process.env.LUX_EMBEDDING_TOKEN only; finding a
+ *    `token` under `embedding` FAILS THE LOAD (a loud error at the moment it is introduced) rather
+ *    than silently ignoring it. This is Decision 11 promoted from an open question to a hard gate.
+ */
+function validateEmbeddingConfig(raw: unknown): EmbeddingConfig | undefined {
+  if (raw === undefined || raw === null) return undefined;
+  if (typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new Error('lux.yaml: `embedding` must be a mapping (provider?/model?).');
+  }
+  const obj = raw as Record<string, unknown>;
+
+  // Fail-closed (Decision 11): a token in yaml is a committed-secret footgun — refuse to load.
+  if ('token' in obj) {
+    throw new Error(
+      'lux.yaml: `embedding.token` is not permitted — the API key is read from the ' +
+        'LUX_EMBEDDING_TOKEN environment variable only. Remove the inline token (and rotate it — a ' +
+        'key written to a committed file must be considered leaked).'
+    );
+  }
+  // Reject any near-miss key that could be a mis-spelled / re-cased secret and route it to the SAME
+  // rotate-the-key guidance as the exact `token` above — case-insensitively: token (catches Token /
+  // TOKEN that slip past the case-sensitive `'token' in obj` check), api[_-]?key, key, secret, auth,
+  // bearer, password, credential(s). Fail-closed already holds (the secret is never used), but a user
+  // who typed one of these must be told to ROTATE, not just rename. Everything else is an unknown key.
+  for (const k of Object.keys(obj)) {
+    if (/^(token|api[_-]?key|key|secret|auth|bearer|password|credentials?)$/i.test(k)) {
+      throw new Error(
+        `lux.yaml: \`embedding.${k}\` is not permitted — the API key is env-only ` +
+          '(LUX_EMBEDDING_TOKEN). Remove it and rotate the key.'
+      );
+    }
+    if (k !== 'provider' && k !== 'model') {
+      throw new Error(`lux.yaml: unknown key \`embedding.${k}\` (allowed: provider, model).`);
+    }
+  }
+
+  const provider = obj.provider;
+  if (provider !== undefined && provider !== 'openai') {
+    // JSON.stringify (not String) so a non-string yaml value renders honestly, never '[object Object]'.
+    throw new Error(
+      `lux.yaml: \`embedding.provider\` must be 'openai' (the sole shipped provider; got ${JSON.stringify(provider)}).`
+    );
+  }
+  const model = obj.model;
+  if (model !== undefined && (typeof model !== 'string' || model.trim().length === 0)) {
+    throw new Error('lux.yaml: `embedding.model` must be a non-empty string.');
+  }
+  // Fix 7: trim the model before returning — a trailing space would 400 at the provider.
+  const trimmedModel = typeof model === 'string' ? model.trim() : undefined;
+
+  // provider is narrowed to 'openai' and model to string by the guards above.
+  return {
+    ...(provider ? { provider } : {}),
+    ...(trimmedModel ? { model: trimmedModel } : {}),
   };
 }
 

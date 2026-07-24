@@ -812,7 +812,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const { query = '', limit: rawLimit = 10 } = args as { query?: string; limit?: number };
         const limit = Number.isFinite(rawLimit) && rawLimit >= 1 ? Math.trunc(rawLimit) : 10;
         try {
-          const result = await runAnchorSearch(db, query, { limit });
+          const result = await runAnchorSearch(db, query, {
+            limit,
+            corpusPath: DEFAULT_CORPUS_PATH,
+          });
           const report = buildAnchorReport({
             query,
             limit,

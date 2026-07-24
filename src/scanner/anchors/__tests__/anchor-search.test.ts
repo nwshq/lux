@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { LuxDatabase } from '../../../db/index.js';
@@ -320,6 +320,21 @@ describe('runAnchorSearch', () => {
     // half tokenizes it (the bound applies once, to the shared query).
     const beyond = await runAnchorSearch(db, `${filler} stripe service`, { limit: 10 });
     expect(beyond.results.map((r) => r.nodeId)).not.toContain(STRIPE);
+  });
+
+  it('degrades to lexical (no throw) when corpusPath has a malformed lux.yaml (Fix 5, read-path ethos)', async () => {
+    seed(db);
+    // A lux.yaml that makes loadLspConfig THROW (inline embedding.token, Decision 11). The read path
+    // must NOT crash `lux anchors` with a raw stacktrace where the lexical-only tier still answers — it
+    // degrades to the local model (undefined config), matching runAnchorSearch's cached-only / degrade /
+    // never-throw stance. Passing corpusPath is what previously triggered the unconditional loadLspConfig.
+    writeFileSync(join(dir, 'lux.yaml'), 'embedding:\n  token: sk-leaked-into-a-committed-file\n');
+    const { results, coverage } = await runAnchorSearch(db, 'stripe service', {
+      limit: 10,
+      corpusPath: dir,
+    });
+    expect(results[0]?.nodeId).toBe('symbol:php:App\\Services\\Payments\\StripeService');
+    expect(coverage.model).toBeNull(); // lexical-only — the malformed config never selected a model
   });
 
   it('reports a genuine zero refusal coverage on a never-built index (overlay-missing)', async () => {

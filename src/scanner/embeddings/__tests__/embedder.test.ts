@@ -2,9 +2,10 @@
 //
 // The seam entry point createEmbedder's BRANCHING logic, fully network-free and weights-free: the
 // heavy WasmLocalEmbedder module is mocked, so the token-absent local path is exercised without
-// loading the ~34 MB ONNX weights or touching the network. The token-present branch throws BEFORE the
-// dynamic import, so it needs no mock at all. Real WasmLocalEmbedder identity/dims are asserted
-// against the actual model in wasm-local-embedder.determinism.test.ts (LUX_EMBED_SMOKE-gated).
+// loading the ~34 MB ONNX weights or touching the network. The token-present branch constructs the real
+// ApiEmbedder (Phase 4) — which is a pure constructor (no fetch until embed()), so it too is
+// network-free here. Real WasmLocalEmbedder identity/dims are asserted against the actual model in
+// wasm-local-embedder.determinism.test.ts (LUX_EMBED_SMOKE-gated).
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createEmbedder } from '../embedder.js';
@@ -39,15 +40,27 @@ describe('createEmbedder', () => {
     expect(v.length).toBe(384);
   });
 
-  it('ignores config on the local path in Phase 3 (config is threaded for Phase 4, unread now)', async () => {
+  it('ignores config on the local path when tokenless — provider/model are inert (Decision 11)', async () => {
     delete process.env.LUX_EMBEDDING_TOKEN;
-    const embedder = await createEmbedder({ provider: 'openai', model: 'text-embedding-3-small' });
-    expect(embedder.dims).toBe(384); // still the local embedder — config does not select a provider yet
+    const embedder = await createEmbedder({ provider: 'openai', model: 'text-embedding-3-large' });
+    // Still the local embedder — config does not select a provider without the env token.
+    expect(embedder.dims).toBe(384);
+    expect(embedder.model).toContain('bge-small-en-v1.5-q8');
+    expect(embedder.model).not.toContain('openai');
   });
 
-  it('fails closed with a clear Phase-4 error when LUX_EMBEDDING_TOKEN is present (ApiEmbedder is spec 19)', async () => {
+  it('routes to the ApiEmbedder when LUX_EMBEDDING_TOKEN is present — model === openai:<model> (Phase 4)', async () => {
     process.env.LUX_EMBEDDING_TOKEN = 'sk-test-fake';
-    await expect(createEmbedder(undefined)).rejects.toThrow(/Phase 4/);
-    await expect(createEmbedder({ provider: 'openai' })).rejects.toThrow(/LUX_EMBEDDING_TOKEN/);
+    const embedder = await createEmbedder({ provider: 'openai', model: 'text-embedding-3-small' });
+    expect(embedder.model).toBe('openai:text-embedding-3-small');
+    expect(embedder.dims).toBe(384);
+  });
+
+  it('defaults the API model to text-embedding-3-small when config omits it', async () => {
+    process.env.LUX_EMBEDDING_TOKEN = 'sk-test-fake';
+    const fromUndefined = await createEmbedder(undefined);
+    expect(fromUndefined.model).toBe('openai:text-embedding-3-small');
+    const fromProviderOnly = await createEmbedder({ provider: 'openai' });
+    expect(fromProviderOnly.model).toBe('openai:text-embedding-3-small');
   });
 });

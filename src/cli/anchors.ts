@@ -40,7 +40,7 @@ export function registerAnchorsCommand(program: Command): void {
 
       const db = new LuxDatabase(dbPath);
       try {
-        const result = await runAnchorSearch(db, query, { limit });
+        const result = await runAnchorSearch(db, query, { limit, corpusPath });
 
         if (options.json) {
           console.log(

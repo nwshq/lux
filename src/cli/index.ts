@@ -63,12 +63,12 @@ import {
   type NodeEmbedPassResult,
 } from '../scanner/embeddings/node-embed-pass.js';
 import { createEmbedder } from '../scanner/embeddings/embedder.js';
-import type { Embedder } from '../scanner/embeddings/embedder.js';
+import type { Embedder, EmbeddingConfig } from '../scanner/embeddings/embedder.js';
+import { ensureModelWeights } from '../scanner/embeddings/model-cache.js';
 import {
-  ANCHOR_EMBED_MODEL,
-  ANCHOR_EMBED_MODEL_ARTIFACTS,
-} from '../scanner/embeddings/model-pin.js';
-import { resolveModelCacheDir, ensureModelWeights } from '../scanner/embeddings/model-cache.js';
+  activeEmbeddingModel,
+  embeddingReadAvailable,
+} from '../scanner/embeddings/active-model.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const version: string = (
@@ -227,12 +227,17 @@ indexCmd
           console.log(`  Detected ${generalResult.dependencies.length} module dependencies`);
         }
       }
-      // Explicit embeddings opt-in (--embeddings): fetch + hash-verify the model weights ONCE here,
+      // Explicit embeddings opt-in (--embeddings): fetch + hash-verify the bge model weights ONCE here,
       // BEFORE the embed tail below, so the tail's cached-only presence check finds them and embeds.
       // Default (no flag): rebuild/sync stay cached-only — the tail embeds iff the weights are already
       // present locally and NEVER triggers a network fetch (the native-free/offline ethos). A failed
       // fetch degrades (Decision 5): report it, but never fail the rebuild — the tail simply skips.
-      if (options.embeddings) {
+      //
+      // Phase 4: with LUX_EMBEDDING_TOKEN set the ACTIVE path is the API embedder (no local bge weights
+      // to fetch), so --embeddings is a NO-OP for the fetch — there is nothing to download. The embed
+      // tail still drains to completion (embedToCompletion below) via the API path, which
+      // embeddingReadAvailable reports available on the token alone.
+      if (options.embeddings && !process.env.LUX_EMBEDDING_TOKEN) {
         if (!options.quiet) {
           console.log('Fetching embedding model (~34 MB, one-time)…');
         }
@@ -1227,18 +1232,17 @@ addSiblingsCommand(program);
  * weight-fetch failure on one call must not permanently poison every later call in the same process —
  * the next call retries from scratch.
  *
- * PHASE 3 (this spec): `createEmbedder(undefined)` — the config is ignored and the tokenless local
- * WasmLocalEmbedder is returned (spec 11). PHASE 4 threads the loaded config in: this call becomes
- * `createEmbedder(loadLspConfig(corpusPath).embedding)` (and `getSharedEmbedder` gains the `corpusPath`
- * it needs to resolve it), selecting the ApiEmbedder when `LUX_EMBEDDING_TOKEN` is set. The memo shape
- * is unchanged by that (config is process-stable — one corpus per process), so Phase 4 touches only
- * the `createEmbedder(...)` argument, not the caching contract.
+ * PHASE 4: the loaded `embedding` config (from `loadLspConfig(corpusPath).embedding`, resolved once in
+ * `runNodeEmbedTail`) is threaded in, so `createEmbedder(config)` selects the ApiEmbedder when
+ * `LUX_EMBEDDING_TOKEN` is set (else the tokenless local WasmLocalEmbedder). The memo shape is unchanged
+ * (config is process-stable — one corpus per process): the first call fixes the embedder, so a later
+ * call's `config` arg is inert, exactly the caching contract Phase 3 established.
  */
 let sharedEmbedderPromise: Promise<Embedder> | null = null;
 
-async function getSharedEmbedder(): Promise<Embedder> {
+async function getSharedEmbedder(config: EmbeddingConfig | undefined): Promise<Embedder> {
   if (!sharedEmbedderPromise) {
-    sharedEmbedderPromise = createEmbedder(undefined).catch((error: unknown) => {
+    sharedEmbedderPromise = createEmbedder(config).catch((error: unknown) => {
       sharedEmbedderPromise = null; // do not cache a failure — allow a retry on the next call site
       throw error;
     });
@@ -1253,20 +1257,6 @@ async function getSharedEmbedder(): Promise<Embedder> {
 function shortModelName(model: string): string {
   const at = model.indexOf('@');
   return at === -1 ? model : model.slice(0, at);
-}
-
-/**
- * Are all pinned model-weight artifacts already present in the per-machine cache? A pure presence
- * check on `resolveModelCacheDir()` (no sha re-hash here — the hash-verify is `ensureModelWeights`'s
- * job, run by the embedder create and by `--embeddings`). This is what makes the index path
- * CACHED-ONLY: `runNodeEmbedTail` embeds iff this returns true, and NEVER triggers a network fetch
- * from a `lux index rebuild`/`sync`. The only fetch path is the explicit `--embeddings` opt-in.
- */
-function anchorModelWeightsCached(): boolean {
-  const dir = resolveModelCacheDir();
-  return Object.keys(ANCHOR_EMBED_MODEL_ARTIFACTS.files).every((file) =>
-    existsSync(join(dir, file))
-  );
 }
 
 /** Context threaded into `reportEmbedOutcome` — the usage-event provenance + the quiet flag. */
@@ -1285,8 +1275,8 @@ interface EmbedTailContext {
  * event. Called on every non-error terminal of the tail — the embed-pass success path, the
  * queue-empty fast path, and the weights-absent cached-only skip — so a no-op sync and a degraded
  * skip are both still reportable outcomes with honest coverage, exactly like the pre-existing
- * success-path event. `coverage.model` (== ANCHOR_EMBED_MODEL in Phase 3) drives the display name,
- * so no embedder instance is needed to render this.
+ * success-path event. `coverage.model` (the ACTIVE model — ANCHOR_EMBED_MODEL locally, or
+ * `openai:<model>` on the API path) drives the display name, so no embedder instance is needed here.
  */
 function reportEmbedOutcome(
   ctx: EmbedTailContext,
@@ -1425,24 +1415,43 @@ async function runNodeEmbedTail(
     quiet,
   };
 
-  // (1) Queue-gate — gate on the STATIC active local model name (model-pin), so this needs no embedder
-  // instance. `LIMIT 1` answers "is there anything to embed?" — a scan of structural_node_texts, not a
-  // free check, but it skips the 34 MB model load entirely when the queue is empty (no embedder ever
-  // constructed).
-  const pending = db.getUnembeddedAnchorNodes(ANCHOR_EMBED_MODEL, 1);
+  // Resolve the ACTIVE model + availability from the corpus's embedding config (Phase 4). With
+  // LUX_EMBEDDING_TOKEN set the active model is `openai:<model>` and availability is "the token is set"
+  // (no local weight cache on the API path); tokenless it is ANCHOR_EMBED_MODEL, available iff the bge
+  // weights are cached. Both mirror createEmbedder's branch EXACTLY (active-model.ts), so the model the
+  // queue-gate/coverage key on is always the one getSharedEmbedder → createEmbedder will actually build.
+  // loadLspConfig THROWS on a malformed lux.yaml (bad section / inline embedding.token); this tail is
+  // contractually "never throws" (it must not fail the caller's rebuild/sync — the no-change resume seam
+  // reaches it as the ONLY config parse), so degrade to undefined config (→ local model) rather than
+  // crash, matching the read path's wrap-and-degrade. The config-WRITE paths still surface it loudly.
+  let embeddingConfig: EmbeddingConfig | undefined;
+  try {
+    embeddingConfig = loadLspConfig(corpusPath).embedding;
+  } catch {
+    embeddingConfig = undefined;
+  }
+  const activeModel = activeEmbeddingModel(embeddingConfig);
+
+  // (1) Queue-gate — gate on the ACTIVE model name, so this needs no embedder instance. `LIMIT 1`
+  // answers "is there anything to embed?" — a scan of structural_node_texts, not a free check, but it
+  // skips the model load entirely when the queue is empty (no embedder ever constructed). On a
+  // model-flip (token set/cleared, or provider/model edited) every stored vector is stale under the new
+  // active model, so the queue re-includes all nodes here — the automatic re-embed under the new space.
+  const pending = db.getUnembeddedAnchorNodes(activeModel, 1);
   if (pending.length === 0) {
     // Coverage complete under the active model — report and return, never loading an embedder.
     reportEmbedOutcome(ctx, {
       embedded: 0,
       budgetHit: false,
-      coverage: db.getAnchorEmbeddingCoverage(ANCHOR_EMBED_MODEL),
+      coverage: db.getAnchorEmbeddingCoverage(activeModel),
     });
     return;
   }
 
-  // (2) Cached-only — there IS work to do, but the index path must not fetch. Embed only if the
-  // weights are already on disk; otherwise skip (index still succeeds), no network, no hang.
-  if (!anchorModelWeightsCached()) {
+  // (2) Cached-only — there IS work to do, but the index path must not fetch bge weights. Embed only if
+  // a read is available without a fetch: the API path (token set) is always available; the local path
+  // requires the bge weights already on disk. Otherwise skip (index still succeeds), no network, no hang.
+  if (!embeddingReadAvailable(embeddingConfig)) {
     // A3: stay SILENT on stdout by default — no nudge, no coverage line. Nagging every rebuild/sync of
     // a code corpus for users who never opted into embeddings is noise; the capability is discoverable
     // via `--help`/docs, and `--embeddings` is the one fetch path. The usage event is still emitted
@@ -1453,18 +1462,19 @@ async function runNodeEmbedTail(
       {
         embedded: 0,
         budgetHit: false,
-        coverage: db.getAnchorEmbeddingCoverage(ANCHOR_EMBED_MODEL),
+        coverage: db.getAnchorEmbeddingCoverage(activeModel),
       },
       { emitConsole: false }
     );
     return;
   }
 
-  // Weights are cached → load the embedder (may still fail for a token-configured Phase-3 operator, or
-  // on a corrupt-weights crash) and run the pass. Any failure degrades to a concise skip line.
+  // A read is available (bge weights cached, or a token is set) → load the embedder (may still fail on
+  // a corrupt-weights crash, or an API request failure) and run the pass. Any failure degrades to a
+  // concise skip line. The pass itself keys on embedder.model, which equals activeModel by construction.
   let embedder: Embedder;
   try {
-    embedder = await getSharedEmbedder();
+    embedder = await getSharedEmbedder(embeddingConfig);
   } catch (error) {
     if (!quiet) {
       console.log(

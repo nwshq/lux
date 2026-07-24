@@ -12,23 +12,11 @@
 //   (b) the native-free-vs-API choice (Decision 7) is one branch in createEmbedder — never a change
 //       to any caller's code, because every caller holds an `Embedder`.
 
-/**
- * The embedding configuration surface, from `lux.yaml`'s `embedding:` section (Phase 4 wires it;
- * Decision 7/11). Deliberately carries NO token field:
- *   - The API key is read from `process.env.LUX_EMBEDDING_TOKEN` ONLY.
- *   - An inline `embedding.token` in lux.yaml is REJECTED at config load (fail-closed) — Decision 11.
- * Setting/clearing the token, or editing provider/model, changes the ACTIVE model (embedder.model),
- * which stales every stored vector under the active-model read filter; the widened freshness queue
- * re-embeds on the next sync and reads never mix embedding spaces.
- */
-export interface EmbeddingConfig {
-  provider?: 'openai'; // yaml, optional — the sole shipped API provider (OpenAI; NOT Anthropic). No
-  // Voyage: no Voyage model emits 384 dims (voyage-3-lite is fixed-512; Matryoshka only
-  // {256,512,1024,2048}), so it cannot satisfy the codec's 384 contract. A future dynamic-dims codec
-  // could re-admit a 384-incompatible provider — a measured follow-on, not v1 (spec 19 §Part B note).
-  model?: string; // yaml, optional (provider default applies)
-  // NO token field — see the interface doc-comment above (env-only LUX_EMBEDDING_TOKEN; Decision 11).
-}
+// The `embedding:` config TYPE lives in the NON-fenced scanner/anchors/embedding-config.ts (spec 19
+// §Note, resolution 2) so scanner/config.ts can import it without tripping the path-fence; the seam
+// re-exports it here so every embeddings consumer still reads it through this one door.
+export type { EmbeddingConfig } from '../anchors/embedding-config.js';
+import type { EmbeddingConfig } from '../anchors/embedding-config.js';
 
 /**
  * The one seam. `model`/`dims` are read-only identity; `embed` is the passage (batched) side and
@@ -56,34 +44,25 @@ export interface Embedder {
 /**
  * The substrate's only production entry point (`03 §Contract-name registry`).
  *
- * PHASE 3 (this spec): returns the native-free local WasmLocalEmbedder (Decision 3) whenever no API
- * token is configured. The `config` param is part of the frozen seam NOW so Phase 4 (spec 19) slots
- * the API branch in HERE, touching exactly this one function and not a single caller — every caller
- * holds an `Embedder`.
+ * The env token is the ONLY selector (Decision 7/11): `LUX_EMBEDDING_TOKEN` present ⇒ the API path
+ * (`ApiEmbedder` over fetch, provider/model from lux.yaml `config`); absent ⇒ the native-free local
+ * `WasmLocalEmbedder` (bge-small). The default install is tokenless ⇒ native-free, zero config; a
+ * token-configured operator's `provider`/`model` in yaml select the API model, but the key itself is
+ * env-only (an inline `embedding.token` fails config load — Decision 11).
  *
- * The `LUX_EMBEDDING_TOKEN`-present case fails closed in Phase 3: `ApiEmbedder` (spec 19) does not
- * exist yet, so rather than silently downgrading a token-configured operator to the LOCAL model
- * (which would embed under a different `model` identity than they asked for and quietly poison the
- * active-model read filter), createEmbedder throws a clear "arrives in Phase 4" error. Phase 4
- * REPLACES the throw's body with the terminal edit:
- *
- *     const { ApiEmbedder } = await import('./api-embedder.js');
- *     return ApiEmbedder.create(config);
- *
- * The dynamic import of the local path below is deliberate: keeping WasmLocalEmbedder OUT of this
- * file's static import graph means merely importing the `Embedder` type or the `createEmbedder`
- * symbol does NOT eager-load onnxruntime-web (~34 MB of WASM glue). onnxruntime-web loads only when
- * createEmbedder is actually CALLED down the local path — exactly the cold-CLI lazy-load posture
- * `03 §Warm vs cold` asks the orchestration to preserve.
+ * BOTH implementations are behind a dynamic `import()`. Keeping WasmLocalEmbedder AND ApiEmbedder out
+ * of this file's static import graph means merely importing the `Embedder` type or the `createEmbedder`
+ * symbol eager-loads NEITHER onnxruntime-web (~34 MB of WASM glue, the local path) nor the API-embedder
+ * module (the tokenless hot path never touches it). Each loads only when createEmbedder is CALLED down
+ * its branch — exactly the cold-CLI lazy-load posture `03 §Warm vs cold` asks the orchestration to
+ * preserve, and it keeps the tokenless default install free of any API-path code on its hot path.
  */
 export async function createEmbedder(config: EmbeddingConfig | undefined): Promise<Embedder> {
   if (process.env.LUX_EMBEDDING_TOKEN) {
-    throw new Error(
-      'LUX_EMBEDDING_TOKEN is set, but the API embedder (ApiEmbedder) is not available until Phase 4. ' +
-        'Unset LUX_EMBEDDING_TOKEN to use the native-free local embedder (WasmLocalEmbedder).'
-    );
+    const { ApiEmbedder } = await import('./api-embedder.js');
+    return ApiEmbedder.fromConfig(config);
   }
-  void config; // threaded for the Phase-4 API seam; intentionally unread on the Phase-3 local path.
+  void config; // provider/model are inert without a token — the local path is native-free by default.
   const { WasmLocalEmbedder } = await import('./wasm-local-embedder.js');
   return WasmLocalEmbedder.create();
 }
