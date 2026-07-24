@@ -61,3 +61,6 @@ jobs:
 
       - name: Dead code check
         run: npm run validate:dead-code
+
+      - name: Native-free check
+        run: npm run verify:native-free

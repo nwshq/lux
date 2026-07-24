@@ -44,6 +44,21 @@ const ENTRY_ADJACENT = new Set([
   'scanner/lsp/index.ts',
 ]);
 
+/**
+ * Modules loaded only via a dynamic `import()` expression, invisible to this validator's static
+ * import graph (buildImportGraph reads static import/export-from declarations, not `import()` call
+ * expressions). Their exports are live at runtime but would otherwise be reported as unused.
+ *
+ * Relative to src/. Documented per entry so a future reader sees WHY it is exempt:
+ *   - scanner/embeddings/wasm-local-embedder.ts — its `WasmLocalEmbedder` class is loaded solely via
+ *     `createEmbedder`'s `await import('./wasm-local-embedder.js')` (scanner/embeddings/embedder.ts),
+ *     kept behind a dynamic import so the heavy onnxruntime-web weight never eagerly loads. The
+ *     static graph cannot see that edge, so the class is a dead-code false positive here.
+ */
+const DYNAMIC_IMPORT_MODULES = new Set([
+  'scanner/embeddings/wasm-local-embedder.ts',
+]);
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -72,6 +87,11 @@ function isEntryPoint(filePath: string): boolean {
 function isEntryAdjacent(filePath: string): boolean {
   const rel = relative(SRC, filePath).replace(/\\/g, '/');
   return ENTRY_ADJACENT.has(rel);
+}
+
+function isDynamicImportModule(filePath: string): boolean {
+  const rel = relative(SRC, filePath).replace(/\\/g, '/');
+  return DYNAMIC_IMPORT_MODULES.has(rel);
 }
 
 function getExportKind(declarations: ExportedDeclarations[]): string {
@@ -287,6 +307,9 @@ function main(): void {
 
     // Skip entry-adjacent barrel files — they re-export for entry points
     if (isEntryAdjacent(filePath)) continue;
+
+    // Skip modules loaded only via dynamic import() — invisible to the static import graph
+    if (isDynamicImportModule(filePath)) continue;
 
     filesAnalyzed++;
 

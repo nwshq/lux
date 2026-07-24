@@ -18,6 +18,7 @@ export type UsageEventSurface =
   | 'index-sync'
   | 'index-rebuild'
   | 'index-refresh'
+  | 'index-node-embed'
   | 'discovery'
   | 'delta'
   | 'siblings'

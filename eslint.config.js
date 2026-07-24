@@ -2,12 +2,7 @@ import eslint from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
 
-const ignorePatterns = [
-  'dist/**',
-  'node_modules/**',
-  '*.config.js',
-  '*.config.mjs',
-];
+const ignorePatterns = ['dist/**', 'node_modules/**', '*.config.js', '*.config.mjs'];
 
 export default [
   {
@@ -38,6 +33,11 @@ export default [
         clearInterval: 'readonly',
         queueMicrotask: 'readonly',
         URL: 'readonly',
+        // WHATWG fetch family — Node 22 globals (used by the embeddings weight-cache fetch path).
+        fetch: 'readonly',
+        Response: 'readonly',
+        Request: 'readonly',
+        Headers: 'readonly',
       },
     },
     plugins: {
@@ -61,6 +61,9 @@ export default [
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/unbound-method': 'off',
       '@typescript-eslint/only-throw-error': 'off',
+      // Test doubles that satisfy an async interface (e.g. Embedder.embed → Promise) legitimately
+      // have no internal await; require-await is a production-code signal, not meaningful for mocks.
+      '@typescript-eslint/require-await': 'off',
     },
   },
 ];

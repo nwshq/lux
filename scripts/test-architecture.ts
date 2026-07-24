@@ -18,6 +18,12 @@
 
 import { readdirSync, existsSync } from 'fs';
 import { resolve, relative, join } from 'path';
+import { Project } from 'ts-morph';
+import {
+  analyzeFile,
+  detectDynamicCrossModuleImports,
+  type Violation as LintViolation,
+} from './lint-architecture.js';
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -54,7 +60,7 @@ const KEBAB_CASE_PATTERN = /^[a-z][a-z0-9]*(-[a-z0-9]+)*\.ts$/;
 
 interface Violation {
   file: string;
-  check: 'module-boundary' | 'test-colocation' | 'cli-naming' | 'migration-naming';
+  check: 'module-boundary' | 'test-colocation' | 'cli-naming' | 'migration-naming' | 'architecture-fence';
   message: string;
 }
 
@@ -307,6 +313,172 @@ function checkMigrationNaming(): CheckResult {
 }
 
 // ---------------------------------------------------------------------------
+// Check 5: Anchor embeddings fence (Decision-Boundary — PATH_FORBIDDEN_RULES)
+// ---------------------------------------------------------------------------
+
+/**
+ * Build an isolated in-memory ts-morph source file at an absolute path under src/, without
+ * touching disk or any real project. analyzeFile/detectDynamicCrossModuleImports only ever do
+ * path arithmetic + AST parsing (never a file-existence check — see resolveTargetPath), so a
+ * virtual file at a real-looking path is indistinguishable from the real thing to the rule.
+ * Each fixture gets its own Project so fixtures never see or interfere with each other.
+ */
+function fenceFixture(relPathFromSrc: string, code: string) {
+  const project = new Project({ useInMemoryFileSystem: true });
+  return project.createSourceFile(join(SRC, relPathFromSrc), code);
+}
+
+/** Run both analyzers over one fixture and return only its (unsuppressed) path-forbidden hits. */
+function pathForbiddenHits(sf: ReturnType<typeof fenceFixture>): LintViolation[] {
+  return [...analyzeFile(sf), ...detectDynamicCrossModuleImports(sf)].filter(
+    (v) => v.rule === 'path-forbidden',
+  );
+}
+
+function checkArchitectureFence(): CheckResult {
+  const violations: Violation[] = [];
+
+  const expectNoHit = (label: string, sf: ReturnType<typeof fenceFixture>) => {
+    const hits = pathForbiddenHits(sf).filter((v) => !v.suppressed);
+    if (hits.length > 0) {
+      violations.push({
+        file: label,
+        check: 'architecture-fence',
+        message: `Expected NO path-forbidden violation for ${label}, but got: ${hits.map((v) => v.message).join('; ')}`,
+      });
+    }
+  };
+
+  const expectHit = (label: string, sf: ReturnType<typeof fenceFixture>) => {
+    const hits = pathForbiddenHits(sf).filter((v) => !v.suppressed);
+    if (hits.length === 0) {
+      violations.push({
+        file: label,
+        check: 'architecture-fence',
+        message: `Expected a path-forbidden violation for ${label}, but got none — lint:architecture would wrongly pass (exit 0) on an anchor-embeddings fence breach.`,
+      });
+    }
+  };
+
+  // Case 1 — PERMITTED importer: src/cli/anchor-search.ts -> scanner/embeddings/cosine.js. This is
+  // the anchors hybrid orchestration (runAnchorSearch), on the allowlist — it fetches the semantic
+  // candidates via topCosine and hands them to fuseRrf, so it legitimately imports the fenced half.
+  expectNoHit(
+    'src/cli/anchor-search.ts (permitted importer — anchors orchestration on the allowlist)',
+    fenceFixture(
+      'cli/anchor-search.ts',
+      `import { topCosine } from '../scanner/embeddings/cosine.js';\ntopCosine;\n`,
+    ),
+  );
+
+  // Case 2 — FORBIDDEN importer, static import, cross-module: src/cli/trace.ts is a structural CLI
+  // NOT on the allowlist, even though cli/ -> scanner/ is a legal downward layer import (Part 1/A,
+  // gap 2). SC-Boundary: trace must produce byte-identical output whether the anchor plane is
+  // populated or absent, which the fence makes mechanical by refusing it the vector machinery.
+  expectHit(
+    'src/cli/trace.ts (forbidden importer, static import)',
+    fenceFixture(
+      'cli/trace.ts',
+      `import { cosineSimilarity } from '../scanner/embeddings/cosine.js';\ncosineSimilarity;\n`,
+    ),
+  );
+
+  // Case 3 — FORBIDDEN importer, static import, SAME top-level module: src/scanner/associations/
+  // importing src/scanner/embeddings/. This is the case module-granular rules cannot see at all
+  // (both resolve to "scanner" — Part 1/A, gap 1); it is the reason Decision-Boundary needed a new
+  // rule kind.
+  expectHit(
+    'src/scanner/associations/foo.ts (forbidden importer, same top-level module)',
+    fenceFixture(
+      'scanner/associations/foo.ts',
+      `import { cosineSimilarity } from '../embeddings/cosine.js';\ncosineSimilarity;\n`,
+    ),
+  );
+
+  // Case 4 — FORBIDDEN importer, dynamic import(): detectDynamicCrossModuleImports must catch this
+  // independently of analyzeFile (which only sees static ImportDeclarations).
+  expectHit(
+    'src/scanner/associations/bar.ts (forbidden importer, dynamic import)',
+    fenceFixture(
+      'scanner/associations/bar.ts',
+      `export async function loadCosine() {\n  const mod = await import('../embeddings/cosine.js');\n  return mod;\n}\n`,
+    ),
+  );
+
+  // Case 5 — @architecture-ignore still suppresses a path-forbidden hit (lint-architecture.ts:107
+  // hasSuppression's escape hatch, honored by rule: 'path-forbidden' exactly like the other two
+  // rules). A suppressed violation must still be PRODUCED (so --show-suppressed reports it) —
+  // just excluded from `active` / the exit code.
+  {
+    const suppressedFixture = fenceFixture(
+      'scanner/associations/baz.ts',
+      `import { cosineSimilarity } from '../embeddings/cosine.js'; // @architecture-ignore\ncosineSimilarity;\n`,
+    );
+    const hits = pathForbiddenHits(suppressedFixture);
+    const label = 'src/scanner/associations/baz.ts (@architecture-ignore)';
+    if (hits.length === 0 || !hits.every((v) => v.suppressed)) {
+      violations.push({
+        file: label,
+        check: 'architecture-fence',
+        message: `Expected a SUPPRESSED path-forbidden violation for ${label}; got: ${JSON.stringify(hits)}`,
+      });
+    }
+  }
+
+  // Case 6 — FORBIDDEN importer, the NON-fenced lexical half reaching into the fenced half:
+  // src/scanner/anchors/lexical-ranker.ts importing scanner/embeddings/. Also a same-top-module case
+  // (both "scanner" — Part 1/A, gap 3). This locks 03's invariant that scanner/anchors/* (prepare-
+  // node-text, lexical-ranker, fusion, anchor-refusal) stay embedding-free: fusion.ts is a pure RRF
+  // over two rank lists, and cli/anchor-search.ts — not the ranker — fetches the semantic candidates.
+  expectHit(
+    'src/scanner/anchors/lexical-ranker.ts (non-fenced lexical half must stay embedding-free)',
+    fenceFixture(
+      'scanner/anchors/lexical-ranker.ts',
+      `import { cosineSimilarity } from '../embeddings/cosine.js';\ncosineSimilarity;\n`,
+    ),
+  );
+
+  // Case 7 — FORBIDDEN importer, `export { x } from` NAMED re-export: getImportDeclarations() does not
+  // see an export-from, so without the export-from walk a non-allowlisted module could launder the
+  // fenced surface straight back out (`export { cosineSimilarity } from '../embeddings/cosine.js'`)
+  // while the fence stayed green. The analyzeFile export-from walk must fence it exactly like an import.
+  expectHit(
+    'src/scanner/associations/reexport-named.ts (forbidden `export { x } from` re-export)',
+    fenceFixture(
+      'scanner/associations/reexport-named.ts',
+      `export { cosineSimilarity } from '../embeddings/cosine.js';\n`,
+    ),
+  );
+
+  // Case 8 — FORBIDDEN importer, `export * from` STAR re-export: the same laundering via a namespace
+  // re-export. Resolves the same target path and must be fenced identically.
+  expectHit(
+    'src/scanner/associations/reexport-star.ts (forbidden `export * from` re-export)',
+    fenceFixture(
+      'scanner/associations/reexport-star.ts',
+      `export * from '../embeddings/cosine.js';\n`,
+    ),
+  );
+
+  // Case 9 — PERMITTED re-export: the fenced barrel (scanner/embeddings/index.ts) re-exporting its own
+  // sibling is on the allowlist (scanner/embeddings/ internal prefix), so a legitimate re-export from
+  // an allowlisted path stays clean — the export-from walk must NOT over-fire on the allowlisted case.
+  expectNoHit(
+    'src/scanner/embeddings/index.ts (permitted internal re-export — barrel on the allowlist)',
+    fenceFixture(
+      'scanner/embeddings/index.ts',
+      `export * from './cosine.js';\n`,
+    ),
+  );
+
+  return {
+    check: 'architecture-fence',
+    passed: violations.length === 0,
+    violations,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -319,6 +491,7 @@ function main(): void {
     checkTestColocation(),
     checkCliNaming(),
     checkMigrationNaming(),
+    checkArchitectureFence(),
   ];
 
   const allViolations = results.flatMap((r) => r.violations);

@@ -107,6 +107,58 @@ export interface LexicalAnchorRow {
 }
 
 // ---------------------------------------------------------------------------
+// Anchor embeddings types (migration 015, Phase 3) — the structural-node vector plane
+// ---------------------------------------------------------------------------
+
+/** One stored vector row (migration 015). `vector` is the raw BLOB bytes as the WASM engine hands
+ *  them back — decode with `scanner/embeddings/codec.ts`'s `decodeVector`. Keyed on the deterministic
+ *  `structural_nodes.id` (TEXT), NOT an integer surrogate. */
+export interface NodeEmbeddingRow {
+  node_id: string;
+  model: string;
+  dims: number;
+  vector: Uint8Array;
+  content_hash: string;
+}
+
+/** The NARROW projection the cosine scan reads (D7 hot path). `getNodeVectorsForModel` returns only
+ *  the two columns `topCosine` consumes — the node id and the raw vector BLOB — NOT the full
+ *  `NodeEmbeddingRow`. Materializing `model`/`dims`/`content_hash` strings for every one of ~40 K rows
+ *  on each warm query is pure waste when the scan reads only node_id + vector. */
+export interface NodeVectorRow {
+  node_id: string;
+  vector: Uint8Array;
+}
+
+/** Input shape for `upsertNodeEmbedding` (INSERT OR REPLACE). Same shape as `NodeEmbeddingRow` —
+ *  there is no auto-generated column on this table (the PK is the caller-supplied `node_id`). */
+export interface NodeEmbeddingInsert {
+  node_id: string;
+  model: string;
+  dims: number;
+  vector: Uint8Array;
+  content_hash: string;
+}
+
+/** One row of the widened needs-embedding queue (the LEFT-JOIN anti-join, D5). Carries the persisted
+ *  `prepared` text so the embed pass never re-parses (03 §four embed-pass integration points), plus
+ *  the `content_hash` to copy verbatim onto the embedding row at embed time. No name/path/signature
+ *  fields — those already live baked into `prepared`. */
+export interface UnembeddedAnchorNode {
+  node_id: string;
+  prepared: string;
+  content_hash: string;
+}
+
+/** Coverage snapshot under one model (D11 — the numerator is model-scoped AND freshness-scoped, the
+ *  denominator is the whole anchor-viable set). */
+export interface AnchorEmbeddingCoverage {
+  embeddedNodes: number;
+  anchorViableNodes: number;
+  model: string;
+}
+
+// ---------------------------------------------------------------------------
 // Structural overlay types (migration 008)
 // ---------------------------------------------------------------------------
 

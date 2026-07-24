@@ -58,6 +58,17 @@ import {
   safeUsageTrustState,
 } from '../db/observability/usage-event.js';
 import { resolveRuntimePaths } from '../utils/runtime-paths.js';
+import {
+  runNodeEmbedPass,
+  type NodeEmbedPassResult,
+} from '../scanner/embeddings/node-embed-pass.js';
+import { createEmbedder } from '../scanner/embeddings/embedder.js';
+import type { Embedder } from '../scanner/embeddings/embedder.js';
+import {
+  ANCHOR_EMBED_MODEL,
+  ANCHOR_EMBED_MODEL_ARTIFACTS,
+} from '../scanner/embeddings/model-pin.js';
+import { resolveModelCacheDir, ensureModelWeights } from '../scanner/embeddings/model-cache.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const version: string = (
@@ -104,7 +115,12 @@ indexCmd
     '--content-only',
     'Run a content-only rebuild: knowledge index only, no structural overlay.'
   )
-  .action(async (options: { quiet?: boolean; contentOnly?: boolean }) => {
+  .option(
+    '--embeddings',
+    'Fetch the anchor embedding model (~34 MB, one-time) and embed anchor nodes. ' +
+      'Without this flag, rebuild/sync embed only when the model is already cached (never fetch).'
+  )
+  .action(async (options: { quiet?: boolean; contentOnly?: boolean; embeddings?: boolean }) => {
     const { corpusPath, dbPath } = getRuntimePaths(program);
     const invocationId = createInvocationId();
     const startedAt = Date.now();
@@ -211,7 +227,37 @@ indexCmd
           console.log(`  Detected ${generalResult.dependencies.length} module dependencies`);
         }
       }
-      await persistKnowledgeIndex(db, scanner, result, progress);
+      // Explicit embeddings opt-in (--embeddings): fetch + hash-verify the model weights ONCE here,
+      // BEFORE the embed tail below, so the tail's cached-only presence check finds them and embeds.
+      // Default (no flag): rebuild/sync stay cached-only — the tail embeds iff the weights are already
+      // present locally and NEVER triggers a network fetch (the native-free/offline ethos). A failed
+      // fetch degrades (Decision 5): report it, but never fail the rebuild — the tail simply skips.
+      if (options.embeddings) {
+        if (!options.quiet) {
+          console.log('Fetching embedding model (~34 MB, one-time)…');
+        }
+        try {
+          await ensureModelWeights();
+        } catch (error) {
+          console.error(
+            `Note: could not fetch the embedding model ` +
+              `(${error instanceof Error ? error.message : String(error)}); ` +
+              `continuing without anchor embeddings.`
+          );
+        }
+      }
+
+      await persistKnowledgeIndex(db, scanner, result, progress, {
+        invocationId,
+        startedAt,
+        corpusPath,
+        dbPath,
+        // Not yet known here — the rebuild command resolves HEAD later, and only for git corpora. The
+        // embed usage event simply omits `repoCommit` on this path, same gap as the existing
+        // `index-rebuild` usage event on this command.
+        headCommit: undefined,
+        quiet: options.quiet === true,
+      });
 
       // Write module dependencies
       if (generalResult.dependencies.length > 0) {
@@ -434,7 +480,16 @@ indexCmd
                 attachEnrichment(entry, scanResult.enrichments)
               ),
             };
-            await persistKnowledgeIndex(db, scanner, indexedScan, progress);
+            await persistKnowledgeIndex(db, scanner, indexedScan, progress, {
+              invocationId,
+              startedAt,
+              corpusPath,
+              dbPath,
+              // Computed locally right below (`const headCommit = getHeadCommit(corpusPath);`) —
+              // too late for this call. Same gap as the rebuild command's call site.
+              headCommit: undefined,
+              quiet: options.quiet === true,
+            });
             const headCommit = getHeadCommit(corpusPath);
             db.setIndexMetadata('last_indexed_commit', headCommit);
             persistRebuildTrustState(db, result, {
@@ -482,7 +537,16 @@ indexCmd
                 attachEnrichment(entry, scanResult.enrichments)
               ),
             };
-            await persistKnowledgeIndex(db, scanner, indexedScan, progress);
+            await persistKnowledgeIndex(db, scanner, indexedScan, progress, {
+              invocationId,
+              startedAt,
+              corpusPath,
+              dbPath,
+              // Computed locally right below (`const headCommit = getHeadCommit(corpusPath);`) —
+              // too late for this call. Same gap as the rebuild command's call site.
+              headCommit: undefined,
+              quiet: options.quiet === true,
+            });
             const headCommit = getHeadCommit(corpusPath);
             db.setIndexMetadata('last_indexed_commit', headCommit);
             persistRebuildTrustState(db, result, {
@@ -533,6 +597,23 @@ indexCmd
               }
             }
           }
+          // Resume seam (03 §integration points — load-bearing): a budget-interrupted prior embed pass
+          // leaves un-embedded anchor nodes behind even though the git commit hasn't moved. Running
+          // runNodeEmbedTail here — BEFORE the early return below — is what makes "the remainder embeds
+          // on the next sync" true even when this sync has no content changes at all; skipped nodes
+          // would otherwise never be revisited until some future commit changed the tree. When coverage
+          // is already complete the queue returns zero rows, so this skips the 34 MB model load (not a
+          // free check — the queue read still scans structural_node_texts) and re-parses nothing (the
+          // prepared text is already persisted).
+          await runNodeEmbedTail(
+            db,
+            invocationId,
+            startedAt,
+            corpusPath,
+            dbPath,
+            headCommit,
+            options.quiet === true
+          );
           db.close();
           return;
         }
@@ -564,7 +645,14 @@ indexCmd
                 attachEnrichment(entry, scanResult.enrichments)
               ),
             };
-            await persistKnowledgeIndex(db, scanner, indexedScan, progress);
+            await persistKnowledgeIndex(db, scanner, indexedScan, progress, {
+              invocationId,
+              startedAt,
+              corpusPath,
+              dbPath,
+              headCommit, // already computed above at the sync command's `const headCommit` — in scope here
+              quiet: options.quiet === true,
+            });
             db.setIndexMetadata('last_indexed_commit', headCommit);
             persistRebuildTrustState(db, result, {
               lastIndexedCommit: headCommit,
@@ -669,6 +757,18 @@ indexCmd
             progress.finish(
               `scoped refresh complete (${result.refreshedFiles} file(s), ${result.residualStaleEdges} residual stale)`
             );
+            // Scoped tail: the victim-sibling delete (Part C) dropped changed nodes' stale vectors just
+            // above (overlay-refresh.ts), so those same-id nodes re-enter the queue and get re-embedded
+            // here. headCommit is in scope (this branch runs after the outer getHeadCommit).
+            await runNodeEmbedTail(
+              db,
+              invocationId,
+              startedAt,
+              corpusPath,
+              dbPath,
+              headCommit,
+              options.quiet === true
+            );
             db.close();
             return;
           }
@@ -692,7 +792,14 @@ indexCmd
                 attachEnrichment(entry, scanResult.enrichments)
               ),
             };
-            await persistKnowledgeIndex(db, scanner, indexedScan, progress);
+            await persistKnowledgeIndex(db, scanner, indexedScan, progress, {
+              invocationId,
+              startedAt,
+              corpusPath,
+              dbPath,
+              headCommit, // already computed above at the sync command's `const headCommit` — in scope here
+              quiet: options.quiet === true,
+            });
             db.setIndexMetadata('last_indexed_commit', headCommit);
             persistRebuildTrustState(db, result, {
               lastIndexedCommit: headCommit,
@@ -954,6 +1061,17 @@ indexCmd
           );
         }
 
+        // Incremental tail: after the content sync settles the pointer, embed any anchor nodes the
+        // materialization added/changed this sync (plus any resume backlog). headCommit is in scope.
+        await runNodeEmbedTail(
+          db,
+          invocationId,
+          startedAt,
+          corpusPath,
+          dbPath,
+          headCommit,
+          options.quiet === true
+        );
         db.close();
       } catch (error) {
         console.error('Error: Unexpected error during index sync');
@@ -1079,6 +1197,238 @@ addDeltaCommand(program);
 // Add siblings command
 addSiblingsCommand(program);
 
+// ---------------------------------------------------------------------------
+// Anchor embed-pass helpers (spec 16 Part B) — the four terminal-point tail
+// ---------------------------------------------------------------------------
+//
+// PLACEMENT (reconciliation vs spec-16 line numbers): spec 16 places these in the post-`persistKnow-
+// ledgeIndex` "Helpers" region. In the CURRENT file `program.parse()` runs BEFORE that region, and the
+// no-change resume seam (Part B.5) reaches `runNodeEmbedTail` with NO prior `await` — so its
+// synchronous prefix runs inside the `program.parse()` call stack. The three helpers are function
+// declarations (hoisted, safe anywhere), but `sharedEmbedderPromise` is a `let` binding: reading it
+// before its initializer executes throws a TDZ ReferenceError. Declaring it (and its helpers) BEFORE
+// `program.parse()` guarantees it is initialized before any action runs. Spec intent (a process-shared
+// memo + the single tail) is preserved verbatim.
+
+/**
+ * Process-lifetime memo for the active embedder. `createEmbedder()` fetches/verifies model weights on
+ * first use (slow the first time: a network fetch + sha256 verify; cached on disk after — spec 11) —
+ * every index path in a given process reuses the resolved instance instead of repeating that cost. In
+ * today's CLI one `lux index rebuild`/`sync` process only ever reaches ONE of the four terminal points
+ * below (the sync control flow is mutually exclusive per invocation — each branch returns or falls
+ * through to its own `db.close()`), so this mostly protects a future multi-invocation-per-process
+ * caller (e.g. an integration-test harness driving `rebuild` then `sync` against the exported action
+ * functions without restarting the process). A REJECTED promise is NOT cached: a transient
+ * weight-fetch failure on one call must not permanently poison every later call in the same process —
+ * the next call retries from scratch.
+ *
+ * PHASE 3 (this spec): `createEmbedder(undefined)` — the config is ignored and the tokenless local
+ * WasmLocalEmbedder is returned (spec 11). PHASE 4 threads the loaded config in: this call becomes
+ * `createEmbedder(loadLspConfig(corpusPath).embedding)` (and `getSharedEmbedder` gains the `corpusPath`
+ * it needs to resolve it), selecting the ApiEmbedder when `LUX_EMBEDDING_TOKEN` is set. The memo shape
+ * is unchanged by that (config is process-stable — one corpus per process), so Phase 4 touches only
+ * the `createEmbedder(...)` argument, not the caching contract.
+ */
+let sharedEmbedderPromise: Promise<Embedder> | null = null;
+
+async function getSharedEmbedder(): Promise<Embedder> {
+  if (!sharedEmbedderPromise) {
+    sharedEmbedderPromise = createEmbedder(undefined).catch((error: unknown) => {
+      sharedEmbedderPromise = null; // do not cache a failure — allow a retry on the next call site
+      throw error;
+    });
+  }
+  return sharedEmbedderPromise;
+}
+
+/** Strips the `@sha256:...` weights-digest suffix from the active model id for the human-readable
+ *  coverage line — the digest is provenance (stored verbatim in `structural_node_embeddings.model` and
+ *  returned in `coverage.model`), not something an operator needs on every sync. An API model id
+ *  (`'openai:text-embedding-3-small'`) has no `@` and is returned unchanged. */
+function shortModelName(model: string): string {
+  const at = model.indexOf('@');
+  return at === -1 ? model : model.slice(0, at);
+}
+
+/**
+ * Are all pinned model-weight artifacts already present in the per-machine cache? A pure presence
+ * check on `resolveModelCacheDir()` (no sha re-hash here — the hash-verify is `ensureModelWeights`'s
+ * job, run by the embedder create and by `--embeddings`). This is what makes the index path
+ * CACHED-ONLY: `runNodeEmbedTail` embeds iff this returns true, and NEVER triggers a network fetch
+ * from a `lux index rebuild`/`sync`. The only fetch path is the explicit `--embeddings` opt-in.
+ */
+function anchorModelWeightsCached(): boolean {
+  const dir = resolveModelCacheDir();
+  return Object.keys(ANCHOR_EMBED_MODEL_ARTIFACTS.files).every((file) =>
+    existsSync(join(dir, file))
+  );
+}
+
+/** Context threaded into `reportEmbedOutcome` — the usage-event provenance + the quiet flag. */
+interface EmbedTailContext {
+  db: LuxDatabase;
+  invocationId: string;
+  startedAt: number;
+  corpusPath: string;
+  dbPath: string;
+  headCommit: string | undefined;
+  quiet: boolean;
+}
+
+/**
+ * Prints the human-readable coverage line (unless quiet) and emits the `index-node-embed` usage
+ * event. Called on every non-error terminal of the tail — the embed-pass success path, the
+ * queue-empty fast path, and the weights-absent cached-only skip — so a no-op sync and a degraded
+ * skip are both still reportable outcomes with honest coverage, exactly like the pre-existing
+ * success-path event. `coverage.model` (== ANCHOR_EMBED_MODEL in Phase 3) drives the display name,
+ * so no embedder instance is needed to render this.
+ */
+function reportEmbedOutcome(ctx: EmbedTailContext, result: NodeEmbedPassResult): void {
+  const { embedded, budgetHit, coverage } = result;
+  const coveragePct =
+    coverage.anchorViableNodes > 0
+      ? Math.round((coverage.embeddedNodes / coverage.anchorViableNodes) * 100)
+      : 100;
+
+  if (!ctx.quiet) {
+    const remaining = coverage.anchorViableNodes - coverage.embeddedNodes;
+    let line =
+      `Anchor embeddings: ${coverage.embeddedNodes}/${coverage.anchorViableNodes} anchor nodes ` +
+      `under ${shortModelName(coverage.model)} (${coveragePct}%)`;
+    if (budgetHit && remaining > 0) {
+      line += ` — ${remaining} remaining, will embed on next sync`;
+    }
+    console.log(line);
+  }
+
+  emitUsageEvent(ctx.db, {
+    source: 'cli',
+    surface: 'index-node-embed',
+    action: 'embed',
+    invocationId: ctx.invocationId,
+    commandOutcome: 'success',
+    retrievalOutcome: 'not_applicable',
+    durationMs: Date.now() - ctx.startedAt,
+    exitCode: 0,
+    corpusPath: ctx.corpusPath,
+    dbPath: ctx.dbPath,
+    repoCommit: ctx.headCommit,
+    attributes: {
+      embedded,
+      budgetHit,
+      coveragePct,
+      anchorViableNodes: coverage.anchorViableNodes,
+    },
+  });
+}
+
+/**
+ * Runs the node embed pass at the tail of an index path and reports it — the ONE function all four
+ * integration points below route through (`03` §The four embed-pass integration points). Never
+ * throws: a failed embed pass must never fail the surrounding `lux index rebuild`/`sync` (Decision 5).
+ *
+ * QUEUE-GATE + CACHED-ONLY (T3.4 hardening). Two invariants make the index path cheap and offline:
+ *   1. Queue-gate: read the needs-embedding queue FIRST (a cheap indexed anti-join against the STATIC
+ *      active local model — no embedder load). If it is empty, coverage is already complete: report it
+ *      and return WITHOUT ever constructing an embedder (no onnxruntime load, no weight touch). This
+ *      is the no-op-sync fast path — a zero-change sync no longer pays a 34 MB model load.
+ *   2. Cached-only: when the queue is non-empty, embed IFF the model weights are already present in
+ *      the local cache. An index path NEVER triggers a network fetch — a weights-absent machine skips
+ *      the pass (the index still succeeds; Decision-5 degrade), quietly. `lux index rebuild
+ *      --embeddings` is the explicit opt-in that fetches the weights first, after which this tail
+ *      finds them cached and embeds.
+ *
+ * Skips are reported as a concise non-`Warning:` line to stdout (a `Warning:` reads as an error and an
+ * offline machine is not in error), suppressed under `--quiet`.
+ */
+async function runNodeEmbedTail(
+  db: LuxDatabase,
+  invocationId: string,
+  startedAt: number,
+  corpusPath: string,
+  dbPath: string,
+  headCommit: string | undefined,
+  quiet: boolean
+): Promise<void> {
+  const ctx: EmbedTailContext = {
+    db,
+    invocationId,
+    startedAt,
+    corpusPath,
+    dbPath,
+    headCommit,
+    quiet,
+  };
+
+  // (1) Queue-gate — gate on the STATIC active local model name (model-pin), so this needs no embedder
+  // instance. `LIMIT 1` answers "is there anything to embed?" — a scan of structural_node_texts, not a
+  // free check, but it skips the 34 MB model load entirely when the queue is empty (no embedder ever
+  // constructed).
+  const pending = db.getUnembeddedAnchorNodes(ANCHOR_EMBED_MODEL, 1);
+  if (pending.length === 0) {
+    // Coverage complete under the active model — report and return, never loading an embedder.
+    reportEmbedOutcome(ctx, {
+      embedded: 0,
+      budgetHit: false,
+      coverage: db.getAnchorEmbeddingCoverage(ANCHOR_EMBED_MODEL),
+    });
+    return;
+  }
+
+  // (2) Cached-only — there IS work to do, but the index path must not fetch. Embed only if the
+  // weights are already on disk; otherwise skip (index still succeeds), no network, no hang.
+  if (!anchorModelWeightsCached()) {
+    if (!quiet) {
+      console.log(
+        `Anchor embeddings: model weights not cached — skipping embed pass ` +
+          `(run \`lux index rebuild --embeddings\` to fetch ~34 MB once and enable).`
+      );
+    }
+    reportEmbedOutcome(ctx, {
+      embedded: 0,
+      budgetHit: false,
+      coverage: db.getAnchorEmbeddingCoverage(ANCHOR_EMBED_MODEL),
+    });
+    return;
+  }
+
+  // Weights are cached → load the embedder (may still fail for a token-configured Phase-3 operator, or
+  // on a corrupt-weights crash) and run the pass. Any failure degrades to a concise skip line.
+  let embedder: Embedder;
+  try {
+    embedder = await getSharedEmbedder();
+  } catch (error) {
+    if (!quiet) {
+      console.log(
+        `Anchor embeddings: embedder unavailable, skipping embed pass: ` +
+          `${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+    return;
+  }
+
+  let result: NodeEmbedPassResult;
+  try {
+    result = await runNodeEmbedPass(db, embedder, {
+      onProgress: quiet ? undefined : (msg) => console.log(`  ${msg}`),
+    });
+  } catch (error) {
+    // runNodeEmbedPass already degrades internally (it never throws on a budget hit or an embed-time
+    // failure — see node-embed-pass.ts). This catch is the second, outermost layer, so that even a
+    // wholly unexpected failure (e.g. getAnchorEmbeddingCoverage itself throwing on an already-broken
+    // DB) still cannot fail the caller's rebuild/sync.
+    if (!quiet) {
+      console.log(
+        `Anchor embeddings: embed pass failed, skipping: ` +
+          `${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+    return;
+  }
+
+  reportEmbedOutcome(ctx, result);
+}
+
 program.parse();
 
 // ---------------------------------------------------------------------------
@@ -1089,7 +1439,15 @@ async function persistKnowledgeIndex(
   db: LuxDatabase,
   scanner: GeneralScanner,
   result: Parameters<GeneralScanner['index']>[1],
-  progress: ProgressReporter
+  progress: ProgressReporter,
+  embedTail: {
+    invocationId: string;
+    startedAt: number;
+    corpusPath: string;
+    dbPath: string;
+    headCommit: string | undefined;
+    quiet: boolean;
+  }
 ): Promise<void> {
   progress.log('Indexing...');
 
@@ -1108,6 +1466,22 @@ async function persistKnowledgeIndex(
     db.close();
     process.exit(1);
   }
+
+  // Node embed pass (Decision 5/6, D1/D2-equivalent): runs after every successful knowledge-index +
+  // overlay write. This one call covers `lux index rebuild` AND all four sync full-rebuild fallbacks —
+  // they all funnel through this function. `process.exit(1)` above means everything past the try/catch
+  // only runs on success. Never throws past this point (`runNodeEmbedTail` degrades internally, Part
+  // B.1). A full rebuild re-embeds the whole plane because the overlay-clear (Part C) drops all three
+  // anchor tables first, so every node re-enters the queue via the IS NULL arm.
+  await runNodeEmbedTail(
+    db,
+    embedTail.invocationId,
+    embedTail.startedAt,
+    embedTail.corpusPath,
+    embedTail.dbPath,
+    embedTail.headCommit,
+    embedTail.quiet
+  );
 }
 
 function createProgressReporter(quiet: boolean): ProgressReporter {

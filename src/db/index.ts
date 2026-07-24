@@ -13,6 +13,11 @@ import type {
   RankedSearchResult,
   NodeAnchorTextInsert,
   LexicalAnchorRow,
+  NodeEmbeddingRow,
+  NodeVectorRow,
+  NodeEmbeddingInsert,
+  AnchorEmbeddingCoverage,
+  UnembeddedAnchorNode,
   ModuleDependency,
   StructuralNode,
   StructuralEdge,
@@ -32,6 +37,14 @@ export type { SearchRefusalReason } from './search-query.js';
 // Re-export the lexical anchor row so the non-fenced ranker (scanner/anchors/lexical-ranker.ts) can
 // import it from the DB barrel without reaching into ./types.js directly (mig 014).
 export type { LexicalAnchorRow } from './types.js';
+// Re-export the embedding row shapes + coverage type so the fenced barrel (scanner/embeddings/index.ts)
+// and the hybrid orchestration import them from the DB barrel, never reaching into ./types.js (mig 015).
+export type {
+  NodeEmbeddingRow,
+  NodeVectorRow,
+  AnchorEmbeddingCoverage,
+  UnembeddedAnchorNode,
+} from './types.js';
 
 /** A kernel HTTP `handled_by` route joined against the client's nodes/routes (cross-area, #62). */
 export interface CrossAreaKernelRow {
@@ -293,15 +306,18 @@ export class LuxDatabase {
   /** Delete a victim node's sibling anchor rows (structural_node_texts + structural_node_fts) so a
    *  re-materialized node re-enters the embed queue clean — the scoped-refresh victim delete
    *  (Decision 5). Chunked IN-delete, mirroring deleteStructuralNodesForFiles (:997-1009). Phase 3
-   *  EXTENDS this to structural_node_embeddings (spec 16 Part C). Returns nothing — no caller uses a
-   *  count (the re-materialization at overlay-refresh.ts:223 restores surviving nodes' rows). */
+   *  EXTENDS this to structural_node_embeddings so a victim's stale vector is swept beside its text/FTS
+   *  rows (the delete-path half of the Decision-5 freshness contract; the queue's content_hash<> arm is
+   *  the other half). Returns nothing — no caller uses a count (the re-materialization at
+   *  overlay-refresh.ts:223 restores surviving nodes' rows). */
   deleteNodeAnchorRowsForNodeIds(nodeIds: string[]): void {
     for (let i = 0; i < nodeIds.length; i += LuxDatabase.DELTA_IN_CHUNK) {
       const chunk = nodeIds.slice(i, i + LuxDatabase.DELTA_IN_CHUNK);
       if (chunk.length === 0) continue;
       const ph = LuxDatabase.deltaPlaceholders(chunk.length);
-      this.db.run(`DELETE FROM structural_node_texts WHERE node_id IN (${ph})`, chunk);
-      this.db.run(`DELETE FROM structural_node_fts   WHERE node_id IN (${ph})`, chunk);
+      this.db.run(`DELETE FROM structural_node_texts      WHERE node_id IN (${ph})`, chunk);
+      this.db.run(`DELETE FROM structural_node_fts        WHERE node_id IN (${ph})`, chunk);
+      this.db.run(`DELETE FROM structural_node_embeddings WHERE node_id IN (${ph})`, chunk);
     }
   }
 
@@ -316,6 +332,40 @@ export class LuxDatabase {
    *  ast.enabled=false) for the surface's extended refusals (03 §The surface). */
   hasStructuralOverlay(): boolean {
     return (this.getQueries().countStructuralNodes.get() as { n: number }).n > 0;
+  }
+
+  // Anchor embeddings operations (migration 015 — D5/D7/D11). Pure pass-through to the sibling
+  // table; the codec (scanner/embeddings/codec.ts) is applied by the caller, never here (the DB
+  // layer deals only in Uint8Array bytes — the fence forbids it importing scanner/embeddings/).
+  upsertNodeEmbedding(row: NodeEmbeddingInsert): void {
+    this.getQueries().insertNodeEmbedding.run({
+      node_id: row.node_id,
+      model: row.model,
+      dims: row.dims,
+      vector: row.vector,
+      content_hash: row.content_hash,
+    });
+  }
+
+  getUnembeddedAnchorNodes(model: string, limit: number): UnembeddedAnchorNode[] {
+    return this.getQueries().getUnembeddedAnchorNodes.all(model, limit) as UnembeddedAnchorNode[];
+  }
+
+  getNodeVectorsForModel(model: string): NodeVectorRow[] {
+    return this.getQueries().getNodeVectorsForModel.all(model) as NodeVectorRow[];
+  }
+
+  getNodeEmbeddingByNode(nodeId: string, model: string): NodeEmbeddingRow | undefined {
+    return this.getQueries().getNodeEmbeddingByNode.get(nodeId, model) as
+      NodeEmbeddingRow | undefined;
+  }
+
+  getAnchorEmbeddingCoverage(model: string): AnchorEmbeddingCoverage {
+    const row = this.getQueries().getAnchorEmbeddingCoverage.get(model) as {
+      anchorViableNodes: number;
+      embeddedNodes: number;
+    };
+    return { embeddedNodes: row.embeddedNodes, anchorViableNodes: row.anchorViableNodes, model };
   }
 
   // Index metadata operations
@@ -1404,7 +1454,7 @@ export class LuxDatabase {
     // `this.db.run` (the adapter's raw-SQL entry), the same form the victim delete uses.
     this.db.run('DELETE FROM structural_node_texts');
     this.db.run('DELETE FROM structural_node_fts');
-    // (Phase 3 adds one line here: this.db.run('DELETE FROM structural_node_embeddings') — spec 16 Part C.)
+    this.db.run('DELETE FROM structural_node_embeddings'); // Phase 3 (mig 015): the vector plane clears with its siblings.
     queries.clearOperationalContracts.run();
     queries.clearOperationalEdges.run();
     queries.clearOperationalHandlers.run();

@@ -108,6 +108,13 @@ export class PreparedQueries {
   readonly countNodeAnchorTexts: Stmt;
   readonly countStructuralNodes: Stmt;
 
+  // Anchor embeddings (D5/D7/D11): sibling-table read/write, the widened freshness queue, coverage.
+  readonly insertNodeEmbedding: Stmt;
+  readonly getUnembeddedAnchorNodes: Stmt;
+  readonly getNodeVectorsForModel: Stmt;
+  readonly getNodeEmbeddingByNode: Stmt;
+  readonly getAnchorEmbeddingCoverage: Stmt;
+
   constructor(db: LuxSqlite) {
     // Knowledge entry queries
     this.insertKnowledgeEntry = db.prepare(`
@@ -519,5 +526,64 @@ export class PreparedQueries {
 
     this.countNodeAnchorTexts = db.prepare(`SELECT COUNT(*) AS n FROM structural_node_texts`);
     this.countStructuralNodes = db.prepare(`SELECT COUNT(*) AS n FROM structural_nodes`);
+
+    // Anchor embeddings (D5/D7/D11). INSERT OR REPLACE on the node_id PK: a re-embed (model change
+    // or content_hash miss) fully replaces the one active vector for that node, including updated_at.
+    this.insertNodeEmbedding = db.prepare(`
+      INSERT OR REPLACE INTO structural_node_embeddings (node_id, model, dims, vector, content_hash, updated_at)
+      VALUES (@node_id, @model, @dims, @vector, @content_hash, unixepoch())
+    `);
+
+    // The widened needs-embedding / resume queue (D5 — this plane's divergence). Drives off
+    // structural_node_texts (mig 014, Phase 1): every anchor-viable node with no fresh vector under
+    // the bound model. Two arms:
+    //   e.node_id IS NULL       -> never-embedded nodes, AND (post-victim-delete) changed-and-
+    //                             re-materialized nodes whose sibling row was already swept.
+    //   e.content_hash <> t...  -> a SURVIVING embedding row under a STABLE node id whose prepared
+    //                             text changed — the freshness bug a NULL-only queue would leave on
+    //                             the deterministic-id plane (the primitive never needed this arm
+    //                             because its ids churned; ours don't).
+    // Both compared columns are stored (the WASM engine exposes no sha256()), so the comparison is a
+    // plain indexed anti-join — cheap when coverage is already complete, which is what lets the embed
+    // pass run on every sync path for free (03 §four embed-pass integration points).
+    this.getUnembeddedAnchorNodes = db.prepare(`
+      SELECT t.node_id, t.prepared, t.content_hash
+      FROM structural_node_texts t
+      LEFT JOIN structural_node_embeddings e ON e.node_id = t.node_id AND e.model = ?
+      WHERE e.node_id IS NULL OR e.content_hash <> t.content_hash
+      LIMIT ?
+    `);
+
+    // Consumer scan source (D7/D11): every vector under one model, full table order, NARROWED to the
+    // two columns topCosine actually reads (node_id + vector). The cosine kernel (cosine.ts) reads ONLY
+    // through this — never an unfiltered scan — so a mid-model-change corpus that transiently holds two
+    // model spaces can never yield a cross-model cosine. Projecting just node_id+vector avoids
+    // materializing model/dims/content_hash strings for every one of ~40 K rows on the warm read path.
+    this.getNodeVectorsForModel = db.prepare(`
+      SELECT node_id, vector
+      FROM structural_node_embeddings
+      WHERE model = ?
+    `);
+
+    // Single-row point read for fixtures/tests (03 §Data-layer methods) and any future point-read
+    // caller. Scoped by model so a stale-model row for the same node is not mistaken for the current.
+    this.getNodeEmbeddingByNode = db.prepare(`
+      SELECT node_id, model, dims, vector, content_hash
+      FROM structural_node_embeddings
+      WHERE node_id = ? AND model = ?
+    `);
+
+    // Coverage read (D11). Denominator = the WHOLE anchor-viable set (every structural_node_texts
+    // row IS an anchor-viable node — 03 §Population scope). Numerator = only vectors that are BOTH
+    // under the bound model AND fresh (content_hash still matches the current prepared text), so a
+    // stale-content_hash row (mid-change) counts as un-embedded-under-current and never inflates the
+    // reported percentage — mirroring D11's stale-model exclusion for a stale-content row.
+    this.getAnchorEmbeddingCoverage = db.prepare(`
+      SELECT
+        (SELECT COUNT(*) FROM structural_node_texts) AS anchorViableNodes,
+        (SELECT COUNT(*) FROM structural_node_embeddings e
+           JOIN structural_node_texts t ON t.node_id = e.node_id
+           WHERE e.model = ? AND e.content_hash = t.content_hash) AS embeddedNodes
+    `);
   }
 }

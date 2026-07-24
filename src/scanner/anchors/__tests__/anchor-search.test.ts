@@ -303,6 +303,25 @@ describe('runAnchorSearch', () => {
     });
   });
 
+  it('bounds the raw query length before tokenization (a matching term past the ceiling is truncated away)', async () => {
+    seed(db);
+    const STRIPE = 'symbol:php:App\\Services\\Payments\\StripeService';
+    // ~150 KB of non-matching filler tokens — comfortably past the 8192-char ceiling. A real anchor
+    // query is a short phrase; this stands in for a pathological/hostile multi-100KB MCP query.
+    const filler = 'zq '.repeat(50_000);
+
+    // Within bound: 'stripe service' LEADS the query, so it survives truncation and StripeService is
+    // the top hit (and a multi-100KB query returns without pathological tokenizer work — no hang).
+    const within = await runAnchorSearch(db, `stripe service ${filler}`, { limit: 10 });
+    expect(within.results[0]?.nodeId).toBe(STRIPE);
+
+    // Beyond bound: the same matching terms sit AFTER 150 KB of filler, so truncation drops them before
+    // tokenization and StripeService is absent — direct proof the raw query is bounded before either
+    // half tokenizes it (the bound applies once, to the shared query).
+    const beyond = await runAnchorSearch(db, `${filler} stripe service`, { limit: 10 });
+    expect(beyond.results.map((r) => r.nodeId)).not.toContain(STRIPE);
+  });
+
   it('reports a genuine zero refusal coverage on a never-built index (overlay-missing)', async () => {
     // No seed: overlay-missing. The count probe is still safe (autoMigrate keeps the table present)
     // and correctly reports 0 anchor-viable nodes.
