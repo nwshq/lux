@@ -31,6 +31,7 @@ import {
 import { runAnchorSearch, anchorRefusalCoverage } from '../cli/anchor-search.js';
 import { AnchorRefusalError } from '../scanner/anchors/anchor-refusal.js';
 import { buildAnchorReport, buildAnchorRefusalReport } from '../cli/anchors-envelope.js';
+import { coerceAnchorToolArgs } from './anchor-tool-args.js';
 
 /** Confidence classes delta/trace understand. Mirrors the CLI guard (`src/cli/delta.ts`): an
  *  out-of-enum `min_confidence` (e.g. "high") must NOT reach the reverse-walk as an unknown class —
@@ -596,18 +597,23 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'lux_anchors': {
-        const { query = '', limit: rawLimit = 10 } = args as { query?: string; limit?: number };
-        const limit = Number.isFinite(rawLimit) && rawLimit >= 1 ? Math.trunc(rawLimit) : 10;
+        // Defensive arg coercion (shared, unit-tested in anchor-tool-args.test.ts): out-of-enum /
+        // wrong-type values fail safe to the defaults rather than throwing on the resident server.
+        const { query, limit, granularity, includeTests } = coerceAnchorToolArgs(args);
         try {
           const result = await runAnchorSearch(db, query, {
             limit,
             corpusPath: DEFAULT_CORPUS_PATH,
+            granularity,
+            includeTests,
           });
           const report = buildAnchorReport({
             query,
             limit,
+            granularity: result.granularity,
             results: result.results,
             lowConfidence: result.lowConfidence,
+            filters: result.filters,
             coverage: result.coverage,
           });
           emitUsageEvent(db, {
@@ -623,6 +629,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             queryText: query,
             attributes: {
               limit,
+              granularity: result.granularity,
+              includeTests,
+              excludedTestFiles: result.filters.excludedTestFiles,
               resultsCount: result.results.length,
               lowConfidence: result.lowConfidence,
             },
@@ -633,6 +642,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             const report = buildAnchorRefusalReport({
               query,
               limit,
+              granularity,
+              // A refusal ran no ranking; echo the requested test mode with a zero count so the envelope
+              // shape stays uniform with an answered query.
+              filters: {
+                tests: includeTests ? 'included' : 'excluded',
+                excludedTestFiles: 0,
+              },
               // Accurate anchor-viable count even for a non-overlay refusal over a populated index
               // (anchor-search.ts anchorRefusalCoverage); a genuine 0 for overlay/texts-absent.
               coverage: anchorRefusalCoverage(db),
@@ -653,7 +669,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               corpusPath: DEFAULT_CORPUS_PATH,
               dbPath: DEFAULT_DB_PATH,
               queryText: query,
-              attributes: { limit },
+              attributes: { limit, granularity, includeTests },
               error: { code: error.reason },
             });
             return {

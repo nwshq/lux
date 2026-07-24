@@ -175,6 +175,22 @@ const PAYMENT_CORPUS: SeedNode[] = [
   },
 ];
 
+// FILE-LEVEL token neutralization. Every block below asserts the LOCAL bge model is active (seeded
+// vectors + the real-weights smoke all key on ANCHOR_EMBED_MODEL). A developer machine that exports
+// LUX_EMBEDDING_TOKEN would otherwise flip activeModel to the API space (`openai:…`) and read 0 coverage
+// against the bge-seeded vectors — failing the whole suite in one shell state. This top-level hook runs
+// before EVERY test in the file (ahead of each describe's own beforeEach), so the anchors suite is green
+// in BOTH shell states (token set and unset).
+let __fileSavedEmbeddingToken: string | undefined;
+beforeEach(() => {
+  __fileSavedEmbeddingToken = process.env.LUX_EMBEDDING_TOKEN;
+  delete process.env.LUX_EMBEDDING_TOKEN;
+});
+afterEach(() => {
+  if (__fileSavedEmbeddingToken === undefined) delete process.env.LUX_EMBEDDING_TOKEN;
+  else process.env.LUX_EMBEDDING_TOKEN = __fileSavedEmbeddingToken;
+});
+
 describe('runAnchorSearch — semantic half (Phase 3 / T3.6, StubEmbedder, network-free)', () => {
   let dir: string;
   let db: LuxDatabase;
@@ -496,6 +512,193 @@ describe('runAnchorSearch — A2 exact-identifier short-circuit (network-free)',
 
     expect(constructed).toBe(true); // subset ≠ exact name → semantic ran
     expect(coverage.model).toBe(ANCHOR_EMBED_MODEL);
+  });
+
+  it('A2 × test-exclusion (issue #77 review): an exact TEST-symbol query runs the semantic half in default mode, but still short-circuits under --include-tests', async () => {
+    // The probe: a query whose tokens EXACTLY name a TEST symbol. The raw lexical top is that test node,
+    // but the default filter removes it — so keying the short-circuit on the raw top would skip the
+    // semantic lift for the surviving PRODUCT anchors and cite an invisible node. The fix keys on the
+    // first SURVIVING (non-test) lexical hit.
+    const PRODUCT = 'symbol:php:App\\Services\\Settlement\\SettlementService';
+    const TESTN = 'symbol:php:Tests\\Unit\\SettlementServiceTest';
+    const TEST_PATH = 'tests/Unit/SettlementServiceTest.php';
+    seedNode(db, {
+      id: PRODUCT,
+      name: 'SettlementService',
+      qualified: 'App\\Services\\Settlement\\SettlementService',
+      path: 'app/Services/Settlement/SettlementService.php',
+      context: 'orchestrates settlement of seller proceeds',
+    });
+    seedNode(db, {
+      id: TESTN,
+      name: 'SettlementServiceTest',
+      qualified: 'Tests\\Unit\\SettlementServiceTest',
+      path: TEST_PATH,
+      context: 'asserts settlement behavior',
+    });
+    const Q = 'settlement service test'; // tokens {settlement,service,test} == TESTN's identifier exactly
+    // Seed a vector on the PRODUCT sibling so, when the semantic half RUNS, it contributes → reason 'used'.
+    await seedEmbeddingFor(db, seedStub, PRODUCT, Q);
+
+    // DEFAULT (excludeTests): the raw top is TESTN (matches all 3 tokens) but is filtered out. The
+    // short-circuit keys on the first non-test hit — SettlementService, identifier {settlement,service},
+    // which is NOT the 3-token query → not exact → the semantic half RUNS. Reuse seedStub as the read
+    // embedder so the seeded vector is an exact neighbour (cosine ~1.0 clears the floor → reason 'used').
+    let constructed = false;
+    __setReadPathEmbedderFactoryForTests(() => {
+      constructed = true;
+      return Promise.resolve(seedStub);
+    });
+    const def = await runAnchorSearch(db, Q, { limit: 10 });
+    expect(constructed).toBe(true); // the fix: semantic half RAN despite the exact test-name match
+    expect(def.coverage.query).toEqual({ semanticUsed: true, reason: 'used' });
+    expect(def.results.map((r) => r.filePath)).not.toContain(TEST_PATH); // test node excluded
+    expect(def.results.map((r) => r.nodeId)).toContain(PRODUCT); // product surfaces WITH the semantic lift
+
+    // --include-tests: the raw top IS the test node whose identifier == the query tokens exactly → the
+    // short-circuit fires as before (model never loaded), and the test node is present in results. This
+    // is the legacy invariant the fix must preserve.
+    constructed = false;
+    __setReadPathEmbedderFactoryForTests(() => {
+      constructed = true;
+      throw new Error('embedder must not be constructed on the exact-identifier short-circuit');
+    });
+    const inc = await runAnchorSearch(db, Q, { limit: 10, includeTests: true });
+    expect(constructed).toBe(false); // short-circuit still fires under include-tests → no model load
+    expect(inc.coverage.query?.reason).toBe('exact-match-short-circuit');
+    expect(inc.results.map((r) => r.nodeId)).toContain(TESTN); // test node present when tests included
+  });
+
+  it("reason 'load-failed': the embedder factory rejects at read time → degrade to lexical, not a query failure", async () => {
+    // The read-path degrade branch (getSharedEmbedder/embed throws) — previously uncovered. A rejecting
+    // factory stands in for a mid-load weight failure; the query must still answer lexically.
+    for (const n of PAYMENT_CORPUS) seedNode(db, n);
+    const STRIPE = 'symbol:php:App\\Services\\Payments\\StripeService';
+    const Q = 'charge a customer credit card'; // NL (not an exact identifier) → reaches the try/catch
+    await seedEmbeddingFor(db, seedStub, STRIPE, Q); // embeddedNodes>0 so the half is attempted
+    __setReadPathEmbedderFactoryForTests(() =>
+      Promise.reject(new Error('weights load failed at read'))
+    );
+
+    const { results, coverage } = await runAnchorSearch(db, Q, { limit: 10 });
+    expect(coverage.query).toEqual({ semanticUsed: false, reason: 'load-failed' });
+    expect(coverage.model).toBeNull(); // degraded to lexical-only
+    expect(coverage.embeddedNodes).toBe(0); // per-query flat field zeroed on degrade
+    expect(coverage.index?.embeddedNodes).toBe(1); // but the STABLE index fact still shows the vector
+    expect(results.length).toBeGreaterThan(0); // lexical still answered — a degrade, not a failure
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Coverage split (issue #77 item #4) — the STABLE `coverage.index` (is the corpus embedded?) vs the
+// PER-QUERY `coverage.query` (did THIS query use the semantic half, and why). The flat fields stay
+// exactly as-is. Driven network-free through the stub seam so every branch's reason is exercised.
+// ---------------------------------------------------------------------------
+describe('runAnchorSearch — coverage split (index fact vs per-query reason)', () => {
+  let dir: string;
+  let db: LuxDatabase;
+  let stub: StubEmbedder;
+
+  // Token neutralization is handled by the file-level beforeEach/afterEach above (the local bge model
+  // must be active for the seeded vectors to be found).
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), 'lux-anchor-cov-'));
+    db = new LuxDatabase(join(dir, 'test.db'));
+    stub = new StubEmbedder({ model: ANCHOR_EMBED_MODEL });
+    __setReadPathEmbedderFactoryForTests(() => Promise.resolve(stub));
+  });
+  afterEach(() => {
+    __setReadPathEmbedderFactoryForTests(null);
+    db.close();
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('exact-identifier short-circuit: index fact stays populated while the flat per-query fields read lexical-only', async () => {
+    for (const n of PAYMENT_CORPUS) seedNode(db, n);
+    const STRIPE = 'symbol:php:App\\Services\\Payments\\StripeService';
+    await seedEmbeddingFor(db, stub, STRIPE, 'stripe service');
+
+    // 'stripe service' IS StripeService's identifier → A2 short-circuit → the model is never loaded.
+    const { coverage } = await runAnchorSearch(db, 'stripe service', { limit: 10 });
+
+    // Flat (frozen, per-query) fields: unchanged — 0/null, as before this change.
+    expect(coverage.embeddedNodes).toBe(0);
+    expect(coverage.model).toBeNull();
+    // Stable index fact: the corpus IS embedded, reported from the DB count even on the short-circuit
+    // (this is exactly the "reads as absent" detour issue #4 flagged).
+    expect(coverage.index).toEqual({
+      embeddedNodes: 1,
+      totalNodes: PAYMENT_CORPUS.length,
+      model: ANCHOR_EMBED_MODEL,
+    });
+    // Per-query fact: the reason the semantic half did not contribute.
+    expect(coverage.query).toEqual({ semanticUsed: false, reason: 'exact-match-short-circuit' });
+  });
+
+  it("reason 'used': the semantic half ran and contributed", async () => {
+    const A = 'symbol:php:App\\Contracts\\PaymentGateway';
+    seedNode(db, {
+      id: A,
+      name: 'PaymentGateway',
+      qualified: 'App\\Contracts\\PaymentGateway',
+      path: 'app/Contracts/PaymentGateway.php',
+      context: 'interface gateway charge and refund contract',
+    });
+    await seedEmbeddingFor(db, stub, A, 'gateway charge');
+    const { coverage } = await runAnchorSearch(db, 'gateway charge', { limit: 10 });
+    expect(coverage.query).toEqual({ semanticUsed: true, reason: 'used' });
+    expect(coverage.index?.embeddedNodes).toBe(1);
+    expect(coverage.index?.model).toBe(ANCHOR_EMBED_MODEL);
+    // Flat model still reports the active model when the half contributed (unchanged behavior).
+    expect(coverage.model).toBe(ANCHOR_EMBED_MODEL);
+  });
+
+  it("reason 'no-embedded-nodes': corpus has no vectors under the active model", async () => {
+    seedNode(db, {
+      id: 'symbol:php:App\\Models\\User',
+      name: 'User',
+      qualified: 'App\\Models\\User',
+      path: 'app/Models/User.php',
+      context: 'eloquent user model',
+    });
+    const { coverage } = await runAnchorSearch(db, 'user account', { limit: 10 });
+    expect(coverage.query).toEqual({ semanticUsed: false, reason: 'no-embedded-nodes' });
+    expect(coverage.index).toEqual({ embeddedNodes: 0, totalNodes: 1, model: null });
+  });
+
+  it("reason 'below-cosine-floor': the semantic half ran but every candidate fell below the floor", async () => {
+    for (const n of PAYMENT_CORPUS) seedNode(db, n);
+    const STRIPE = 'symbol:php:App\\Services\\Payments\\StripeService';
+    // An orthogonal stored vector → the query below scores it near cosine 0 (< floor). The extra token
+    // 'settlement' keeps it OFF the exact-identifier short-circuit so the half actually RUNS.
+    await seedEmbeddingFor(db, stub, STRIPE, 'alpha alpha alpha entirely unrelated');
+    const { coverage } = await runAnchorSearch(db, 'stripe service settlement', { limit: 10 });
+    expect(coverage.query).toEqual({ semanticUsed: false, reason: 'below-cosine-floor' });
+    // The half ran, so the flat model + index model both report the active model.
+    expect(coverage.model).toBe(ANCHOR_EMBED_MODEL);
+    expect(coverage.index?.model).toBe(ANCHOR_EMBED_MODEL);
+  });
+
+  it("reason 'disabled': semantic:false skips the half but the index fact is still reported", async () => {
+    const A = 'symbol:php:App\\Contracts\\PaymentGateway';
+    seedNode(db, {
+      id: A,
+      name: 'PaymentGateway',
+      qualified: 'App\\Contracts\\PaymentGateway',
+      path: 'app/Contracts/PaymentGateway.php',
+      context: 'interface gateway charge and refund contract',
+    });
+    await seedEmbeddingFor(db, stub, A, 'gateway charge');
+    const { coverage } = await runAnchorSearch(db, 'gateway charge', {
+      limit: 10,
+      semantic: false,
+    });
+    expect(coverage.query).toEqual({ semanticUsed: false, reason: 'disabled' });
+    // The stable index fact is populated regardless of the per-query skip.
+    expect(coverage.index).toEqual({ embeddedNodes: 1, totalNodes: 1, model: ANCHOR_EMBED_MODEL });
+    // Flat per-query fields read lexical-only.
+    expect(coverage.embeddedNodes).toBe(0);
+    expect(coverage.model).toBeNull();
   });
 });
 

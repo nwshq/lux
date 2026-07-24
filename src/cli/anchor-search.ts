@@ -17,9 +17,16 @@ import {
   ANCHOR_MIN_FUSED_SCORE,
   ANCHOR_MIN_LEXICAL_BM25,
   type SemanticRef,
+  type FusedEntry,
 } from '../scanner/anchors/fusion.js';
 import { AnchorRefusalError } from '../scanner/anchors/anchor-refusal.js';
-import type { AnchorResultV1, AnchorCoverageV1 } from './anchors-envelope.js';
+import { isTestPath } from '../scanner/anchors/test-path.js';
+import type {
+  AnchorResultV1,
+  AnchorCoverageV1,
+  AnchorSemanticReason,
+  AnchorFiltersV1,
+} from './anchors-envelope.js';
 // Semantic half (Phase 3) — the embeddings read surface. The barrel is this file's designated import
 // door (scanner/embeddings/index.ts doc-comment); the semantic floor + the active-model reconciliation
 // (Phase 4) come from their own fenced modules.
@@ -46,11 +53,25 @@ export interface AnchorSearchOptions {
    *  model load) is a deferred follow-up, not wired yet. Default true (undefined ⇒ semantic attempted);
    *  the `semantic:false` branch exists and is exercised by tests but has no production caller. */
   semantic?: boolean;
+  /** Result granularity (issue #77 item #3). `node` (default) returns one anchor per ranked node —
+   *  BYTE-IDENTICAL to v2.11.0 when combined with `includeTests: true`. `file` dedupes the fused
+   *  ranking by file path BEFORE the limit, keeping the best-ranked node per file as its representative
+   *  (a real node id that still round-trips through `lux trace`), and stamps `fileNodeCount` per result. */
+  granularity?: 'node' | 'file';
+  /** Test-file inclusion (issue #77 item #3). DEFAULT excludes test files (a class exploding into
+   *  method-nodes + test files flood the `--limit` cap — the consumer's measured complaint). Exclusion
+   *  happens BEFORE the limit. `includeTests: true` restores every test file (and, with
+   *  `granularity: 'node'`, the byte-identical v2.11.0 result set). */
+  includeTests?: boolean;
 }
 
 export interface AnchorSearchResult {
   results: AnchorResultV1[];
   lowConfidence: boolean;
+  /** The granularity actually applied (echoes opts.granularity ?? 'node'). */
+  granularity: 'node' | 'file';
+  /** What the test-file filter did on this query (default excludes tests). */
+  filters: AnchorFiltersV1;
   coverage: AnchorCoverageV1;
 }
 
@@ -59,6 +80,15 @@ export interface AnchorSearchResult {
  *  bare `limit`-sized pool would starve RRF of cross-corroboration candidates. Internal default (03
  *  treats the pool as an internal knob), not a frozen contract name. */
 const ANCHOR_SEMANTIC_POOL = 50;
+
+/** Candidate-pool depth for the FILTERING read path (issue #77 item #3). When test-exclusion and/or
+ *  file-rollup are active, exclusion + dedupe happen BEFORE the limit — so both halves must fetch a pool
+ *  DEEPER than `limit`, or a page full of test files / one file's method-nodes would starve the result
+ *  below `limit` real anchors. A generous but bounded depth: enough headroom for a class exploding into
+ *  method-nodes and a wave of test files, without an unbounded scan. The legacy path (node granularity
+ *  AND include-tests) keeps the exact v2.11.0 depths (lexical=`limit`, semantic=`max(limit,50)`) so its
+ *  fused ranking — and thus its `results` — stays byte-identical. Internal knob, not a contract name. */
+const ANCHOR_FILTER_POOL = 200;
 
 /** Upper bound on the raw query length, applied ONCE at the top of runAnchorSearch before any
  *  tokenization. A real concept→anchor query is a short phrase; an unbounded multi-MB `lux_anchors`
@@ -210,8 +240,21 @@ export async function runAnchorSearch(
   }
   const activeModel = activeEmbeddingModel(embeddingConfig);
 
+  // Consumer-polish options (issue #77 item #3). Test files are EXCLUDED by default; file granularity
+  // dedupes by file. When either is active the read path FILTERS/DEDUPES before the limit, so it fetches
+  // a deeper candidate pool than `limit` (below) to avoid starving the result. The legacy combination
+  // (node granularity AND include-tests) takes the exact v2.11.0 pipeline → byte-identical `results`.
+  const granularity: 'node' | 'file' = opts.granularity ?? 'node';
+  const includeTests = opts.includeTests ?? false;
+  const excludeTests = !includeTests;
+  const filteringActive = excludeTests || granularity === 'file';
+  const lexicalDepth = filteringActive ? Math.max(opts.limit, ANCHOR_FILTER_POOL) : opts.limit;
+  const semanticPoolDepth = filteringActive
+    ? Math.max(opts.limit, ANCHOR_FILTER_POOL)
+    : Math.max(opts.limit, ANCHOR_SEMANTIC_POOL);
+
   // Lexical half — always runs (throws its own invalid-query/fts-unavailable refusals).
-  const lexical: LexicalAnchorHit[] = rankAnchorsLexical(db, query, opts.limit);
+  const lexical: LexicalAnchorHit[] = rankAnchorsLexical(db, query, lexicalDepth);
 
   // Semantic half (Phase 3, spec 17 / 03 §Fusion). CACHED-ONLY read path: attempt the semantic half
   // ONLY when it is both wanted AND free of a network fetch — the embedding plane must already be
@@ -232,14 +275,41 @@ export async function runAnchorSearch(
   // answers it and the semantic half adds nothing, so we DON'T load the 34 MB embedder — semanticModel
   // stays null and confidence falls to the bm25 branch, exactly like a vectors-absent index. This is
   // deliberately narrow: any fuzzy/NL/midpoint query carries a token outside the identifier and still
-  // runs the semantic half, so the measured hybrid lift is unchanged. Gated behind the same
-  // availability check (only relevant when embeddings are enabled), evaluated AFTER the lexical rank and
-  // BEFORE getSharedEmbedder so no model load happens on the short-circuit path.
-  const semanticAvailable =
-    opts.semantic !== false && coverage.embeddedNodes > 0 && semanticReadAvailable(embeddingConfig);
-  const exactIdentifierTop =
-    lexical.length > 0 && topHitIsExactIdentifierMatch(query, lexical[0].symbolName);
-  if (semanticAvailable && !exactIdentifierTop) {
+  // runs the semantic half, so the measured hybrid lift is unchanged.
+  //
+  // The if/else chain below ALSO records WHY the semantic half was / was not used — coverage.query.reason
+  // (issue #77 item #4). It preserves the exact runtime behavior and short-circuit ORDER of the previous
+  // `semanticAvailable && !exactIdentifierTop` guard: `disabled` and `no-embedded-nodes` are checked
+  // before the weights probe (so `semanticReadAvailable` still runs only when embeddings are enabled),
+  // and the exact-identifier check is reached only when the half is otherwise available.
+  // The A2 short-circuit must key on the lexical top hit that SURVIVES the active filters, not the raw
+  // top. In default (test-excluding) mode, a query that exactly names a TEST symbol (e.g. "settlement
+  // service test" → SettlementServiceTest) would otherwise short-circuit on that test node — skipping
+  // the semantic half — and then have that node filtered out of results, leaving the surviving PRODUCT
+  // anchors lift-less and coverage.query.reason referencing an invisible node (issue #77 review). So:
+  // when excludeTests, the effective top is the first NON-test lexical hit; when includeTests, it is the
+  // raw first hit (unchanged → legacy `--include-tests --granularity node` byte-identity preserved). If
+  // every lexical hit is a test (excludeTests), there is no surviving top to short-circuit on ⇒ run the
+  // semantic half (undefined ⇒ the `&&` below is false).
+  const shortCircuitTopHit = excludeTests
+    ? lexical.find((h) => !isTestPath(h.filePath))
+    : lexical[0];
+  let semanticReason: AnchorSemanticReason;
+  if (opts.semantic === false) {
+    semanticReason = 'disabled';
+  } else if (coverage.embeddedNodes === 0) {
+    semanticReason = 'no-embedded-nodes';
+  } else if (!semanticReadAvailable(embeddingConfig)) {
+    // Vectors exist, but the cached-only read path has no local weights (and no API token) — degrade to
+    // lexical without a fetch (mirrors the index tail). This is the read-path cached-only stance.
+    semanticReason = 'weights-not-cached';
+  } else if (
+    shortCircuitTopHit &&
+    topHitIsExactIdentifierMatch(query, shortCircuitTopHit.symbolName)
+  ) {
+    // A2 — evaluated AFTER the lexical rank and BEFORE getSharedEmbedder so no model load happens here.
+    semanticReason = 'exact-match-short-circuit';
+  } else {
     try {
       const embedder = await getSharedEmbedder(embeddingConfig);
       // embedQuery applies BGE_QUERY_PREFIX (the passage/query asymmetry, OQ2); the passage side never
@@ -247,12 +317,14 @@ export async function runAnchorSearch(
       // drop the sub-floor nearest-anything noise. Survivors keep descending order, so the 1-based
       // semanticRank is intact after the filter.
       const qVec = await embedder.embedQuery(query);
-      const hits = topCosine(qVec, db, Math.max(opts.limit, ANCHOR_SEMANTIC_POOL), embedder.model);
+      const hits = topCosine(qVec, db, semanticPoolDepth, embedder.model);
       semantic = hits
         .filter((h) => h.score >= ANCHOR_MIN_COSINE)
         .map((h, i) => ({ nodeId: h.nodeId, semanticRank: i + 1, cosine: h.score }));
       semanticModel = embedder.model;
       embeddedNodes = coverage.embeddedNodes;
+      // The half ran; it CONTRIBUTED iff at least one candidate cleared the cosine floor.
+      semanticReason = semantic.length > 0 ? 'used' : 'below-cosine-floor';
     } catch {
       // A weights-unavailable / mid-load failure at read time degrades to lexical-only rather than
       // failing the whole query: the semantic half is a lift, not a prerequisite (03 §Fusion, floor,
@@ -260,17 +332,19 @@ export async function runAnchorSearch(
       semantic = [];
       semanticModel = null;
       embeddedNodes = 0;
+      semanticReason = 'load-failed';
     }
   }
 
-  const fused = fuseRrf(
+  // Fuse the two rank lists. The lexical hit map resolves per-result metadata (semantic-only nodes fall
+  // back to a node lookup). `fusedAll` is the WHOLE fused ranking; the slice/filter/dedupe below decide
+  // what reaches the limit — kept separate so the filtering path can act on the full pool.
+  const lexByNode = new Map(lexical.map((h) => [h.nodeId, h]));
+  const fusedAll = fuseRrf(
     lexical.map((h) => ({ nodeId: h.nodeId, lexicalRank: h.lexicalRank })),
     semantic
-  ).slice(0, opts.limit);
-
-  // Attach node metadata: from the lexical hit map, else (semantic-only, Phase 3) a node lookup.
-  const lexByNode = new Map(lexical.map((h) => [h.nodeId, h]));
-  const results: AnchorResultV1[] = fused.map((f) => {
+  );
+  const toResult = (f: FusedEntry): AnchorResultV1 => {
     const meta = lexByNode.get(f.nodeId);
     if (meta) {
       return {
@@ -298,7 +372,50 @@ export async function runAnchorSearch(
       cosine: f.cosine,
       fusedScore: f.fusedScore,
     };
-  });
+  };
+
+  let results: AnchorResultV1[];
+  let excludedTestFiles = 0;
+  if (!filteringActive) {
+    // Legacy path (node granularity AND include-tests): slice to limit then map — BYTE-IDENTICAL to
+    // v2.11.0. No test-exclusion, no file rollup, no widened pool.
+    results = fusedAll.slice(0, opts.limit).map(toResult);
+  } else {
+    // Filtering path: materialize the full pool, then apply test-exclusion + file-rollup BEFORE the
+    // limit so the cap means N product-code (and, in file mode, N distinct-file) anchors.
+    let pool = fusedAll.map(toResult);
+    if (excludeTests) {
+      const droppedFiles = new Set<string>();
+      pool = pool.filter((r) => {
+        if (isTestPath(r.filePath)) {
+          droppedFiles.add(r.filePath);
+          return false;
+        }
+        return true;
+      });
+      excludedTestFiles = droppedFiles.size;
+    }
+    if (granularity === 'file') {
+      // Roll up to one representative per file: the FIRST occurrence of a path in fused-sorted order is
+      // its best-ranked node (a real node id — round-trips through `lux trace`). fileNodeCount is the
+      // count of that file's ranked candidates in the POST-test-exclusion pool.
+      // Rollup key = the node's raw file_path string (case-sensitive, exact): correct because within one
+      // corpus a file has a single canonical path (structural_nodes.file_path is written once per file);
+      // this is NOT a cross-OS path-equality normalizer.
+      const fileNodeCounts = new Map<string, number>();
+      for (const r of pool)
+        fileNodeCounts.set(r.filePath, (fileNodeCounts.get(r.filePath) ?? 0) + 1);
+      const seen = new Set<string>();
+      const deduped: AnchorResultV1[] = [];
+      for (const r of pool) {
+        if (seen.has(r.filePath)) continue;
+        seen.add(r.filePath);
+        deduped.push({ ...r, fileNodeCount: fileNodeCounts.get(r.filePath) ?? 1 });
+      }
+      pool = deduped;
+    }
+    results = pool.slice(0, opts.limit);
+  }
 
   // Confidence floor (Decision-Fusion) — two modes (T1.8), keyed on whether the semantic half
   // CONTRIBUTED, not merely whether it RAN:
@@ -326,10 +443,36 @@ export async function runAnchorSearch(
     }
   }
 
+  // Coverage split (issue #77 item #4). The frozen flat fields stay EXACTLY as-is (back-compat):
+  // `embeddedNodes`/`model` are PER-QUERY (0/null when the semantic half did not contribute — e.g. the
+  // A2 short-circuit), `anchorViableNodes` is the stable total. The additive `index` sub-object is the
+  // STABLE corpus fact — the DB count under the active model, populated on EVERY answered query
+  // INCLUDING the short-circuit (a cheap count already read above; no model load), so "is the corpus
+  // embedded?" no longer reads as absent when a query answered lexically. `query` is the per-query
+  // semantic-usage fact + the grounded reason. `index.model` is the active model iff ≥1 fresh vector
+  // exists under it (D11 — reads never mix embedding spaces), else null.
   return {
     results,
     lowConfidence,
-    coverage: { embeddedNodes, anchorViableNodes, model: semanticModel },
+    granularity,
+    filters: {
+      tests: includeTests ? 'included' : 'excluded',
+      excludedTestFiles,
+    },
+    coverage: {
+      embeddedNodes,
+      anchorViableNodes,
+      model: semanticModel,
+      index: {
+        embeddedNodes: coverage.embeddedNodes,
+        totalNodes: coverage.anchorViableNodes,
+        model: coverage.embeddedNodes > 0 ? activeModel : null,
+      },
+      query: {
+        semanticUsed: semanticReason === 'used',
+        reason: semanticReason,
+      },
+    },
   };
 }
 

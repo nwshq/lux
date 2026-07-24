@@ -184,6 +184,23 @@ export const TOOLS: Tool[] = [
       properties: {
         query: { type: 'string', description: 'The concept to mint anchors from' },
         limit: { type: 'number', description: 'Maximum anchors to return', default: 10 },
+        granularity: {
+          type: 'string',
+          enum: ['node', 'file'],
+          description:
+            'Result granularity. `node` (default) returns one anchor per ranked symbol; `file` dedupes ' +
+            'by file path before the limit, returning one representative anchor per file (a real node id ' +
+            'that still round-trips through lux_trace) plus a per-result `fileNodeCount`.',
+          default: 'node',
+        },
+        include_tests: {
+          type: 'boolean',
+          description:
+            'Include test files. Default false: test files are excluded before the limit so the cap ' +
+            'means N product-code anchors. Set true to restore them (with granularity=node this is the ' +
+            'byte-identical pre-2.12 result set).',
+          default: false,
+        },
       },
       required: ['query'],
     },

@@ -10,6 +10,8 @@ import { buildAnchorReport, buildAnchorRefusalReport } from './anchors-envelope.
 interface AnchorsCommandOptions {
   limit: string;
   json?: boolean;
+  granularity: string;
+  includeTests?: boolean;
 }
 
 export function registerAnchorsCommand(program: Command): void {
@@ -18,6 +20,15 @@ export function registerAnchorsCommand(program: Command): void {
     .description('Rank structural-node anchors (symbols) from a natural-language concept query')
     .argument('<query>', 'the concept to mint anchors from')
     .option('--limit <n>', 'max anchors to return', '10')
+    .option(
+      '--granularity <mode>',
+      'result granularity: node (one anchor per symbol) or file (one representative anchor per file)',
+      'node'
+    )
+    .option(
+      '--include-tests',
+      'include test files (excluded by default so the limit means N product-code anchors)'
+    )
     .option('--json', 'emit the schemaVersion:1 anchors envelope')
     .action(async (query: string, options: AnchorsCommandOptions) => {
       // --corpus / --db are GLOBAL program options (index.ts:81-82), read via program.opts() like
@@ -38,9 +49,25 @@ export function registerAnchorsCommand(program: Command): void {
         return;
       }
 
+      // Validate --granularity up front (an out-of-enum value is a usage error, exit 2).
+      if (options.granularity !== 'node' && options.granularity !== 'file') {
+        console.error(
+          `Error: --granularity must be 'node' or 'file' (got '${options.granularity}').`
+        );
+        process.exitCode = 2;
+        return;
+      }
+      const granularity = options.granularity;
+      const includeTests = options.includeTests === true;
+
       const db = new LuxDatabase(dbPath);
       try {
-        const result = await runAnchorSearch(db, query, { limit, corpusPath });
+        const result = await runAnchorSearch(db, query, {
+          limit,
+          corpusPath,
+          granularity,
+          includeTests,
+        });
 
         if (options.json) {
           console.log(
@@ -48,8 +75,10 @@ export function registerAnchorsCommand(program: Command): void {
               buildAnchorReport({
                 query,
                 limit,
+                granularity: result.granularity,
                 results: result.results,
                 lowConfidence: result.lowConfidence,
+                filters: result.filters,
                 coverage: result.coverage,
               }),
               null,
@@ -73,6 +102,9 @@ export function registerAnchorsCommand(program: Command): void {
           queryText: query,
           attributes: {
             limit,
+            granularity: result.granularity,
+            includeTests,
+            excludedTestFiles: result.filters.excludedTestFiles,
             resultsCount: result.results.length,
             lowConfidence: result.lowConfidence,
             embeddedNodes: result.coverage.embeddedNodes,
@@ -91,6 +123,13 @@ export function registerAnchorsCommand(program: Command): void {
                 buildAnchorRefusalReport({
                   query,
                   limit,
+                  granularity,
+                  // A refusal ran no ranking, so it dropped nothing; echo the requested test mode with a
+                  // zero count so the envelope shape stays uniform with an answered query.
+                  filters: {
+                    tests: includeTests ? 'included' : 'excluded',
+                    excludedTestFiles: 0,
+                  },
                   coverage,
                   refusal: {
                     reason: error.reason,
@@ -120,7 +159,7 @@ export function registerAnchorsCommand(program: Command): void {
             exitCode: 1,
             corpusPath,
             queryText: query,
-            attributes: { limit },
+            attributes: { limit, granularity, includeTests },
             error: { code: error.reason },
           });
           process.exitCode = 1;
@@ -139,15 +178,33 @@ function renderAnchorsText(
 ): void {
   if (result.results.length === 0) {
     console.log(`No anchors found for: ${query}`);
+    if (result.filters.tests === 'excluded' && result.filters.excludedTestFiles > 0) {
+      // Don't let the default silently swallow the only matches; point at the restore flag.
+      console.log(
+        `  (${result.filters.excludedTestFiles} test file(s) were excluded — pass --include-tests to keep them.)`
+      );
+    }
     console.log('  (documents/content? try `lux search`.)'); // reciprocal hand-off
     return;
   }
+  // Coverage line: the STABLE corpus fact ("is the corpus embedded?") is separate from whether THIS
+  // query used the semantic half — so a lexical-answered query over an embedded corpus no longer reads
+  // as "no embeddings yet" (issue #77 item #4). Fall back to the flat field if the split is absent.
   const cov = result.coverage;
+  const index = cov.index;
   const covLine =
-    cov.model === null
-      ? 'lexical-only (no embeddings yet)'
-      : `hybrid — ${cov.embeddedNodes}/${cov.anchorViableNodes} nodes embedded under ${cov.model}`;
-  console.log(`\nAnchors for "${query}" (${result.results.length}, ${covLine}):\n`);
+    !index || index.model === null
+      ? 'corpus not embedded (lexical-only)'
+      : cov.query?.semanticUsed
+        ? `hybrid — ${index.embeddedNodes}/${index.totalNodes} nodes embedded under ${index.model}`
+        : `lexical-only this query (${cov.query?.reason ?? 'n/a'}); corpus embedded ${index.embeddedNodes}/${index.totalNodes} under ${index.model}`;
+  const filterNote =
+    result.filters.tests === 'excluded' && result.filters.excludedTestFiles > 0
+      ? `, ${result.filters.excludedTestFiles} test file(s) excluded`
+      : '';
+  console.log(
+    `\nAnchors for "${query}" (${result.results.length}, ${result.granularity} granularity, ${covLine}${filterNote}):\n`
+  );
   if (result.lowConfidence) {
     console.log(
       '  ⚠ low confidence — the top hit clears no confidence floor; treat as a suggestion,'
@@ -155,8 +212,9 @@ function renderAnchorsText(
     console.log('    not a seed to fire structural ops on unprompted.\n');
   }
   for (const r of result.results) {
+    const fileNote = r.fileNodeCount !== undefined ? ` [${r.fileNodeCount} node(s) in file]` : '';
     console.log(
-      `[${r.symbolKind}] ${r.qualifiedName ?? r.symbolName}  (${r.matchedVia}, score ${r.fusedScore.toFixed(4)})`
+      `[${r.symbolKind}] ${r.qualifiedName ?? r.symbolName}  (${r.matchedVia}, score ${r.fusedScore.toFixed(4)})${fileNote}`
     );
     console.log(`  Path: ${r.filePath}`);
     console.log(`  → lux trace ${r.nodeId}`); // ready-to-paste next op (03 §The surface)

@@ -27,7 +27,7 @@ artifacts carry their tag version. A source-tree checkout therefore reports `0.0
 - `lux migrate status|up|create`
 - `lux deps graph|clusters|impact|coverage`
 - `lux trace <symbol>`
-- `lux anchors <query> [--limit <n>] [--json]`
+- `lux anchors <query> [--limit <n>] [--granularity node|file] [--include-tests] [--json]`
 - `lux delta [--base <ref>] [--check] [--fail-on <list>] [--json]`
 - `lux vendor-pack build|status`
 - `lux usage report`
@@ -37,6 +37,7 @@ artifacts carry their tag version. A source-tree checkout therefore reports `0.0
 ## Current MCP surface
 
 From `src/mcp/server.ts`:
+
 - `lux_search`
 - `lux_log_event`
 - `lux_get_file`
@@ -66,9 +67,9 @@ default `overlay-not-complete`. Unknown categories hard-error; a configured-but-
 # lux.yaml
 delta:
   gates:
-    - overlay-not-complete    # overlay trust below overlay-complete
-    - client-gap-created      # diff removes a client handler a kernel route expects
-    - budget-truncated        # reverse walk exhausted its budget — blast radius unknown
+    - overlay-not-complete # overlay trust below overlay-complete
+    - client-gap-created # diff removes a client handler a kernel route expects
+    - budget-truncated # reverse walk exhausted its budget — blast radius unknown
     # Phase 4, require --baseline-db:
     - boundary-edge-added
     - surface-removed
@@ -83,7 +84,7 @@ refusal.
 ```yaml
 - uses: actions/checkout@v4
   with:
-    fetch-depth: 0            # delta needs the base commit reachable (no shallow clone)
+    fetch-depth: 0 # delta needs the base commit reachable (no shallow clone)
 - run: npm ci && npx lux index rebuild
 - run: npx lux delta --check --fail-on overlay-not-complete,client-gap-created --base "$GITHUB_BASE_REF"
 ```
@@ -105,6 +106,21 @@ lux delta --check --fail-on overlay-not-complete || {
 concept. The ranker's lexical half always runs; a semantic half fuses in once the anchor plane is
 embedded. Embedding is **opt-in** and, by default, **native-free and fully on-machine**:
 
+- `--granularity file` dedupes the ranking by file **before** the limit, returning one representative
+  anchor per file (still a real node id) with a `fileNodeCount`, so `--limit N` means N distinct files.
+  The default `node` returns one anchor per symbol.
+- Test files are **excluded before the limit** by default (so the cap isn't flooded by test
+  classes/method-nodes); pass `--include-tests` to restore them. The `--json` envelope reports what the
+  filter did in `filters` and splits `coverage` into a stable `coverage.index` (is the corpus embedded?)
+  and a per-query `coverage.query` (did this query use the semantic half, and why).
+
+> **Note — 2.12 default output can differ from 2.11 beyond dropping tests.** With any filter active
+> (test-exclusion is on by default, or `--granularity file`), ranking fuses over a **deeper candidate
+> pool (200)** than 2.11's `limit`-sized pool, which can **reorder** results, upgrade `matchedVia` to
+> `both`, raise `fusedScore`, and flip `lowConfidence` — even on a corpus with **no test files**. This
+> is intentional. Only `--include-tests --granularity node` reproduces 2.11.0 byte-identically.
+> `filters.excludedTestFiles` and `fileNodeCount` count within that pool, so both are bounded at 200.
+
 - Default install: no embeddings. `lux index rebuild --embeddings` fetches the pinned local bge model
   (~34 MB, one-time) and embeds the plane; nothing leaves the machine.
 - Routine `lux index rebuild`/`sync` stay cached-only — they embed iff the weights are already local
@@ -115,8 +131,8 @@ embedded. Embedding is **opt-in** and, by default, **native-free and fully on-ma
 ```yaml
 # lux.yaml — the entire embedding config surface (optional; absent ⇒ native-free local default)
 embedding:
-  provider: openai                 # optional: openai (the sole shipped provider)
-  model: text-embedding-3-small    # optional: provider default applies
+  provider: openai # optional: openai (the sole shipped provider)
+  model: text-embedding-3-small # optional: provider default applies
   # NO token key. The API path is selected by the LUX_EMBEDDING_TOKEN env var; an inline
   # `embedding.token` here is REJECTED at load (fail-closed) and must be rotated — a key written to
   # a committed file must be considered leaked.

@@ -150,18 +150,58 @@ on concept-spread questions. For documents/content use `lux_search` instead; thi
 ```json
 {
   "query": "string",
-  "limit": 10
+  "limit": 10,
+  "granularity": "node",
+  "include_tests": false
 }
 ```
 
-Only `query` is required; `limit` is truncated to a positive integer (defaults to 10). The response is
-the `buildAnchorReport` envelope (ranked anchor ids, a `lowConfidence` flag, and anchor-plane
-`coverage`).
+Only `query` is required; `limit` is truncated to a positive integer (defaults to 10).
+
+- `granularity` (`node` | `file`, default `node`) — `node` returns one anchor per ranked symbol.
+  `file` dedupes the fused ranking by file path **before** the limit, returning one representative
+  anchor per file — the best-ranked node for that file, still a real node id `lux_trace` accepts
+  verbatim — with an additive `fileNodeCount` per result (how many ranked nodes the file contributed,
+  counted within the pre-cap candidate pool; pool-bounded, see the note below).
+- `include_tests` (boolean, default `false`) — test files are **excluded before the limit** by default,
+  so the cap means N product-code anchors instead of being flooded by test classes/method-nodes. Set
+  `true` to restore them; with `granularity: node` that is byte-identical to the pre-2.12 result set.
+
+> **⚠ Default-mode output can differ from 2.11 beyond test exclusion.** When any filter is active
+> (test-exclusion is on by default, or `granularity: file`), the ranker fuses over a **deeper candidate
+> pool (200)** than the plain `limit`-sized pool 2.11 used. A deeper pool can **reorder** results,
+> **upgrade** a hit's `matchedVia` to `both`, **raise** its `fusedScore`, and **change** `lowConfidence`
+> — this can happen even on a corpus with **zero test files**. This is intended (it is what lets
+> exclusion/rollup act on more than the top `limit`). The **only** mode byte-identical to 2.11.0 is
+> `include_tests: true` **and** `granularity: node`.
+
+**Argument coercion (MCP only, fail-safe):** an out-of-enum `granularity` (e.g. `"File"`, `"symbol"`)
+coerces to `node`, and a non-boolean `include_tests` (e.g. the **string** `"true"`) coerces to `false`
+— an injectable value must not crash the resident server. (The CLI, a human surface, instead **errors
+with exit 2** on a bad `--granularity`.) Consumers should read back the echoed top-level `granularity`
+and `filters` to confirm the effective values.
+
+The response is the `buildAnchorReport` envelope: ranked anchor ids, top-level `granularity`, a
+`lowConfidence` flag, `filters` (`{ tests: "excluded" | "included", excludedTestFiles }`), and
+`coverage`. `filters.excludedTestFiles` counts the **distinct test file paths** removed from the pre-cap
+candidate pool; it may exceed `limit`/`results.length` and is pool-bounded (≤ 200, like `fileNodeCount`).
+`coverage` keeps the frozen flat fields (`embeddedNodes`/`anchorViableNodes`/`model`, which
+are **per-query** — `embeddedNodes`/`model` are `0`/`null` when the semantic half did not contribute,
+e.g. the exact-identifier short-circuit) and adds two disambiguating sub-objects:
+
+- `coverage.index` = `{ embeddedNodes, totalNodes, model }` — the **stable corpus fact**, populated on
+  every answered query (including the short-circuit) from a cheap count, so "is the corpus embedded?"
+  never reads as absent just because a query answered lexically. `totalNodes` is the same count as the
+  flat `coverage.anchorViableNodes` (kept flat for back-compat).
+- `coverage.query` = `{ semanticUsed, reason }` — the **per-query** semantic-usage fact. `reason` is one
+  of `used`, `exact-match-short-circuit`, `no-embedded-nodes`, `weights-not-cached`,
+  `below-cosine-floor`, `load-failed`, `disabled`.
 
 **Refusal behavior:** an anchor refusal (e.g. the anchor plane is not embedded/available) returns
-`isError: true` with the `buildAnchorRefusalReport` envelope — `refusal.reason`/`expression` plus an
-accurate anchor-viable `coverage` count (non-zero even for a non-overlay refusal over a populated
-index; a genuine `0` when the overlay or prepared texts are absent).
+`isError: true` with the `buildAnchorRefusalReport` envelope — `refusal.reason`/`expression`, the
+echoed `granularity`/`filters`, plus an accurate anchor-viable `coverage` count (non-zero even for a
+non-overlay refusal over a populated index; a genuine `0` when the overlay or prepared texts are
+absent). A refusal carries the flat `coverage` fields only (no `index`/`query` — it ran no query).
 
 ## `lux_delta`
 
