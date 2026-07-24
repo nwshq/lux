@@ -59,6 +59,9 @@ jobs:
       - name: Architecture tests
         run: npm run test:architecture
 
+      - name: Docs surface check
+        run: npm run verify:docs-surface
+
       - name: Dead code check
         run: npm run validate:dead-code
 
