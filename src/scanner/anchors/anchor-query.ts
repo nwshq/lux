@@ -106,7 +106,18 @@ const ANCHOR_STOPWORDS = new Set<string>([
 
 /** Split a query into tokens mirroring the index's FTS5 unicode61 tokenizer (fold diacritics,
  *  Unicode-lowercase, split on non-letter/number). A \p{L}\p{N} token can never contain a quote or an
- *  FTS operator char, so quoting it downstream is injection-safe. */
+ *  FTS operator char, so quoting it downstream is injection-safe.
+ *
+ *  ACCEPTED APPROXIMATION (A4, no behavior change): this hand-rolled NFKD + strip-combining-marks +
+ *  Unicode-property split is a faithful but NOT bit-exact reproduction of the index's FTS5 unicode61
+ *  tokenizer. It agrees with unicode61 on the common surface (Latin, Cyrillic, CJK, accented forms —
+ *  verified against node-sqlite3-wasm) but MAY diverge on exotic scripts where unicode61's internal
+ *  category tables classify a codepoint differently than JS's \p{L}/\p{N}/\p{M}. Any such divergence is
+ *  recall-only — a query term might tokenize slightly differently and miss a row it could have matched —
+ *  and can NEVER cause a false match or an injection (each token is still a \p{L}\p{N} literal, quoted
+ *  and bound as a MATCH ? parameter). Exact unicode61 parity would require linking the WASM SQLite
+ *  build's own tokenizer/category tables, which this module deliberately does not depend on. Treat a
+ *  reported exotic-script recall gap as an accepted limitation of this approximation, not a bug. */
 function tokenize(query: string): string[] {
   return query
     .normalize('NFKD') // decompose accented letters so the combining marks can be stripped
@@ -129,15 +140,36 @@ function tokenize(query: string): string[] {
  *    the whole expression is still bound as a `MATCH ?` parameter downstream (no injection surface).
  */
 export function buildAnchorMatchExpression(query: string): string {
-  const all = tokenize(query);
-  if (all.length === 0) {
+  // Single tokenizer source of truth: the content tokens are exactly what anchorQueryContentTokens
+  // returns (tokenize → drop stopwords → un-stopworded fallback), so the exact-identifier short-circuit
+  // (A2) and the MATCH expression can never drift apart. This function additionally dedupes, caps, and
+  // quotes. An empty/tokenless query yields no content tokens → invalid-query (matches L0).
+  const content = anchorQueryContentTokens(query);
+  if (content.length === 0) {
     throw new SearchRefusalError(
       'invalid-query',
       query,
       'Empty anchor query. Provide at least one term.'
     );
   }
-  const kept = all.filter((t) => !ANCHOR_STOPWORDS.has(t));
-  const terms = [...new Set(kept.length > 0 ? kept : all)].slice(0, MAX_ANCHOR_TERMS);
+  const terms = [...new Set(content)].slice(0, MAX_ANCHOR_TERMS);
   return terms.map((t) => `"${t}"`).join(' OR ');
+}
+
+/**
+ * The query's CONTENT tokens — exactly the term set the lexical MATCH expression is built from
+ * (`buildAnchorMatchExpression`): tokenize by the FTS5-unicode61-mirroring `tokenize`, drop stopwords,
+ * and fall back to the un-stopworded tokens when every token was a stopword (so "how to" still yields
+ * terms). Order-preserving, NOT deduped or capped (a caller doing a subset check does not need either;
+ * the MATCH builder applies dedupe/cap itself). Returns `[]` only for an empty/tokenless query.
+ *
+ * Used by the cold-CLI exact-identifier short-circuit (A2, cli/anchor-search.ts) to decide whether a
+ * query IS literally a symbol name: it is iff EVERY content token here appears in the top lexical hit's
+ * identifier tokens. Exposing this from the query builder keeps the short-circuit's notion of "query
+ * tokens" identical to what actually drove the lexical ranking — never a second, drifting tokenizer.
+ */
+export function anchorQueryContentTokens(query: string): string[] {
+  const all = tokenize(query);
+  const kept = all.filter((t) => !ANCHOR_STOPWORDS.has(t));
+  return kept.length > 0 ? kept : all;
 }

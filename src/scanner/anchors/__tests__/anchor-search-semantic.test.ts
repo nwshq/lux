@@ -327,15 +327,24 @@ describe('runAnchorSearch — semantic half (Phase 3 / T3.6, StubEmbedder, netwo
     // still reports the model (the plane IS populated; only the confidence predicate changes).
     for (const n of PAYMENT_CORPUS) seedNode(db, n);
 
-    // StripeService gets a stored vector for an ORTHOGONAL concept, so the query 'stripe service' scores
-    // it near cosine 0 (< 0.4) → the semantic list filters to []. embeddedNodes>0 so the semantic half
-    // genuinely RUNS (semanticReadAvailable true via the stub factory), but it CONTRIBUTES nothing.
+    // StripeService gets a stored vector for an ORTHOGONAL concept, so the query below scores it near
+    // cosine 0 (< 0.4) → the semantic list filters to []. embeddedNodes>0 so the semantic half genuinely
+    // RUNS (semanticReadAvailable true via the stub factory), but it CONTRIBUTES nothing.
     const STRIPE = 'symbol:php:App\\Services\\Payments\\StripeService';
     await seedEmbeddingFor(db, stub, STRIPE, 'alpha alpha alpha entirely unrelated concept');
 
-    const { results, coverage, lowConfidence } = await runAnchorSearch(db, 'stripe service', {
-      limit: 10,
-    });
+    // NOTE (A2): the query carries a third token ('settlement', in StripeService's context but NOT in its
+    // identifier {stripe, service}) precisely so it is NOT an exact-identifier match and the semantic
+    // half still RUNS — this test's whole point. A bare 'stripe service' would trip the A2 cold-CLI
+    // short-circuit (query IS the symbol name → lexical-only, model never loaded), which is a DIFFERENT
+    // path with its own test; here we need the run-but-below-floor path that stresses the confidence mode.
+    const { results, coverage, lowConfidence } = await runAnchorSearch(
+      db,
+      'stripe service settlement',
+      {
+        limit: 10,
+      }
+    );
 
     // The strong lexical top survives and is NOT wrongly flagged (pre-fix: hybrid branch on a pure-
     // lexical fused ~1/61 < 0.025 → true). matchedVia is 'lexical' — the semantic half contributed nothing.
@@ -386,6 +395,107 @@ describe('runAnchorSearch — semantic half (Phase 3 / T3.6, StubEmbedder, netwo
     });
     expect(coverage.model).toBeNull(); // semantic half not attempted despite vectors + a stub factory
     expect(coverage.embeddedNodes).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// A2 — cold-CLI lexical-first short-circuit (SAFE, exact-identifier match only). When the query IS
+// literally a symbol name, the semantic half adds nothing, so runAnchorSearch must answer lexical-only
+// WITHOUT constructing the embedder (the avoidable 34 MB cold-CLI load). Proven network-free via the
+// read-path factory seam: a factory that RECORDS whether it was reached (and throws) proves the exact
+// path never loads the model; a working-stub factory proves a fuzzy query still runs the semantic half.
+// The narrow safety property (a fuzzy/NL query does NOT short-circuit) is what keeps the measured
+// hybrid lift unchanged — the live battery validates the numbers, these tests validate the mechanism.
+// ---------------------------------------------------------------------------
+describe('runAnchorSearch — A2 exact-identifier short-circuit (network-free)', () => {
+  let dir: string;
+  let db: LuxDatabase;
+  let seedStub: StubEmbedder;
+
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), 'lux-anchor-a2-'));
+    db = new LuxDatabase(join(dir, 'test.db'));
+    // Used ONLY to seed stored passage vectors (so coverage.embeddedNodes > 0 — the semantic half is
+    // genuinely AVAILABLE). The read-path factory is set per-test to observe whether it is reached.
+    seedStub = new StubEmbedder({ model: ANCHOR_EMBED_MODEL });
+  });
+  afterEach(() => {
+    __setReadPathEmbedderFactoryForTests(null); // restore production factory + cached-only gate + memo
+    db.close();
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('an exact symbol-name query returns lexical-only and NEVER constructs the embedder', async () => {
+    for (const n of PAYMENT_CORPUS) seedNode(db, n);
+    // A stored vector makes the semantic half AVAILABLE (embeddedNodes > 0) — so it is the short-circuit,
+    // not an empty vector plane, that skips it. StripeService is a perfect semantic neighbour of the
+    // query text; if the semantic half ran it WOULD surface, so its absence-from-semantic is meaningful.
+    const STRIPE = 'symbol:php:App\\Services\\Payments\\StripeService';
+    await seedEmbeddingFor(db, seedStub, STRIPE, 'stripe service');
+
+    // Read-path factory RECORDS if reached, then throws — a working embedder is never needed on this
+    // path. If the short-circuit regressed, getSharedEmbedder would call this (constructed → true).
+    let constructed = false;
+    __setReadPathEmbedderFactoryForTests(() => {
+      constructed = true;
+      throw new Error('embedder must not be constructed on an exact-identifier short-circuit');
+    });
+
+    // 'stripe service' — its content tokens {stripe, service} are exactly the identifier tokens of
+    // StripeService (the top lexical hit), so the query IS the symbol name → short-circuit.
+    const { results, coverage } = await runAnchorSearch(db, 'stripe service', { limit: 10 });
+
+    // The proof the model was never loaded: the recording factory was never invoked. (coverage.model
+    // being null alone would NOT prove this — a thrown factory is caught and also degrades to null.)
+    expect(constructed).toBe(false);
+    expect(coverage.model).toBeNull(); // lexical-only outcome (semanticModel:null → bm25 confidence)
+    expect(coverage.embeddedNodes).toBe(0);
+    expect(results[0].nodeId).toBe(STRIPE);
+    expect(results[0].matchedVia).toBe('lexical');
+  });
+
+  it('a fuzzy (non-exact-identifier) query still runs the semantic half — the embedder IS constructed', async () => {
+    for (const n of PAYMENT_CORPUS) seedNode(db, n);
+    const STRIPE = 'symbol:php:App\\Services\\Payments\\StripeService';
+    const Q = 'charge a customer credit card'; // NL: no single top-hit identifier holds all its tokens
+    await seedEmbeddingFor(db, seedStub, STRIPE, Q);
+
+    // Read-path factory returns a WORKING stub and records that it was reached.
+    let constructed = false;
+    const readStub = new StubEmbedder({ model: ANCHOR_EMBED_MODEL });
+    __setReadPathEmbedderFactoryForTests(() => {
+      constructed = true;
+      return Promise.resolve(readStub);
+    });
+
+    const { coverage } = await runAnchorSearch(db, Q, { limit: 10 });
+
+    // The short-circuit did NOT fire (fuzzy query) → the embedder was constructed and the semantic half
+    // ran, exactly as before A2. This is the invariant that keeps the hybrid lift intact.
+    expect(constructed).toBe(true);
+    expect(coverage.model).toBe(ANCHOR_EMBED_MODEL);
+    expect(coverage.embeddedNodes).toBeGreaterThan(0);
+  });
+
+  it('a proper-SUBSET query (not the full name) does NOT short-circuit — semantic still runs (set-equality, not subset)', async () => {
+    for (const n of PAYMENT_CORPUS) seedNode(db, n);
+    const STRIPE = 'symbol:php:App\\Services\\Payments\\StripeService';
+    // 'stripe' — its content tokens {stripe} are a PROPER SUBSET of StripeService's identifier tokens
+    // {stripe, service}, so the query is NOT the symbol's name. Under the fixed set-equality rule this
+    // must NOT short-circuit — semantic may promote a differently-named node, so the model MUST load.
+    // (A plain subset check would have wrongly skipped it, changing the envelope for a non-name query.)
+    await seedEmbeddingFor(db, seedStub, STRIPE, 'stripe');
+    let constructed = false;
+    const readStub = new StubEmbedder({ model: ANCHOR_EMBED_MODEL });
+    __setReadPathEmbedderFactoryForTests(() => {
+      constructed = true;
+      return Promise.resolve(readStub);
+    });
+
+    const { coverage } = await runAnchorSearch(db, 'stripe', { limit: 10 });
+
+    expect(constructed).toBe(true); // subset ≠ exact name → semantic ran
+    expect(coverage.model).toBe(ANCHOR_EMBED_MODEL);
   });
 });
 

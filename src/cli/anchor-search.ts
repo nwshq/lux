@@ -11,6 +11,8 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import type { LuxDatabase } from '../db/index.js';
 import { rankAnchorsLexical, type LexicalAnchorHit } from '../scanner/anchors/lexical-ranker.js';
+import { anchorQueryContentTokens } from '../scanner/anchors/anchor-query.js';
+import { splitIdentifiers } from '../scanner/anchors/prepare-node-text.js';
 import {
   fuseRrf,
   ANCHOR_MIN_FUSED_SCORE,
@@ -122,6 +124,37 @@ function semanticReadAvailable(): boolean {
 }
 
 /**
+ * A2 — cold-CLI lexical-first short-circuit predicate (SAFE, exact-identifier match ONLY). Returns true
+ * iff the query IS literally the top lexical hit's symbol name: EVERY content token of the query (the
+ * SAME tokenizer/stopword split the lexical query builder used — `anchorQueryContentTokens`) appears in
+ * the top hit's identifier tokens (its `symbolName` split by the write-path camel/snake/space rules —
+ * `splitIdentifiers`, the exact splitter that produced the stored `identifiers` column — lowercased).
+ *
+ * Why this narrow shape (not a "confident lexical top by bm25"): under OR-expansion a multi-term NL
+ * query can hand a NOISE node a strong bm25 by matching a subset of terms; skipping the semantic half
+ * there would return the wrong anchor and kill the measured mismatch-case lift. Requiring EVERY query
+ * token to be a component of the top hit's identifier is only satisfiable when the query IS that
+ * symbol's name — where lexical is exhaustive and the semantic half adds nothing — so no fuzzy / NL /
+ * midpoint query (which always carries a token outside the identifier) can trigger it. Empty query
+ * tokens (guarded) or no lexical hit ⇒ false (run semantic).
+ */
+function topHitIsExactIdentifierMatch(query: string, topSymbolName: string): boolean {
+  const queryTokens = new Set(anchorQueryContentTokens(query));
+  if (queryTokens.size === 0) return false;
+  const identifierTokens = new Set(splitIdentifiers(topSymbolName).map((t) => t.toLowerCase()));
+  // SET EQUALITY, not subset: the query's content tokens must be EXACTLY the top hit's identifier
+  // tokens (order-independent) — i.e. the query literally IS that symbol's name. Only then is lexical
+  // the definitive answer and semantic reranking provably can't improve on it, so the model load is
+  // safe to skip. A subset (e.g. "user" ⊂ UserAccountManager, "get user" ⊂ getUserById) must NOT
+  // short-circuit: semantic may promote a differently-named node, and skipping it would change the
+  // result envelope for a non-exact-name query. Fuzzy/midpoint queries carry out-of-identifier tokens
+  // and fail the size check immediately, so the measured hybrid lift is untouched.
+  if (queryTokens.size !== identifierTokens.size) return false;
+  for (const t of queryTokens) if (!identifierTokens.has(t)) return false;
+  return true;
+}
+
+/**
  * Run the hybrid anchor search. Throws AnchorRefusalError for overlay-missing / anchor-texts-absent /
  * invalid-query / fts-unavailable (the caller renders the refusal envelope + nonzero exit). A healthy
  * populated-index zero result returns an empty `results` (exit 0, unresolved).
@@ -176,7 +209,20 @@ export async function runAnchorSearch(
   let semantic: SemanticRef[] = [];
   let semanticModel: string | null = null;
   let embeddedNodes = 0;
-  if (opts.semantic !== false && coverage.embeddedNodes > 0 && semanticReadAvailable()) {
+  // A2 — cold-CLI lexical-first short-circuit (SAFE — exact-identifier match only). When the semantic
+  // half is otherwise available, first check whether the query is literally the top lexical hit's symbol
+  // name (every query content token is a component of that hit's identifier). If so, lexical already
+  // answers it and the semantic half adds nothing, so we DON'T load the 34 MB embedder — semanticModel
+  // stays null and confidence falls to the bm25 branch, exactly like a vectors-absent index. This is
+  // deliberately narrow: any fuzzy/NL/midpoint query carries a token outside the identifier and still
+  // runs the semantic half, so the measured hybrid lift is unchanged. Gated behind the same
+  // availability check (only relevant when embeddings are enabled), evaluated AFTER the lexical rank and
+  // BEFORE getSharedEmbedder so no model load happens on the short-circuit path.
+  const semanticAvailable =
+    opts.semantic !== false && coverage.embeddedNodes > 0 && semanticReadAvailable();
+  const exactIdentifierTop =
+    lexical.length > 0 && topHitIsExactIdentifierMatch(query, lexical[0].symbolName);
+  if (semanticAvailable && !exactIdentifierTop) {
     try {
       const embedder = await getSharedEmbedder();
       // embedQuery applies BGE_QUERY_PREFIX (the passage/query asymmetry, OQ2); the passage side never

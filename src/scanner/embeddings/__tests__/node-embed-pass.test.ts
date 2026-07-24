@@ -100,6 +100,27 @@ describe('runNodeEmbedPass', () => {
     expect(r2.coverage.embeddedNodes).toBe(5);
   });
 
+  it('full drain across MULTIPLE batches at an unbounded budget reaches 100% (the --embeddings drain mechanic)', async () => {
+    // The `lux index rebuild --embeddings` drain (cli/index.ts drainNodeEmbedQueue) runs the pass at an
+    // effectively unbounded budget so the whole queue is drained in one run instead of one 30s budget's
+    // worth. N=70 > 2× the 32-row internal batch, so this exercises the pass's multi-batch loop draining
+    // to 100% under a large budget — the exact mechanic the drain relies on, proven network-free.
+    const N = 70;
+    for (let i = 0; i < N; i++) seedNode(db, `n${i}`, `prepared text ${i}`);
+    const embedder = new StubEmbedder({ model: MODEL });
+    const BIG_BUDGET_MS = 365 * 24 * 60 * 60 * 1000;
+
+    const r = await runNodeEmbedPass(db, embedder, { budgetMs: BIG_BUDGET_MS });
+    expect(r.budgetHit).toBe(false);
+    expect(r.embedded).toBe(N);
+    expect(r.coverage).toEqual({ embeddedNodes: N, anchorViableNodes: N, model: MODEL });
+
+    // The drain loop's terminating condition: a second pass over the now-complete queue embeds zero.
+    const r2 = await runNodeEmbedPass(db, embedder, { budgetMs: BIG_BUDGET_MS });
+    expect(r2.embedded).toBe(0);
+    expect(r2.coverage.embeddedNodes).toBe(N);
+  });
+
   it('resume after a budget cut: two calls complete the set, each node embedded exactly once (SC-BUDGET)', async () => {
     const N = 6;
     for (let i = 0; i < N; i++) seedNode(db, `n${i}`, `prepared ${i}`);

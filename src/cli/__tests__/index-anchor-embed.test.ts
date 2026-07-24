@@ -9,13 +9,16 @@
 //      embedder. Proven by setting LUX_EMBEDDING_TOKEN (which makes `createEmbedder` throw the moment
 //      it is reached) and asserting NEITHER the token error NOR the weights-absent skip appears — the
 //      tail short-circuited before both the embedder load and the cache check.
-//   2. Cached-only: a NON-EMPTY queue with the model weights ABSENT skips the embed pass, still exits
-//      0, and does NOT fetch (no `~/.lux/embeddings` is even created). Weights-absent is forced
+//   2. Cached-only + QUIET default (A3): a NON-EMPTY queue with the model weights ABSENT skips the
+//      embed pass, still exits 0, and does NOT fetch (no `~/.lux/embeddings` is even created). It also
+//      stays SILENT on stdout — no "weights not cached" nudge and no "Anchor embeddings:" coverage line
+//      — so a corpus whose owner never opted into embeddings is never nagged. Weights-absent is forced
 //      deterministically by pointing the spawned CLI's HOME at a fresh empty dir — so this holds
 //      regardless of whether the real machine cache is present.
-//   3. Opt-in: `lux index rebuild --embeddings` loads the (cached) model and embeds the queue. Run
-//      offline by pointing HOME at a dir whose `.lux/embeddings` is symlinked to the real cache, so
-//      `ensureModelWeights` cache-hits (no network). Skipped when the real cache is absent.
+//   3. Opt-in DRAIN (A1): `lux index rebuild --embeddings` loads the (cached) model and embeds the queue
+//      to FULL coverage in one run (the drain loop), printing an `Embedding anchor nodes: E/A` progress
+//      line. Run offline by pointing HOME at a dir whose `.lux/embeddings` is symlinked to the real
+//      cache, so `ensureModelWeights` cache-hits (no network). Skipped when the real cache is absent.
 //
 // The happy-path embed/coverage arithmetic is unit-tested against StubEmbedder in
 // scanner/embeddings/__tests__/node-embed-pass.test.ts; this file asserts the CLI wiring + the
@@ -193,7 +196,7 @@ describe('anchor embed-pass CLI wiring — queue-gated + cached-only (network-fr
     expect(syncCombined).not.toContain('LUX_EMBEDDING_TOKEN'); // still never loaded the embedder
   });
 
-  it('cached-only: a non-empty queue with weights absent skips the embed pass, exits 0, and does not fetch', () => {
+  it('cached-only + quiet default (A3): weights absent → skip silently, exit 0, no nudge, no fetch', () => {
     writeSymbolRepo(repoDir);
 
     // HOME → a fresh empty dir, so resolveModelCacheDir points at an EMPTY cache (weights absent),
@@ -203,10 +206,11 @@ describe('anchor embed-pass CLI wiring — queue-gated + cached-only (network-fr
 
     // Decision 5: absent weights degrade, they do not fail the index.
     expect(rebuild.status).toBe(0);
-    expect(rebuild.stdout).toContain('model weights not cached');
-    // Coverage is still reported honestly (nothing embedded of the three anchor-viable nodes).
-    expect(rebuild.stdout).toContain('Anchor embeddings: 0/3 anchor nodes');
-    // The skip is quiet — never a Warning: (an offline machine is not in error).
+    // A3: weights-not-cached stays SILENT by default — no nudge, and no coverage line at all (the
+    // capability is discoverable via --help/docs; a never-opted-in corpus is not nagged every rebuild).
+    expect(rebuild.stdout).not.toContain('model weights not cached');
+    expect(rebuild.stdout).not.toContain('Anchor embeddings:');
+    // Still not a Warning: (an offline machine is not in error), and the index itself still succeeds.
     expect(rebuild.stderr).not.toContain('Warning:');
     expect(combined).toContain('rebuilt successfully');
 
@@ -216,7 +220,7 @@ describe('anchor embed-pass CLI wiring — queue-gated + cached-only (network-fr
   });
 
   it.skipIf(!REAL_WEIGHTS_PRESENT)(
-    '--embeddings loads the (cached) model and embeds the anchor queue',
+    '--embeddings (A1) loads the cached model and DRAINS the anchor queue to full coverage',
     () => {
       writeSymbolRepo(repoDir);
 
@@ -232,6 +236,8 @@ describe('anchor embed-pass CLI wiring — queue-gated + cached-only (network-fr
 
       expect(rebuild.status).toBe(0);
       expect(rebuild.stdout).toContain('Fetching embedding model'); // the one-time opt-in line
+      // A1: the drain loop reaches full coverage on this single run and prints its progress line.
+      expect(rebuild.stdout).toContain('Embedding anchor nodes: 3/3');
       expect(rebuild.stdout).toContain('Anchor embeddings: 3/3 anchor nodes');
       expect(rebuild.stdout).toContain('(100%)');
       expect(rebuild.stderr).not.toContain('Warning:');

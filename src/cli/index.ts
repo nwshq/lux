@@ -257,6 +257,11 @@ indexCmd
         // `index-rebuild` usage event on this command.
         headCommit: undefined,
         quiet: options.quiet === true,
+        // A1: --embeddings is the explicit "enable embeddings" opt-in — after fetching the weights it
+        // must reach FULL coverage on this run, not embed one 30s budget's worth and leave the rest for
+        // later syncs. This flags the tail to drain the queue to completion. The DEFAULT rebuild (no
+        // flag) leaves it undefined ⇒ the single budgeted pass, so a routine rebuild never blocks.
+        embedToCompletion: options.embeddings === true,
       });
 
       // Write module dependencies
@@ -1283,14 +1288,23 @@ interface EmbedTailContext {
  * success-path event. `coverage.model` (== ANCHOR_EMBED_MODEL in Phase 3) drives the display name,
  * so no embedder instance is needed to render this.
  */
-function reportEmbedOutcome(ctx: EmbedTailContext, result: NodeEmbedPassResult): void {
+function reportEmbedOutcome(
+  ctx: EmbedTailContext,
+  result: NodeEmbedPassResult,
+  opts: { emitConsole?: boolean } = {}
+): void {
+  const emitConsole = opts.emitConsole ?? true;
   const { embedded, budgetHit, coverage } = result;
   const coveragePct =
     coverage.anchorViableNodes > 0
       ? Math.round((coverage.embeddedNodes / coverage.anchorViableNodes) * 100)
       : 100;
 
-  if (!ctx.quiet) {
+  // A3: the coverage line prints only when embeddings are ACTIVE for this outcome (a completed queue,
+  // or a pass that ran on cached weights). The weights-not-cached skip passes `emitConsole:false` so a
+  // machine that never opted into embeddings stays silent on stdout — but the usage event below is
+  // ALWAYS emitted, so the skip is still a recorded, honest outcome in telemetry.
+  if (!ctx.quiet && emitConsole) {
     const remaining = coverage.anchorViableNodes - coverage.embeddedNodes;
     let line =
       `Anchor embeddings: ${coverage.embeddedNodes}/${coverage.anchorViableNodes} anchor nodes ` +
@@ -1323,6 +1337,54 @@ function reportEmbedOutcome(ctx: EmbedTailContext, result: NodeEmbedPassResult):
 }
 
 /**
+ * A1: per-pass budget for the `--embeddings` full drain. A finite but effectively unbounded wall-clock
+ * cap (~1 year) — vs the default 30s `ANCHOR_EMBED_BUDGET_MS` — so one `--embeddings` run drains the
+ * whole queue rather than one budget's worth. Kept finite (not `Infinity`) so `Date.now() + budgetMs`
+ * stays a safe integer. Any real corpus drains in minutes; this value is never actually approached, and
+ * the drain loop's `embedded === 0` break is the true termination condition.
+ */
+const EMBED_DRAIN_BUDGET_MS = 365 * 24 * 60 * 60 * 1000;
+
+/**
+ * A1: drain the anchor embed queue to FULL coverage — loop `runNodeEmbedPass` at an effectively
+ * unbounded budget until the queue is empty (`embedded === 0`) or coverage is complete, printing a
+ * concise `Embedding anchor nodes: E/A (pct%)` progress line per pass. Used ONLY on the explicit
+ * `lux index rebuild --embeddings` opt-in; the default tail keeps its single budgeted pass so a routine
+ * sync never blocks.
+ *
+ * RESUMABLE / INTERRUPTIBLE (preserved): each vector upsert is its own committed row and the
+ * content-hash queue naturally excludes what is already embedded, so a killed drain resumes exactly
+ * where it left off on the next index run — this loop only lifts the 30s cap, it does not change the
+ * queue's resume contract. The `embedded === 0` break also guards against a non-progressing pass (a
+ * persistent embedder failure degrades internally to `budgetHit` with 0 embedded), so the loop can
+ * never spin. The single shared `embedder` is reused across every pass — the model loads once.
+ */
+async function drainNodeEmbedQueue(
+  db: LuxDatabase,
+  embedder: Embedder,
+  quiet: boolean
+): Promise<NodeEmbedPassResult> {
+  for (;;) {
+    const result = await runNodeEmbedPass(db, embedder, {
+      budgetMs: EMBED_DRAIN_BUDGET_MS,
+      onProgress: quiet ? undefined : (msg) => console.log(`  ${msg}`),
+    });
+    if (!quiet) {
+      const { embeddedNodes, anchorViableNodes } = result.coverage;
+      const pct =
+        anchorViableNodes > 0 ? Math.round((embeddedNodes / anchorViableNodes) * 100) : 100;
+      console.log(`Embedding anchor nodes: ${embeddedNodes}/${anchorViableNodes} (${pct}%)`);
+    }
+    if (
+      result.embedded === 0 ||
+      result.coverage.embeddedNodes >= result.coverage.anchorViableNodes
+    ) {
+      return result;
+    }
+  }
+}
+
+/**
  * Runs the node embed pass at the tail of an index path and reports it — the ONE function all four
  * integration points below route through (`03` §The four embed-pass integration points). Never
  * throws: a failed embed pass must never fail the surrounding `lux index rebuild`/`sync` (Decision 5).
@@ -1348,7 +1410,10 @@ async function runNodeEmbedTail(
   corpusPath: string,
   dbPath: string,
   headCommit: string | undefined,
-  quiet: boolean
+  quiet: boolean,
+  // A1: when true (the `lux index rebuild --embeddings` opt-in), drain the queue to full coverage
+  // instead of running one budgeted pass. Trailing optional so the sync tail call sites are untouched.
+  embedToCompletion = false
 ): Promise<void> {
   const ctx: EmbedTailContext = {
     db,
@@ -1378,17 +1443,20 @@ async function runNodeEmbedTail(
   // (2) Cached-only — there IS work to do, but the index path must not fetch. Embed only if the
   // weights are already on disk; otherwise skip (index still succeeds), no network, no hang.
   if (!anchorModelWeightsCached()) {
-    if (!quiet) {
-      console.log(
-        `Anchor embeddings: model weights not cached — skipping embed pass ` +
-          `(run \`lux index rebuild --embeddings\` to fetch ~34 MB once and enable).`
-      );
-    }
-    reportEmbedOutcome(ctx, {
-      embedded: 0,
-      budgetHit: false,
-      coverage: db.getAnchorEmbeddingCoverage(ANCHOR_EMBED_MODEL),
-    });
+    // A3: stay SILENT on stdout by default — no nudge, no coverage line. Nagging every rebuild/sync of
+    // a code corpus for users who never opted into embeddings is noise; the capability is discoverable
+    // via `--help`/docs, and `--embeddings` is the one fetch path. The usage event is still emitted
+    // (emitConsole:false suppresses only the console line), so the skip stays a recorded outcome, and
+    // the exit code / degrade semantics are unchanged (the index never fails on absent weights).
+    reportEmbedOutcome(
+      ctx,
+      {
+        embedded: 0,
+        budgetHit: false,
+        coverage: db.getAnchorEmbeddingCoverage(ANCHOR_EMBED_MODEL),
+      },
+      { emitConsole: false }
+    );
     return;
   }
 
@@ -1409,9 +1477,14 @@ async function runNodeEmbedTail(
 
   let result: NodeEmbedPassResult;
   try {
-    result = await runNodeEmbedPass(db, embedder, {
-      onProgress: quiet ? undefined : (msg) => console.log(`  ${msg}`),
-    });
+    // A1: --embeddings drains to full coverage (drainNodeEmbedQueue loops at an unbounded budget); the
+    // default tail runs ONE budgeted pass so a routine rebuild/sync never blocks on a long embed. The
+    // shared embedder is loaded exactly once above and reused across every drained pass.
+    result = embedToCompletion
+      ? await drainNodeEmbedQueue(db, embedder, quiet)
+      : await runNodeEmbedPass(db, embedder, {
+          onProgress: quiet ? undefined : (msg) => console.log(`  ${msg}`),
+        });
   } catch (error) {
     // runNodeEmbedPass already degrades internally (it never throws on a budget hit or an embed-time
     // failure — see node-embed-pass.ts). This catch is the second, outermost layer, so that even a
@@ -1447,6 +1520,10 @@ async function persistKnowledgeIndex(
     dbPath: string;
     headCommit: string | undefined;
     quiet: boolean;
+    /** A1: drain the anchor embed queue to full coverage (the `lux index rebuild --embeddings` opt-in)
+     *  instead of the single 30s-budgeted pass. Only the rebuild call site sets this true; every sync
+     *  full-rebuild fallback that funnels through here leaves it undefined ⇒ the default budgeted tail. */
+    embedToCompletion?: boolean;
   }
 ): Promise<void> {
   progress.log('Indexing...');
@@ -1480,7 +1557,8 @@ async function persistKnowledgeIndex(
     embedTail.corpusPath,
     embedTail.dbPath,
     embedTail.headCommit,
-    embedTail.quiet
+    embedTail.quiet,
+    embedTail.embedToCompletion ?? false
   );
 }
 
