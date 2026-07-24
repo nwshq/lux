@@ -11,10 +11,17 @@ export type UsageEventSurface =
   | 'operational'
   | 'spec-evidence'
   | 'trace'
+  | 'deps-graph'
+  | 'deps-clusters'
+  | 'deps-impact'
+  | 'deps-coverage'
   | 'expert-panel'
   | 'expert'
   | 'index-status'
   | 'overlay-status'
+  | 'overlay-check'
+  | 'overlay-ownership'
+  | 'overlay-boundaries'
   | 'index-sync'
   | 'index-rebuild'
   | 'index-refresh'
@@ -136,8 +143,10 @@ function buildUsageEvent(input: EmitUsageEventInput): UsageEventV1 {
 }
 
 export function emitUsageEvent(db: LuxDatabase, input: EmitUsageEventInput): UsageEventV1 | null {
-  const event = buildUsageEvent(input);
+  // buildUsageEvent stays inside the guard: emission is best-effort observability and must never
+  // crash the command it instruments, even for a malformed input (e.g. non-serializable attributes).
   try {
+    const event = buildUsageEvent(input);
     db.insertEvent({
       source: input.source,
       source_id: event.invocationId,

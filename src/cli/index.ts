@@ -1,9 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { dirname, join } from 'path';
-import { existsSync, readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
+import { existsSync } from 'fs';
 import { LuxDatabase } from '../db/index.js';
 import { LuxSqlite } from '../db/sqlite-adapter.js';
 import { GeneralScanner } from '../scanner/index.js';
@@ -58,6 +56,7 @@ import {
   safeUsageTrustState,
 } from '../db/observability/usage-event.js';
 import { resolveRuntimePaths } from '../utils/runtime-paths.js';
+import { LUX_VERSION } from '../utils/version.js';
 import {
   runNodeEmbedPass,
   type NodeEmbedPassResult,
@@ -70,13 +69,6 @@ import {
   embeddingReadAvailable,
 } from '../scanner/embeddings/active-model.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const version: string = (
-  JSON.parse(readFileSync(join(__dirname, '..', '..', 'package.json'), 'utf-8')) as {
-    version: string;
-  }
-).version;
-
 const program = new Command();
 
 interface ProgressReporter {
@@ -88,7 +80,7 @@ interface ProgressReporter {
 program
   .name('lux')
   .description('Lux — structural code-analysis and overlay engine for CORPUS-indexed repositories')
-  .version(version)
+  .version(LUX_VERSION)
   .option('--db <path>', 'Database path (defaults to <corpus>/.lux/lux.db)')
   .option('--corpus <path>', 'Content root directory path (defaults to current working directory)');
 

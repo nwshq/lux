@@ -3,8 +3,10 @@ import { existsSync } from 'fs';
 import { join, relative } from 'path';
 import { LuxDatabase } from '../db/index.js';
 import { computeClusters } from '../scanner/imports/clustering.js';
-import { resolveModule, detectModuleBoundaries } from '../scanner/imports/module-boundary.js';
+import { detectModuleBoundaries } from '../scanner/imports/module-boundary.js';
 import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
+import { computeImpact } from './deps-impact.js';
+import { emitUsageEvent, createInvocationId } from '../db/observability/usage-event.js';
 
 export function addDepsCommand(program: Command) {
   const deps = program.command('deps').description('Module dependency analysis');
@@ -20,13 +22,29 @@ export function addDepsCommand(program: Command) {
       const db = new LuxDatabase(
         resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
       );
+      const invocationId = createInvocationId();
+      const startedAt = Date.now();
 
       try {
-        if (options.module) {
-          showModuleGraph(db, options.module, options.json);
-        } else {
-          showFullGraph(db, options.json);
-        }
+        const resultCount = options.module
+          ? showModuleGraph(db, options.module, options.json)
+          : showFullGraph(db, options.json);
+        emitUsageEvent(db, {
+          source: 'cli',
+          surface: 'deps-graph',
+          action: 'query',
+          invocationId,
+          commandOutcome: 'success',
+          retrievalOutcome: resultCount > 0 ? 'answered' : 'unresolved',
+          durationMs: Date.now() - startedAt,
+          exitCode: 0,
+          corpusPath,
+          attributes: {
+            module: options.module ?? null,
+            json: options.json ?? false,
+            resultCount,
+          },
+        });
       } finally {
         db.close();
       }
@@ -42,10 +60,25 @@ export function addDepsCommand(program: Command) {
       const db = new LuxDatabase(
         resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
       );
+      const invocationId = createInvocationId();
+      const startedAt = Date.now();
 
       try {
         const allDeps = db.getAllModuleDependencies();
         const clusters = computeClusters(allDeps);
+
+        emitUsageEvent(db, {
+          source: 'cli',
+          surface: 'deps-clusters',
+          action: 'query',
+          invocationId,
+          commandOutcome: 'success',
+          retrievalOutcome: clusters.length > 0 ? 'answered' : 'unresolved',
+          durationMs: Date.now() - startedAt,
+          exitCode: 0,
+          corpusPath,
+          attributes: { json: options.json ?? false, clusterCount: clusters.length },
+        });
 
         if (options.json) {
           console.log(JSON.stringify(clusters, null, 2));
@@ -83,32 +116,53 @@ export function addDepsCommand(program: Command) {
       const db = new LuxDatabase(
         resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
       );
+      const invocationId = createInvocationId();
+      const startedAt = Date.now();
 
       try {
-        const patterns = detectModuleBoundaries(corpusPath);
-        const sourceModule = resolveModule(filePath, corpusPath, patterns);
+        const result = computeImpact(db, corpusPath, filePath);
 
-        if (!sourceModule) {
+        if (!result.resolved) {
           console.error(`Could not resolve file to a module: ${filePath}`);
+          // The file resolved to no module: the invocation succeeds (exit 0, as before) but the
+          // retrieval is an honest miss — feeds the usage report's repeated-miss clustering by
+          // hashed file query, same as a search zero-result.
+          emitUsageEvent(db, {
+            source: 'cli',
+            surface: 'deps-impact',
+            action: 'query',
+            invocationId,
+            commandOutcome: 'success',
+            retrievalOutcome: 'unresolved',
+            durationMs: Date.now() - startedAt,
+            exitCode: 0,
+            corpusPath,
+            queryText: filePath,
+            attributes: { resolved: false },
+          });
           return;
         }
 
-        // Find all modules that depend on this module (target = sourceModule)
-        const dependents = db.getModuleDependencies(sourceModule, 'target');
+        const impactData = result.impact;
 
-        const impactData = {
-          file: relative(corpusPath, filePath) || filePath,
-          module: sourceModule,
-          dependentModules: dependents.map((d) => ({
-            module: d.source_module,
-            referenceCount: d.reference_count,
-            sampleFiles: d.sample_files ? (JSON.parse(d.sample_files) as string[]) : [],
-          })),
-          blastRadius: {
-            modules: dependents.length,
-            totalReferences: dependents.reduce((sum, d) => sum + d.reference_count, 0),
+        emitUsageEvent(db, {
+          source: 'cli',
+          surface: 'deps-impact',
+          action: 'query',
+          invocationId,
+          commandOutcome: 'success',
+          retrievalOutcome: impactData.dependentModules.length > 0 ? 'answered' : 'unresolved',
+          durationMs: Date.now() - startedAt,
+          exitCode: 0,
+          corpusPath,
+          queryText: filePath,
+          attributes: {
+            module: impactData.module,
+            json: options.json ?? false,
+            dependentCount: impactData.dependentModules.length,
+            totalReferences: impactData.blastRadius.totalReferences,
           },
-        };
+        });
 
         if (options.json) {
           console.log(JSON.stringify(impactData, null, 2));
@@ -116,12 +170,12 @@ export function addDepsCommand(program: Command) {
         }
 
         console.log(`\nImpact Analysis: ${impactData.file}`);
-        console.log(`  Module: ${sourceModule}`);
+        console.log(`  Module: ${impactData.module}`);
         console.log(
           `  Blast radius: ${impactData.blastRadius.modules} modules, ${impactData.blastRadius.totalReferences} references\n`
         );
 
-        if (dependents.length === 0) {
+        if (impactData.dependentModules.length === 0) {
           console.log('  No dependent modules found.');
         } else {
           console.log('  Dependent modules:');
@@ -150,6 +204,8 @@ export function addDepsCommand(program: Command) {
       const db = new LuxDatabase(
         resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
       );
+      const invocationId = createInvocationId();
+      const startedAt = Date.now();
 
       try {
         const allDeps = db.getAllModuleDependencies();
@@ -187,6 +243,19 @@ export function addDepsCommand(program: Command) {
           };
         });
 
+        emitUsageEvent(db, {
+          source: 'cli',
+          surface: 'deps-coverage',
+          action: 'query',
+          invocationId,
+          commandOutcome: 'success',
+          retrievalOutcome: coverageData.length > 0 ? 'answered' : 'unresolved',
+          durationMs: Date.now() - startedAt,
+          exitCode: 0,
+          corpusPath,
+          attributes: { json: options.json ?? false, clusterCount: coverageData.length },
+        });
+
         if (options.json) {
           console.log(JSON.stringify(coverageData, null, 2));
           return;
@@ -213,7 +282,9 @@ export function addDepsCommand(program: Command) {
     });
 }
 
-function showModuleGraph(db: LuxDatabase, module: string, json?: boolean): void {
+// Returns the number of dependency edges touching the module (outgoing + incoming), so the caller
+// can classify the usage retrieval outcome without re-querying.
+function showModuleGraph(db: LuxDatabase, module: string, json?: boolean): number {
   const outgoing = db.getModuleDependencies(module, 'source');
   const incoming = db.getModuleDependencies(module, 'target');
 
@@ -231,7 +302,7 @@ function showModuleGraph(db: LuxDatabase, module: string, json?: boolean): void 
 
   if (json) {
     console.log(JSON.stringify(data, null, 2));
-    return;
+    return outgoing.length + incoming.length;
   }
 
   console.log(`\nModule: ${module}\n`);
@@ -257,9 +328,12 @@ function showModuleGraph(db: LuxDatabase, module: string, json?: boolean): void 
   }
 
   console.log();
+  return outgoing.length + incoming.length;
 }
 
-function showFullGraph(db: LuxDatabase, json?: boolean): void {
+// Returns the number of distinct modules in the graph, so the caller can classify the usage
+// retrieval outcome (an empty graph is an honest miss, not an answer).
+function showFullGraph(db: LuxDatabase, json?: boolean): number {
   const allDeps = db.getAllModuleDependencies();
   const modules = db.getDistinctModules();
 
@@ -284,12 +358,12 @@ function showFullGraph(db: LuxDatabase, json?: boolean): void {
       };
     });
     console.log(JSON.stringify(graph, null, 2));
-    return;
+    return modules.length;
   }
 
   if (modules.length === 0) {
     console.log('No module dependencies found. Run "lux index rebuild" first.');
-    return;
+    return 0;
   }
 
   // Sort by total coupling
@@ -327,4 +401,6 @@ function showFullGraph(db: LuxDatabase, json?: boolean): void {
     }
     console.log();
   }
+
+  return modules.length;
 }

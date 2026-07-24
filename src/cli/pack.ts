@@ -1,20 +1,12 @@
 import type { Command } from 'commander';
-import { existsSync, readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
+import { existsSync } from 'fs';
+import { join } from 'path';
 import { LuxDatabase } from '../db/index.js';
 import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
+import { LUX_VERSION } from '../utils/version.js';
 import { ensureVendorPack } from '../scanner/pack/pack-builder.js';
 import { lookupPack, VENDOR_PACK_KEY_META, type PackKeyScheme } from '../scanner/pack/cache.js';
 import { VendorPackReader, type VendorPackDepth } from '../scanner/pack/pack-format.js';
-
-/** lux version, read once from the package manifest (mirrors other CLI modules). */
-const luxVersion: string = (() => {
-  const here = dirname(fileURLToPath(import.meta.url));
-  return (
-    JSON.parse(readFileSync(join(here, '..', '..', 'package.json'), 'utf-8')) as { version: string }
-  ).version;
-})();
 
 export function addVendorPackCommands(program: Command): void {
   const cmd = program
@@ -49,7 +41,7 @@ export function addVendorPackCommands(program: Command): void {
           scheme,
           packCache: options.packCache,
           force: options.force,
-          luxVersion,
+          luxVersion: LUX_VERSION,
           onProgress: (m) => console.log(`  ${m}`),
         });
 

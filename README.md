@@ -9,6 +9,16 @@ Shared resolver: `src/utils/runtime-paths.ts`
 - corpus: `--corpus` -> `LUX_CORPUS_PATH` -> current working directory
 - db: `--db` -> `LUX_DB_PATH` -> `<resolved corpus>/.lux/lux.db`
 
+## Versioning
+
+Git tags and their GitHub releases are the authoritative version record. The in-tree
+`package.json` `version` is deliberately pinned to the `0.0.0-dev` sentinel ("source tree, not a
+release"); `semantic-release` computes the real version from conventional commits and
+`@semantic-release/npm` stamps it into `package.json` in the CI workspace at publish, so released
+artifacts carry their tag version. A source-tree checkout therefore reports `0.0.0-dev` from
+`lux --version` (and from the MCP server metadata) by design. Both read the version from
+`package.json` via the single shared resolver `src/utils/version.ts`.
+
 ## Current CLI surface
 
 - `lux index rebuild|sync|status`
@@ -21,6 +31,7 @@ Shared resolver: `src/utils/runtime-paths.ts`
 - `lux delta [--base <ref>] [--check] [--fail-on <list>] [--json]`
 - `lux vendor-pack build|status`
 - `lux usage report`
+- `lux siblings status`
 - `lux overlay status|check|ownership|boundaries|operational ask|feature-path ask|spec-evidence ask`
 
 ## Current MCP surface
@@ -34,6 +45,9 @@ From `src/mcp/server.ts`:
 - `lux_delta`
 - `lux_spec_derivation_evidence`
 - `lux_anchors`
+- `lux_deps_impact`
+- `lux_overlay_status`
+- `lux_index_status`
 
 ## `lux delta` — diff-scoped structural delta
 

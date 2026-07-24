@@ -14,7 +14,10 @@ import { attachEnrichment } from '../scanner/general.js';
 import { rebuildWithOverlay } from '../scanner/rebuild-orchestrator.js';
 import { persistRebuildTrustState } from '../scanner/overlay-trust-state.js';
 import { readFileSync } from 'fs';
-import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
+import { resolveRuntimePaths } from '../utils/runtime-paths.js';
+import { LUX_VERSION } from '../utils/version.js';
+import { computeImpact } from '../cli/deps-impact.js';
+import { buildIndexStatusPayload, buildOverlayStatusPayload } from '../cli/status-payload.js';
 import { getHeadCommit, isGitRepository } from '../scanner/git.js';
 import { executeSpecEvidenceAsk } from '../cli/spec-evidence.js';
 import { resolveStartNode, traceFrom } from '../scanner/associations/trace.js';
@@ -49,18 +52,22 @@ function resolveMinConfidence(value: unknown): ConfidenceClass {
     : 'framework-inferred';
 }
 
-const DEFAULT_CORPUS_PATH = resolveCorpusPath({ corpus: process.env.LUX_CORPUS_PATH });
-const DEFAULT_DB_PATH = resolveDbPath({
-  corpus: DEFAULT_CORPUS_PATH,
+// Single runtime resolution shared by the read tools. corpusPath/dbPath are byte-identical to the
+// prior resolveCorpusPath/resolveDbPath derivation; the full RuntimePathResolution additionally
+// carries corpusSource/dbSource for the index/overlay status payloads (buildIndexStatusPayload).
+const DEFAULT_RUNTIME = resolveRuntimePaths({
+  corpus: process.env.LUX_CORPUS_PATH,
   db: process.env.LUX_DB_PATH,
 });
+const DEFAULT_CORPUS_PATH = DEFAULT_RUNTIME.corpusPath;
+const DEFAULT_DB_PATH = DEFAULT_RUNTIME.dbPath;
 
 const db = new LuxDatabase(DEFAULT_DB_PATH);
 
 const server = new Server(
   {
     name: 'lux',
-    version: '0.1.0',
+    version: LUX_VERSION,
   },
   {
     capabilities: {
@@ -282,6 +289,48 @@ const TOOLS: Tool[] = [
             'the sibling entry surfaces this diff affects.',
         },
       },
+    },
+  },
+  {
+    name: 'lux_deps_impact',
+    description:
+      'Analyze the blast radius of a change to a file: resolve the file to its module and return ' +
+      'every module that depends on it, with per-dependent reference counts and sample files. ' +
+      'Read-only. Mirrors `lux deps impact <file>`.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        file_path: {
+          type: 'string',
+          description:
+            'File to analyze (absolute, or relative to the corpus root). Resolved to its module ' +
+            'via the detected module boundaries.',
+        },
+      },
+      required: ['file_path'],
+    },
+  },
+  {
+    name: 'lux_overlay_status',
+    description:
+      'Report the structural-overlay trust state (overlay-complete / degraded-overlay / ' +
+      'content-only / none), surface and node counts, the runtime corpus/db resolution, and ' +
+      'working-tree freshness (indexed commit vs HEAD, dirty structural files). Read-only. ' +
+      'Mirrors `lux overlay status --json`.',
+    inputSchema: {
+      type: 'object',
+      properties: {},
+    },
+  },
+  {
+    name: 'lux_index_status',
+    description:
+      'Report index freshness: knowledge/event stats, structural-overlay trust state, the runtime ' +
+      'corpus/db resolution, and working-tree freshness (indexed commit vs HEAD, dirty structural ' +
+      'files). Read-only. Mirrors `lux index status --json`.',
+    inputSchema: {
+      type: 'object',
+      properties: {},
     },
   },
 ];
@@ -876,6 +925,108 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           }
           throw error;
         }
+      }
+
+      case 'lux_deps_impact': {
+        const { file_path: filePath } = args as { file_path: string };
+
+        // Shared blast-radius computation — the CLI `deps impact` action calls the same
+        // computeImpact (src/cli/deps-impact.ts); the MCP layer does not fork the query.
+        const result = computeImpact(db, DEFAULT_CORPUS_PATH, filePath);
+
+        if (!result.resolved) {
+          emitUsageEvent(db, {
+            source: 'mcp',
+            surface: 'deps-impact',
+            action: 'query',
+            invocationId: createInvocationId(),
+            commandOutcome: 'error',
+            retrievalOutcome: 'unresolved',
+            exitCode: 1,
+            corpusPath: DEFAULT_CORPUS_PATH,
+            dbPath: DEFAULT_DB_PATH,
+            queryText: filePath,
+            error: { code: 'module_unresolved' },
+          });
+          return {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(
+                  {
+                    error: 'module-unresolved',
+                    file: result.file,
+                    message: `Could not resolve file to a module: ${result.file}`,
+                  },
+                  null,
+                  2
+                ),
+              },
+            ],
+            isError: true,
+          };
+        }
+
+        emitUsageEvent(db, {
+          source: 'mcp',
+          surface: 'deps-impact',
+          action: 'query',
+          invocationId: createInvocationId(),
+          commandOutcome: 'success',
+          retrievalOutcome: 'answered',
+          exitCode: 0,
+          corpusPath: DEFAULT_CORPUS_PATH,
+          dbPath: DEFAULT_DB_PATH,
+          queryText: filePath,
+          attributes: {
+            module: result.impact.module,
+            dependentModules: result.impact.blastRadius.modules,
+            totalReferences: result.impact.blastRadius.totalReferences,
+          },
+        });
+
+        return { content: [{ type: 'text', text: JSON.stringify(result.impact, null, 2) }] };
+      }
+
+      case 'lux_overlay_status': {
+        // Reuses the canonical status-payload builder shared with `lux overlay status --json`.
+        const payload = buildOverlayStatusPayload(db, DEFAULT_RUNTIME);
+        // With a runtime passed, payload is the {overlay,runtime,freshness} shape; narrow to read
+        // the trust level for the usage event (both OverlayTrustPayload variants carry trustLevel).
+        const overlayTrust = 'overlay' in payload ? payload.overlay : payload;
+        emitUsageEvent(db, {
+          source: 'mcp',
+          surface: 'overlay-status',
+          action: 'status',
+          invocationId: createInvocationId(),
+          commandOutcome: 'success',
+          retrievalOutcome: 'not_applicable',
+          trustState: safeUsageTrustState(overlayTrust.trustLevel),
+          exitCode: 0,
+          corpusPath: DEFAULT_CORPUS_PATH,
+          dbPath: DEFAULT_DB_PATH,
+          attributes: { trustLevel: overlayTrust.trustLevel },
+        });
+        return { content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }] };
+      }
+
+      case 'lux_index_status': {
+        // Reuses the canonical status-payload builder shared with `lux index status --json`.
+        const payload = buildIndexStatusPayload(db, DEFAULT_RUNTIME);
+        emitUsageEvent(db, {
+          source: 'mcp',
+          surface: 'index-status',
+          action: 'status',
+          invocationId: createInvocationId(),
+          commandOutcome: 'success',
+          retrievalOutcome: 'not_applicable',
+          trustState: safeUsageTrustState(payload.overlay.trustLevel),
+          exitCode: 0,
+          corpusPath: DEFAULT_CORPUS_PATH,
+          dbPath: DEFAULT_DB_PATH,
+          attributes: { trustLevel: payload.overlay.trustLevel },
+        });
+        return { content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }] };
       }
 
       default:

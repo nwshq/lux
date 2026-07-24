@@ -1,6 +1,6 @@
 {
   "name": "@nwshq/lux",
-  "version": "1.2.1",
+  "version": "0.0.0-dev",
   "description": "Structural code-analysis and overlay engine for CORPUS-indexed repositories (MCP server + CLI)",
   "type": "module",
   "main": "./dist/index.js",
@@ -28,7 +28,7 @@
     "test:architecture": "tsx scripts/test-architecture.ts",
     "validate:dead-code": "tsx scripts/validate-dead-code.ts",
     "verify:native-free": "tsx scripts/verify-native-free.ts",
-    "check": "npm run lint && npm run format:check && npm run build && npm test && npm run lint:architecture && npm run test:architecture",
+    "check": "npm run lint && npm run format:check && npm run build && npm test && npm run lint:architecture && npm run test:architecture && npm run validate:dead-code && npm run verify:native-free",
     "start": "node dist/cli/index.js",
     "mcp": "node dist/mcp/server.js",
     "benchmark:retrieval": "npm run build && tsx benchmarks/retrieval/run.ts",

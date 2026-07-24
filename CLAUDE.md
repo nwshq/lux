@@ -38,6 +38,10 @@ From `src/mcp/server.ts`:
 - `lux_trace`
 - `lux_delta`
 - `lux_spec_derivation_evidence`
+- `lux_anchors`
+- `lux_deps_impact`
+- `lux_overlay_status`
+- `lux_index_status`
 
 ## Diff-scoped structural delta (`lux delta`)
 

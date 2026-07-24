@@ -27,6 +27,11 @@ import {
   aggregateModuleBoundaryEvidence,
   type ModuleBoundaryAggregate,
 } from '../scanner/overlay/module-boundary-analysis.js';
+import {
+  emitUsageEvent,
+  createInvocationId,
+  safeUsageTrustState,
+} from '../db/observability/usage-event.js';
 
 type BoundaryFocusDirection = 'inbound' | 'outbound' | 'both';
 type BoundaryExploreListKind = 'overview' | 'regions' | 'families';
@@ -191,15 +196,43 @@ function runBoundaryExplore(
   const db = new LuxDatabase(
     resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
   );
+  const invocationId = createInvocationId();
+  const startedAt = Date.now();
 
   const listKind = (options.list ?? 'overview') as BoundaryExploreListKind;
   if (!['overview', 'regions', 'families'].includes(listKind)) {
+    emitUsageEvent(db, {
+      source: 'cli',
+      surface: 'overlay-boundaries',
+      action: 'query',
+      invocationId,
+      commandOutcome: 'error',
+      retrievalOutcome: 'refused',
+      durationMs: Date.now() - startedAt,
+      exitCode: 1,
+      corpusPath,
+      attributes: { list: listKind },
+      error: { code: 'invalid-list' },
+    });
     db.close();
     console.error('Error: --list must be one of: overview, regions, families.');
     process.exit(1);
   }
 
   if (options.top !== undefined && (!Number.isFinite(options.top) || options.top < 1)) {
+    emitUsageEvent(db, {
+      source: 'cli',
+      surface: 'overlay-boundaries',
+      action: 'query',
+      invocationId,
+      commandOutcome: 'error',
+      retrievalOutcome: 'refused',
+      durationMs: Date.now() - startedAt,
+      exitCode: 1,
+      corpusPath,
+      attributes: { list: listKind },
+      error: { code: 'invalid-top' },
+    });
     db.close();
     console.error('Error: --top must be a positive integer.');
     process.exit(1);
@@ -214,6 +247,30 @@ function runBoundaryExplore(
   });
   const regionSummaries = buildRegionSummaries(aggregates);
   const familySummaries = buildFamilySummaries(aggregates);
+
+  // Single success event covering every render branch below (json / families / regions / overview /
+  // neighborhood). Emitted before the render so all early returns carry it. An empty boundary graph
+  // is an honest miss (unresolved), not an answer.
+  emitUsageEvent(db, {
+    source: 'cli',
+    surface: 'overlay-boundaries',
+    action: 'query',
+    invocationId,
+    commandOutcome: 'success',
+    retrievalOutcome: aggregates.length > 0 ? 'answered' : 'unresolved',
+    trustState: safeUsageTrustState(trustLevel),
+    durationMs: Date.now() - startedAt,
+    exitCode: 0,
+    corpusPath,
+    attributes: {
+      list: listKind,
+      focus: options.focus ?? null,
+      json: options.json ?? false,
+      relationshipCount: aggregates.length,
+      regionCount: regionSummaries.length,
+      familyCount: familySummaries.length,
+    },
+  });
   const availableRegions = regionSummaries.map((summary) => summary.region);
   const availableFamilies = familySummaries.map((summary) => summary.family);
   const focusedNeighborhood = options.focus
@@ -334,15 +391,41 @@ function runBoundaryAggregates(
   const db = new LuxDatabase(
     resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
   );
+  const invocationId = createInvocationId();
+  const startedAt = Date.now();
 
   const focusDirection = (options.focusDirection ?? 'both') as BoundaryFocusDirection;
   if (!['inbound', 'outbound', 'both'].includes(focusDirection)) {
+    emitUsageEvent(db, {
+      source: 'cli',
+      surface: 'overlay-boundaries',
+      action: 'query',
+      invocationId,
+      commandOutcome: 'error',
+      retrievalOutcome: 'refused',
+      durationMs: Date.now() - startedAt,
+      exitCode: 1,
+      corpusPath,
+      error: { code: 'invalid-focus-direction' },
+    });
     db.close();
     console.error('Error: --focus-direction must be one of: inbound, outbound, both.');
     process.exit(1);
   }
 
   if (options.top !== undefined && (!Number.isFinite(options.top) || options.top < 1)) {
+    emitUsageEvent(db, {
+      source: 'cli',
+      surface: 'overlay-boundaries',
+      action: 'query',
+      invocationId,
+      commandOutcome: 'error',
+      retrievalOutcome: 'refused',
+      durationMs: Date.now() - startedAt,
+      exitCode: 1,
+      corpusPath,
+      error: { code: 'invalid-top' },
+    });
     db.close();
     console.error('Error: --top must be a positive integer.');
     process.exit(1);
@@ -359,6 +442,27 @@ function runBoundaryAggregates(
     (left, right) => totalBoundaryWeight(right) - totalBoundaryWeight(left)
   );
   const totalCount = aggregates.length;
+
+  // Single success event covering the json / empty / text render branches below.
+  emitUsageEvent(db, {
+    source: 'cli',
+    surface: 'overlay-boundaries',
+    action: 'query',
+    invocationId,
+    commandOutcome: 'success',
+    retrievalOutcome: totalCount > 0 ? 'answered' : 'unresolved',
+    trustState: safeUsageTrustState(trustLevel),
+    durationMs: Date.now() - startedAt,
+    exitCode: 0,
+    corpusPath,
+    attributes: {
+      mode: options.directOnly ? 'direct-only' : 'projected',
+      focus: options.focus ?? null,
+      focusDirection: options.focus ? focusDirection : null,
+      json: options.json ?? false,
+      totalCount,
+    },
+  });
 
   if (options.top !== undefined) {
     aggregates = aggregates.slice(0, options.top);
@@ -448,6 +552,8 @@ export function addOverlayCommands(program: Command): void {
         db: opts.db as string | undefined,
       });
       const db = new LuxDatabase(runtime.dbPath);
+      const invocationId = createInvocationId();
+      const startedAt = Date.now();
 
       const inspection = inspectOverlayTrustState(db);
       const overlay = inspection.state;
@@ -490,6 +596,22 @@ export function addOverlayCommands(program: Command): void {
         }
       }
 
+      // Status is a state report, not a retrieval — the load-bearing signal is the trust state
+      // (how often invocations meet a fresh/degraded/absent overlay), so retrievalOutcome is n/a.
+      emitUsageEvent(db, {
+        source: 'cli',
+        surface: 'overlay-status',
+        action: 'status',
+        invocationId,
+        commandOutcome: 'success',
+        retrievalOutcome: 'not_applicable',
+        trustState: safeUsageTrustState(diagnostics.trustLevel),
+        durationMs: Date.now() - startedAt,
+        exitCode: 0,
+        corpusPath: runtime.corpusPath,
+        attributes: { json: options.json ?? false, hasOverlay: Boolean(overlay) },
+      });
+
       db.close();
     });
 
@@ -511,10 +633,30 @@ export function addOverlayCommands(program: Command): void {
       const db = new LuxDatabase(
         resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
       );
+      const invocationId = createInvocationId();
+      const startedAt = Date.now();
 
       const inspection = inspectOverlayTrustState(db);
       const overlay = inspection.state;
       const trustLevel = deriveOverlayTrustLevelFromState(overlay);
+
+      // The gate outcome is fully determined here (same predicate as the branches below), so emit
+      // before the existing early db.close() — the check exits nonzero when the overlay is absent
+      // or not overlay-complete.
+      const passed = Boolean(overlay) && trustLevel === 'overlay-complete';
+      emitUsageEvent(db, {
+        source: 'cli',
+        surface: 'overlay-check',
+        action: 'check',
+        invocationId,
+        commandOutcome: passed ? 'success' : 'error',
+        retrievalOutcome: 'not_applicable',
+        trustState: safeUsageTrustState(trustLevel),
+        durationMs: Date.now() - startedAt,
+        exitCode: passed ? 0 : 1,
+        corpusPath,
+        error: passed ? undefined : { code: overlay ? 'overlay-degraded' : 'no-overlay' },
+      });
 
       db.close();
 
@@ -564,6 +706,8 @@ export function addOverlayCommands(program: Command): void {
         db: opts.db as string | undefined,
       });
       const db = new LuxDatabase(runtime.dbPath);
+      const invocationId = createInvocationId();
+      const startedAt = Date.now();
       try {
         if (options.kernel !== undefined) {
           // Cross-area mode is opt-in via --kernel; the kernel package comes from lux.yaml.
@@ -573,6 +717,19 @@ export function addOverlayCommands(program: Command): void {
             console.error(
               'Error: cross-area ownership (--kernel) needs `overlay.kernel.package` in lux.yaml.'
             );
+            emitUsageEvent(db, {
+              source: 'cli',
+              surface: 'overlay-ownership',
+              action: 'query',
+              invocationId,
+              commandOutcome: 'error',
+              retrievalOutcome: 'refused',
+              durationMs: Date.now() - startedAt,
+              exitCode: 1,
+              corpusPath: runtime.corpusPath,
+              attributes: { mode: 'kernel' },
+              error: { code: 'kernel-package-missing' },
+            });
             process.exit(1);
           }
           const override = typeof options.kernel === 'string' ? options.kernel : undefined;
@@ -581,6 +738,19 @@ export function addOverlayCommands(program: Command): void {
             kernel = resolveKernel(runtime.corpusPath, kernelCfg, override);
           } catch (error) {
             console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
+            emitUsageEvent(db, {
+              source: 'cli',
+              surface: 'overlay-ownership',
+              action: 'query',
+              invocationId,
+              commandOutcome: 'error',
+              retrievalOutcome: 'refused',
+              durationMs: Date.now() - startedAt,
+              exitCode: 1,
+              corpusPath: runtime.corpusPath,
+              attributes: { mode: 'kernel' },
+              error: { code: 'kernel-unresolved' },
+            });
             process.exit(1);
           }
           const map = classifyCrossAreaOwnership(
@@ -591,6 +761,26 @@ export function addOverlayCommands(program: Command): void {
           const stale = Boolean(
             kernel.indexedCommit && kernel.headCommit && kernel.indexedCommit !== kernel.headCommit
           );
+          emitUsageEvent(db, {
+            source: 'cli',
+            surface: 'overlay-ownership',
+            action: 'query',
+            invocationId,
+            commandOutcome: 'success',
+            retrievalOutcome: map.routes.length > 0 ? 'answered' : 'unresolved',
+            durationMs: Date.now() - startedAt,
+            exitCode: 0,
+            corpusPath: runtime.corpusPath,
+            attributes: {
+              mode: 'kernel',
+              json: options.json ?? false,
+              stale,
+              routeCount: map.routes.length,
+              kernelOwned: map.summary['kernel-owned'],
+              clientOverride: map.summary['client-override'],
+              clientGap: map.summary['client-gap'],
+            },
+          });
           if (options.json) {
             console.log(
               JSON.stringify(
@@ -648,6 +838,22 @@ export function addOverlayCommands(program: Command): void {
         // single-index mode (unchanged)
         const rows = db.getOwnershipBreakdown();
         const total = rows.reduce((n, r) => n + r.count, 0);
+        emitUsageEvent(db, {
+          source: 'cli',
+          surface: 'overlay-ownership',
+          action: 'query',
+          invocationId,
+          commandOutcome: 'success',
+          retrievalOutcome: total > 0 ? 'answered' : 'unresolved',
+          durationMs: Date.now() - startedAt,
+          exitCode: 0,
+          corpusPath: runtime.corpusPath,
+          attributes: {
+            mode: 'single-index',
+            json: options.json ?? false,
+            handlerEdgeCount: total,
+          },
+        });
         if (options.json) {
           console.log(JSON.stringify({ total, breakdown: rows }, null, 2));
           return;
