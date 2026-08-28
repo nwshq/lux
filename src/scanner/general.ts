@@ -14,6 +14,7 @@ import { EnricherRegistry, type EnrichmentMap } from './lsp/index.js';
 import { mapWithConcurrency } from './lsp/pool.js';
 import { PhpLspEnricher } from './lsp/php.js';
 import { TypeScriptLspEnricher } from './lsp/typescript.js';
+import { VueLspEnricher } from './lsp/vue.js';
 import { parseImports } from './imports/index.js';
 import { detectModuleBoundaries, resolveModule } from './imports/module-boundary.js';
 import {
@@ -459,7 +460,7 @@ export interface GeneralScanOptions {
 /** Map of language IDs to factory functions for built-in enrichers. */
 const ENRICHER_FACTORIES: Record<
   string,
-  (entry: LspEnricherEntry) => PhpLspEnricher | TypeScriptLspEnricher
+  (entry: LspEnricherEntry) => PhpLspEnricher | TypeScriptLspEnricher | VueLspEnricher
 > = {
   php: (entry) =>
     new PhpLspEnricher({
@@ -471,6 +472,14 @@ const ENRICHER_FACTORIES: Record<
     }),
   typescript: (entry) =>
     new TypeScriptLspEnricher({
+      serverCommand: entry.serverCommand,
+      serverArgs: entry.serverArgs,
+      maxConcurrency: entry.maxConcurrency,
+      requestTimeoutMs: entry.requestTimeoutMs,
+      initTimeoutMs: entry.initTimeoutMs,
+    }),
+  vue: (entry) =>
+    new VueLspEnricher({
       serverCommand: entry.serverCommand,
       serverArgs: entry.serverArgs,
       maxConcurrency: entry.maxConcurrency,
