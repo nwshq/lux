@@ -380,8 +380,18 @@ export class LspClient {
   }
 
   private handleMessage(message: ResponseMessage): void {
-    // Only handle responses (messages with an id that matches a pending request)
     if (message.id === undefined || message.id === null) return;
+
+    // A message carrying BOTH an id and a method is a server->client REQUEST,
+    // not a response to one of ours. The protocol requires an answer, and a
+    // server that does not get one blocks: Volar issues workspace/configuration
+    // immediately after `initialized` and will not serve a single
+    // textDocument/documentSymbol until it is answered. Dropping these on the
+    // floor is indistinguishable from a hung server.
+    if (typeof (message as { method?: unknown }).method === 'string') {
+      this.answerServerRequest(message as unknown as RequestMessage);
+      return;
+    }
 
     const id = typeof message.id === 'string' ? parseInt(message.id, 10) : message.id;
     const pending = this.pending.get(id);
@@ -437,6 +447,30 @@ export class LspClient {
 
       this.writeMessage(message);
     });
+  }
+
+  /**
+   * Answer a server-initiated request.
+   *
+   * We hold no user configuration, so `workspace/configuration` is answered
+   * with one null per requested item — the shape the protocol requires, meaning
+   * "no value set, use your default". Every other server request is answered
+   * with a null result rather than an error: an enrichment pass wants the
+   * server to proceed with defaults, not to surface a failure the caller cannot
+   * act on.
+   */
+  private answerServerRequest(message: RequestMessage): void {
+    if (!this.process?.stdin?.writable) return;
+
+    let result: unknown = null;
+    if (message.method === 'workspace/configuration') {
+      const params = message.params as { items?: unknown[] } | undefined;
+      result = new Array(params?.items?.length ?? 0).fill(null);
+    }
+
+    const body = JSON.stringify({ jsonrpc: '2.0', id: message.id, result });
+    const header = `Content-Length: ${Buffer.byteLength(body, 'utf-8')}\r\n\r\n`;
+    this.process.stdin.write(header + body, 'utf-8');
   }
 
   private sendNotification(method: string, params: unknown): void {

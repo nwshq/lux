@@ -1,7 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { VueLspEnricher } from '../vue.js';
+import { VueLspEnricher, liftScriptSymbols } from '../vue.js';
+import type { DocumentSymbol } from 'vscode-languageserver-protocol';
 import { EnricherRegistry } from '../index.js';
 import { buildRegistry } from '../../general.js';
+
+const R = { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } };
 
 // ---------------------------------------------------------------------------
 // Unit tests for VueLspEnricher (lifecycle, config, node IDs, registration)
@@ -127,5 +130,60 @@ describe('VueLspEnricher', () => {
       expect(registry.size).toBe(1);
       expect(registry.getByExtension('.vue')?.languageId).toBe('vue');
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// SFC block flattening
+// ---------------------------------------------------------------------------
+// The shape below is the real tree @vue/language-server 2.2.12 returned for
+// auctic-core's UserDetails.vue: three block wrappers with everything useful
+// nested one level down. Symbol materialization takes only top-level symbols,
+// so unflattened this file contributes three wrappers and zero identifiers.
+
+describe('liftScriptSymbols', () => {
+  const block = (name: string, children: string[]): DocumentSymbol => ({
+    name,
+    kind: 2,
+    range: R,
+    selectionRange: R,
+    children: children.map((c) => ({ name: c, kind: 13, range: R, selectionRange: R })),
+  });
+
+  it('lifts script-setup identifiers to the top level', () => {
+    const tree = [
+      block('template', ['div.user-details']),
+      block('script setup', ['onsiteNumberLabel', 'digitalNumberLabel', 'props']),
+      block('style scoped', ['.user-details']),
+    ];
+
+    const out = liftScriptSymbols(tree).map((s) => s.name);
+    expect(out).toEqual(['onsiteNumberLabel', 'digitalNumberLabel', 'props']);
+  });
+
+  it('drops template and style children, which are DOM nodes and CSS selectors', () => {
+    const out = liftScriptSymbols([
+      block('template', ['div.user-details']),
+      block('style scoped', ['.user-details']),
+    ]);
+    expect(out).toEqual([]);
+  });
+
+  it('handles a plain <script> block as well as <script setup>', () => {
+    const out = liftScriptSymbols([block('script', ['setup', 'data'])]).map((s) => s.name);
+    expect(out).toEqual(['setup', 'data']);
+  });
+
+  it('returns a flat tree unchanged, so a future Volar shape still works', () => {
+    const flat = [
+      { name: 'useThing', kind: 13, range: R, selectionRange: R },
+      { name: 'other', kind: 13, range: R, selectionRange: R },
+    ] as DocumentSymbol[];
+    expect(liftScriptSymbols(flat).map((s) => s.name)).toEqual(['useThing', 'other']);
+  });
+
+  it('yields nothing rather than throwing for a script block with no children', () => {
+    const bare: DocumentSymbol[] = [{ name: 'script setup', kind: 2, range: R, selectionRange: R }];
+    expect(liftScriptSymbols(bare)).toEqual([]);
   });
 });

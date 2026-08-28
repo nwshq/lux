@@ -8,7 +8,8 @@
 // Enrichment results are structured for storage in metadata.lsp fields on
 // indexed entities, identically to the TypeScript and PHP enrichers.
 
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
 import { pathToFileURL, fileURLToPath } from 'url';
 import type { DocumentSymbol, Location } from 'vscode-languageserver-protocol';
 import { LspClient } from './client.js';
@@ -34,6 +35,14 @@ export interface VueLspEnricherOptions {
   maxConcurrency?: number;
   /** Per-request timeout in ms (default: 15000). */
   requestTimeoutMs?: number;
+  /**
+   * Path to the TypeScript `lib` directory Volar should load.
+   *
+   * Defaults to `<workspaceRoot>/node_modules/typescript/lib`. Volar returns an
+   * EMPTY document-symbol result — not an error — when it cannot load a
+   * TypeScript program, so a wrong or missing path degrades to silence.
+   */
+  tsdk?: string;
   /**
    * Initialization timeout in ms (default: 120000).
    *
@@ -67,8 +76,10 @@ export class VueLspEnricher implements LspEnricher {
 
   private client: LspClient | null = null;
   private _isReady = false;
+  private readonly tsdkOverride?: string;
 
   constructor(options?: VueLspEnricherOptions) {
+    this.tsdkOverride = options?.tsdk;
     this.config = {
       serverCommand: options?.serverCommand ?? 'vue-language-server',
       serverArgs: options?.serverArgs ?? ['--stdio'],
@@ -123,6 +134,16 @@ export class VueLspEnricher implements LspEnricher {
       // will answer `initialize` without them, but returns no symbols for a
       // component whose script block imports across the project.
       workspaceFolders: [{ uri: rootUri, name: 'root' }],
+      initializationOptions: {
+        // REQUIRED. Without a tsdk Volar answers `initialize` normally and then
+        // returns an empty result for every documentSymbol request — a silent
+        // zero rather than a failure.
+        typescript: { tsdk: this.resolveTsdk(workspaceRoot) },
+        // Volar's default is hybrid mode, where it delegates to a companion
+        // tsserver process driven by @vue/typescript-plugin. We run it
+        // standalone, so hybrid mode must be off.
+        vue: { hybridMode: false },
+      },
     });
 
     this._isReady = true;
@@ -166,7 +187,7 @@ export class VueLspEnricher implements LspEnricher {
 
   /** Enrich a document that is ALREADY open (no didOpen/didClose). */
   async enrichOpen(uri: string, filePath: string): Promise<EnrichmentResult | null> {
-    const rawSymbols = await this.getDocumentSymbols(uri);
+    const rawSymbols = liftScriptSymbols(await this.getDocumentSymbols(uri));
     const symbols = rawSymbols.map(toEnrichedSymbol);
     const definitions = await this.getDefinitions(uri, rawSymbols);
 
@@ -316,6 +337,25 @@ export class VueLspEnricher implements LspEnricher {
   // -------------------------------------------------------------------------
 
   /**
+   * Resolve the TypeScript `lib` directory to hand Volar.
+   *
+   * An explicit override wins. Otherwise the workspace's own installation is
+   * used, which is the correct one to load: it is the version the project's
+   * own tooling type-checks against.
+   */
+  private resolveTsdk(workspaceRoot: string): string {
+    if (this.tsdkOverride) return this.tsdkOverride;
+
+    const local = join(workspaceRoot, 'node_modules', 'typescript', 'lib');
+    if (existsSync(local)) return local;
+
+    // Fall back to the bare path rather than throwing. Volar degrades to empty
+    // results, and an enrichment pass that skips Vue is preferable to one that
+    // aborts a whole index rebuild.
+    return local;
+  }
+
+  /**
    * Build stable node IDs for Vue SFC symbols.
    * Format: `symbol:vue:<relativeFilePath>#<symbolName>`
    *
@@ -332,4 +372,42 @@ export class VueLspEnricher implements LspEnricher {
   static buildFileNodeId(relativeFilePath: string): string {
     return `file:${relativeFilePath}`;
   }
+}
+
+// ---------------------------------------------------------------------------
+// SFC block flattening
+// ---------------------------------------------------------------------------
+
+/** SFC blocks whose children are real script identifiers. */
+const SCRIPT_BLOCKS = new Set(['script', 'script setup']);
+
+/**
+ * Lift script identifiers out of their SFC block wrapper.
+ *
+ * Volar reports a Single-File Component as its blocks — `template`,
+ * `script setup`, `style scoped` — with everything a caller actually wants
+ * nested one level below. Symbol materialization takes only top-level symbols,
+ * so passing Volar's tree through verbatim indexes three block wrappers per
+ * file and discards every identifier in them.
+ *
+ * Only the script blocks are lifted. `template` children are DOM elements and
+ * `style` children are CSS selectors; neither is a code symbol, and admitting
+ * them would put entries like `div.user-details` in the symbol table.
+ *
+ * A file whose blocks are absent (no recognised wrapper) is returned unchanged,
+ * so a future Volar that reports a flat tree keeps working.
+ */
+export function liftScriptSymbols(symbols: DocumentSymbol[]): DocumentSymbol[] {
+  const hasBlocks = symbols.some(
+    (s) => SCRIPT_BLOCKS.has(s.name) || s.name === 'template' || s.name.startsWith('style')
+  );
+  if (!hasBlocks) return symbols;
+
+  const lifted: DocumentSymbol[] = [];
+  for (const symbol of symbols) {
+    if (SCRIPT_BLOCKS.has(symbol.name)) {
+      lifted.push(...(symbol.children ?? []));
+    }
+  }
+  return lifted;
 }
