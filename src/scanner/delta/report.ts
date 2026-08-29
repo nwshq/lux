@@ -42,6 +42,9 @@ export function assembleDeltaReport(inp: AssembleInput): DeltaReportV1 {
       surfacesDeclared: inp.touch.surfacesDeclared.length,
       evidenceEdges: inp.touch.evidenceEdgeCount,
       orphanedNodes: inp.touch.orphanedNodeCount,
+      // Copied, not aliased: the envelope is handed to callers that may hold it
+      // past the life of the touch set.
+      symbolIds: [...inp.touch.symbolIds],
       symbolSample: inp.touch.symbolIds.slice(0, 10),
     },
     downstream: {

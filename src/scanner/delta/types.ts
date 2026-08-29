@@ -181,6 +181,17 @@ export interface DeltaReportV1 {
     surfacesDeclared: number;
     evidenceEdges: number;
     orphanedNodes: number;
+    /**
+     * Every touched symbol node id.
+     *
+     * This is the field a consumer intersects its own symbol set against.
+     * `symbolSample` below is a fixed-size preview for humans reading the
+     * envelope and cannot be used for that: it is capped, and nothing marks it
+     * as truncated, so a partial intersection is indistinguishable from a
+     * complete one.
+     */
+    symbolIds: string[];
+    /** First ten of `symbolIds`, for display. Never a basis for a set operation. */
     symbolSample: string[];
   };
   downstream: {
