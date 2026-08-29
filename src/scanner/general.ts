@@ -571,7 +571,7 @@ export async function generalScan(
   } else {
     // 3. Build enricher registry from config (or use an injected one)
     report('Initializing LSP enrichers...');
-    const registry = options?.enricherRegistry ?? buildRegistry(config.lsp.enrichers);
+    const registry = options?.enricherRegistry ?? buildRegistry(config.lsp.enrichers, report);
 
     if (registry.size === 0) {
       report('No LSP enrichers configured.');
@@ -811,14 +811,26 @@ export async function generalScan(
  * Exported (T3a.1) so the scoped overlay-refresh engine (spec 13 Part F `runLspTier`)
  * reuses the exact same registry construction rather than forking it.
  */
-export function buildRegistry(entries: LspEnricherEntry[]): EnricherRegistry {
+export function buildRegistry(
+  entries: LspEnricherEntry[],
+  report?: (message: string) => void
+): EnricherRegistry {
   const registry = new EnricherRegistry();
 
   for (const entry of entries) {
     if (entry.enabled === false) continue;
 
     const factory = ENRICHER_FACTORIES[entry.languageId];
-    if (!factory) continue;
+    if (!factory) {
+      // Previously a bare `continue`. A configured enricher then vanished with no
+      // error and no warning, and the index simply carried no symbols for that
+      // language — a result indistinguishable from a repository that has none.
+      report?.(
+        `LSP enricher for "${entry.languageId}" was configured but is not supported and has been ` +
+          `skipped. Supported language ids: ${Object.keys(ENRICHER_FACTORIES).sort().join(', ')}.`
+      );
+      continue;
+    }
 
     try {
       const enricher = factory(entry);

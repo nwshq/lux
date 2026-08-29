@@ -251,12 +251,20 @@ function classifyResult(
   const propagationStatus: 'ran' | 'skipped' | 'empty' =
     overlay.propagationEdgesAdded > 0 ? 'ran' : overlay.surfacesDetected > 0 ? 'empty' : 'skipped';
 
+  const surfaces = reconcileSurfaceCounts({
+    surfacesDetected: overlay.surfacesDetected,
+    controllerBackedCount,
+    closureBackedCount,
+    unknownProviderKindCount,
+  });
+  warnings.push(...surfaces.warnings);
+
   return {
     mode,
     repoPath: rootPath,
     configSource: 'lux.yaml',
     configLspEnabled,
-    surfaceCount: overlay.surfacesDetected,
+    surfaceCount: surfaces.surfaceCount,
     detectorEdgeCount: overlay.surfaceEdgesStored,
     propagatedEdgeCount: overlay.propagationEdgesAdded,
     fileNodeCount: overlay.fileNodes,
@@ -269,6 +277,39 @@ function classifyResult(
     warnings,
     dirtyAtIndexTime: overlay.dirtyFileCount,
   };
+}
+
+/**
+ * Reconcile the surface total against the provider-kind breakdown.
+ *
+ * These were sourced differently — the total from the detector's in-run tally,
+ * the breakdown from the rows actually persisted — and printed together as a
+ * total and its parts. When a detected surface did not become a distinct row
+ * the two disagreed and nothing said so.
+ *
+ * The persisted rows win, because they are what a reader can go and count. A
+ * divergence in either direction is reported rather than absorbed: a tally
+ * above the rows means surfaces collapsed on insert, and one below means rows
+ * exist that no detector claims to have produced.
+ */
+export function reconcileSurfaceCounts(input: {
+  surfacesDetected: number;
+  controllerBackedCount: number;
+  closureBackedCount: number;
+  unknownProviderKindCount: number;
+}): { surfaceCount: number; warnings: string[] } {
+  const surfaceCount =
+    input.controllerBackedCount + input.closureBackedCount + input.unknownProviderKindCount;
+
+  const warnings: string[] = [];
+  if (input.surfacesDetected !== surfaceCount) {
+    warnings.push(
+      `Surface count mismatch: detectors reported ${input.surfacesDetected} surface(s) but ` +
+        `${surfaceCount} capability-surface node(s) are persisted. The persisted count is reported.`
+    );
+  }
+
+  return { surfaceCount, warnings };
 }
 
 /** Collect trust-relevant warnings from an overlay rebuild result. */
