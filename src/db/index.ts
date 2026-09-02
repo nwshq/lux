@@ -82,6 +82,28 @@ export class LuxDatabase {
     if (!readOnly) {
       mkdirSync(dirname(dbPath), { recursive: true });
     }
+
+    // Reclaim a provably-ownerless VFS lock on EVERY open, not just `index rebuild`.
+    //
+    // node-sqlite3-wasm implements SQLite locking as a `${path}.lock` DIRECTORY, which the kernel does
+    // not drop when a process dies. reclaimStaleLock() has existed for exactly this since the WASM
+    // migration, but was wired into ONE call site (cli/index.ts) out of 28 `new LuxDatabase(...)` opens.
+    // Every read path — search, trace, deps, overlay, anchors, the MCP server — therefore died on a lock
+    // whose owner was provably gone, permanently, with the cure sitting unused in the same class.
+    //
+    // Observed 2026-09-02 on a CA substrate: a lock orphaned for 22h alongside 94 dead-pid owner markers
+    // dating back six weeks. `lux search` returned `Error: database is locked` on every invocation, and
+    // waiting never helped because nothing was ever going to clear it.
+    //
+    // Safe on a read path, which is why the original restriction was over-cautious: the lock is a VFS
+    // artifact, not a consistency marker — SQLite replays or rolls back its journal on reopen (see the
+    // journal_mode note below: "a plain process crash still rolls back cleanly on reopen"). And
+    // reclaimStaleLock refuses to act while ANY owner marker names a live pid or another host, so it
+    // cannot race a live writer. Reported on stderr rather than cleared in silence.
+    if (LuxSqlite.reclaimStaleLock(dbPath)) {
+      console.error('Note: cleared a stale database lock left by a previously interrupted run.');
+    }
+
     this.db = new LuxSqlite(dbPath, readOnly ? { readonly: true, fileMustExist: true } : {});
 
     // journal_mode=delete: WASM SQLite has no WAL. Benchmarked faster than `memory`
