@@ -2,16 +2,19 @@
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+  RootsListChangedNotificationSchema,
+} from '@modelcontextprotocol/sdk/types.js';
 import { TOOLS } from './tool-defs.js';
-import { LuxDatabase, SearchRefusalError, coerceSearchLimit } from '../db/index.js';
+import { SearchRefusalError, coerceSearchLimit } from '../db/index.js';
 import { buildSearchReport, buildSearchRefusalReport } from '../cli/search-envelope.js';
 import { GeneralScanner } from '../scanner/index.js';
 import { attachEnrichment } from '../scanner/general.js';
 import { rebuildWithOverlay } from '../scanner/rebuild-orchestrator.js';
 import { persistRebuildTrustState } from '../scanner/overlay-trust-state.js';
 import { readFileSync } from 'fs';
-import { resolveRuntimePaths } from '../utils/runtime-paths.js';
 import { LUX_VERSION } from '../utils/version.js';
 import { computeImpact } from '../cli/deps-impact.js';
 import { buildIndexStatusPayload, buildOverlayStatusPayload } from '../cli/status-payload.js';
@@ -32,6 +35,12 @@ import { runAnchorSearch, anchorRefusalCoverage } from '../cli/anchor-search.js'
 import { AnchorRefusalError } from '../scanner/anchors/anchor-refusal.js';
 import { buildAnchorReport, buildAnchorRefusalReport } from '../cli/anchors-envelope.js';
 import { coerceAnchorToolArgs } from './anchor-tool-args.js';
+import {
+  WorkspaceRuntime,
+  WorkspaceUnavailableError,
+  workspaceUnavailablePayload,
+  type WorkspaceLease,
+} from './workspace-runtime.js';
 
 /** Confidence classes delta/trace understand. Mirrors the CLI guard (`src/cli/delta.ts`): an
  *  out-of-enum `min_confidence` (e.g. "high") must NOT reach the reverse-walk as an unknown class —
@@ -50,17 +59,9 @@ function resolveMinConfidence(value: unknown): ConfidenceClass {
     : 'framework-inferred';
 }
 
-// Single runtime resolution shared by the read tools. corpusPath/dbPath are byte-identical to the
-// prior resolveCorpusPath/resolveDbPath derivation; the full RuntimePathResolution additionally
-// carries corpusSource/dbSource for the index/overlay status payloads (buildIndexStatusPayload).
-const DEFAULT_RUNTIME = resolveRuntimePaths({
-  corpus: process.env.LUX_CORPUS_PATH,
-  db: process.env.LUX_DB_PATH,
-});
-const DEFAULT_CORPUS_PATH = DEFAULT_RUNTIME.corpusPath;
-const DEFAULT_DB_PATH = DEFAULT_RUNTIME.dbPath;
-
-const db = new LuxDatabase(DEFAULT_DB_PATH);
+// The runtime is fixed by explicit LUX_* overrides when present. Otherwise, roots-aware MCP clients
+// select the active repository and can change it without restarting this long-lived server.
+const workspace = new WorkspaceRuntime();
 
 const server = new Server(
   {
@@ -71,8 +72,24 @@ const server = new Server(
     capabilities: {
       tools: {},
     },
+    instructions:
+      'Use Lux first for non-trivial repository structure, concept-to-symbol discovery, call paths, ' +
+      'consumers, dependency/change impact, boundaries, and indexed knowledge. Run a status preflight, ' +
+      'verify the active workspace, preserve confidence classes, and inspect important source files. ' +
+      'Use ordinary text search for a known literal in a known area.',
   }
 );
+
+let workspaceConfiguration: Promise<void> | null = null;
+function ensureWorkspaceConfigured(): Promise<void> {
+  if (!workspaceConfiguration) {
+    const capabilities = server.getClientCapabilities();
+    workspaceConfiguration = workspace.configureClient(
+      capabilities?.roots ? () => server.listRoots() : null
+    );
+  }
+  return workspaceConfiguration;
+}
 
 // Tool handlers
 server.setRequestHandler(ListToolsRequestSchema, () => {
@@ -81,8 +98,14 @@ server.setRequestHandler(ListToolsRequestSchema, () => {
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
+  let lease: WorkspaceLease | null = null;
 
   try {
+    await ensureWorkspaceConfigured();
+    lease = await workspace.acquire();
+    const { db, runtime } = lease;
+    const corpusPath = runtime.corpusPath;
+    const dbPath = runtime.dbPath;
     switch (name) {
       case 'lux_search': {
         const {
@@ -103,7 +126,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         // below is unchanged. Sibling handles are read-only and closed in a finally (SC-7).
         const searchWith = Array.isArray(args?.with) ? (args.with as string[]) : undefined;
         if (searchWith && searchWith.length) {
-          const fed = openFederationHandles(db, DEFAULT_CORPUS_PATH, searchWith);
+          const fed = openFederationHandles(db, corpusPath, searchWith);
           try {
             let result;
             try {
@@ -121,8 +144,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 commandOutcome: 'error',
                 retrievalOutcome: 'refused',
                 exitCode: 1,
-                corpusPath: DEFAULT_CORPUS_PATH,
-                dbPath: DEFAULT_DB_PATH,
+                corpusPath,
+                dbPath,
                 queryText: query,
                 attributes: {
                   federated: true,
@@ -170,8 +193,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 ? 'answered'
                 : 'unresolved',
               exitCode: 0,
-              corpusPath: DEFAULT_CORPUS_PATH,
-              dbPath: DEFAULT_DB_PATH,
+              corpusPath,
+              dbPath,
               queryText: query,
               attributes: {
                 federated: true,
@@ -213,8 +236,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               commandOutcome: 'error',
               retrievalOutcome: 'refused',
               exitCode: 1,
-              corpusPath: DEFAULT_CORPUS_PATH,
-              dbPath: DEFAULT_DB_PATH,
+              corpusPath,
+              dbPath,
               queryText: query,
               attributes: { type, contentOnly, limit: safeLimit },
               error: {
@@ -251,8 +274,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           commandOutcome: 'success',
           retrievalOutcome: ranked.length > 0 ? 'answered' : 'unresolved',
           exitCode: 0,
-          corpusPath: DEFAULT_CORPUS_PATH,
-          dbPath: DEFAULT_DB_PATH,
+          corpusPath,
+          dbPath,
           queryText: query,
           attributes: { type, contentOnly, limit: safeLimit, resultsCount: ranked.length },
         });
@@ -297,8 +320,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'lux_rebuild_index': {
-        const scanner = new GeneralScanner(DEFAULT_CORPUS_PATH);
-        const { result, scanResult } = await rebuildWithOverlay(db, DEFAULT_CORPUS_PATH);
+        const scanner = new GeneralScanner(corpusPath);
+        const { result, scanResult } = await rebuildWithOverlay(db, corpusPath);
         const indexedScan = {
           ...scanResult.scan,
           knowledge: scanResult.scan.knowledge.map((entry) =>
@@ -319,9 +342,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           }
         }
 
-        const headCommit = isGitRepository(DEFAULT_CORPUS_PATH)
-          ? getHeadCommit(DEFAULT_CORPUS_PATH)
-          : null;
+        const headCommit = isGitRepository(corpusPath) ? getHeadCommit(corpusPath) : null;
         if (headCommit) db.setIndexMetadata('last_indexed_commit', headCommit);
         const trustState = persistRebuildTrustState(db, result, {
           lastIndexedCommit: headCommit ?? undefined,
@@ -341,8 +362,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           retrievalOutcome: 'not_applicable',
           trustState: safeUsageTrustState(trustState.mode),
           exitCode: 0,
-          corpusPath: DEFAULT_CORPUS_PATH,
-          dbPath: DEFAULT_DB_PATH,
+          corpusPath,
+          dbPath,
           repoCommit: headCommit ?? undefined,
           attributes: {
             knowledgeEntries: scanResult.scan.knowledge.length,
@@ -374,8 +395,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                     warnings: trustState.warnings,
                   },
                   runtime: {
-                    corpusPath: DEFAULT_CORPUS_PATH,
-                    dbPath: DEFAULT_DB_PATH,
+                    corpusPath,
+                    dbPath,
                   },
                 },
                 null,
@@ -399,8 +420,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           target,
           kind,
           json: true,
-          corpusPath: DEFAULT_CORPUS_PATH,
-          dbPath: DEFAULT_DB_PATH,
+          corpusPath,
+          dbPath,
         });
         emitUsageEvent(db, {
           source: 'mcp',
@@ -417,8 +438,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           trustState: result.packet.sourceScope.trustState,
           durationMs: Date.now() - startedAt,
           exitCode: result.exitCode,
-          corpusPath: DEFAULT_CORPUS_PATH,
-          dbPath: DEFAULT_DB_PATH,
+          corpusPath,
+          dbPath,
           queryText: question,
           normalizedIntent: result.packet.target.kind,
         });
@@ -484,7 +505,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         // plain traceFrom below. Sibling handles are read-only and closed in a finally (SC-7).
         const traceWith = Array.isArray(args?.with) ? (args.with as string[]) : undefined;
         if (traceWith && traceWith.length) {
-          const fed = openFederationHandles(db, DEFAULT_CORPUS_PATH, traceWith);
+          const fed = openFederationHandles(db, corpusPath, traceWith);
           try {
             const result = traceFromFederated(db, fed.handles, resolved.nodeId, fed.federation, {
               maxDepth: depth,
@@ -501,8 +522,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               commandOutcome: 'success',
               retrievalOutcome: 'answered',
               exitCode: 0,
-              corpusPath: DEFAULT_CORPUS_PATH,
-              dbPath: DEFAULT_DB_PATH,
+              corpusPath,
+              dbPath,
               queryText: symbol,
               attributes: {
                 federated: true,
@@ -539,8 +560,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           commandOutcome: 'success',
           retrievalOutcome: 'answered',
           exitCode: 0,
-          corpusPath: DEFAULT_CORPUS_PATH,
-          dbPath: DEFAULT_DB_PATH,
+          corpusPath,
+          dbPath,
           queryText: symbol,
           attributes: { nodeCount: result.stats.nodeCount, external: result.stats.externalCount },
         });
@@ -557,7 +578,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         // --base is validated inside computeDelta (resolveDeltaBase → isSafeGitRef) BEFORE any git
         // call (Decision 17). MCP exposes this verb to prompt-injectable agents, so validation +
         // argv-form git (no shell) is mandatory here, not optional hardening.
-        const result = computeDelta(db, DEFAULT_CORPUS_PATH, {
+        const result = computeDelta(db, corpusPath, {
           base,
           committedOnly: args?.committed_only === true,
           depth: typeof args?.depth === 'number' ? args.depth : 6,
@@ -574,8 +595,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           commandOutcome: 'refusal' in result ? 'error' : 'success',
           trustState:
             'refusal' in result ? 'unknown' : safeUsageTrustState(result.report.trust.overlay),
-          corpusPath: DEFAULT_CORPUS_PATH,
-          dbPath: DEFAULT_DB_PATH,
+          corpusPath,
+          dbPath,
           // Federated dimensions only when `against` is set — a non-federated delta event is
           // byte-identical to the shipped shape (SC-9 / spec 15A).
           ...(against && against.length
@@ -603,7 +624,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         try {
           const result = await runAnchorSearch(db, query, {
             limit,
-            corpusPath: DEFAULT_CORPUS_PATH,
+            corpusPath,
             granularity,
             includeTests,
           });
@@ -624,8 +645,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             commandOutcome: 'success',
             retrievalOutcome: result.results.length > 0 ? 'answered' : 'unresolved',
             exitCode: 0,
-            corpusPath: DEFAULT_CORPUS_PATH,
-            dbPath: DEFAULT_DB_PATH,
+            corpusPath,
+            dbPath,
             queryText: query,
             attributes: {
               limit,
@@ -666,8 +687,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               commandOutcome: 'error',
               retrievalOutcome: 'refused',
               exitCode: 1,
-              corpusPath: DEFAULT_CORPUS_PATH,
-              dbPath: DEFAULT_DB_PATH,
+              corpusPath,
+              dbPath,
               queryText: query,
               attributes: { limit, granularity, includeTests },
               error: { code: error.reason },
@@ -686,7 +707,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         // Shared blast-radius computation — the CLI `deps impact` action calls the same
         // computeImpact (src/cli/deps-impact.ts); the MCP layer does not fork the query.
-        const result = computeImpact(db, DEFAULT_CORPUS_PATH, filePath);
+        const result = computeImpact(db, corpusPath, filePath);
 
         if (!result.resolved) {
           emitUsageEvent(db, {
@@ -697,8 +718,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             commandOutcome: 'error',
             retrievalOutcome: 'unresolved',
             exitCode: 1,
-            corpusPath: DEFAULT_CORPUS_PATH,
-            dbPath: DEFAULT_DB_PATH,
+            corpusPath,
+            dbPath,
             queryText: filePath,
             error: { code: 'module_unresolved' },
           });
@@ -729,8 +750,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           commandOutcome: 'success',
           retrievalOutcome: 'answered',
           exitCode: 0,
-          corpusPath: DEFAULT_CORPUS_PATH,
-          dbPath: DEFAULT_DB_PATH,
+          corpusPath,
+          dbPath,
           queryText: filePath,
           attributes: {
             module: result.impact.module,
@@ -744,7 +765,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'lux_overlay_status': {
         // Reuses the canonical status-payload builder shared with `lux overlay status --json`.
-        const payload = buildOverlayStatusPayload(db, DEFAULT_RUNTIME);
+        const payload = buildOverlayStatusPayload(db, runtime);
         // With a runtime passed, payload is the {overlay,runtime,freshness} shape; narrow to read
         // the trust level for the usage event (both OverlayTrustPayload variants carry trustLevel).
         const overlayTrust = 'overlay' in payload ? payload.overlay : payload;
@@ -757,8 +778,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           retrievalOutcome: 'not_applicable',
           trustState: safeUsageTrustState(overlayTrust.trustLevel),
           exitCode: 0,
-          corpusPath: DEFAULT_CORPUS_PATH,
-          dbPath: DEFAULT_DB_PATH,
+          corpusPath,
+          dbPath,
           attributes: { trustLevel: overlayTrust.trustLevel },
         });
         return { content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }] };
@@ -766,7 +787,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'lux_index_status': {
         // Reuses the canonical status-payload builder shared with `lux index status --json`.
-        const payload = buildIndexStatusPayload(db, DEFAULT_RUNTIME);
+        const payload = buildIndexStatusPayload(db, runtime);
         emitUsageEvent(db, {
           source: 'mcp',
           surface: 'index-status',
@@ -776,8 +797,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           retrievalOutcome: 'not_applicable',
           trustState: safeUsageTrustState(payload.overlay.trustLevel),
           exitCode: 0,
-          corpusPath: DEFAULT_CORPUS_PATH,
-          dbPath: DEFAULT_DB_PATH,
+          corpusPath,
+          dbPath,
           attributes: { trustLevel: payload.overlay.trustLevel },
         });
         return { content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }] };
@@ -790,12 +811,37 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
     }
   } catch (error) {
+    if (error instanceof WorkspaceUnavailableError) {
+      return {
+        content: [
+          { type: 'text', text: JSON.stringify(workspaceUnavailablePayload(error), null, 2) },
+        ],
+        isError: true,
+      };
+    }
     return {
       content: [{ type: 'text', text: `Error: ${String(error)}` }],
       isError: true,
     };
+  } finally {
+    lease?.release();
   }
 });
+
+server.oninitialized = () => {
+  void ensureWorkspaceConfigured();
+};
+
+server.setNotificationHandler(RootsListChangedNotificationSchema, async () => {
+  await workspace.refreshRoots();
+});
+
+server.onclose = () => {
+  workspace.dispose();
+};
+server.onerror = (error) => {
+  console.error('MCP protocol error:', error);
+};
 
 async function main() {
   const transport = new StdioServerTransport();

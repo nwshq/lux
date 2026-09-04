@@ -15,7 +15,7 @@ export const TOOLS: Tool[] = [
   {
     name: 'lux_search',
     description:
-      'Search all indexed documents. Returns document title and file path. Optionally filter by entity type.',
+      'Use for indexed documentation or source-content retrieval when the question is textual rather than structural. Returns ranked document titles and file paths; use lux_anchors for concept-to-symbol discovery and lux_trace/lux_deps_impact for code relationships.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -55,7 +55,8 @@ export const TOOLS: Tool[] = [
   },
   {
     name: 'lux_log_event',
-    description: 'Log an event to the audit trail for tracking system activity.',
+    description:
+      'Mutating administrative tool: append a caller-supplied event to the local Lux audit trail. Do not use for repository investigation unless the user explicitly asks to record an event.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -81,7 +82,8 @@ export const TOOLS: Tool[] = [
   },
   {
     name: 'lux_get_file',
-    description: 'Read and return the content of an indexed file by path.',
+    description:
+      "Read an indexed file returned by Lux. Use to verify important Lux findings against source before drawing conclusions; use the client's ordinary file reader when the path did not come from Lux.",
     inputSchema: {
       type: 'object',
       properties: {
@@ -96,7 +98,7 @@ export const TOOLS: Tool[] = [
   {
     name: 'lux_rebuild_index',
     description:
-      'Rebuild the entire index by scanning the content directory. Run this after content files are updated.',
+      'Mutating administrative tool: rebuild the active workspace index and structural overlay. Use only after status shows a missing/stale/degraded index and make the rebuild explicit; do not run automatically for every investigation.',
     inputSchema: {
       type: 'object',
       properties: {},
@@ -105,7 +107,7 @@ export const TOOLS: Tool[] = [
   {
     name: 'lux_spec_derivation_evidence',
     description:
-      'Return a SpecDerivationEvidencePacketV1 for one route, handler, job, listener, or command target. Lux returns source evidence only; it does not write or approve specifications.',
+      'Use when explaining or specifying one known route, handler, job, listener, or command target. Returns a source-evidence packet only; Lux does not write or approve specifications.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -129,11 +131,9 @@ export const TOOLS: Tool[] = [
   {
     name: 'lux_trace',
     description:
-      'Trace calls from a symbol across the app→vendor boundary. Follows calls/references ' +
-      'edges multi-hop into merged vendor nodes; synchronous framework calls reach the ' +
-      'resolving in-vendor method, dynamic-dispatch calls (dispatch/event) reach the ' +
-      'dispatch machinery and are marked as re-entry-deferred boundaries. Returns an ' +
-      'annotated node/edge graph.',
+      'Use when a symbol is known, or after lux_anchors, to answer call-path, consumer, and ' +
+      'cross-boundary behavior questions. Follows calls/references into merged vendor nodes, marks ' +
+      'dynamic-dispatch re-entry boundaries, and returns an evidence/confidence-annotated graph.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -175,10 +175,9 @@ export const TOOLS: Tool[] = [
   {
     name: 'lux_anchors',
     description:
-      'Rank structural-node anchors (symbols) from a natural-language concept query. Returns real ' +
-      'structural node ids that lux_trace / feature-path / deps accept verbatim — the entry points ' +
-      'for the structural ops on concept-spread questions. Symbols/entry points; for documents/' +
-      'content use lux_search.',
+      'Use first when the user describes a code concept but does not know the relevant file or ' +
+      'symbol. Ranks real structural node ids that lux_trace accepts verbatim. Use lux_search ' +
+      'instead for documentation or textual content.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -208,10 +207,9 @@ export const TOOLS: Tool[] = [
   {
     name: 'lux_delta',
     description:
-      'Analyze what a git change touches structurally: touched symbols and declared surfaces, ' +
-      'downstream HTTP/operational entry surfaces (with honest async-boundary annotations), module ' +
-      'dependents, kernel/client ownership transitions, and invalidated spec-evidence targets. ' +
-      'Read-only with respect to structural state. Returns the schemaVersion:1 delta envelope.',
+      'Use first when asked whether a diff, working-tree change, commit, or PR is safe or what ' +
+      'downstream behavior it affects. Reports touched symbols/surfaces, entry surfaces, module ' +
+      'dependents, ownership transitions, invalidated evidence, confidence, and truncation. Read-only.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -245,9 +243,8 @@ export const TOOLS: Tool[] = [
   {
     name: 'lux_deps_impact',
     description:
-      'Analyze the blast radius of a change to a file: resolve the file to its module and return ' +
-      'every module that depends on it, with per-dependent reference counts and sample files. ' +
-      'Read-only. Mirrors `lux deps impact <file>`.',
+      'Use when asked who depends on a known file/module or what its blast radius is. Resolves the ' +
+      'file to a module and returns dependent modules with reference counts and sample files. Read-only.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -264,10 +261,9 @@ export const TOOLS: Tool[] = [
   {
     name: 'lux_overlay_status',
     description:
-      'Report the structural-overlay trust state (overlay-complete / degraded-overlay / ' +
-      'content-only / none), surface and node counts, the runtime corpus/db resolution, and ' +
-      'working-tree freshness (indexed commit vs HEAD, dirty structural files). Read-only. ' +
-      'Mirrors `lux overlay status --json`.',
+      'Preflight before structural investigation: report the active workspace, structural-overlay ' +
+      'trust, surface/node counts, and working-tree freshness. Use before lux_anchors, lux_trace, ' +
+      'lux_delta, or lux_deps_impact unless trust and freshness are already established. Read-only.',
     inputSchema: {
       type: 'object',
       properties: {},
@@ -276,9 +272,8 @@ export const TOOLS: Tool[] = [
   {
     name: 'lux_index_status',
     description:
-      'Report index freshness: knowledge/event stats, structural-overlay trust state, the runtime ' +
-      'corpus/db resolution, and working-tree freshness (indexed commit vs HEAD, dirty structural ' +
-      'files). Read-only. Mirrors `lux index status --json`.',
+      'Preflight for indexed content retrieval: report the active workspace, index statistics, ' +
+      'overlay trust, and working-tree freshness. Use before lux_search when freshness is unknown. Read-only.',
     inputSchema: {
       type: 'object',
       properties: {},

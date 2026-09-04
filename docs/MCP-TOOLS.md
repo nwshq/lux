@@ -5,6 +5,12 @@ payload; unless noted, that text is pretty-printed JSON. A tool signals a failur
 `isError: true` on the response alongside a structured error payload — the outer handler also wraps any
 unexpected throw as `{ isError: true, text: "Error: <message>" }`.
 
+Every tool runs against one workspace lease. With explicit `LUX_CORPUS_PATH`/`LUX_DB_PATH`, the MCP
+server stays fixed to that runtime. Otherwise it follows the client's single MCP `file://` root and
+switches repo-local database handles on root-change notifications. Missing, ambiguous, invalid, or
+failed roots return `isError: true` with `{ "error": "workspace-unavailable", "reason": ... }`; Lux
+does not query an accidental process cwd.
+
 ## Live tools
 
 - `lux_search` — full-text search over indexed documents (optionally federated)

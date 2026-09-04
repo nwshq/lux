@@ -10,11 +10,14 @@
   },
   "files": [
     "dist",
+    "skills",
+    "plugin.json",
     "!dist/**/__tests__"
   ],
   "scripts": {
     "build": "tsc && npm run copy-assets",
     "copy-assets": "cp -r src/db/migrations dist/db/",
+    "version": "tsx scripts/sync-plugin-version.ts",
     "dev": "tsc --watch",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",

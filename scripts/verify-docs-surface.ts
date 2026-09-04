@@ -14,6 +14,9 @@
  *   - README.md   "Current MCP surface"       — that section only
  *   - CLAUDE.md   "Current MCP surface"        — that section only
  *
+ * The canonical Agent Skill is also checked in both useful directions: every tool identifier it
+ * references must be registered, and every investigation route required below must be present.
+ *
  * What counts as a "claim": only markdown HEADINGS and LIST ITEMS (outside fenced code blocks).
  * Body prose is explicitly NOT a claim — this is the principled, structural reason MCP-TOOLS.md may
  * say in a prose paragraph that `lux_usage_event` is an internal event type and not a tool, without
@@ -72,6 +75,22 @@ const DOCS: DocTarget[] = [
     label: 'CLAUDE.md "Current MCP surface"',
   },
 ];
+
+const SKILL_PATH = 'skills/lux-code-intel/SKILL.md';
+const REQUIRED_SKILL_TOOL_NAMES = [
+  'lux_search',
+  'lux_spec_derivation_evidence',
+  'lux_trace',
+  'lux_anchors',
+  'lux_delta',
+  'lux_deps_impact',
+  'lux_overlay_status',
+  'lux_index_status',
+];
+const REQUIRED_SKILL_FRONTMATTER = {
+  name: 'lux-code-intel',
+  description: /\S/,
+};
 
 // ---------------------------------------------------------------------------
 // Markdown parsing
@@ -218,13 +237,61 @@ function checkDoc(registered: Set<string>, target: DocTarget): Violation[] {
 // Main
 // ---------------------------------------------------------------------------
 
+function checkSkill(registered: Set<string>): Violation[] {
+  let content: string;
+  try {
+    content = readFileSync(resolve(ROOT, SKILL_PATH), 'utf8');
+  } catch {
+    return [{ doc: SKILL_PATH, message: `cannot read ${SKILL_PATH}` }];
+  }
+
+  const claimed = new Set(content.match(TOOL_TOKEN) ?? []);
+  const violations: Violation[] = [];
+  const frontmatter = /^---\n([\s\S]*?)\n---(?:\n|$)/.exec(content)?.[1] ?? '';
+  const skillName = /^name:\s*(.+)$/m.exec(frontmatter)?.[1].trim();
+  const skillDescription = /^description:\s*(.+)$/m.exec(frontmatter)?.[1].trim() ?? '';
+  if (skillName !== REQUIRED_SKILL_FRONTMATTER.name) {
+    violations.push({
+      doc: SKILL_PATH,
+      message: `frontmatter name must be "${REQUIRED_SKILL_FRONTMATTER.name}"`,
+    });
+  }
+  if (!REQUIRED_SKILL_FRONTMATTER.description.test(skillDescription)) {
+    violations.push({ doc: SKILL_PATH, message: 'frontmatter description must be non-empty' });
+  }
+
+  for (const name of REQUIRED_SKILL_TOOL_NAMES) {
+    if (!registered.has(name)) {
+      violations.push({
+        doc: SKILL_PATH,
+        message: `requires "${name}", which is not a registered MCP tool`,
+      });
+    }
+    if (!claimed.has(name)) {
+      violations.push({ doc: SKILL_PATH, message: `does not route to required tool "${name}"` });
+    }
+  }
+  for (const name of claimed) {
+    if (!registered.has(name)) {
+      violations.push({
+        doc: SKILL_PATH,
+        message: `references "${name}", which is not a registered MCP tool`,
+      });
+    }
+  }
+  return violations;
+}
+
 function main(): void {
   const args = process.argv.slice(2);
   const jsonOutput = args.includes('--json');
 
   const registered = new Set(TOOLS.map((t) => t.name));
 
-  const violations = DOCS.flatMap((doc) => checkDoc(registered, doc));
+  const violations = [
+    ...DOCS.flatMap((doc) => checkDoc(registered, doc)),
+    ...checkSkill(registered),
+  ];
 
   if (jsonOutput) {
     console.log(
@@ -233,7 +300,7 @@ function main(): void {
           registeredTools: [...registered],
           violations,
           summary: {
-            docsChecked: DOCS.length,
+            docsChecked: DOCS.length + 1,
             registeredCount: registered.size,
             violationCount: violations.length,
             clean: violations.length === 0,
@@ -249,7 +316,8 @@ function main(): void {
   if (violations.length === 0) {
     console.log(
       `Docs-surface check passed. ${registered.size} registered MCP tools match all ` +
-        `${DOCS.length} doc lists (${DOCS.map((d) => d.path).join(', ')}).`
+        `${DOCS.length} doc lists (${DOCS.map((d) => d.path).join(', ')}); ` +
+        `${SKILL_PATH} references only registered tools and covers its required investigation routes.`
     );
     process.exit(0);
   }

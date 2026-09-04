@@ -51,7 +51,7 @@ jobs:
         run: npm run build
 
       - name: Test
-        run: npm test
+        run: npm test -- --maxWorkers=1 --no-file-parallelism
 
       - name: Architecture lint
         run: npm run lint:architecture
@@ -59,7 +59,7 @@ jobs:
       - name: Architecture tests
         run: npm run test:architecture
 
-      - name: Docs surface check
+      - name: Docs and Agent Skill surface check
         run: npm run verify:docs-surface
 
       - name: Dead code check

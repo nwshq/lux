@@ -6,8 +6,12 @@ Internal reference for the current Lux CLI and MCP server.
 
 Shared resolver: `src/utils/runtime-paths.ts`
 
-- corpus: `--corpus` -> `LUX_CORPUS_PATH` -> current working directory
-- db: `--db` -> `LUX_DB_PATH` -> `<resolved corpus>/.lux/lux.db`
+- CLI corpus: `--corpus` -> `LUX_CORPUS_PATH` -> current working directory
+- CLI database: `--db` -> `LUX_DB_PATH` -> `<resolved corpus>/.lux/lux.db`
+- MCP corpus: explicit `LUX_CORPUS_PATH`/`LUX_DB_PATH`, otherwise exactly one client-provided MCP
+  `file://` root
+- MCP root changes atomically switch subsequent tool calls to the new repo-local index; missing,
+  ambiguous, or invalid roots return `workspace-unavailable` rather than querying an accidental cwd
 
 ## Versioning
 
@@ -153,6 +157,20 @@ from `lux.yaml`.
 > export gated on the env var; the default install embeds locally with the native-free bge model and
 > sends **nothing** off-machine. Turning on the key ships the codebase's identifier surface and
 > documentation comments to an external service — set it only where that is acceptable.
+
+## Agent integration
+
+The canonical Agent Skill lives at `skills/lux-code-intel/SKILL.md`. It teaches compatible agents
+when to select Lux, requires workspace/trust preflight, routes structural questions to the right MCP
+tool, and preserves confidence classes in reported findings. The root `plugin.json` lets Goose and
+other Open Plugins clients install the repository as a plugin; Goose imports the skill as
+`lux:lux-code-intel`. The npm `version` lifecycle keeps the plugin manifest version synchronized
+with released packages.
+
+Use the Skill and MCP server together: the Skill supplies selection/evidence policy, while the MCP
+server supplies typed tools and roots-aware repository binding. `npm run verify:docs-surface` checks
+that the Skill never references a removed MCP tool and still covers every required investigation
+route.
 
 ## Working rules
 

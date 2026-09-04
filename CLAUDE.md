@@ -13,8 +13,11 @@ Developer and agent reference.
 
 Shared resolver: `src/utils/runtime-paths.ts`
 
-- corpus: `--corpus` -> `LUX_CORPUS_PATH` -> cwd
-- db: `--db` -> `LUX_DB_PATH` -> `<corpus>/.lux/lux.db`
+- CLI corpus: `--corpus` -> `LUX_CORPUS_PATH` -> cwd
+- CLI db: `--db` -> `LUX_DB_PATH` -> `<corpus>/.lux/lux.db`
+- MCP: explicit `LUX_CORPUS_PATH`/`LUX_DB_PATH`, otherwise exactly one client-provided `file://` root
+- MCP root changes switch subsequent calls atomically; never fall back to an accidental process cwd
+  when a root is missing, ambiguous, invalid, or unavailable
 
 ## Current CLI surface
 
@@ -31,6 +34,7 @@ Shared resolver: `src/utils/runtime-paths.ts`
 ## Current MCP surface
 
 From `src/mcp/server.ts`:
+
 - `lux_search`
 - `lux_log_event`
 - `lux_get_file`
@@ -77,6 +81,7 @@ lux overlay check
 ```
 
 Current operator-facing overlay states:
+
 - `overlay-complete`
 - `degraded-overlay`
 - `content-only`
@@ -86,14 +91,16 @@ Current operator-facing overlay states:
 Two ways to answer "which of the kernel's routes does this client override / inherit / gap?":
 
 - **Cross-area overlay (cheap, read-only):** `lux overlay ownership --kernel`. The client names its kernel package in `lux.yaml`:
+
   ```yaml
   overlay:
     kernel:
-      package: acme/core   # the composer path-repo package that IS the kernel
+      package: acme/core # the composer path-repo package that IS the kernel
   ```
+
   The pass resolves the kernel from `realpath(vendor/<package>)`, ATTACHes the kernel's `.lux` **read-only** (no import, no kernel nodes written into the client), and classifies the kernel's routes: `kernel-owned` / `client-override` (implements a delegated `App\` handler, or route-overrides a Core handler) / `client-gap` / `external`, plus the client's own routes as `client-local`. `--json` carries per-route detail + the matched kernel handler. **Prerequisite:** the vendored kernel worktree must have a current `.lux` index (`lux index rebuild` there) — the command fails fast otherwise.
 
-- **First-party promotion (heavier, merged):** `lux.yaml` `firstParty.packages` re-scans the kernel into the client overlay so `trace`/`deps` also cross the boundary. Use this when you want the kernel's nodes *in* the client index; use the cross-area overlay when you only need the ownership/coverage map. They are alternatives, not stacked.
+- **First-party promotion (heavier, merged):** `lux.yaml` `firstParty.packages` re-scans the kernel into the client overlay so `trace`/`deps` also cross the boundary. Use this when you want the kernel's nodes _in_ the client index; use the cross-area overlay when you only need the ownership/coverage map. They are alternatives, not stacked.
 
 ## Key files
 
@@ -105,6 +112,14 @@ Two ways to answer "which of the kernel's routes does this client override / inh
 - `src/cli/overlay.ts`
 - `src/mcp/server.ts`
 - `src/utils/runtime-paths.ts`
+
+## Agent integration
+
+- canonical Skill: `skills/lux-code-intel/SKILL.md`
+- Open Plugins manifest: `plugin.json`
+- Skill policy + MCP tools are complementary: policy determines when/how; MCP provides capability
+- `scripts/verify-docs-surface.ts` rejects stale Skill MCP-tool references and missing investigation
+  routes
 
 ## Rules
 
