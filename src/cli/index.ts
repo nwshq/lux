@@ -25,6 +25,7 @@ import { decideScopedEligibility, decideForcedScoped } from '../scanner/sync-esc
 import type { ScopedDecision } from '../scanner/sync-escalation.js';
 import { persistStructuralConfigFingerprint } from '../scanner/config-fingerprint.js';
 import { buildIndexStatusPayload } from './status-payload.js';
+import { openCliReadIndex, withReadTelemetry } from './read-index.js';
 import {
   isGitRepository,
   getHeadCommit,
@@ -1096,27 +1097,15 @@ indexCmd
   .option('--json', 'Emit machine-readable JSON instead of human-readable text')
   .action((options: { json?: boolean }) => {
     const runtime = getRuntimePaths(program);
-    const db = new LuxDatabase(runtime.dbPath);
+    const db = openCliReadIndex(runtime.dbPath, options.json ?? false);
+    if (!db) return;
+
     const stats = db.getStats();
     const inspection = inspectOverlayTrustState(db);
     const diagnostics = describeOverlayTrustInspection(inspection);
-    const invocationId = createInvocationId();
-    emitUsageEvent(db, {
-      source: 'cli',
-      surface: 'index-status',
-      action: 'status',
-      invocationId,
-      commandOutcome: 'success',
-      retrievalOutcome: 'not_applicable',
-      trustState: safeUsageTrustState(diagnostics.trustLevel),
-      exitCode: 0,
-      corpusPath: runtime.corpusPath,
-      dbPath: runtime.dbPath,
-      attributes: { json: options.json ?? false, trustLevel: diagnostics.trustLevel },
-    });
 
     if (options.json) {
-      console.log(JSON.stringify(buildIndexStatusPayload(db, runtime), null, 2));
+      console.log(JSON.stringify(withReadTelemetry(buildIndexStatusPayload(db, runtime)), null, 2));
       db.close();
       return;
     }

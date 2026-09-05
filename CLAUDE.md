@@ -121,6 +121,13 @@ Two ways to answer "which of the kernel's routes does this client override / inh
 - `scripts/verify-docs-surface.ts` rejects stale Skill MCP-tool references and missing investigation
   routes
 
+## Read safety
+
+- repository investigation/status commands require an existing current-schema index and do not
+  create, migrate, or append usage records
+- JSON reads report `telemetry: { recorded: false, reason: "read-only-index" }`
+- only explicit index/migrate/rebuild/hook-event/audit-log operations write
+
 ## Rules
 
 - trust code over stale prose

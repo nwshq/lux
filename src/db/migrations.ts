@@ -86,6 +86,20 @@ export class MigrationRunner {
   }
 
   /**
+   * Highest packaged migration version without opening a database.
+   * Read-open policy uses this to reject schema skew before any writable handle exists.
+   */
+  static latestVersion(): number {
+    const migrationsPath = join(__dirname, 'migrations');
+    const versions = readdirSync(migrationsPath)
+      .map((file) => /^(\d+)_.*\.sql$/.exec(file)?.[1])
+      .filter((value): value is string => value !== undefined)
+      .map(Number);
+
+    return versions.length === 0 ? 0 : Math.max(...versions);
+  }
+
+  /**
    * Get pending migrations that haven't been applied yet.
    */
   getPendingMigrations(): Migration[] {

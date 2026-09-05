@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'fs';
+import { existsSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { tmpdir } from 'os';
 import { fileURLToPath } from 'url';
@@ -58,50 +58,27 @@ describe('index status trust diagnostics', () => {
     rmSync(dbDir, { recursive: true, force: true });
   });
 
-  it('reports no-overlay diagnostics before any rebuild', () => {
+  it('refuses an absent index without creating it', () => {
     const result = runCli(repoDir, dbPath, ['index', 'status']);
 
-    expect(result.status).toBe(0);
-    expect(result.stdout).toContain(`Corpus: ${repoDir} (explicit)`);
-    expect(result.stdout).toContain(`Database: ${dbPath} (explicit)`);
-    expect(result.stdout).toContain('Structural Overlay:');
-    expect(result.stdout).toContain('Trust Level: no-overlay');
-    expect(result.stdout).toContain(
-      'No overlay trust state recorded. Run "lux index rebuild" to build the canonical overlay path.'
-    );
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(`No Lux index exists at ${dbPath}`);
+    expect(result.stderr).toContain('Run `lux index rebuild` explicitly.');
+    expect(existsSync(dbPath)).toBe(false);
   });
 
-  it('emits canonical index and overlay diagnostics as JSON', () => {
+  it('emits an absent-index refusal and read telemetry as JSON without creating the index', () => {
     const result = runCli(repoDir, dbPath, ['index', 'status', '--json']);
-    const overlayStatus = runCli(repoDir, dbPath, ['overlay', 'status', '--json']);
 
-    expect(result.status).toBe(0);
-    expect(overlayStatus.status).toBe(0);
-    const payload = JSON.parse(result.stdout) as {
-      stats: { knowledge_entries: number; events: number };
-      overlay: { mode: string; trustLevel: string; trustSource: string; warnings: string[] };
-      runtime: { corpusPath: string; corpusSource: string; dbPath: string; dbSource: string };
-    };
-    const overlayStatusPayload = JSON.parse(overlayStatus.stdout) as {
-      overlay: typeof payload.overlay;
-      runtime: typeof payload.runtime;
-    };
-
-    expect(payload.stats.knowledge_entries).toBe(0);
-    expect(payload.runtime).toEqual({
-      corpusPath: repoDir,
-      corpusSource: 'explicit',
-      dbPath,
-      dbSource: 'explicit',
+    expect(result.status).toBe(1);
+    expect(result.stderr).toBe('');
+    expect(JSON.parse(result.stdout)).toEqual({
+      error: 'index-open-refused',
+      refusal: 'index-absent',
+      message: `No Lux index exists at ${dbPath}. Run \`lux index rebuild\` explicitly.`,
+      telemetry: { recorded: false, reason: 'read-only-index' },
     });
-    expect(overlayStatusPayload.runtime).toEqual(payload.runtime);
-    expect(payload.overlay).toEqual(overlayStatusPayload.overlay);
-    expect(payload.overlay.mode).toBe('none');
-    expect(payload.overlay.trustLevel).toBe('no-overlay');
-    expect(payload.overlay.trustSource).toBe('none');
-    expect(payload.overlay.warnings).toContain(
-      'No overlay trust state recorded. Run "lux index rebuild" to build the canonical overlay path.'
-    );
+    expect(existsSync(dbPath)).toBe(false);
   });
 
   it('reports derived content-only trust after content-only rebuild', () => {
@@ -130,6 +107,7 @@ describe('index status trust diagnostics', () => {
       stats: { knowledge_entries: number };
       overlay: { mode: string; trustLevel: string; trustSource: string; warnings: string[] };
       runtime: { corpusPath: string; corpusSource: string; dbPath: string; dbSource: string };
+      telemetry: { recorded: boolean; reason: string };
     };
     const overlayStatusPayload = JSON.parse(overlayStatus.stdout) as {
       overlay: typeof payload.overlay;
@@ -137,6 +115,7 @@ describe('index status trust diagnostics', () => {
     };
 
     expect(payload.stats.knowledge_entries).toBeGreaterThan(0);
+    expect(payload.telemetry).toEqual({ recorded: false, reason: 'read-only-index' });
     expect(payload.runtime).toEqual({
       corpusPath: repoDir,
       corpusSource: 'explicit',

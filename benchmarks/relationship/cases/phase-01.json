@@ -1,0 +1,376 @@
+[
+  {
+    "id": "phase-01-index-absent",
+    "corpus": "lux",
+    "capability": "non-creating-read-safety",
+    "query": {
+      "tool": "phase-01-read-matrix",
+      "args": {
+        "state": "absent",
+        "cliCommands": [
+          "index status",
+          "search",
+          "anchors",
+          "trace",
+          "trace --direction incoming",
+          "trace --direction both",
+          "deps graph",
+          "deps clusters",
+          "deps impact",
+          "deps coverage",
+          "delta",
+          "overlay status",
+          "overlay check",
+          "overlay ownership",
+          "overlay boundaries",
+          "siblings status",
+          "usage report"
+        ],
+        "mcpTools": [
+          "lux_search",
+          "lux_get_file",
+          "lux_spec_derivation_evidence",
+          "lux_trace",
+          "lux_anchors",
+          "lux_delta",
+          "lux_deps_impact",
+          "lux_overlay_status",
+          "lux_index_status"
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "index-absent",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "expectedExitCode": 1,
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 26,
+      "minForbiddenControls": 7
+    },
+    "snapshot": [
+      "directory-tree",
+      "file-bytes",
+      "mtimes",
+      "git-status",
+      "db-sidecars",
+      "owner-markers"
+    ],
+    "forbiddenSideEffects": [
+      "created-path",
+      "removed-path",
+      "changed-bytes",
+      "changed-mtime",
+      "git-status",
+      "db-sidecar",
+      "owner-marker"
+    ]
+  },
+  {
+    "id": "phase-01-schema-too-old",
+    "corpus": "lux",
+    "capability": "non-creating-read-safety",
+    "query": {
+      "tool": "phase-01-read-matrix",
+      "args": {
+        "state": "old",
+        "cliCommands": [
+          "index status",
+          "search",
+          "anchors",
+          "trace",
+          "trace --direction incoming",
+          "trace --direction both",
+          "deps graph",
+          "deps clusters",
+          "deps impact",
+          "deps coverage",
+          "delta",
+          "overlay status",
+          "overlay check",
+          "overlay ownership",
+          "overlay boundaries",
+          "siblings status",
+          "usage report"
+        ],
+        "mcpTools": [
+          "lux_search",
+          "lux_get_file",
+          "lux_spec_derivation_evidence",
+          "lux_trace",
+          "lux_anchors",
+          "lux_delta",
+          "lux_deps_impact",
+          "lux_overlay_status",
+          "lux_index_status"
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "schema-too-old",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "expectedExitCode": 1,
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 26,
+      "minForbiddenControls": 7
+    },
+    "snapshot": [
+      "directory-tree",
+      "file-bytes",
+      "mtimes",
+      "git-status",
+      "db-sidecars",
+      "owner-markers"
+    ],
+    "forbiddenSideEffects": [
+      "created-path",
+      "removed-path",
+      "changed-bytes",
+      "changed-mtime",
+      "git-status",
+      "db-sidecar",
+      "owner-marker"
+    ]
+  },
+  {
+    "id": "phase-01-schema-too-new",
+    "corpus": "lux",
+    "capability": "non-creating-read-safety",
+    "query": {
+      "tool": "phase-01-read-matrix",
+      "args": {
+        "state": "new",
+        "cliCommands": [
+          "index status",
+          "search",
+          "anchors",
+          "trace",
+          "trace --direction incoming",
+          "trace --direction both",
+          "deps graph",
+          "deps clusters",
+          "deps impact",
+          "deps coverage",
+          "delta",
+          "overlay status",
+          "overlay check",
+          "overlay ownership",
+          "overlay boundaries",
+          "siblings status",
+          "usage report"
+        ],
+        "mcpTools": [
+          "lux_search",
+          "lux_get_file",
+          "lux_spec_derivation_evidence",
+          "lux_trace",
+          "lux_anchors",
+          "lux_delta",
+          "lux_deps_impact",
+          "lux_overlay_status",
+          "lux_index_status"
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "schema-too-new",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "expectedExitCode": 1,
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 26,
+      "minForbiddenControls": 7
+    },
+    "snapshot": [
+      "directory-tree",
+      "file-bytes",
+      "mtimes",
+      "git-status",
+      "db-sidecars",
+      "owner-markers"
+    ],
+    "forbiddenSideEffects": [
+      "created-path",
+      "removed-path",
+      "changed-bytes",
+      "changed-mtime",
+      "git-status",
+      "db-sidecar",
+      "owner-marker"
+    ]
+  },
+  {
+    "id": "phase-01-db-unreadable",
+    "corpus": "lux",
+    "capability": "non-creating-read-safety",
+    "query": {
+      "tool": "phase-01-read-matrix",
+      "args": {
+        "state": "corrupt",
+        "cliCommands": [
+          "index status",
+          "search",
+          "anchors",
+          "trace",
+          "trace --direction incoming",
+          "trace --direction both",
+          "deps graph",
+          "deps clusters",
+          "deps impact",
+          "deps coverage",
+          "delta",
+          "overlay status",
+          "overlay check",
+          "overlay ownership",
+          "overlay boundaries",
+          "siblings status",
+          "usage report"
+        ],
+        "mcpTools": [
+          "lux_search",
+          "lux_get_file",
+          "lux_spec_derivation_evidence",
+          "lux_trace",
+          "lux_anchors",
+          "lux_delta",
+          "lux_deps_impact",
+          "lux_overlay_status",
+          "lux_index_status"
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "db-unreadable",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "expectedExitCode": 1,
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 26,
+      "minForbiddenControls": 7
+    },
+    "snapshot": [
+      "directory-tree",
+      "file-bytes",
+      "mtimes",
+      "git-status",
+      "db-sidecars",
+      "owner-markers"
+    ],
+    "forbiddenSideEffects": [
+      "created-path",
+      "removed-path",
+      "changed-bytes",
+      "changed-mtime",
+      "git-status",
+      "db-sidecar",
+      "owner-marker"
+    ]
+  },
+  {
+    "id": "phase-01-current-schema",
+    "corpus": "lux",
+    "capability": "non-creating-read-safety",
+    "query": {
+      "tool": "phase-01-read-matrix",
+      "args": {
+        "state": "current",
+        "cliCommands": [
+          "index status",
+          "search",
+          "anchors",
+          "trace",
+          "trace --direction incoming",
+          "trace --direction both",
+          "deps graph",
+          "deps clusters",
+          "deps impact",
+          "deps coverage",
+          "delta",
+          "overlay status",
+          "overlay check",
+          "overlay ownership",
+          "overlay boundaries",
+          "siblings status",
+          "usage report"
+        ],
+        "mcpTools": [
+          "lux_search",
+          "lux_get_file",
+          "lux_spec_derivation_evidence",
+          "lux_trace",
+          "lux_anchors",
+          "lux_delta",
+          "lux_deps_impact",
+          "lux_overlay_status",
+          "lux_index_status"
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "expectedExitCode": 0,
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 26,
+      "minForbiddenControls": 7
+    },
+    "snapshot": [
+      "directory-tree",
+      "file-bytes",
+      "mtimes",
+      "git-status",
+      "db-sidecars",
+      "owner-markers"
+    ],
+    "forbiddenSideEffects": [
+      "created-path",
+      "removed-path",
+      "changed-bytes",
+      "changed-mtime",
+      "git-status",
+      "db-sidecar",
+      "owner-marker"
+    ]
+  }
+]

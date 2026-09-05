@@ -282,11 +282,11 @@ Returns the `{ stats, overlay, runtime, freshness }` status payload (`buildIndex
 
 ## Usage observability
 
-Read tools (search, trace, anchors, spec-evidence, delta, deps-impact, the status tools, and rebuild)
-emit normalized local **usage-event** records via `emitUsageEvent` wherever the handler has enough
-context. `lux_usage_event` is **not** a callable tool — it is the internal event-record type. These
-records are written to the same repo-local SQLite event store used by CLI observability and can be
-reviewed with `lux usage report` from the CLI. External event shippers are not part of this surface.
+Repository investigation tools (search, trace, anchors, spec-evidence, delta, deps-impact, and the
+status tools) open the active index strictly read-only and do not append local usage records. Their
+JSON payloads include `telemetry: { recorded: false, reason: "read-only-index" }`.
 
-The `lux_log_event` tool is the separate, explicit audit-trail surface: it appends a caller-supplied
-event (`source` / `event_type` / `summary` / `payload`) to that same store on demand.
+The explicitly mutating `lux_rebuild_index` and `lux_log_event` tools use short-lived writer leases;
+rebuild retains its normalized usage event. `lux_usage_event` is **not** a callable tool — it is the
+internal event-record type. Existing records can be reviewed with the read-only `lux usage report`
+CLI command. External event shippers are not part of this surface.

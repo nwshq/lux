@@ -20,7 +20,7 @@ import {
   type FederatedTraceNode,
   type FederatedTraceResult,
 } from '../scanner/associations/federation-trace.js';
-import { createInvocationId, emitUsageEvent } from '../db/observability/usage-event.js';
+import { openCliReadIndex, withReadTelemetry } from './read-index.js';
 
 export function addTraceCommand(program: Command): void {
   program
@@ -52,30 +52,15 @@ export function addTraceCommand(program: Command): void {
       ) => {
         const opts = program.opts();
         const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
-        const db = new LuxDatabase(
-          resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
-        );
-        const invocationId = createInvocationId();
-        const startedAt = Date.now();
+        const dbPath = resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined });
+        const db = openCliReadIndex(dbPath, options.json ?? false);
+        if (!db) return;
 
         try {
           const resolved = resolveStartNode(db, symbol);
           if ('notFound' in resolved) {
             console.error(`No structural symbol found for: ${symbol}`);
             console.error('Run "lux index rebuild" first, or pass a fully-qualified name.');
-            emitUsageEvent(db, {
-              source: 'cli',
-              surface: 'trace',
-              action: 'query',
-              invocationId,
-              commandOutcome: 'error',
-              retrievalOutcome: 'unresolved',
-              durationMs: Date.now() - startedAt,
-              exitCode: 1,
-              corpusPath,
-              queryText: symbol,
-              error: { code: 'symbol-not-found' },
-            });
             process.exitCode = 1;
             return;
           }
@@ -87,20 +72,6 @@ export function addTraceCommand(program: Command): void {
               console.error(`  ${c.qualified_name ?? c.symbol_name}  (${c.id})`);
             }
             console.error('Re-run with a fully-qualified name or the exact node id.');
-            emitUsageEvent(db, {
-              source: 'cli',
-              surface: 'trace',
-              action: 'query',
-              invocationId,
-              commandOutcome: 'error',
-              retrievalOutcome: 'ambiguous',
-              durationMs: Date.now() - startedAt,
-              exitCode: 1,
-              corpusPath,
-              queryText: symbol,
-              attributes: { candidateCount: resolved.ambiguous.length },
-              error: { code: 'ambiguous-symbol' },
-            });
             process.exitCode = 1;
             return;
           }
@@ -158,26 +129,10 @@ export function addTraceCommand(program: Command): void {
                 }
               );
               console.log(
-                options.json ? JSON.stringify(result, null, 2) : renderFederatedTrace(result)
+                options.json
+                  ? JSON.stringify(withReadTelemetry(result), null, 2)
+                  : renderFederatedTrace(result)
               );
-              emitUsageEvent(db, {
-                source: 'cli',
-                surface: 'trace',
-                action: 'query',
-                invocationId,
-                commandOutcome: 'success',
-                exitCode: 0,
-                corpusPath,
-                queryText: symbol,
-                durationMs: Date.now() - startedAt,
-                attributes: {
-                  federated: true,
-                  with: handles.map((h) => h.name),
-                  nodeCount: result.stats.nodeCount,
-                  bridged: result.stats.bridgedCount,
-                  reposReached: result.stats.reposReached,
-                },
-              });
             } finally {
               for (const h of handles) h.db.close();
             }
@@ -198,32 +153,8 @@ export function addTraceCommand(program: Command): void {
             db.getEdgeFreshnessByIds(result.edges.map((e) => e.id))
           );
 
-          // Single-repo success: the start symbol resolved and produced a trace DAG (answered).
-          // Emitted once here so both the --json and text renders below carry the same event.
-          emitUsageEvent(db, {
-            source: 'cli',
-            surface: 'trace',
-            action: 'query',
-            invocationId,
-            commandOutcome: 'success',
-            retrievalOutcome: 'answered',
-            durationMs: Date.now() - startedAt,
-            exitCode: 0,
-            corpusPath,
-            queryText: symbol,
-            attributes: {
-              federated: false,
-              nodeCount: result.stats.nodeCount,
-              edgeCount: result.stats.edgeCount,
-              externalCount: result.stats.externalCount,
-              dispatchBoundaries: result.stats.dispatchBoundaries,
-              truncated: result.stats.truncated,
-              staleEdges: staleSupport.staleCount,
-            },
-          });
-
           if (options.json) {
-            console.log(JSON.stringify({ ...result, staleSupport }, null, 2));
+            console.log(JSON.stringify(withReadTelemetry({ ...result, staleSupport }), null, 2));
             return;
           }
           const staleWarning = staleSupportWarning(staleSupport);

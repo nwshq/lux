@@ -1,6 +1,4 @@
-// Usage-event emission for `lux deps *` (graph/clusters/impact/coverage). Mirrors the search/anchors
-// usage-emission tests (usage-command.test.ts, trace-with.test.ts): spawn the CLI end-to-end, then
-// open a fresh handle and read the `lux_usage_event` back off the events table.
+// Strict-read behavior for every `lux deps` query: no repository-local usage mutation.
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { spawnSync } from 'node:child_process';
@@ -23,35 +21,16 @@ function runCli(corpus: string, dbPath: string, args: string[]) {
   );
 }
 
-interface UsagePayload {
-  surface: string;
-  action: string;
-  commandOutcome?: string;
-  retrievalOutcome?: string;
-  exitCode?: number;
-  attributes?: Record<string, unknown>;
-  error?: { code?: string };
-}
-
-/** Latest usage event for a given surface, parsed off the events table. */
-function readUsage(dbPath: string, surface: string): UsagePayload | undefined {
+function eventCount(dbPath: string): number {
   const db = new LuxDatabase(dbPath);
   try {
-    const event = db
-      .getRecentEvents(50)
-      .map((e) =>
-        e.event_type === 'lux_usage_event' && e.payload
-          ? (JSON.parse(e.payload) as UsagePayload)
-          : null
-      )
-      .find((p): p is UsagePayload => Boolean(p) && p!.surface === surface);
-    return event ?? undefined;
+    return db.getRecentEvents(50).length;
   } finally {
     db.close();
   }
 }
 
-describe('lux deps usage events', () => {
+describe('lux deps strict reads', () => {
   let repoDir: string;
   let dbDir: string;
   let dbPath: string;
@@ -60,7 +39,7 @@ describe('lux deps usage events', () => {
     repoDir = mkdtempSync(join(tmpdir(), 'lux-deps-usage-repo-'));
     dbDir = mkdtempSync(join(tmpdir(), 'lux-deps-usage-db-'));
     dbPath = join(dbDir, 'lux.db');
-
+    mkdirSync(join(repoDir, 'packages', 'Orders'), { recursive: true });
     const db = new LuxDatabase(dbPath);
     db.insertModuleDependency({
       source_module: 'Users',
@@ -82,64 +61,30 @@ describe('lux deps usage events', () => {
     rmSync(dbDir, { recursive: true, force: true });
   });
 
-  it('emits a deps-graph success event (answered) with the module count', () => {
-    const res = runCli(repoDir, dbPath, ['deps', 'graph']);
-    expect(res.status).toBe(0);
-
-    const usage = readUsage(dbPath, 'deps-graph');
-    expect(usage).toBeDefined();
-    expect(usage!.commandOutcome).toBe('success');
-    expect(usage!.retrievalOutcome).toBe('answered');
-    expect(usage!.attributes?.resultCount).toBe(3); // Users, Billing, Orders
+  it.each([
+    ['graph', ['deps', 'graph']],
+    ['clusters', ['deps', 'clusters']],
+    ['impact', ['deps', 'impact', 'packages/Orders/OrderService.php']],
+    ['coverage', ['deps', 'coverage']],
+    ['unresolved impact', ['deps', 'impact', 'src/Nowhere/Thing.php']],
+  ])('%s does not append usage events', (_name, args) => {
+    const before = eventCount(dbPath);
+    const result = runCli(repoDir, dbPath, args);
+    expect(result.status).toBe(0);
+    expect(eventCount(dbPath)).toBe(before);
   });
 
-  it('emits a deps-clusters success event', () => {
-    const res = runCli(repoDir, dbPath, ['deps', 'clusters']);
-    expect(res.status).toBe(0);
-
-    const usage = readUsage(dbPath, 'deps-clusters');
-    expect(usage).toBeDefined();
-    expect(usage!.commandOutcome).toBe('success');
-    expect(usage!.retrievalOutcome).toBe('answered');
-  });
-
-  it('emits a deps-impact answered event with module and blast-radius attributes', () => {
-    // packages/{name} is a known boundary pattern, so this layout resolves the file to 'Orders'.
-    mkdirSync(join(repoDir, 'packages', 'Orders'), { recursive: true });
-    const res = runCli(repoDir, dbPath, ['deps', 'impact', 'packages/Orders/OrderService.php']);
-    expect(res.status).toBe(0);
-
-    const usage = readUsage(dbPath, 'deps-impact');
-    expect(usage).toBeDefined();
-    expect(usage!.commandOutcome).toBe('success');
-    expect(usage!.retrievalOutcome).toBe('answered');
-    expect(usage!.attributes?.module).toBe('Orders');
-    expect(usage!.attributes?.dependentCount).toBe(2); // Users, Billing
-    expect(usage!.attributes?.totalReferences).toBe(18); // 10 + 8
-  });
-
-  it('emits a deps-coverage success event with the cluster count', () => {
-    const res = runCli(repoDir, dbPath, ['deps', 'coverage']);
-    expect(res.status).toBe(0);
-
-    const usage = readUsage(dbPath, 'deps-coverage');
-    expect(usage).toBeDefined();
-    expect(usage!.commandOutcome).toBe('success');
-    expect(usage!.retrievalOutcome).toBe('answered');
-    // The exact cluster count belongs to the clustering algorithm's own tests; the emission
-    // contract is that a non-empty result reports answered with a positive count.
-    expect(usage!.attributes?.clusterCount).toBeGreaterThan(0);
-  });
-
-  it('emits a deps-impact unresolved event when the file resolves to no module', () => {
-    // No module-boundary patterns in this bare repo, so any file path is an honest resolution miss.
-    const res = runCli(repoDir, dbPath, ['deps', 'impact', 'src/Nowhere/Thing.php']);
-    expect(res.status).toBe(0); // deps never exits nonzero; the miss is a retrieval outcome
-
-    const usage = readUsage(dbPath, 'deps-impact');
-    expect(usage).toBeDefined();
-    expect(usage!.commandOutcome).toBe('success');
-    expect(usage!.retrievalOutcome).toBe('unresolved');
-    expect(usage!.attributes?.resolved).toBe(false);
+  it('JSON object answers report omitted telemetry', () => {
+    const result = runCli(repoDir, dbPath, [
+      'deps',
+      'impact',
+      'packages/Orders/OrderService.php',
+      '--json',
+    ]);
+    expect(result.status).toBe(0);
+    expect(JSON.parse(result.stdout).telemetry).toEqual({
+      recorded: false,
+      reason: 'read-only-index',
+    });
   });
 });

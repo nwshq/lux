@@ -137,6 +137,42 @@ describe('WorkspaceRuntime', () => {
     expect(opened[1].close).toHaveBeenCalledOnce();
   });
 
+  it('isolates a mutating lease from concurrent reads and writers', async () => {
+    const corpus = makeCorpus('writer-repo');
+    const { runtime, opened } = harness();
+    await runtime.configureClient(async () => ({ roots: [root(corpus)] }));
+
+    const read = await runtime.acquire();
+    await expect(runtime.acquire('write-existing')).rejects.toMatchObject({
+      reason: 'database-open-failed',
+    });
+    read.release();
+
+    const writer = await runtime.acquire('write-existing');
+    await expect(runtime.acquire()).rejects.toMatchObject({ reason: 'database-open-failed' });
+    await expect(runtime.acquire('write-existing')).rejects.toMatchObject({
+      reason: 'database-open-failed',
+    });
+    writer.release();
+    expect(opened.at(-1)?.close).toHaveBeenCalledOnce();
+
+    const nextRead = await runtime.acquire();
+    nextRead.release();
+    runtime.dispose();
+  });
+
+  it('keeps an active writer tracked through disposal until its lease releases', async () => {
+    const corpus = makeCorpus('disposed-writer-repo');
+    const { runtime, opened } = harness();
+    await runtime.configureClient(async () => ({ roots: [root(corpus)] }));
+
+    const writer = await runtime.acquire('write-existing');
+    runtime.dispose();
+    expect(opened[0].close).not.toHaveBeenCalled();
+    writer.release();
+    expect(opened[0].close).toHaveBeenCalledOnce();
+  });
+
   it('waits for the latest in-flight roots refresh before leasing a database', async () => {
     const second = makeCorpus('second');
     let resolveRoots!: (value: { roots: McpRoot[] }) => void;
@@ -195,6 +231,8 @@ describe('WorkspaceRuntime', () => {
       if (mode === 'ambiguous') return { roots: [root(first), root(makeCorpus('other'))] };
       return { roots: [root(first)] };
     });
+    const lease = await runtime.acquire();
+    lease.release();
 
     mode = 'fail';
     await runtime.refreshRoots();

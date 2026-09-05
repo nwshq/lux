@@ -67,14 +67,18 @@ describe('lux search refusals + usage errors (SC-3)', () => {
     expect(res.stderr).toContain('Invalid FTS5 query');
   });
 
-  it('missing/dropped FTS table → exit 1 fts-unavailable on the DEFAULT type (B.0 open guard)', () => {
+  it('missing/dropped FTS table → exit 1 db-unreadable before the query runs', () => {
     const raw = new LuxSqlite(dbPath);
     raw.exec('DROP TABLE IF EXISTS knowledge_entries_fts;');
     raw.close();
     const res = runCli(corpus, ['--corpus', corpus, 'search', 'settlement', '--json']);
     expect(res.status).toBe(1);
-    const report = JSON.parse(res.stdout) as { refusal?: { reason: string } };
-    expect(report.refusal?.reason).toBe('fts-unavailable');
+    const report = JSON.parse(res.stdout) as {
+      refusal?: string;
+      telemetry?: { recorded: boolean };
+    };
+    expect(report.refusal).toBe('db-unreadable');
+    expect(report.telemetry?.recorded).toBe(false);
   });
 
   it('unknown --type → exit 2 usage error (not a fabricated empty answer)', () => {
@@ -89,42 +93,36 @@ describe('lux search refusals + usage errors (SC-3)', () => {
     expect(res.stderr).toContain('--limit must be a positive integer');
   });
 
-  it('genuine zero-result → exit 0 + "No results found" + unresolved usage outcome (D5)', () => {
+  it('genuine zero-result → exit 0 without mutating usage events', () => {
+    const beforeDb = new LuxDatabase(dbPath);
+    const before = beforeDb.getRecentEvents(20).length;
+    beforeDb.close();
     const res = runCli(corpus, ['--corpus', corpus, 'search', 'zzznomatchzzz']);
     expect(res.status).toBe(0);
     expect(res.stdout).toContain('No results found');
     const db = new LuxDatabase(dbPath);
     try {
-      // The only usage event this fresh corpus emitted is the zero-result search.
-      const ev = db.getRecentEvents(20).find((e) => e.event_type === 'lux_usage_event');
-      const payload = JSON.parse(ev!.payload!) as { surface: string; retrievalOutcome: string };
-      expect(payload.surface).toBe('search');
-      expect(payload.retrievalOutcome).toBe('unresolved');
+      expect(db.getRecentEvents(20)).toHaveLength(before);
     } finally {
       db.close();
     }
   });
 
-  it('a refusal records retrievalOutcome:refused with an error.code (D5)', () => {
-    runCli(corpus, ['--corpus', corpus, 'search', '"unterminated phrase']);
+  it('a refusal is returned without recording a usage event', () => {
+    const beforeDb = new LuxDatabase(dbPath);
+    const before = beforeDb.getRecentEvents(20).length;
+    beforeDb.close();
+    const result = runCli(corpus, ['--corpus', corpus, 'search', '"unterminated phrase', '--json']);
+    expect(result.status).toBe(1);
+    const report = JSON.parse(result.stdout) as {
+      refusal?: { reason: string };
+      telemetry?: { recorded: boolean; reason: string };
+    };
+    expect(report.refusal?.reason).toBe('invalid-query');
+    expect(report.telemetry).toEqual({ recorded: false, reason: 'read-only-index' });
     const db = new LuxDatabase(dbPath);
     try {
-      const ev = db
-        .getRecentEvents(20)
-        .find(
-          (e) =>
-            e.event_type === 'lux_usage_event' &&
-            (e.payload ?? '').includes('"retrievalOutcome":"refused"')
-        );
-      expect(ev).toBeDefined();
-      const payload = JSON.parse(ev!.payload!) as {
-        surface: string;
-        retrievalOutcome: string;
-        error?: { code?: string };
-      };
-      expect(payload.surface).toBe('search');
-      expect(payload.retrievalOutcome).toBe('refused');
-      expect(payload.error?.code).toBe('invalid_query');
+      expect(db.getRecentEvents(20)).toHaveLength(before);
     } finally {
       db.close();
     }

@@ -10,8 +10,8 @@ import {
   type SpecDerivationEvidencePacketV1,
   type SpecDerivationTargetKind,
 } from '../scanner/associations/spec-derivation/index.js';
-import { emitUsageEvent, createInvocationId } from '../db/observability/usage-event.js';
 import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
+import { openCliReadIndex, withReadTelemetry } from './read-index.js';
 import {
   summarizeStaleSupport,
   staleSupportWarning,
@@ -79,7 +79,7 @@ export function executeSpecEvidenceAsk(
   );
 
   const rendered = options.json
-    ? JSON.stringify({ ...packet, staleSupport }, null, 2)
+    ? JSON.stringify(withReadTelemetry({ ...packet, staleSupport }), null, 2)
     : renderSpecDerivationEvidenceText(packet);
 
   if (options.out) writeSpecEvidenceExport(options.out, packet);
@@ -114,9 +114,8 @@ export function runSpecEvidenceAsk(
   const opts = program.opts();
   const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
   const dbPath = resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined });
-  const db = new LuxDatabase(dbPath);
-  const invocationId = createInvocationId();
-  const startedAt = Date.now();
+  const db = openCliReadIndex(dbPath, options.json ?? false);
+  if (!db) return;
 
   try {
     const result = executeSpecEvidenceAsk(db, question, { ...options, corpusPath, dbPath });
@@ -125,53 +124,8 @@ export function runSpecEvidenceAsk(
       const staleWarning = staleSupportWarning(result.staleSupport);
       if (staleWarning) console.warn('Warning: ' + staleWarning);
     }
-    emitUsageEvent(db, {
-      source: 'cli',
-      surface: 'spec-evidence',
-      action: 'ask',
-      invocationId,
-      commandOutcome: result.exitCode === 0 ? 'success' : 'error',
-      retrievalOutcome:
-        result.packet.target.resolutionState === 'resolved'
-          ? 'answered'
-          : result.packet.target.resolutionState === 'ambiguous'
-            ? 'ambiguous'
-            : 'unresolved',
-      trustState: result.packet.sourceScope.trustState,
-      durationMs: Date.now() - startedAt,
-      exitCode: result.exitCode,
-      corpusPath,
-      dbPath,
-      queryText: question || options.target,
-      normalizedIntent: result.packet.target.kind,
-      retrieval: {
-        promoted: false,
-        resolvedTargetType: result.packet.target.kind,
-        evidenceCount:
-          result.packet.stateChanges.length +
-          result.packet.decisionLogic.length +
-          result.packet.dataFlow.length +
-          result.packet.operationalEffects.length +
-          result.packet.supportingContext.length,
-      },
-    });
     if (result.exitCode !== 0) process.exitCode = result.exitCode;
   } catch (error) {
-    emitUsageEvent(db, {
-      source: 'cli',
-      surface: 'spec-evidence',
-      action: 'ask',
-      invocationId,
-      commandOutcome: 'error',
-      retrievalOutcome: 'refused',
-      durationMs: Date.now() - startedAt,
-      exitCode: 1,
-      corpusPath,
-      dbPath,
-      queryText: question || options.target,
-      normalizedIntent: options.kind,
-      error: { code: 'spec_evidence_error' },
-    });
     console.error(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;
   } finally {

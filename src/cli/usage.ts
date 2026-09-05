@@ -1,5 +1,6 @@
 import type { Command } from 'commander';
-import { LuxDatabase } from '../db/index.js';
+import { openIndex } from '../db/open-policy.js';
+import { openCliReadIndex, withReadTelemetry } from './read-index.js';
 import { buildUsageReport, parseSince } from '../db/observability/usage-report.js';
 import { emitUsageEvent } from '../db/observability/usage-event.js';
 import type {
@@ -52,9 +53,21 @@ export function addUsageCommands(program: Command): void {
       const corpusPath = resolveCorpusPath({
         corpus: options.corpus || (opts.corpus as string | undefined),
       });
-      const db = new LuxDatabase(
-        resolveDbPath({ corpus: corpusPath, db: options.db || (opts.db as string | undefined) })
-      );
+      const dbPath = resolveDbPath({
+        corpus: corpusPath,
+        db: options.db || (opts.db as string | undefined),
+      });
+      const current = openIndex(dbPath, 'write-existing');
+      const opened =
+        !current.ok && current.refusal === 'index-absent'
+          ? openIndex(dbPath, 'create-or-migrate')
+          : current;
+      if (!opened.ok) {
+        console.error(`Error: ${opened.message}`);
+        process.exitCode = 1;
+        return;
+      }
+      const db = opened.db;
 
       try {
         const changedCount = parseOptionalInteger(options.changedCount, '--changed-count');
@@ -96,9 +109,11 @@ export function addUsageCommands(program: Command): void {
     .action((options: UsageReportOptions) => {
       const opts = program.opts();
       const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
-      const db = new LuxDatabase(
-        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
+      const db = openCliReadIndex(
+        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined }),
+        options.json ?? false
       );
+      if (!db) return;
 
       try {
         const report = buildUsageReport(db.getRecentEvents(10000), {
@@ -110,7 +125,7 @@ export function addUsageCommands(program: Command): void {
         });
 
         if (options.json) {
-          console.log(JSON.stringify(report, null, 2));
+          console.log(JSON.stringify(withReadTelemetry(report), null, 2));
           return;
         }
 

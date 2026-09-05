@@ -6,7 +6,7 @@ import { computeClusters } from '../scanner/imports/clustering.js';
 import { detectModuleBoundaries } from '../scanner/imports/module-boundary.js';
 import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
 import { computeImpact } from './deps-impact.js';
-import { emitUsageEvent, createInvocationId } from '../db/observability/usage-event.js';
+import { openCliReadIndex, READ_TELEMETRY, withReadTelemetry } from './read-index.js';
 
 export function addDepsCommand(program: Command) {
   const deps = program.command('deps').description('Module dependency analysis');
@@ -19,32 +19,14 @@ export function addDepsCommand(program: Command) {
     .action((options: { module?: string; json?: boolean }) => {
       const opts = program.opts();
       const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
-      const db = new LuxDatabase(
-        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
+      const db = openCliReadIndex(
+        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined }),
+        options.json ?? false
       );
-      const invocationId = createInvocationId();
-      const startedAt = Date.now();
-
+      if (!db) return;
       try {
-        const resultCount = options.module
-          ? showModuleGraph(db, options.module, options.json)
-          : showFullGraph(db, options.json);
-        emitUsageEvent(db, {
-          source: 'cli',
-          surface: 'deps-graph',
-          action: 'query',
-          invocationId,
-          commandOutcome: 'success',
-          retrievalOutcome: resultCount > 0 ? 'answered' : 'unresolved',
-          durationMs: Date.now() - startedAt,
-          exitCode: 0,
-          corpusPath,
-          attributes: {
-            module: options.module ?? null,
-            json: options.json ?? false,
-            resultCount,
-          },
-        });
+        if (options.module) showModuleGraph(db, options.module, options.json);
+        else showFullGraph(db, options.json);
       } finally {
         db.close();
       }
@@ -57,31 +39,17 @@ export function addDepsCommand(program: Command) {
     .action((options: { json?: boolean }) => {
       const opts = program.opts();
       const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
-      const db = new LuxDatabase(
-        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
+      const db = openCliReadIndex(
+        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined }),
+        options.json ?? false
       );
-      const invocationId = createInvocationId();
-      const startedAt = Date.now();
-
+      if (!db) return;
       try {
         const allDeps = db.getAllModuleDependencies();
         const clusters = computeClusters(allDeps);
 
-        emitUsageEvent(db, {
-          source: 'cli',
-          surface: 'deps-clusters',
-          action: 'query',
-          invocationId,
-          commandOutcome: 'success',
-          retrievalOutcome: clusters.length > 0 ? 'answered' : 'unresolved',
-          durationMs: Date.now() - startedAt,
-          exitCode: 0,
-          corpusPath,
-          attributes: { json: options.json ?? false, clusterCount: clusters.length },
-        });
-
         if (options.json) {
-          console.log(JSON.stringify(clusters, null, 2));
+          console.log(JSON.stringify({ data: clusters, telemetry: READ_TELEMETRY }, null, 2));
           return;
         }
 
@@ -113,12 +81,11 @@ export function addDepsCommand(program: Command) {
     .action((filePath: string, options: { json?: boolean }) => {
       const opts = program.opts();
       const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
-      const db = new LuxDatabase(
-        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
+      const db = openCliReadIndex(
+        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined }),
+        options.json ?? false
       );
-      const invocationId = createInvocationId();
-      const startedAt = Date.now();
-
+      if (!db) return;
       try {
         const result = computeImpact(db, corpusPath, filePath);
 
@@ -127,45 +94,13 @@ export function addDepsCommand(program: Command) {
           // The file resolved to no module: the invocation succeeds (exit 0, as before) but the
           // retrieval is an honest miss — feeds the usage report's repeated-miss clustering by
           // hashed file query, same as a search zero-result.
-          emitUsageEvent(db, {
-            source: 'cli',
-            surface: 'deps-impact',
-            action: 'query',
-            invocationId,
-            commandOutcome: 'success',
-            retrievalOutcome: 'unresolved',
-            durationMs: Date.now() - startedAt,
-            exitCode: 0,
-            corpusPath,
-            queryText: filePath,
-            attributes: { resolved: false },
-          });
           return;
         }
 
         const impactData = result.impact;
 
-        emitUsageEvent(db, {
-          source: 'cli',
-          surface: 'deps-impact',
-          action: 'query',
-          invocationId,
-          commandOutcome: 'success',
-          retrievalOutcome: impactData.dependentModules.length > 0 ? 'answered' : 'unresolved',
-          durationMs: Date.now() - startedAt,
-          exitCode: 0,
-          corpusPath,
-          queryText: filePath,
-          attributes: {
-            module: impactData.module,
-            json: options.json ?? false,
-            dependentCount: impactData.dependentModules.length,
-            totalReferences: impactData.blastRadius.totalReferences,
-          },
-        });
-
         if (options.json) {
-          console.log(JSON.stringify(impactData, null, 2));
+          console.log(JSON.stringify(withReadTelemetry(impactData), null, 2));
           return;
         }
 
@@ -201,12 +136,11 @@ export function addDepsCommand(program: Command) {
     .action((options: { json?: boolean }) => {
       const opts = program.opts();
       const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
-      const db = new LuxDatabase(
-        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
+      const db = openCliReadIndex(
+        resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined }),
+        options.json ?? false
       );
-      const invocationId = createInvocationId();
-      const startedAt = Date.now();
-
+      if (!db) return;
       try {
         const allDeps = db.getAllModuleDependencies();
         const clusters = computeClusters(allDeps);
@@ -243,21 +177,8 @@ export function addDepsCommand(program: Command) {
           };
         });
 
-        emitUsageEvent(db, {
-          source: 'cli',
-          surface: 'deps-coverage',
-          action: 'query',
-          invocationId,
-          commandOutcome: 'success',
-          retrievalOutcome: coverageData.length > 0 ? 'answered' : 'unresolved',
-          durationMs: Date.now() - startedAt,
-          exitCode: 0,
-          corpusPath,
-          attributes: { json: options.json ?? false, clusterCount: coverageData.length },
-        });
-
         if (options.json) {
-          console.log(JSON.stringify(coverageData, null, 2));
+          console.log(JSON.stringify({ data: coverageData, telemetry: READ_TELEMETRY }, null, 2));
           return;
         }
 
@@ -301,7 +222,7 @@ function showModuleGraph(db: LuxDatabase, module: string, json?: boolean): numbe
   };
 
   if (json) {
-    console.log(JSON.stringify(data, null, 2));
+    console.log(JSON.stringify(withReadTelemetry(data), null, 2));
     return outgoing.length + incoming.length;
   }
 
@@ -357,7 +278,7 @@ function showFullGraph(db: LuxDatabase, json?: boolean): number {
         topDependents: incoming.map((d) => ({ source: d.source_module, refs: d.reference_count })),
       };
     });
-    console.log(JSON.stringify(graph, null, 2));
+    console.log(JSON.stringify({ data: graph, telemetry: READ_TELEMETRY }, null, 2));
     return modules.length;
   }
 

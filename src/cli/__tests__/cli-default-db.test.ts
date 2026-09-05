@@ -22,7 +22,7 @@ describe('cli default db path', () => {
     rmSync(repoDir, { recursive: true, force: true });
   });
 
-  it('creates and uses a repo-local db when --db is omitted', () => {
+  it('refuses an absent repo-local db without creating it when --db is omitted', () => {
     const result = spawnSync(
       process.execPath,
       ['--import', 'tsx', CLI_ENTRY, '--corpus', repoDir, 'index', 'status'],
@@ -37,8 +37,11 @@ describe('cli default db path', () => {
       }
     );
 
-    expect(result.status).toBe(0);
-    expect(result.stdout).toContain('Structural Overlay:');
-    expect(existsSync(join(repoDir, '.lux', 'lux.db'))).toBe(true);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(
+      `No Lux index exists at ${join(repoDir, '.lux', 'lux.db')}. Run \`lux index rebuild\` explicitly.`
+    );
+    expect(existsSync(join(repoDir, '.lux'))).toBe(false);
+    expect(existsSync(join(repoDir, '.lux', 'lux.db'))).toBe(false);
   });
 });

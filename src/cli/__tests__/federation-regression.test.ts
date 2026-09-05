@@ -110,7 +110,7 @@ describe('byte-identical single-repo regression (no --with)', () => {
     expect(out).toBe(golden('trace.txt'));
   });
 
-  it('trace --json output is byte-identical to the b1620c1 baseline (incl. staleSupport)', () => {
+  it('trace --json preserves the structural baseline with additive read telemetry', () => {
     const out = runCli(corpus, [
       '--corpus',
       corpus,
@@ -118,7 +118,12 @@ describe('byte-identical single-repo regression (no --with)', () => {
       'App\\Http\\OfferController::show',
       '--json',
     ]);
-    expect(out).toBe(golden('trace.json'));
+    const actual = JSON.parse(out) as Record<string, unknown>;
+    const expected = JSON.parse(golden('trace.json')) as Record<string, unknown>;
+    expect(actual).toEqual({
+      ...expected,
+      telemetry: { recorded: false, reason: 'read-only-index' },
+    });
   });
 
   it('search text output follows the ranked contract (bm25 rank + real entryType, best-first)', () => {

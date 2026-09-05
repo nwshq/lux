@@ -20,8 +20,8 @@ import {
   deriveOverlayTrustLevelFromState,
   inspectOverlayTrustState,
 } from '../scanner/overlay-trust-state.js';
-import { emitUsageEvent, createInvocationId } from '../db/observability/usage-event.js';
 import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
+import { openCliReadIndex, withReadTelemetry } from './read-index.js';
 
 export type OperationalQuestionIntent =
   | 'schedule-sources'
@@ -1010,7 +1010,9 @@ function executeOperationalAsk(
 
   return {
     answer: payload,
-    rendered: options.json ? JSON.stringify(payload, null, 2) : renderTextAnswer(payload),
+    rendered: options.json
+      ? JSON.stringify(withReadTelemetry(payload), null, 2)
+      : renderTextAnswer(payload),
     exitCode: resolution.status === 'resolved' ? 0 : 1,
   };
 }
@@ -1030,42 +1032,15 @@ export function runOperationalAsk(
 
   const opts = program.opts();
   const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
-  const db = new LuxDatabase(
-    resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
-  );
-  const invocationId = createInvocationId();
-  const startedAt = Date.now();
+  const dbPath = resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined });
+  const db = openCliReadIndex(dbPath, options.json ?? false);
+  if (!db) return;
 
-  const result = executeOperationalAsk(db, question, { ...options, corpusPath });
-
-  console.log(result.rendered);
-  emitUsageEvent(db, {
-    source: 'cli',
-    surface: 'operational',
-    action: 'ask',
-    invocationId,
-    commandOutcome: result.exitCode === 0 ? 'success' : 'error',
-    retrievalOutcome:
-      result.answer.resolution.status === 'resolved'
-        ? 'answered'
-        : result.answer.resolution.status === 'ambiguous'
-          ? 'ambiguous'
-          : 'unresolved',
-    trustState: result.answer.overlayTrustLevel === 'overlay-complete' ? 'fresh' : 'unknown',
-    durationMs: Date.now() - startedAt,
-    exitCode: result.exitCode,
-    corpusPath,
-    queryText: question || options.target,
-    normalizedIntent: result.answer.intent,
-    retrieval: {
-      promoted: false,
-      resolvedTargetType: result.answer.target?.boundaryKind ?? result.answer.resolution.status,
-      evidenceCount: result.answer.evidence.length + result.answer.context.length,
-      directEvidenceCount: result.answer.evidence.length,
-      contextualEvidenceCount: result.answer.context.length,
-    },
-  });
-
-  db.close();
-  if (result.exitCode !== 0) process.exit(result.exitCode);
+  try {
+    const result = executeOperationalAsk(db, question, { ...options, corpusPath });
+    console.log(result.rendered);
+    if (result.exitCode !== 0) process.exitCode = result.exitCode;
+  } finally {
+    db.close();
+  }
 }

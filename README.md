@@ -172,6 +172,13 @@ server supplies typed tools and roots-aware repository binding. `npm run verify:
 that the Skill never references a removed MCP tool and still covers every required investigation
 route.
 
+## Read safety
+
+Repository investigation commands open only an existing, current-schema index and never create,
+migrate, or append usage records. JSON read envelopes report
+`telemetry: { recorded: false, reason: "read-only-index" }`. Index creation/migration, rebuilds,
+hook-event logging, and explicit MCP event logging remain intentional write operations.
+
 ## Working rules
 
 - corpus files are source of truth

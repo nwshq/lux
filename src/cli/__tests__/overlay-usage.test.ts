@@ -1,13 +1,11 @@
-// Usage-event emission for the overlay CLI surfaces that live in overlay.ts:
+// Read-only behavior for the overlay CLI surfaces that live in overlay.ts:
 //   overlay-status / overlay-check / overlay-ownership / overlay-boundaries.
-// The `overlay ... ask` surfaces (operational / feature-path / spec-evidence) are instrumented in
-// their own command files and are covered elsewhere. These cases run against a freshly-created,
-// empty index so both a success and an error/refusal emission are exercised per surface without a
-// full rebuild. Same read-back shape as the search/anchors usage tests.
+// Reads never persist usage events, JSON reads report the explicit telemetry omission marker, and
+// strict read opens refuse a missing index instead of creating one.
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { spawnSync, execSync } from 'node:child_process';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -26,36 +24,22 @@ function runCli(corpus: string, dbPath: string, args: string[]) {
   );
 }
 
-interface UsagePayload {
-  surface: string;
-  action: string;
-  commandOutcome?: string;
-  retrievalOutcome?: string;
-  trustState?: string;
-  exitCode?: number;
-  attributes?: Record<string, unknown>;
-  error?: { code?: string };
-}
-
-function readUsage(dbPath: string, surface: string): UsagePayload | undefined {
+function eventCount(dbPath: string): number {
   const db = new LuxDatabase(dbPath);
   try {
-    return (
-      db
-        .getRecentEvents(50)
-        .map((e) =>
-          e.event_type === 'lux_usage_event' && e.payload
-            ? (JSON.parse(e.payload) as UsagePayload)
-            : null
-        )
-        .find((p): p is UsagePayload => Boolean(p) && p!.surface === surface) ?? undefined
-    );
+    return db.getRecentEvents(50).length;
   } finally {
     db.close();
   }
 }
 
-describe('lux overlay usage events', () => {
+interface JsonReadPayload {
+  telemetry?: { recorded: boolean; reason: string };
+}
+
+const READ_TELEMETRY = { recorded: false, reason: 'read-only-index' };
+
+describe('lux overlay read telemetry', () => {
   let repoDir: string;
   let dbDir: string;
   let dbPath: string;
@@ -71,7 +55,6 @@ describe('lux overlay usage events', () => {
     });
     execSync('git commit -q --allow-empty -m init', { cwd: repoDir });
 
-    // Materialize the events table (migrations run in the constructor); no overlay is recorded.
     new LuxDatabase(dbPath).close();
   });
 
@@ -80,58 +63,48 @@ describe('lux overlay usage events', () => {
     rmSync(dbDir, { recursive: true, force: true });
   });
 
-  it('overlay status emits a success event with an absent trust state and n/a retrieval', () => {
-    const res = runCli(repoDir, dbPath, ['overlay', 'status', '--json']);
-    expect(res.status).toBe(0);
+  it.each([
+    ['status', ['overlay', 'status', '--json']],
+    ['ownership', ['overlay', 'ownership', '--json']],
+    ['boundaries', ['overlay', 'boundaries', 'show', '--json']],
+  ])('overlay %s reports omitted telemetry without recording usage', (_surface, args) => {
+    const before = eventCount(dbPath);
+    const res = runCli(repoDir, dbPath, args);
 
-    const usage = readUsage(dbPath, 'overlay-status');
-    expect(usage).toBeDefined();
-    expect(usage!.commandOutcome).toBe('success');
-    expect(usage!.retrievalOutcome).toBe('not_applicable');
-    expect(usage!.trustState).toBe('absent');
-    expect(usage!.attributes?.hasOverlay).toBe(false);
+    expect(res.status).toBe(0);
+    const payload = JSON.parse(res.stdout) as JsonReadPayload;
+    expect(payload.telemetry).toEqual(READ_TELEMETRY);
+    expect(eventCount(dbPath)).toBe(before);
   });
 
-  it('overlay check emits an error event (no-overlay) and exits 1', () => {
+  it('overlay check preserves its no-overlay failure without recording usage', () => {
+    const before = eventCount(dbPath);
     const res = runCli(repoDir, dbPath, ['overlay', 'check']);
+
     expect(res.status).toBe(1);
-
-    const usage = readUsage(dbPath, 'overlay-check');
-    expect(usage).toBeDefined();
-    expect(usage!.commandOutcome).toBe('error');
-    expect(usage!.trustState).toBe('absent');
-    expect(usage!.error?.code).toBe('no-overlay');
+    expect(res.stderr).toContain('Error: No structural overlay trust state found in database.');
+    expect(eventCount(dbPath)).toBe(before);
   });
 
-  it('overlay ownership emits a success event (unresolved when there are no handler edges)', () => {
-    const res = runCli(repoDir, dbPath, ['overlay', 'ownership']);
-    expect(res.status).toBe(0);
-
-    const usage = readUsage(dbPath, 'overlay-ownership');
-    expect(usage).toBeDefined();
-    expect(usage!.commandOutcome).toBe('success');
-    expect(usage!.retrievalOutcome).toBe('unresolved');
-    expect(usage!.attributes?.mode).toBe('single-index');
-  });
-
-  it('overlay boundaries show emits a success event (unresolved on an empty overlay)', () => {
-    const res = runCli(repoDir, dbPath, ['overlay', 'boundaries', 'show']);
-    expect(res.status).toBe(0);
-
-    const usage = readUsage(dbPath, 'overlay-boundaries');
-    expect(usage).toBeDefined();
-    expect(usage!.commandOutcome).toBe('success');
-    expect(usage!.retrievalOutcome).toBe('unresolved');
-  });
-
-  it('overlay boundaries show --top 0 emits a refusal event (invalid-top) and exits 1', () => {
+  it('an invalid boundary option is refused without opening or mutating the index', () => {
+    const before = eventCount(dbPath);
     const res = runCli(repoDir, dbPath, ['overlay', 'boundaries', 'show', '--top', '0']);
-    expect(res.status).toBe(1);
 
-    const usage = readUsage(dbPath, 'overlay-boundaries');
-    expect(usage).toBeDefined();
-    expect(usage!.commandOutcome).toBe('error');
-    expect(usage!.retrievalOutcome).toBe('refused');
-    expect(usage!.error?.code).toBe('invalid-top');
+    expect(res.status).toBe(1);
+    expect(res.stderr).toContain('Error: --top must be a positive integer.');
+    expect(eventCount(dbPath)).toBe(before);
+  });
+
+  it('a missing-index JSON read returns a structured refusal and does not create the index', () => {
+    rmSync(dbPath, { force: true });
+    const res = runCli(repoDir, dbPath, ['overlay', 'status', '--json']);
+
+    expect(res.status).toBe(1);
+    expect(JSON.parse(res.stdout)).toMatchObject({
+      error: 'index-open-refused',
+      refusal: 'index-absent',
+      telemetry: READ_TELEMETRY,
+    });
+    expect(existsSync(dbPath)).toBe(false);
   });
 });

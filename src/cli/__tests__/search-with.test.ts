@@ -166,27 +166,29 @@ describe('lux search --with', () => {
     expect(res.stderr).toContain('FTS5 expression: nosuchcol:settlement');
   });
 
-  it('emits a federated search usage event with attributes.federated + sibling names (SC-10)', () => {
-    const res = runCli(corpus, ['--corpus', corpus, 'search', 'settlement', '--with', 'core']);
+  it('federated search remains read-only and reports telemetry omission', () => {
+    const dbPath = join(corpus, '.lux', 'lux.db');
+    const beforeDb = new LuxDatabase(dbPath);
+    const before = beforeDb.getRecentEvents(10).length;
+    beforeDb.close();
+
+    const res = runCli(corpus, [
+      '--corpus',
+      corpus,
+      'search',
+      'settlement',
+      '--with',
+      'core',
+      '--json',
+    ]);
     expect(res.status).toBe(0);
-    const db = new LuxDatabase(join(corpus, '.lux', 'lux.db'));
-    try {
-      const usage = db
-        .getRecentEvents(10)
-        .find(
-          (e) =>
-            e.event_type === 'lux_usage_event' && (e.payload ?? '').includes('"federated":true')
-        );
-      expect(usage).toBeDefined();
-      const payload = JSON.parse(usage!.payload!) as {
-        surface: string;
-        attributes?: { federated?: boolean; with?: string[] };
-      };
-      expect(payload.surface).toBe('search');
-      expect(payload.attributes?.federated).toBe(true);
-      expect(payload.attributes?.with).toEqual(['core']);
-    } finally {
-      db.close();
-    }
+    expect(JSON.parse(res.stdout).telemetry).toEqual({
+      recorded: false,
+      reason: 'read-only-index',
+    });
+
+    const db = new LuxDatabase(dbPath);
+    expect(db.getRecentEvents(10)).toHaveLength(before);
+    db.close();
   });
 });

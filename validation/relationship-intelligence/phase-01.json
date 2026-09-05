@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "phase": 1,
+  "implementationSha": "6fe1960075cc56a4784017337ba885f0f9118794",
+  "baselineSha": "5f1f053c635a7244d3d1c23045ce398170053623",
+  "criteria": [
+    {
+      "id": "P01-C1",
+      "class": "read-only-non-creation",
+      "green": {
+        "command": "npm run check",
+        "exitCode": 0,
+        "observable": "187 test files passed; 1522 tests passed; lint/build/architecture/dead-code/native-free/docs passed"
+      },
+      "red": {
+        "mutation": "route-read-through-create-or-migrate",
+        "command": "vitest run src/integration/__tests__/phase-01-acceptance.test.ts",
+        "exitCode": 1,
+        "observable": ".lux/lux.db and Git status named by the safety snapshot"
+      },
+      "verifiedBy": "independent-test-runner-and-clean-context-review"
+    },
+    {
+      "id": "P01-C2",
+      "class": "schema-refusal-matrix",
+      "green": {
+        "command": "vitest run src/db/__tests__/open-policy.test.ts",
+        "exitCode": 0,
+        "observable": "14 absent/old/new/corrupt/current and write/create policy tests passed"
+      },
+      "red": {
+        "mutation": "remove-read-existing-absence-guard",
+        "command": "vitest run src/integration/__tests__/phase-01-acceptance.test.ts",
+        "exitCode": 1,
+        "observable": "created path and changed Git status"
+      },
+      "verifiedBy": "independent-phase-battery"
+    },
+    {
+      "id": "P01-C3",
+      "class": "mcp-lease-isolation",
+      "green": {
+        "command": "vitest run src/mcp/__tests__",
+        "exitCode": 0,
+        "observable": "roots, lazy absent-index rebuild, exclusive writer/read, disposal and wire tests passed"
+      },
+      "red": {
+        "mutation": "clear-writer-active-on-dispose",
+        "command": "vitest run src/mcp/__tests__/workspace-runtime.test.ts",
+        "exitCode": 1,
+        "observable": "active writer disposal lifecycle assertion"
+      },
+      "verifiedBy": "independent-adversarial-review"
+    }
+  ],
+  "exemptions": [],
+  "review": {
+    "codeReview": "APPROVE",
+    "specFidelity": "APPROVED"
+  }
+}

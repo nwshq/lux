@@ -1,12 +1,13 @@
 import { Command } from 'commander';
-import { LuxDatabase } from '../db/index.js';
 import { resolveRuntimePaths } from '../utils/runtime-paths.js';
+import { MigrationRunner } from '../db/migrations.js';
+import { openIndex } from '../db/open-policy.js';
+import { withReadTelemetry } from './read-index.js';
 import {
   buildFederationBlock,
   resolveSiblings,
   type SiblingResolution,
 } from '../scanner/siblings.js';
-import { createInvocationId, emitUsageEvent } from '../db/observability/usage-event.js';
 
 export function addSiblingsCommand(program: Command): void {
   const siblings = program
@@ -25,34 +26,19 @@ export function addSiblingsCommand(program: Command): void {
         corpus: opts.corpus as string | undefined,
         db: opts.db as string | undefined,
       });
-      const db = new LuxDatabase(runtime.dbPath);
-      const invocationId = createInvocationId();
-      const startedAt = Date.now();
+      const opened = openIndex(runtime.dbPath, 'read-existing');
       try {
-        const primarySchema = db.getAppliedSchemaVersion();
+        const primarySchema = opened.ok ? opened.schemaVersion : MigrationRunner.latestVersion();
         const resolutions = resolveSiblings(runtime.corpusPath, 'all', primarySchema);
         if (options.json) {
-          console.log(JSON.stringify(buildFederationBlock(resolutions), null, 2));
+          console.log(
+            JSON.stringify(withReadTelemetry(buildFederationBlock(resolutions)), null, 2)
+          );
         } else {
           renderSiblingsStatus(resolutions);
         }
-        emitUsageEvent(db, {
-          source: 'cli',
-          surface: 'siblings',
-          action: 'status',
-          invocationId,
-          commandOutcome: 'success',
-          exitCode: 0,
-          corpusPath: runtime.corpusPath,
-          dbPath: runtime.dbPath,
-          durationMs: Date.now() - startedAt,
-          attributes: {
-            siblings: resolutions.length,
-            refusals: resolutions.filter((r) => 'refusal' in r).length,
-          },
-        });
       } finally {
-        db.close();
+        if (opened.ok) opened.db.close();
       }
     });
 }

@@ -6,12 +6,9 @@ import {
   inspectOverlayTrustState,
 } from '../overlay-trust-state.js';
 import { loadLspConfig } from '../config.js';
-import {
-  createInvocationId,
-  emitUsageEvent,
-  safeUsageTrustState,
-} from '../../db/observability/usage-event.js';
-import { isRefusal, openDeltaDatabase, resolveDeltaBase } from './preflight.js';
+import { openIndex } from '../../db/open-policy.js';
+import { READ_TELEMETRY, withReadTelemetry } from '../../utils/read-telemetry.js';
+import { isRefusal, mapIndexOpenRefusal, resolveDeltaBase } from './preflight.js';
 import { isIndexablePath, resolveDeltaChangeSet } from './change-set.js';
 import { resolveTouchSet } from './touch.js';
 import { walkDownstream } from './downstream.js';
@@ -210,79 +207,64 @@ function emptyReport(db: LuxDatabase, opts: DeltaOptions, refusal: DeltaRefusal)
   });
 }
 
-/**
- * CLI entry point. The single committed exit idiom (Decision 6): set `process.exitCode`, emit the
- * `delta` usage event, and `db.close()` in `finally` — instrumentation + cleanup run on EVERY path,
- * including a gate refusal. Never `process.exit()` mid-flow.
- */
+/** CLI entry point. Opens the existing index strictly read-only and never records usage. */
 export function runDeltaCli(program: Command, opts: DeltaOptions): void {
   const runtime = resolveRuntimePaths({
     corpus: program.opts().corpus as string | undefined,
     db: program.opts().db as string | undefined,
   });
-  const opened = openDeltaDatabase(runtime.dbPath);
-  if ('refusal' in opened) {
-    console.error(`Error: ${opened.refusal.message}`);
-    if (opened.refusal.remediation) console.error(`  ${opened.refusal.remediation}`);
+  const opened = openIndex(runtime.dbPath, 'read-existing');
+  if (!opened.ok) {
+    const refusal = mapIndexOpenRefusal(opened.refusal, opened.message);
+    if (opts.json) {
+      console.log(
+        JSON.stringify(
+          {
+            error: 'index-open-refused',
+            refusal,
+            telemetry: READ_TELEMETRY,
+          },
+          null,
+          2
+        )
+      );
+    } else {
+      console.error(`Error: ${refusal.message}`);
+      if (refusal.remediation) console.error(`  ${refusal.remediation}`);
+    }
     process.exitCode = 1;
     return;
   }
+
   const db = opened.db;
-  const invocationId = createInvocationId();
-  const startedAt = Date.now();
   try {
     const result = computeDelta(db, runtime.corpusPath, opts);
     if ('refusal' in result) {
-      console.error(`Error: ${result.refusal.message}`);
-      if (result.refusal.remediation) console.error(`  ${result.refusal.remediation}`);
-      emitUsageEvent(db, {
-        source: 'cli',
-        surface: 'delta',
-        action: opts.check ? 'check' : 'analyze',
-        invocationId,
-        commandOutcome: 'error',
-        exitCode: 1,
-        corpusPath: runtime.corpusPath,
-        dbPath: runtime.dbPath,
-        durationMs: Date.now() - startedAt,
-        error: { code: result.refusal.reason, message: result.refusal.message },
-      });
+      if (opts.json) {
+        console.log(
+          JSON.stringify(
+            {
+              error: 'delta-refused',
+              refusal: result.refusal,
+              telemetry: READ_TELEMETRY,
+            },
+            null,
+            2
+          )
+        );
+      } else {
+        console.error(`Error: ${result.refusal.message}`);
+        if (result.refusal.remediation) console.error(`  ${result.refusal.remediation}`);
+      }
       process.exitCode = 1;
       return;
     }
+
     const report = result.report;
-    console.log(opts.json ? JSON.stringify(report, null, 2) : renderDeltaText(report));
-    const exitCode = opts.check && report.gate ? report.gate.exitCode : 0;
-    emitUsageEvent(db, {
-      source: 'cli',
-      surface: 'delta',
-      action: opts.check ? 'check' : 'analyze',
-      invocationId,
-      commandOutcome: exitCode === 0 ? 'success' : 'error',
-      exitCode,
-      trustState: safeUsageTrustState(report.trust.overlay),
-      corpusPath: runtime.corpusPath,
-      dbPath: runtime.dbPath,
-      durationMs: Date.now() - startedAt,
-      attributes: {
-        touchedFiles: report.touched.files,
-        touchedSymbols: report.touched.symbols,
-        entrySurfaces: report.downstream.entrySurfaces.length,
-        truncated: report.downstream.budget.truncated,
-        gateViolations: report.gate?.violations.length ?? 0,
-        // Federated dimensions ride in the attributes bag only when --against is set, so a
-        // non-federated delta event is byte-identical to the shipped shape (SC-9 / spec 15A).
-        ...(opts.against && opts.against.length
-          ? {
-              federated: true,
-              against: opts.against,
-              crossRepoSiblings:
-                report.crossRepoImpact?.siblings.filter((s) => s.attached).length ?? 0,
-            }
-          : {}),
-      },
-    });
-    process.exitCode = exitCode;
+    console.log(
+      opts.json ? JSON.stringify(withReadTelemetry(report), null, 2) : renderDeltaText(report)
+    );
+    process.exitCode = opts.check && report.gate ? report.gate.exitCode : 0;
   } finally {
     db.close();
   }

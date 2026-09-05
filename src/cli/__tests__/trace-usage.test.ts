@@ -1,6 +1,4 @@
-// Usage-event emission for `lux trace` on the non-federated paths: single-repo success plus the
-// symbol-not-found and ambiguous refusals. (The federated success path is covered by
-// trace-with.test.ts.) Same shape as the search/anchors usage tests: spawn the CLI, read the event.
+// Strict-read observability for `lux trace`: query paths never append repository-local events.
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { spawnSync } from 'node:child_process';
@@ -23,32 +21,16 @@ function runCli(corpus: string, dbPath: string, args: string[]) {
   );
 }
 
-interface UsagePayload {
-  surface: string;
-  commandOutcome?: string;
-  retrievalOutcome?: string;
-  attributes?: Record<string, unknown>;
-  error?: { code?: string };
-}
-
-/** Every usage event on the events table, newest first, for the trace surface. */
-function readTraceUsage(dbPath: string): UsagePayload[] {
+function eventCount(dbPath: string): number {
   const db = new LuxDatabase(dbPath);
   try {
-    return db
-      .getRecentEvents(50)
-      .map((e) =>
-        e.event_type === 'lux_usage_event' && e.payload
-          ? (JSON.parse(e.payload) as UsagePayload)
-          : null
-      )
-      .filter((p): p is UsagePayload => Boolean(p) && p!.surface === 'trace');
+    return db.getRecentEvents(50).length;
   } finally {
     db.close();
   }
 }
 
-describe('lux trace usage events', () => {
+describe('lux trace strict read behavior', () => {
   let repoDir: string;
   let dbDir: string;
   let dbPath: string;
@@ -60,22 +42,13 @@ describe('lux trace usage events', () => {
 
     const db = new LuxDatabase(dbPath);
     const now = Math.floor(Date.now() / 1000);
-    db.upsertStructuralNode({
-      id: 'A',
-      node_type: 'symbol',
-      symbol_name: 'App\\Http\\Controllers\\InvoiceController::store',
-      qualified_name: 'App\\Http\\Controllers\\InvoiceController::store',
-      origin: 'local',
-      updated_at: now,
-    });
-    db.upsertStructuralNode({
-      id: 'B',
-      node_type: 'symbol',
-      symbol_name: 'Illuminate\\Database\\Eloquent\\Model::save',
-      qualified_name: 'Illuminate\\Database\\Eloquent\\Model::save',
-      origin: 'vendor-pack',
-      updated_at: now,
-    });
+    for (const node of [
+      { id: 'A', symbol_name: 'start', qualified_name: 'App\\A::start' },
+      { id: 'B', symbol_name: 'save', qualified_name: 'App\\B::save' },
+      { id: 'C', symbol_name: 'save', qualified_name: 'App\\C::save' },
+    ]) {
+      db.upsertStructuralNode({ ...node, node_type: 'symbol', origin: 'local', updated_at: now });
+    }
     db.upsertStructuralEdge({
       id: 'A->B:calls',
       source_node_id: 'A',
@@ -87,23 +60,6 @@ describe('lux trace usage events', () => {
       dirty_dependency_count: 0,
       updated_at: now,
     });
-    // Two symbols sharing the leaf name `save` — a bare `trace save` is ambiguous (no exact match).
-    db.upsertStructuralNode({
-      id: 'sym:App\\Foo::save',
-      node_type: 'symbol',
-      symbol_name: 'save',
-      qualified_name: 'App\\Foo::save',
-      origin: 'local',
-      updated_at: now,
-    });
-    db.upsertStructuralNode({
-      id: 'sym:App\\Bar::save',
-      node_type: 'symbol',
-      symbol_name: 'save',
-      qualified_name: 'App\\Bar::save',
-      origin: 'local',
-      updated_at: now,
-    });
     db.close();
   });
 
@@ -112,38 +68,23 @@ describe('lux trace usage events', () => {
     rmSync(dbDir, { recursive: true, force: true });
   });
 
-  it('emits a non-federated trace success event (answered)', () => {
-    const res = runCli(repoDir, dbPath, ['trace', 'A']);
-    expect(res.status).toBe(0);
-
-    const events = readTraceUsage(dbPath);
-    expect(events).toHaveLength(1);
-    expect(events[0].commandOutcome).toBe('success');
-    expect(events[0].retrievalOutcome).toBe('answered');
-    expect(events[0].attributes?.federated).toBe(false);
-    expect(events[0].attributes?.nodeCount).toBe(2);
+  it.each([
+    ['success', ['trace', 'A'], 0],
+    ['unresolved', ['trace', 'DoesNotExist::nope'], 1],
+    ['ambiguous', ['trace', 'save'], 1],
+  ] as const)('%s does not append a usage event', (_name, args, exitCode) => {
+    const before = eventCount(dbPath);
+    const result = runCli(repoDir, dbPath, [...args]);
+    expect(result.status).toBe(exitCode);
+    expect(eventCount(dbPath)).toBe(before);
   });
 
-  it('emits an error/unresolved event when the symbol is not found (exit 1)', () => {
-    const res = runCli(repoDir, dbPath, ['trace', 'DoesNotExist::nope']);
-    expect(res.status).toBe(1);
-
-    const events = readTraceUsage(dbPath);
-    expect(events).toHaveLength(1);
-    expect(events[0].commandOutcome).toBe('error');
-    expect(events[0].retrievalOutcome).toBe('unresolved');
-    expect(events[0].error?.code).toBe('symbol-not-found');
-  });
-
-  it('emits an error/ambiguous event when the symbol resolves to multiple candidates (exit 1)', () => {
-    const res = runCli(repoDir, dbPath, ['trace', 'save']);
-    expect(res.status).toBe(1);
-
-    const events = readTraceUsage(dbPath);
-    expect(events).toHaveLength(1);
-    expect(events[0].commandOutcome).toBe('error');
-    expect(events[0].retrievalOutcome).toBe('ambiguous');
-    expect(events[0].error?.code).toBe('ambiguous-symbol');
-    expect(events[0].attributes?.candidateCount).toBe(2);
+  it('JSON answers report omitted telemetry', () => {
+    const result = runCli(repoDir, dbPath, ['trace', 'A', '--json']);
+    expect(result.status).toBe(0);
+    expect(JSON.parse(result.stdout).telemetry).toEqual({
+      recorded: false,
+      reason: 'read-only-index',
+    });
   });
 });

@@ -1,7 +1,5 @@
-// Fix #8 (Decision 6 acceptance): runDeltaCli's single committed exit idiom. On a refusal that
-// surfaces from inside computeDelta (here: a non-git corpus → not-a-git-repo), the CLI must still
-// (a) emit the `delta` usage event, (b) run db.close() via `finally`, and (c) NEVER call
-// process.exit() mid-flow — it sets process.exitCode and returns.
+// Strict-read exit idiom: a refusal from computeDelta (non-git corpus) closes the database,
+// appends no repository-local usage event, and sets process.exitCode without process.exit().
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mkdtempSync, rmSync } from 'node:fs';
@@ -33,7 +31,7 @@ afterEach(() => {
 });
 
 describe('runDeltaCli exit idiom (Decision 6)', () => {
-  it('on a computeDelta refusal: emits the usage event, closes the db, sets exitCode without process.exit()', () => {
+  it('on a computeDelta refusal: closes the read-only db and sets exitCode without process.exit or usage writes', () => {
     const corpus = join(root, 'plain'); // exists, but not a git repo → not-a-git-repo refusal
     const program = { opts: () => ({ corpus, db: dbPath }) } as unknown as Command;
 
@@ -59,14 +57,10 @@ describe('runDeltaCli exit idiom (Decision 6)', () => {
     expect(process.exitCode).toBe(1); // exit code set, not thrown
     expect(closeSpy).toHaveBeenCalled(); // finally { db.close() } ran
 
-    // the delta usage event persisted before close → re-open and find it.
+    // Strict reads do not append repository-local usage events.
     const verify = new LuxDatabase(dbPath);
     const events = verify.getRecentEvents(20);
     verify.close();
-    const usage = events.find(
-      (e) => e.event_type === 'lux_usage_event' && (e.summary ?? '').startsWith('delta.')
-    );
-    expect(usage).toBeDefined();
-    expect(usage?.summary).toContain('error'); // refusal → commandOutcome error
+    expect(events.filter((e) => e.event_type === 'lux_usage_event')).toEqual([]);
   });
 });

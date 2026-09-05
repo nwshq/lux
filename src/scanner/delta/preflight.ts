@@ -1,49 +1,42 @@
-import { existsSync } from 'fs';
 import { LuxDatabase } from '../../db/index.js';
+import { openIndex, type IndexOpenRefusal } from '../../db/open-policy.js';
 import { isGitRepository, commitExistsSafe, isSafeGitRef, revParseSafe } from '../git.js';
 import type { DeltaRefusal } from './types.js';
 
-/**
- * Open the primary index read-only *with respect to structural/overlay state* (Decision 14):
- *   - `autoMigrate=false` → no silent migration, no rebuild, no node/edge write on open
- *   - **refuse, never migrate**, a stale-schema index — checked BEFORE any query is prepared
- *   - explicit read-query init only once the schema is confirmed current (that flag skips `initQueries()`)
- * The residual writes are non-structural and sanctioned: the constructor's guarded `mkdirSync`,
- * the adapter's pid owner-marker + one-time legacy WAL→rollback header flip, and the single
- * usage-event append. `existsSync` guards a typo'd `--db` so we refuse rather than create an
- * empty index tree.
- */
-export function openDeltaDatabase(dbPath: string): { db: LuxDatabase } | { refusal: DeltaRefusal } {
-  if (!existsSync(dbPath)) {
-    return {
-      refusal: {
+/** Map the shared strict-open refusal vocabulary to delta's stable public refusal contract. */
+export function mapIndexOpenRefusal(refusal: IndexOpenRefusal, message: string): DeltaRefusal {
+  switch (refusal) {
+    case 'index-absent':
+      return {
         reason: 'db-absent',
-        message: `No Lux index at ${dbPath}.`,
+        message,
         remediation: 'Run `lux index rebuild`, or check --db.',
-      },
-    };
-  }
-  const db = new LuxDatabase(dbPath, /* autoMigrate */ false);
-  // ⚠️ Order matters: check the schema BEFORE preparing any query. `initReadQueries()`→`initQueries()`
-  // constructs `PreparedQueries`, which eagerly prepares ~65 statements — many against
-  // current-schema tables/columns a genuinely older index lacks (the `operational_*` tables from
-  // migration 011, `structural_edges.ownership` from 013). On such an index those `db.prepare(...)`
-  // calls throw `no such table/column`, which would turn the *promised* structured `schema-stale`
-  // refusal (Decision 14 / SC-7) into an uncaught crash. `isSchemaUpToDate()` reads only the
-  // migration ledger (`migrations.isUpToDate()`), so it is safe on a fresh `autoMigrate=false` open
-  // with nothing prepared; `close()` is likewise safe without `initQueries()`.
-  if (!db.isSchemaUpToDate()) {
-    db.close();
-    return {
-      refusal: {
+      };
+    case 'schema-too-old':
+      return {
         reason: 'schema-stale',
-        message: `The index at ${dbPath} is on an older schema.`,
+        message,
         remediation: 'Run `lux migrate up` (or `lux index rebuild`) — delta refuses to migrate it.',
-      },
-    };
+      };
+    case 'schema-too-new':
+    case 'db-unreadable':
+      return {
+        reason: 'config-error',
+        message,
+        remediation:
+          refusal === 'schema-too-new'
+            ? 'Upgrade Lux before running delta.'
+            : 'Check --db, or run `lux index rebuild` explicitly.',
+      };
   }
-  db.initReadQueries(); // schema current → safe to prepare (Decision 14: autoMigrate=false skips initQueries())
-  return { db };
+}
+
+/** Compatibility seam for non-CLI callers; applies the same strict read-existing policy. */
+export function openDeltaDatabase(dbPath: string): { db: LuxDatabase } | { refusal: DeltaRefusal } {
+  const opened = openIndex(dbPath, 'read-existing');
+  return opened.ok
+    ? { db: opened.db }
+    : { refusal: mapIndexOpenRefusal(opened.refusal, opened.message) };
 }
 
 export interface BaseResolution {

@@ -1,6 +1,7 @@
 import { statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { LuxDatabase } from '../db/index.js';
+import { openIndex, type IndexOpenMode } from '../db/open-policy.js';
 import { resolveRuntimePaths, type RuntimePathResolution } from '../utils/runtime-paths.js';
 
 export interface McpRoot {
@@ -19,7 +20,7 @@ export interface WorkspaceLease {
 export interface WorkspaceRuntimeOptions {
   env?: Record<string, string | undefined>;
   cwd?: string;
-  openDatabase?: (dbPath: string) => LuxDatabase;
+  openDatabase?: (dbPath: string, mode?: IndexOpenMode) => LuxDatabase;
 }
 
 export type WorkspaceUnavailableReason =
@@ -52,29 +53,38 @@ interface WorkspaceHandle {
 }
 
 /**
- * Owns the long-lived Lux database handle used by the MCP server.
+ * Owns the workspace selected by MCP Roots and lazily leases its index.
  *
- * An explicit LUX_CORPUS_PATH or LUX_DB_PATH is an operator override and keeps the server fixed to
- * that runtime. Otherwise a roots-capable MCP client selects the active corpus. Root changes swap
- * handles atomically: existing calls finish on their leased handle, while new calls wait for the
- * latest roots/list response and then use the new repository.
+ * Selection and opening are deliberately separate: a valid root may not have an index yet, and the
+ * explicit rebuild tool must still be able to create it. Read calls open an existing current-schema
+ * index strictly read-only. Mutating calls close an idle read handle, acquire their own writer, and
+ * close it at request end; the next read lazily observes the new index.
  */
 export class WorkspaceRuntime {
   private readonly env: Record<string, string | undefined>;
   private readonly cwd: string;
-  private readonly openDatabase: (dbPath: string) => LuxDatabase;
+  private readonly openDatabase: (dbPath: string, mode?: IndexOpenMode) => LuxDatabase;
   private readonly fixedByEnvironment: boolean;
+  private runtime: RuntimePathResolution | null = null;
   private active: WorkspaceHandle | null = null;
   private unavailable: WorkspaceUnavailableError | null;
   private listRoots: ListRoots | null = null;
   private refreshGeneration = 0;
   private pendingRefresh: Promise<void> | null = null;
+  private writerActive = false;
+  private activeWriter: LuxDatabase | null = null;
   private disposed = false;
 
   constructor(options: WorkspaceRuntimeOptions = {}) {
     this.env = options.env ?? process.env;
     this.cwd = options.cwd ?? process.cwd();
-    this.openDatabase = options.openDatabase ?? ((dbPath) => new LuxDatabase(dbPath));
+    this.openDatabase =
+      options.openDatabase ??
+      ((dbPath, mode = 'read-existing') => {
+        const opened = openIndex(dbPath, mode);
+        if (!opened.ok) throw new Error(`${opened.refusal}: ${opened.message}`);
+        return opened.db;
+      });
     this.fixedByEnvironment = Boolean(this.env.LUX_CORPUS_PATH || this.env.LUX_DB_PATH);
     this.unavailable = this.fixedByEnvironment
       ? null
@@ -84,11 +94,10 @@ export class WorkspaceRuntime {
         );
 
     if (this.fixedByEnvironment) {
-      this.setRuntime(resolveRuntimePaths({ env: this.env, cwd: this.cwd }));
+      this.selectRuntime(resolveRuntimePaths({ env: this.env, cwd: this.cwd }));
     }
   }
 
-  /** Configure workspace discovery after MCP initialization reveals the client capabilities. */
   configureClient(listRoots: ListRoots | null): Promise<void> {
     this.assertNotDisposed();
     if (this.fixedByEnvironment) return Promise.resolve();
@@ -107,7 +116,6 @@ export class WorkspaceRuntime {
     return this.refreshRoots();
   }
 
-  /** Re-read roots after notifications/roots/list_changed. */
   refreshRoots(): Promise<void> {
     this.assertNotDisposed();
     if (this.fixedByEnvironment || !this.listRoots) return Promise.resolve();
@@ -134,11 +142,8 @@ export class WorkspaceRuntime {
     return refresh;
   }
 
-  async acquire(): Promise<WorkspaceLease> {
+  async acquire(mode: IndexOpenMode = 'read-existing'): Promise<WorkspaceLease> {
     this.assertNotDisposed();
-
-    // A roots-changed notification may supersede a request already in flight. Wait until the newest
-    // refresh settles, not merely whichever promise happened to be pending when acquire began.
     while (this.pendingRefresh) {
       const pending = this.pendingRefresh;
       await pending;
@@ -146,12 +151,35 @@ export class WorkspaceRuntime {
     }
 
     if (this.unavailable) throw this.unavailable;
-    const handle = this.active;
-    if (!handle) {
+    const runtime = this.runtime;
+    if (!runtime) {
       throw new WorkspaceUnavailableError(
         'initializing',
         'No Lux MCP workspace is active. Retry after client initialization completes.'
       );
+    }
+
+    if (mode !== 'read-existing') return this.acquireWriter(runtime, mode);
+    if (this.writerActive) {
+      throw new WorkspaceUnavailableError(
+        'database-open-failed',
+        'A read cannot start while a mutating MCP operation is active. Retry the operation.'
+      );
+    }
+
+    let handle = this.active;
+    if (!handle) {
+      try {
+        handle = {
+          runtime,
+          db: this.openDatabase(runtime.dbPath, 'read-existing'),
+          leases: 0,
+          retired: false,
+        };
+        this.active = handle;
+      } catch (error) {
+        throw this.databaseOpenError(runtime, error);
+      }
     }
 
     handle.leases += 1;
@@ -173,10 +201,56 @@ export class WorkspaceRuntime {
     this.disposed = true;
     this.refreshGeneration += 1;
     this.pendingRefresh = null;
+    this.runtime = null;
     if (this.active) {
       this.retire(this.active);
       this.active = null;
     }
+  }
+
+  private acquireWriter(runtime: RuntimePathResolution, mode: IndexOpenMode): WorkspaceLease {
+    if (this.writerActive) {
+      throw new WorkspaceUnavailableError(
+        'database-open-failed',
+        'A mutating MCP operation is already active. Retry the operation.'
+      );
+    }
+    const readHandle = this.active;
+    if (readHandle?.leases) {
+      throw new WorkspaceUnavailableError(
+        'database-open-failed',
+        'A mutating MCP operation cannot start while read leases are active. Retry the operation.'
+      );
+    }
+    if (readHandle) {
+      this.retire(readHandle);
+      this.active = null;
+    }
+
+    let writer: LuxDatabase;
+    try {
+      writer = this.openDatabase(runtime.dbPath, mode);
+    } catch (error) {
+      throw this.databaseOpenError(runtime, error);
+    }
+
+    this.writerActive = true;
+    this.activeWriter = writer;
+    let released = false;
+    return {
+      runtime,
+      db: writer,
+      release: () => {
+        if (released) return;
+        released = true;
+        try {
+          writer.close();
+        } finally {
+          if (this.activeWriter === writer) this.activeWriter = null;
+          this.writerActive = false;
+        }
+      },
+    };
   }
 
   private applyRoots(roots: McpRoot[]): void {
@@ -231,46 +305,22 @@ export class WorkspaceRuntime {
       return;
     }
 
-    this.setRuntime(resolveRuntimePaths({ corpus: corpusPath, env: this.env, cwd: this.cwd }));
+    this.selectRuntime(resolveRuntimePaths({ corpus: corpusPath, env: this.env, cwd: this.cwd }));
   }
 
-  private setRuntime(runtime: RuntimePathResolution): void {
-    const current = this.active;
-    if (
-      current &&
-      current.runtime.corpusPath === runtime.corpusPath &&
-      current.runtime.dbPath === runtime.dbPath
-    ) {
-      current.runtime = runtime;
-      this.unavailable = null;
-      return;
-    }
-
-    let next: WorkspaceHandle;
-    try {
-      next = {
-        runtime,
-        db: this.openDatabase(runtime.dbPath),
-        leases: 0,
-        retired: false,
-      };
-    } catch (error) {
-      this.setUnavailable(
-        new WorkspaceUnavailableError(
-          'database-open-failed',
-          `Lux could not open the index for workspace ${JSON.stringify(runtime.corpusPath)}: ${String(error)}`,
-          { corpusPath: runtime.corpusPath, dbPath: runtime.dbPath }
-        )
-      );
-      return;
-    }
-
-    this.active = next;
+  private selectRuntime(runtime: RuntimePathResolution): void {
+    const unchanged =
+      this.runtime?.corpusPath === runtime.corpusPath && this.runtime.dbPath === runtime.dbPath;
+    this.runtime = runtime;
     this.unavailable = null;
-    if (current) this.retire(current);
+    if (!unchanged && this.active) {
+      this.retire(this.active);
+      this.active = null;
+    }
   }
 
   private setUnavailable(error: WorkspaceUnavailableError): void {
+    this.runtime = null;
     this.unavailable = error;
     if (this.active) {
       this.retire(this.active);
@@ -285,6 +335,17 @@ export class WorkspaceRuntime {
 
   private closeIfRetired(handle: WorkspaceHandle): void {
     if (handle.retired && handle.leases === 0) handle.db.close();
+  }
+
+  private databaseOpenError(
+    runtime: RuntimePathResolution,
+    error: unknown
+  ): WorkspaceUnavailableError {
+    return new WorkspaceUnavailableError(
+      'database-open-failed',
+      `Lux could not open the index for workspace ${JSON.stringify(runtime.corpusPath)}: ${String(error)}`,
+      { corpusPath: runtime.corpusPath, dbPath: runtime.dbPath }
+    );
   }
 
   private assertNotDisposed(): void {

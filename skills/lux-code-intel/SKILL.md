@@ -13,7 +13,9 @@ Use Lux as the primary structural-intelligence system for indexed repositories.
    `lux_index_status` for content retrieval.
 2. Confirm the reported runtime points at the repository being investigated.
 3. Do not silently trust a missing, stale, content-only, or degraded structural overlay.
-4. Do not rebuild or otherwise mutate an index unless the action is explicit and appropriate.
+4. Read tools never create or migrate an index; treat `index-absent`/schema refusals as state, not a
+   reason to rebuild without explicit authorization.
+5. Do not rebuild or otherwise mutate an index unless the action is explicit and appropriate.
 
 If the Lux MCP tools are unavailable, use the installed `lux` CLI from the repository root. Pass an
 explicit `--corpus <repo-root>` when the working directory could be ambiguous. Inspect current

@@ -1,8 +1,7 @@
 // src/cli/anchors.ts
 import type { Command } from 'commander';
-import { LuxDatabase } from '../db/index.js';
 import { resolveRuntimePaths } from '../utils/runtime-paths.js';
-import { emitUsageEvent, createInvocationId } from '../db/observability/usage-event.js';
+import { openCliReadIndex, withReadTelemetry } from './read-index.js';
 import { runAnchorSearch, anchorRefusalCoverage } from './anchor-search.js';
 import { AnchorRefusalError } from '../scanner/anchors/anchor-refusal.js';
 import { buildAnchorReport, buildAnchorRefusalReport } from './anchors-envelope.js';
@@ -38,9 +37,6 @@ export function registerAnchorsCommand(program: Command): void {
         corpus: globalOpts.corpus as string | undefined,
         db: globalOpts.db as string | undefined,
       });
-      const invocationId = createInvocationId();
-      const startedAt = Date.now();
-
       // Validate --limit up front (a NaN/<1 limit is a usage error, exit 2 — never a fabricated answer).
       const limit = Number.parseInt(options.limit, 10);
       if (!Number.isFinite(limit) || limit < 1) {
@@ -60,7 +56,8 @@ export function registerAnchorsCommand(program: Command): void {
       const granularity = options.granularity;
       const includeTests = options.includeTests === true;
 
-      const db = new LuxDatabase(dbPath);
+      const db = openCliReadIndex(dbPath, options.json ?? false);
+      if (!db) return;
       try {
         const result = await runAnchorSearch(db, query, {
           limit,
@@ -72,15 +69,17 @@ export function registerAnchorsCommand(program: Command): void {
         if (options.json) {
           console.log(
             JSON.stringify(
-              buildAnchorReport({
-                query,
-                limit,
-                granularity: result.granularity,
-                results: result.results,
-                lowConfidence: result.lowConfidence,
-                filters: result.filters,
-                coverage: result.coverage,
-              }),
+              withReadTelemetry(
+                buildAnchorReport({
+                  query,
+                  limit,
+                  granularity: result.granularity,
+                  results: result.results,
+                  lowConfidence: result.lowConfidence,
+                  filters: result.filters,
+                  coverage: result.coverage,
+                })
+              ),
               null,
               2
             )
@@ -88,30 +87,6 @@ export function registerAnchorsCommand(program: Command): void {
         } else {
           renderAnchorsText(query, result);
         }
-
-        emitUsageEvent(db, {
-          source: 'cli',
-          surface: 'anchors',
-          action: 'query',
-          invocationId,
-          commandOutcome: 'success',
-          retrievalOutcome: result.results.length > 0 ? 'answered' : 'unresolved',
-          durationMs: Date.now() - startedAt,
-          exitCode: 0,
-          corpusPath,
-          queryText: query,
-          attributes: {
-            limit,
-            granularity: result.granularity,
-            includeTests,
-            excludedTestFiles: result.filters.excludedTestFiles,
-            resultsCount: result.results.length,
-            lowConfidence: result.lowConfidence,
-            embeddedNodes: result.coverage.embeddedNodes,
-            anchorViableNodes: result.coverage.anchorViableNodes,
-            model: result.coverage.model,
-          },
-        });
       } catch (error) {
         if (error instanceof AnchorRefusalError) {
           // Accurate even on a non-overlay refusal (invalid-query) over a populated index; a genuine 0
@@ -120,23 +95,25 @@ export function registerAnchorsCommand(program: Command): void {
           if (options.json) {
             console.log(
               JSON.stringify(
-                buildAnchorRefusalReport({
-                  query,
-                  limit,
-                  granularity,
-                  // A refusal ran no ranking, so it dropped nothing; echo the requested test mode with a
-                  // zero count so the envelope shape stays uniform with an answered query.
-                  filters: {
-                    tests: includeTests ? 'included' : 'excluded',
-                    excludedTestFiles: 0,
-                  },
-                  coverage,
-                  refusal: {
-                    reason: error.reason,
-                    expression: error.expression,
-                    message: error.message,
-                  },
-                }),
+                withReadTelemetry(
+                  buildAnchorRefusalReport({
+                    query,
+                    limit,
+                    granularity,
+                    // A refusal ran no ranking, so it dropped nothing; echo the requested test mode with a
+                    // zero count so the envelope shape stays uniform with an answered query.
+                    filters: {
+                      tests: includeTests ? 'included' : 'excluded',
+                      excludedTestFiles: 0,
+                    },
+                    coverage,
+                    refusal: {
+                      reason: error.reason,
+                      expression: error.expression,
+                      message: error.message,
+                    },
+                  })
+                ),
                 null,
                 2
               )
@@ -148,20 +125,6 @@ export function registerAnchorsCommand(program: Command): void {
               console.error('  (documents/content? try `lux search`.)');
             }
           }
-          emitUsageEvent(db, {
-            source: 'cli',
-            surface: 'anchors',
-            action: 'query',
-            invocationId,
-            commandOutcome: 'error',
-            retrievalOutcome: 'refused',
-            durationMs: Date.now() - startedAt,
-            exitCode: 1,
-            corpusPath,
-            queryText: query,
-            attributes: { limit, granularity, includeTests },
-            error: { code: error.reason },
-          });
           process.exitCode = 1;
           return;
         }

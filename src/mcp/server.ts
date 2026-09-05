@@ -31,6 +31,7 @@ import {
   emitUsageEvent,
   safeUsageTrustState,
 } from '../db/observability/usage-event.js';
+import { withReadTelemetry } from '../cli/read-index.js';
 import { runAnchorSearch, anchorRefusalCoverage } from '../cli/anchor-search.js';
 import { AnchorRefusalError } from '../scanner/anchors/anchor-refusal.js';
 import { buildAnchorReport, buildAnchorRefusalReport } from '../cli/anchors-envelope.js';
@@ -102,7 +103,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   try {
     await ensureWorkspaceConfigured();
-    lease = await workspace.acquire();
+    const openMode =
+      name === 'lux_rebuild_index'
+        ? 'create-or-migrate'
+        : name === 'lux_log_event'
+          ? 'write-existing'
+          : 'read-existing';
+    lease = await workspace.acquire(openMode);
     const { db, runtime } = lease;
     const corpusPath = runtime.corpusPath;
     const dbPath = runtime.dbPath;
@@ -136,27 +143,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               // M1: an invalid FTS5 query fails identically for every group including `main`, so it is
               // a query-level refusal, not a per-sibling degrade. Surface the same structured refusal
               // (isError + refusal.reason, expression echoed) the single-repo path returns.
-              emitUsageEvent(db, {
-                source: 'mcp',
-                surface: 'search',
-                action: 'query',
-                invocationId: createInvocationId(),
-                commandOutcome: 'error',
-                retrievalOutcome: 'refused',
-                exitCode: 1,
-                corpusPath,
-                dbPath,
-                queryText: query,
-                attributes: {
-                  federated: true,
-                  with: fed.handles.map((h) => h.name),
-                  type,
-                  limit: safeLimit,
-                },
-                error: {
-                  code: error.reason === 'invalid-query' ? 'invalid_query' : 'fts_unavailable',
-                },
-              });
               return {
                 content: [
                   {
@@ -181,29 +167,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 isError: true,
               };
             }
-            emitUsageEvent(db, {
-              source: 'mcp',
-              surface: 'search',
-              action: 'query',
-              invocationId: createInvocationId(),
-              commandOutcome: 'success',
-              // m7: derive answered/unresolved from union non-emptiness (now invalid-query re-throws),
-              // so a federated zero-result feeds usage clustering like a single-repo one.
-              retrievalOutcome: result.groups.some((g) => g.results.length > 0)
-                ? 'answered'
-                : 'unresolved',
-              exitCode: 0,
-              corpusPath,
-              dbPath,
-              queryText: query,
-              attributes: {
-                federated: true,
-                with: fed.handles.map((h) => h.name),
-                type,
-                limit: safeLimit,
-              },
-            });
-            return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+            return {
+              content: [{ type: 'text', text: JSON.stringify(withReadTelemetry(result), null, 2) }],
+            };
           } finally {
             fed.close();
           }
@@ -228,24 +194,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 message: error.message,
               },
             });
-            emitUsageEvent(db, {
-              source: 'mcp',
-              surface: 'search',
-              action: 'query',
-              invocationId: createInvocationId(),
-              commandOutcome: 'error',
-              retrievalOutcome: 'refused',
-              exitCode: 1,
-              corpusPath,
-              dbPath,
-              queryText: query,
-              attributes: { type, contentOnly, limit: safeLimit },
-              error: {
-                code: error.reason === 'invalid-query' ? 'invalid_query' : 'fts_unavailable',
-              },
-            });
             return {
-              content: [{ type: 'text', text: JSON.stringify(report, null, 2) }],
+              content: [{ type: 'text', text: JSON.stringify(withReadTelemetry(report), null, 2) }],
               isError: true,
             };
           }
@@ -260,27 +210,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           results: ranked,
         });
 
-        db.insertEvent({
-          source: 'mcp',
-          event_type: 'search',
-          summary: `Search query: "${query}" (type: ${type}, results: ${ranked.length})`,
-          payload: { query, type, limit: safeLimit, results_count: ranked.length },
-        });
-        emitUsageEvent(db, {
-          source: 'mcp',
-          surface: 'search',
-          action: 'query',
-          invocationId: createInvocationId(),
-          commandOutcome: 'success',
-          retrievalOutcome: ranked.length > 0 ? 'answered' : 'unresolved',
-          exitCode: 0,
-          corpusPath,
-          dbPath,
-          queryText: query,
-          attributes: { type, contentOnly, limit: safeLimit, resultsCount: ranked.length },
-        });
-
-        return { content: [{ type: 'text', text: JSON.stringify(report, null, 2) }] };
+        return {
+          content: [{ type: 'text', text: JSON.stringify(withReadTelemetry(report), null, 2) }],
+        };
       }
 
       case 'lux_log_event': {
@@ -414,8 +346,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           kind: string;
         };
 
-        const invocationId = createInvocationId();
-        const startedAt = Date.now();
         const result = executeSpecEvidenceAsk(db, question, {
           target,
           kind,
@@ -423,29 +353,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           corpusPath,
           dbPath,
         });
-        emitUsageEvent(db, {
-          source: 'mcp',
-          surface: 'spec-evidence',
-          action: 'ask',
-          invocationId,
-          commandOutcome: result.exitCode === 0 ? 'success' : 'error',
-          retrievalOutcome:
-            result.packet.target.resolutionState === 'resolved'
-              ? 'answered'
-              : result.packet.target.resolutionState === 'ambiguous'
-                ? 'ambiguous'
-                : 'unresolved',
-          trustState: result.packet.sourceScope.trustState,
-          durationMs: Date.now() - startedAt,
-          exitCode: result.exitCode,
-          corpusPath,
-          dbPath,
-          queryText: question,
-          normalizedIntent: result.packet.target.kind,
-        });
 
         return {
-          content: [{ type: 'text', text: JSON.stringify(result.packet, null, 2) }],
+          content: [
+            { type: 'text', text: JSON.stringify(withReadTelemetry(result.packet), null, 2) },
+          ],
           isError: result.exitCode !== 0,
         };
       }
@@ -514,25 +426,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               minConfidenceClass: minConfidence as ConfidenceClass,
               includeExternal,
             });
-            emitUsageEvent(db, {
-              source: 'mcp',
-              surface: 'trace',
-              action: 'query',
-              invocationId: createInvocationId(),
-              commandOutcome: 'success',
-              retrievalOutcome: 'answered',
-              exitCode: 0,
-              corpusPath,
-              dbPath,
-              queryText: symbol,
-              attributes: {
-                federated: true,
-                with: fed.handles.map((h) => h.name),
-                nodeCount: result.stats.nodeCount,
-                bridged: result.stats.bridgedCount,
-              },
-            });
-            return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+            return {
+              content: [{ type: 'text', text: JSON.stringify(withReadTelemetry(result), null, 2) }],
+            };
           } finally {
             fed.close();
           }
@@ -546,27 +442,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           includeExternal,
         });
 
-        db.insertEvent({
-          source: 'mcp',
-          event_type: 'trace',
-          summary: `Traced ${symbol}: ${result.stats.nodeCount} nodes, ${result.stats.dispatchBoundaries} dispatch boundaries`,
-          payload: { symbol, depth, nodeCount: result.stats.nodeCount },
-        });
-        emitUsageEvent(db, {
-          source: 'mcp',
-          surface: 'trace',
-          action: 'query',
-          invocationId: createInvocationId(),
-          commandOutcome: 'success',
-          retrievalOutcome: 'answered',
-          exitCode: 0,
-          corpusPath,
-          dbPath,
-          queryText: symbol,
-          attributes: { nodeCount: result.stats.nodeCount, external: result.stats.externalCount },
-        });
-
-        return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+        return {
+          content: [{ type: 'text', text: JSON.stringify(withReadTelemetry(result), null, 2) }],
+        };
       }
 
       case 'lux_delta': {
@@ -588,33 +466,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           against,
           json: true,
         });
-        emitUsageEvent(db, {
-          source: 'mcp',
-          surface: 'delta',
-          action: 'analyze',
-          commandOutcome: 'refusal' in result ? 'error' : 'success',
-          trustState:
-            'refusal' in result ? 'unknown' : safeUsageTrustState(result.report.trust.overlay),
-          corpusPath,
-          dbPath,
-          // Federated dimensions only when `against` is set — a non-federated delta event is
-          // byte-identical to the shipped shape (SC-9 / spec 15A).
-          ...(against && against.length
-            ? {
-                attributes: {
-                  federated: true,
-                  against,
-                  crossRepoSiblings:
-                    'refusal' in result
-                      ? 0
-                      : (result.report.crossRepoImpact?.siblings.filter((s) => s.attached).length ??
-                        0),
-                },
-              }
-            : {}),
-        });
         const payload = 'refusal' in result ? { error: result.refusal } : result.report;
-        return { content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }] };
+        return {
+          content: [{ type: 'text', text: JSON.stringify(withReadTelemetry(payload), null, 2) }],
+        };
       }
 
       case 'lux_anchors': {
@@ -637,27 +492,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             filters: result.filters,
             coverage: result.coverage,
           });
-          emitUsageEvent(db, {
-            source: 'mcp',
-            surface: 'anchors',
-            action: 'query',
-            invocationId: createInvocationId(),
-            commandOutcome: 'success',
-            retrievalOutcome: result.results.length > 0 ? 'answered' : 'unresolved',
-            exitCode: 0,
-            corpusPath,
-            dbPath,
-            queryText: query,
-            attributes: {
-              limit,
-              granularity: result.granularity,
-              includeTests,
-              excludedTestFiles: result.filters.excludedTestFiles,
-              resultsCount: result.results.length,
-              lowConfidence: result.lowConfidence,
-            },
-          });
-          return { content: [{ type: 'text', text: JSON.stringify(report, null, 2) }] };
+          return {
+            content: [{ type: 'text', text: JSON.stringify(withReadTelemetry(report), null, 2) }],
+          };
         } catch (error) {
           if (error instanceof AnchorRefusalError) {
             const report = buildAnchorRefusalReport({
@@ -679,22 +516,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 message: error.message,
               },
             });
-            emitUsageEvent(db, {
-              source: 'mcp',
-              surface: 'anchors',
-              action: 'query',
-              invocationId: createInvocationId(),
-              commandOutcome: 'error',
-              retrievalOutcome: 'refused',
-              exitCode: 1,
-              corpusPath,
-              dbPath,
-              queryText: query,
-              attributes: { limit, granularity, includeTests },
-              error: { code: error.reason },
-            });
             return {
-              content: [{ type: 'text', text: JSON.stringify(report, null, 2) }],
+              content: [{ type: 'text', text: JSON.stringify(withReadTelemetry(report), null, 2) }],
               isError: true,
             };
           }
@@ -710,19 +533,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const result = computeImpact(db, corpusPath, filePath);
 
         if (!result.resolved) {
-          emitUsageEvent(db, {
-            source: 'mcp',
-            surface: 'deps-impact',
-            action: 'query',
-            invocationId: createInvocationId(),
-            commandOutcome: 'error',
-            retrievalOutcome: 'unresolved',
-            exitCode: 1,
-            corpusPath,
-            dbPath,
-            queryText: filePath,
-            error: { code: 'module_unresolved' },
-          });
           return {
             content: [
               {
@@ -742,66 +552,27 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           };
         }
 
-        emitUsageEvent(db, {
-          source: 'mcp',
-          surface: 'deps-impact',
-          action: 'query',
-          invocationId: createInvocationId(),
-          commandOutcome: 'success',
-          retrievalOutcome: 'answered',
-          exitCode: 0,
-          corpusPath,
-          dbPath,
-          queryText: filePath,
-          attributes: {
-            module: result.impact.module,
-            dependentModules: result.impact.blastRadius.modules,
-            totalReferences: result.impact.blastRadius.totalReferences,
-          },
-        });
-
-        return { content: [{ type: 'text', text: JSON.stringify(result.impact, null, 2) }] };
+        return {
+          content: [
+            { type: 'text', text: JSON.stringify(withReadTelemetry(result.impact), null, 2) },
+          ],
+        };
       }
 
       case 'lux_overlay_status': {
         // Reuses the canonical status-payload builder shared with `lux overlay status --json`.
         const payload = buildOverlayStatusPayload(db, runtime);
-        // With a runtime passed, payload is the {overlay,runtime,freshness} shape; narrow to read
-        // the trust level for the usage event (both OverlayTrustPayload variants carry trustLevel).
-        const overlayTrust = 'overlay' in payload ? payload.overlay : payload;
-        emitUsageEvent(db, {
-          source: 'mcp',
-          surface: 'overlay-status',
-          action: 'status',
-          invocationId: createInvocationId(),
-          commandOutcome: 'success',
-          retrievalOutcome: 'not_applicable',
-          trustState: safeUsageTrustState(overlayTrust.trustLevel),
-          exitCode: 0,
-          corpusPath,
-          dbPath,
-          attributes: { trustLevel: overlayTrust.trustLevel },
-        });
-        return { content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }] };
+        return {
+          content: [{ type: 'text', text: JSON.stringify(withReadTelemetry(payload), null, 2) }],
+        };
       }
 
       case 'lux_index_status': {
         // Reuses the canonical status-payload builder shared with `lux index status --json`.
         const payload = buildIndexStatusPayload(db, runtime);
-        emitUsageEvent(db, {
-          source: 'mcp',
-          surface: 'index-status',
-          action: 'status',
-          invocationId: createInvocationId(),
-          commandOutcome: 'success',
-          retrievalOutcome: 'not_applicable',
-          trustState: safeUsageTrustState(payload.overlay.trustLevel),
-          exitCode: 0,
-          corpusPath,
-          dbPath,
-          attributes: { trustLevel: payload.overlay.trustLevel },
-        });
-        return { content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }] };
+        return {
+          content: [{ type: 'text', text: JSON.stringify(withReadTelemetry(payload), null, 2) }],
+        };
       }
 
       default:

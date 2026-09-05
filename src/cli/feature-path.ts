@@ -13,8 +13,8 @@ import { assembleFeaturePathAnswer } from '../scanner/associations/feature-path/
 import { inferFeaturePathIntent } from '../scanner/associations/feature-path/intents.js';
 import { renderFeaturePathAnswerText } from '../scanner/associations/feature-path/render.js';
 import { resolveFeaturePathTarget } from '../scanner/associations/feature-path/resolve.js';
-import { emitUsageEvent, createInvocationId } from '../db/observability/usage-event.js';
 import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
+import { openCliReadIndex, withReadTelemetry } from './read-index.js';
 import type { FeaturePathAnswer } from '../scanner/associations/feature-path/contract.js';
 import {
   summarizeStaleSupport,
@@ -73,7 +73,7 @@ function executeFeaturePathAsk(
   return {
     answer,
     rendered: options.json
-      ? JSON.stringify({ ...answer, staleSupport }, null, 2)
+      ? JSON.stringify(withReadTelemetry({ ...answer, staleSupport }), null, 2)
       : renderFeaturePathAnswerText(answer),
     exitCode: resolution.status === 'resolved' ? 0 : 1,
     staleSupport,
@@ -93,44 +93,20 @@ export function runFeaturePathAsk(
 
   const opts = program.opts();
   const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
-  const db = new LuxDatabase(
-    resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined })
-  );
-  const invocationId = createInvocationId();
-  const startedAt = Date.now();
+  const dbPath = resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined });
+  const db = openCliReadIndex(dbPath, options.json ?? false);
+  if (!db) return;
 
-  const result = executeFeaturePathAsk(db, question, { ...options, corpusPath });
+  try {
+    const result = executeFeaturePathAsk(db, question, { ...options, corpusPath });
 
-  console.log(result.rendered);
-  if (!options.json) {
-    const staleWarning = staleSupportWarning(result.staleSupport);
-    if (staleWarning) console.warn('Warning: ' + staleWarning);
+    console.log(result.rendered);
+    if (!options.json) {
+      const staleWarning = staleSupportWarning(result.staleSupport);
+      if (staleWarning) console.warn('Warning: ' + staleWarning);
+    }
+    if (result.exitCode !== 0) process.exitCode = result.exitCode;
+  } finally {
+    db.close();
   }
-  emitUsageEvent(db, {
-    source: 'cli',
-    surface: 'feature-path',
-    action: 'ask',
-    invocationId,
-    commandOutcome: result.exitCode === 0 ? 'success' : 'error',
-    retrievalOutcome:
-      result.answer.resolution.status === 'resolved'
-        ? 'answered'
-        : result.answer.resolution.status === 'ambiguous'
-          ? 'ambiguous'
-          : 'unresolved',
-    durationMs: Date.now() - startedAt,
-    exitCode: result.exitCode,
-    corpusPath,
-    queryText: question || options.target,
-    normalizedIntent: result.answer.intent,
-    retrieval: {
-      promoted: false,
-      resolvedTargetType: result.answer.resolution.status,
-      directEvidenceCount: result.answer.directEvidence.length,
-      contextualEvidenceCount: result.answer.context.length,
-    },
-  });
-
-  db.close();
-  if (result.exitCode !== 0) process.exit(result.exitCode);
 }

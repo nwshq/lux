@@ -1,7 +1,8 @@
 import type { Command } from 'commander';
 import { existsSync } from 'fs';
 import { join } from 'path';
-import { LuxDatabase } from '../db/index.js';
+import { openIndex } from '../db/open-policy.js';
+import { openCliReadIndex } from './read-index.js';
 import { resolveCorpusPath, resolveDbPath } from '../utils/runtime-paths.js';
 import { LUX_VERSION } from '../utils/version.js';
 import { ensureVendorPack } from '../scanner/pack/pack-builder.js';
@@ -47,11 +48,17 @@ export function addVendorPackCommands(program: Command): void {
 
         // Record the key the project is aligned to, so the merge path can detect
         // staleness and re-import on the next rebuild.
-        const db = new LuxDatabase(
-          resolveDbPath({ corpus: projectRoot, db: opts.db as string | undefined })
+        const opened = openIndex(
+          resolveDbPath({ corpus: projectRoot, db: opts.db as string | undefined }),
+          'write-existing'
         );
-        db.setIndexMetadata(VENDOR_PACK_KEY_META, result.manifest.key);
-        db.close();
+        if (!opened.ok) {
+          console.error(`Error: ${opened.message}`);
+          process.exitCode = 1;
+          return;
+        }
+        opened.db.setIndexMetadata(VENDOR_PACK_KEY_META, result.manifest.key);
+        opened.db.close();
 
         console.log(
           `\n✓ Vendor pack ${result.built ? 'built' : 'reused from cache'} ` +
@@ -94,9 +101,11 @@ export function addVendorPackCommands(program: Command): void {
         );
       }
 
-      const db = new LuxDatabase(
-        resolveDbPath({ corpus: projectRoot, db: opts.db as string | undefined })
+      const db = openCliReadIndex(
+        resolveDbPath({ corpus: projectRoot, db: opts.db as string | undefined }),
+        false
       );
+      if (!db) return;
       const merged = db.getIndexMetadata(VENDOR_PACK_KEY_META);
       db.close();
       console.log(
