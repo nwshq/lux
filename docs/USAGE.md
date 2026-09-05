@@ -30,8 +30,20 @@ Notes:
 lux doctor --json
 ```
 
-`doctor` is read-only and returns the exact same diagnostic payload as MCP `lux_doctor`, including
-`coverage.languages`. It does not create or migrate an index.
+`doctor` is read-only and returns the exact same versioned diagnostic report as MCP `lux_doctor`:
+stable checks with statuses/remediation plus the canonical index-status snapshot when readable. It
+diagnoses an absent or incompatible index without creating or migrating it.
+
+## Portable init
+
+```bash
+lux init --json       # preview only; no writes
+lux init --yes        # apply the previewed portable files
+```
+
+`init` detects languages and module layouts, creates a checkout-portable `lux.yaml`, and adds
+`.lux/` once to `.gitignore`. Existing dirty targets are refused; every apply is hash-checked,
+root-confined, symlink-safe, and repeatable. Git hooks remain a separate explicit operation.
 
 ## Search
 

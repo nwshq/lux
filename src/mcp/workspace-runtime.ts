@@ -142,7 +142,8 @@ export class WorkspaceRuntime {
     return refresh;
   }
 
-  async acquire(mode: IndexOpenMode = 'read-existing'): Promise<WorkspaceLease> {
+  /** Resolve the active workspace without opening its index (used by absent-index diagnostics). */
+  async resolveRuntime(): Promise<RuntimePathResolution> {
     this.assertNotDisposed();
     while (this.pendingRefresh) {
       const pending = this.pendingRefresh;
@@ -151,13 +152,17 @@ export class WorkspaceRuntime {
     }
 
     if (this.unavailable) throw this.unavailable;
-    const runtime = this.runtime;
-    if (!runtime) {
+    if (!this.runtime) {
       throw new WorkspaceUnavailableError(
         'initializing',
         'No Lux MCP workspace is active. Retry after client initialization completes.'
       );
     }
+    return this.runtime;
+  }
+
+  async acquire(mode: IndexOpenMode = 'read-existing'): Promise<WorkspaceLease> {
+    const runtime = await this.resolveRuntime();
 
     if (mode !== 'read-existing') return this.acquireWriter(runtime, mode);
     if (this.writerActive) {

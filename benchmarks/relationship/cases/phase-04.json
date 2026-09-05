@@ -1,0 +1,672 @@
+[
+  {
+    "id": "p04-clean-repository-applies-portable-config",
+    "corpus": "lux",
+    "capability": "portable-init-and-doctor",
+    "scenario": "clean",
+    "query": {
+      "tool": "portableInitContract",
+      "args": {
+        "action": "init",
+        "repo": {
+          "files": {
+            "package.json": "{\"name\":\"fixture\"}\n",
+            "src/index.ts": "export const ready = true;\n"
+          },
+          "symlinks": {},
+          "trackedPaths": [],
+          "dirtyPaths": [],
+          "availableCommands": ["typescript-language-server"]
+        },
+        "confirmApply": true
+      }
+    },
+    "expected": {
+      "status": "applied",
+      "exitCode": 0,
+      "diagnostics": [
+        {
+          "id": "init.applied",
+          "severity": "info"
+        }
+      ],
+      "mutatedPaths": [".gitignore", "lux.yaml"],
+      "generatedFiles": {
+        ".gitignore": ".lux/\n",
+        "lux.yaml": "schema_version: 1\nworkspace:\n  root: .\nindex:\n  database: .lux/lux.db\nlsp:\n  enabled: true\n  workspace_root: .\n  enrichers:\n    - language_id: typescript\n      enabled: true\n      server_command: typescript-language-server\n      server_args:\n        - --stdio\n"
+      },
+      "preservedPaths": ["package.json", "src/index.ts"]
+    },
+    "scoreDimensions": [
+      "status",
+      "exit-code",
+      "diagnostic-ids",
+      "mutated-paths",
+      "no-absolute-paths",
+      "stable-doctor-ids",
+      "portable-config",
+      "idempotent-byte-equality"
+    ],
+    "forbiddenControls": [
+      "absolute-path-output",
+      "unstable-diagnostic-id",
+      "mutation-outside-approved-targets",
+      "timestamp-in-generated-config",
+      "non-portable-workspace-root",
+      "non-portable-database-path"
+    ],
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "f72d056233674a8f26587a3c258c58e2037710a5"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 6,
+      "minForbiddenControls": 3
+    },
+    "watchedMutation": {
+      "id": "timestamp-generated-config",
+      "expectedCheckerExitCode": 1,
+      "expectedObservable": "p04-clean-repository-applies-portable-config: idempotent byte equality"
+    }
+  },
+  {
+    "id": "p04-unconfigured-doctor-is-actionable",
+    "corpus": "lux",
+    "capability": "portable-init-and-doctor",
+    "scenario": "unconfigured",
+    "query": {
+      "tool": "portableInitContract",
+      "args": {
+        "action": "doctor",
+        "repo": {
+          "files": {
+            "README.md": "# fixture\n"
+          },
+          "symlinks": {},
+          "trackedPaths": [],
+          "dirtyPaths": [],
+          "availableCommands": []
+        }
+      }
+    },
+    "expected": {
+      "status": "diagnosed",
+      "exitCode": 1,
+      "diagnostics": [
+        {
+          "id": "doctor.config.missing",
+          "severity": "error"
+        }
+      ],
+      "mutatedPaths": [],
+      "generatedFiles": {},
+      "preservedPaths": ["README.md"]
+    },
+    "scoreDimensions": [
+      "status",
+      "exit-code",
+      "diagnostic-ids",
+      "mutated-paths",
+      "no-absolute-paths",
+      "stable-doctor-ids"
+    ],
+    "forbiddenControls": [
+      "absolute-path-output",
+      "unstable-diagnostic-id",
+      "mutation-outside-approved-targets",
+      "unconfigured-silently-green",
+      "unexpected-write"
+    ],
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "f72d056233674a8f26587a3c258c58e2037710a5"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 6,
+      "minForbiddenControls": 3
+    }
+  },
+  {
+    "id": "p04-already-configured-is-byte-idempotent",
+    "corpus": "lux",
+    "capability": "portable-init-and-doctor",
+    "scenario": "already-configured",
+    "query": {
+      "tool": "portableInitContract",
+      "args": {
+        "action": "init",
+        "repo": {
+          "files": {
+            "lux.yaml": "schema_version: 1\nworkspace:\n  root: .\nindex:\n  database: .lux/lux.db\nlsp:\n  enabled: true\n  workspace_root: .\n  enrichers:\n    - language_id: typescript\n      enabled: true\n      server_command: typescript-language-server\n      server_args:\n        - --stdio\n",
+            ".gitignore": "node_modules/\n.lux/\n",
+            "src/index.ts": "export {};\n"
+          },
+          "symlinks": {},
+          "trackedPaths": [],
+          "dirtyPaths": [],
+          "availableCommands": ["typescript-language-server"]
+        },
+        "confirmApply": true
+      }
+    },
+    "expected": {
+      "status": "unchanged",
+      "exitCode": 0,
+      "diagnostics": [
+        {
+          "id": "init.already-configured",
+          "severity": "info"
+        }
+      ],
+      "mutatedPaths": [],
+      "generatedFiles": {},
+      "preservedPaths": [".gitignore", "lux.yaml", "src/index.ts"]
+    },
+    "scoreDimensions": [
+      "status",
+      "exit-code",
+      "diagnostic-ids",
+      "mutated-paths",
+      "no-absolute-paths",
+      "stable-doctor-ids",
+      "portable-config",
+      "idempotent-byte-equality"
+    ],
+    "forbiddenControls": [
+      "absolute-path-output",
+      "unstable-diagnostic-id",
+      "mutation-outside-approved-targets",
+      "rewrite-existing-config",
+      "timestamp-in-generated-config"
+    ],
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "f72d056233674a8f26587a3c258c58e2037710a5"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 6,
+      "minForbiddenControls": 3
+    }
+  },
+  {
+    "id": "p04-dirty-target-refuses-overwrite",
+    "corpus": "lux",
+    "capability": "portable-init-and-doctor",
+    "scenario": "dirty-target",
+    "query": {
+      "tool": "portableInitContract",
+      "args": {
+        "action": "init",
+        "repo": {
+          "files": {
+            "lux.yaml": "# owner work in progress\nworkspace:\n  root: custom\n",
+            "src/index.ts": "export {};\n"
+          },
+          "symlinks": {},
+          "trackedPaths": [],
+          "dirtyPaths": ["lux.yaml"],
+          "availableCommands": []
+        },
+        "confirmApply": true
+      }
+    },
+    "expected": {
+      "status": "refused",
+      "exitCode": 1,
+      "diagnostics": [
+        {
+          "id": "init.target.dirty",
+          "severity": "error",
+          "path": "lux.yaml"
+        }
+      ],
+      "mutatedPaths": [],
+      "generatedFiles": {},
+      "preservedPaths": ["lux.yaml", "src/index.ts"]
+    },
+    "scoreDimensions": [
+      "status",
+      "exit-code",
+      "diagnostic-ids",
+      "mutated-paths",
+      "no-absolute-paths",
+      "stable-doctor-ids",
+      "idempotent-byte-equality"
+    ],
+    "forbiddenControls": [
+      "absolute-path-output",
+      "unstable-diagnostic-id",
+      "mutation-outside-approved-targets",
+      "overwrite-dirty-target",
+      "unexpected-write"
+    ],
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "f72d056233674a8f26587a3c258c58e2037710a5"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 6,
+      "minForbiddenControls": 3
+    }
+  },
+  {
+    "id": "p04-declined-apply-is-zero-mutation",
+    "corpus": "lux",
+    "capability": "portable-init-and-doctor",
+    "scenario": "declined-apply",
+    "query": {
+      "tool": "portableInitContract",
+      "args": {
+        "action": "init",
+        "repo": {
+          "files": {
+            "package.json": "{\"name\":\"fixture\"}\n",
+            "src/index.ts": "export {};\n"
+          },
+          "symlinks": {},
+          "trackedPaths": [],
+          "dirtyPaths": [],
+          "availableCommands": ["typescript-language-server"]
+        },
+        "confirmApply": false
+      }
+    },
+    "expected": {
+      "status": "planned",
+      "exitCode": 0,
+      "diagnostics": [
+        {
+          "id": "init.apply.declined",
+          "severity": "info"
+        }
+      ],
+      "mutatedPaths": [],
+      "generatedFiles": {},
+      "preservedPaths": ["package.json", "src/index.ts"]
+    },
+    "scoreDimensions": [
+      "status",
+      "exit-code",
+      "diagnostic-ids",
+      "mutated-paths",
+      "no-absolute-paths",
+      "stable-doctor-ids",
+      "no-mutation-on-decline",
+      "idempotent-byte-equality"
+    ],
+    "forbiddenControls": [
+      "absolute-path-output",
+      "unstable-diagnostic-id",
+      "mutation-outside-approved-targets",
+      "mutation-on-decline",
+      "unexpected-write"
+    ],
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "f72d056233674a8f26587a3c258c58e2037710a5"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 6,
+      "minForbiddenControls": 3
+    },
+    "watchedMutation": {
+      "id": "bypass-declined-apply",
+      "expectedCheckerExitCode": 1,
+      "expectedObservable": "p04-declined-apply-is-zero-mutation: no mutation on decline"
+    }
+  },
+  {
+    "id": "p04-symlink-escape-is-rejected",
+    "corpus": "lux",
+    "capability": "portable-init-and-doctor",
+    "scenario": "symlink-escape",
+    "query": {
+      "tool": "portableInitContract",
+      "args": {
+        "action": "init",
+        "repo": {
+          "files": {
+            "src/index.ts": "export {};\n"
+          },
+          "symlinks": {
+            "lux.yaml": "../outside/lux.yaml"
+          },
+          "trackedPaths": [],
+          "dirtyPaths": [],
+          "availableCommands": []
+        },
+        "confirmApply": true
+      }
+    },
+    "expected": {
+      "status": "refused",
+      "exitCode": 1,
+      "diagnostics": [
+        {
+          "id": "init.target.symlink-escape",
+          "severity": "error",
+          "path": "lux.yaml"
+        }
+      ],
+      "mutatedPaths": [],
+      "generatedFiles": {},
+      "preservedPaths": ["src/index.ts"]
+    },
+    "scoreDimensions": [
+      "status",
+      "exit-code",
+      "diagnostic-ids",
+      "mutated-paths",
+      "no-absolute-paths",
+      "stable-doctor-ids",
+      "idempotent-byte-equality"
+    ],
+    "forbiddenControls": [
+      "absolute-path-output",
+      "unstable-diagnostic-id",
+      "mutation-outside-approved-targets",
+      "symlink-followed",
+      "outside-root-write",
+      "unexpected-write"
+    ],
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "f72d056233674a8f26587a3c258c58e2037710a5"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 6,
+      "minForbiddenControls": 3
+    }
+  },
+  {
+    "id": "p04-interrupted-atomic-write-leaves-original-bytes",
+    "corpus": "lux",
+    "capability": "portable-init-and-doctor",
+    "scenario": "interrupted-atomic-write",
+    "query": {
+      "tool": "portableInitContract",
+      "args": {
+        "action": "init",
+        "repo": {
+          "files": {
+            "package.json": "{\"name\":\"fixture\"}\n",
+            "src/index.ts": "export {};\n"
+          },
+          "symlinks": {},
+          "trackedPaths": [],
+          "dirtyPaths": [],
+          "availableCommands": ["typescript-language-server"]
+        },
+        "confirmApply": true,
+        "interruptAtomicWriteAt": "before-rename"
+      }
+    },
+    "expected": {
+      "status": "failed",
+      "exitCode": 1,
+      "diagnostics": [
+        {
+          "id": "init.atomic-write.interrupted",
+          "severity": "error"
+        }
+      ],
+      "mutatedPaths": [],
+      "generatedFiles": {},
+      "preservedPaths": ["package.json", "src/index.ts"]
+    },
+    "scoreDimensions": [
+      "status",
+      "exit-code",
+      "diagnostic-ids",
+      "mutated-paths",
+      "no-absolute-paths",
+      "stable-doctor-ids",
+      "idempotent-byte-equality"
+    ],
+    "forbiddenControls": [
+      "absolute-path-output",
+      "unstable-diagnostic-id",
+      "mutation-outside-approved-targets",
+      "partial-file-visible",
+      "temporary-file-visible",
+      "unexpected-write"
+    ],
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "f72d056233674a8f26587a3c258c58e2037710a5"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 6,
+      "minForbiddenControls": 3
+    }
+  },
+  {
+    "id": "p04-missing-lsp-command-has-stable-doctor-id",
+    "corpus": "lux",
+    "capability": "portable-init-and-doctor",
+    "scenario": "missing-lsp",
+    "query": {
+      "tool": "portableInitContract",
+      "args": {
+        "action": "doctor",
+        "repo": {
+          "files": {
+            "lux.yaml": "schema_version: 1\nworkspace:\n  root: .\nindex:\n  database: .lux/lux.db\nlsp:\n  enabled: true\n  workspace_root: .\n  enrichers:\n    - language_id: typescript\n      enabled: true\n      server_command: typescript-language-server\n      server_args:\n        - --stdio\n",
+            "src/index.ts": "export {};\n"
+          },
+          "symlinks": {},
+          "trackedPaths": [],
+          "dirtyPaths": [],
+          "availableCommands": []
+        }
+      }
+    },
+    "expected": {
+      "status": "diagnosed",
+      "exitCode": 1,
+      "diagnostics": [
+        {
+          "id": "doctor.lsp.command-missing",
+          "severity": "error",
+          "path": "typescript-language-server"
+        }
+      ],
+      "mutatedPaths": [],
+      "generatedFiles": {},
+      "preservedPaths": ["lux.yaml", "src/index.ts"]
+    },
+    "scoreDimensions": [
+      "status",
+      "exit-code",
+      "diagnostic-ids",
+      "mutated-paths",
+      "no-absolute-paths",
+      "stable-doctor-ids",
+      "portable-config"
+    ],
+    "forbiddenControls": [
+      "absolute-path-output",
+      "unstable-diagnostic-id",
+      "mutation-outside-approved-targets",
+      "missing-lsp-silently-green",
+      "lsp-auto-install",
+      "unexpected-write"
+    ],
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "f72d056233674a8f26587a3c258c58e2037710a5"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 6,
+      "minForbiddenControls": 3
+    }
+  },
+  {
+    "id": "p04-tracked-database-has-stable-doctor-id",
+    "corpus": "lux",
+    "capability": "portable-init-and-doctor",
+    "scenario": "tracked-database",
+    "query": {
+      "tool": "portableInitContract",
+      "args": {
+        "action": "doctor",
+        "repo": {
+          "files": {
+            "lux.yaml": "schema_version: 1\nworkspace:\n  root: .\nindex:\n  database: .lux/lux.db\nlsp:\n  enabled: true\n  workspace_root: .\n  enrichers:\n    - language_id: typescript\n      enabled: true\n      server_command: typescript-language-server\n      server_args:\n        - --stdio\n",
+            ".lux/lux.db": "fixture-db-bytes"
+          },
+          "symlinks": {},
+          "trackedPaths": ["lux.yaml", ".lux/lux.db"],
+          "dirtyPaths": [],
+          "availableCommands": ["typescript-language-server"]
+        }
+      }
+    },
+    "expected": {
+      "status": "diagnosed",
+      "exitCode": 1,
+      "diagnostics": [
+        {
+          "id": "doctor.database.tracked",
+          "severity": "error",
+          "path": ".lux/lux.db"
+        }
+      ],
+      "mutatedPaths": [],
+      "generatedFiles": {},
+      "preservedPaths": [".lux/lux.db", "lux.yaml"]
+    },
+    "scoreDimensions": [
+      "status",
+      "exit-code",
+      "diagnostic-ids",
+      "mutated-paths",
+      "no-absolute-paths",
+      "stable-doctor-ids",
+      "portable-config"
+    ],
+    "forbiddenControls": [
+      "absolute-path-output",
+      "unstable-diagnostic-id",
+      "mutation-outside-approved-targets",
+      "tracked-db-silently-green",
+      "database-untracked-by-doctor",
+      "unexpected-write"
+    ],
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "f72d056233674a8f26587a3c258c58e2037710a5"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 6,
+      "minForbiddenControls": 3
+    }
+  },
+  {
+    "id": "p04-partial-vue-javascript-coverage-is-explicit",
+    "corpus": "lux",
+    "capability": "portable-init-and-doctor",
+    "scenario": "partial-vue-javascript",
+    "query": {
+      "tool": "portableInitContract",
+      "args": {
+        "action": "doctor",
+        "repo": {
+          "files": {
+            "lux.yaml": "schema_version: 1\nworkspace:\n  root: .\nindex:\n  database: .lux/lux.db\nlsp:\n  enabled: false\n",
+            "src/App.vue": "<script>export default {};</script>\n",
+            "src/client.js": "export const call = () => fetch('/api');\n"
+          },
+          "symlinks": {},
+          "trackedPaths": [],
+          "dirtyPaths": [],
+          "availableCommands": []
+        }
+      }
+    },
+    "expected": {
+      "status": "diagnosed",
+      "exitCode": 1,
+      "diagnostics": [
+        {
+          "id": "doctor.language.javascript-partial",
+          "severity": "warning",
+          "path": "src/client.js"
+        },
+        {
+          "id": "doctor.language.vue-partial",
+          "severity": "warning",
+          "path": "src/App.vue"
+        }
+      ],
+      "mutatedPaths": [],
+      "generatedFiles": {},
+      "preservedPaths": ["lux.yaml", "src/App.vue", "src/client.js"]
+    },
+    "scoreDimensions": [
+      "status",
+      "exit-code",
+      "diagnostic-ids",
+      "mutated-paths",
+      "no-absolute-paths",
+      "stable-doctor-ids",
+      "portable-config"
+    ],
+    "forbiddenControls": [
+      "absolute-path-output",
+      "unstable-diagnostic-id",
+      "mutation-outside-approved-targets",
+      "javascript-partial-silently-green",
+      "vue-partial-silently-green",
+      "unsupported-reported-as-complete"
+    ],
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "f72d056233674a8f26587a3c258c58e2037710a5"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 6,
+      "minForbiddenControls": 3
+    }
+  }
+]

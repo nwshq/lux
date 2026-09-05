@@ -284,7 +284,7 @@ export const TOOLS: Tool[] = [
   {
     name: 'lux_doctor',
     description:
-      'Read-only production diagnostics for index statistics, overlay trust, working-tree freshness, and explicit per-language structural coverage. Returns the same payload as lux doctor --json.',
+      'Read-only Phase-4 diagnostics with stable check IDs, statuses, remediation, and an optional index status snapshot. Diagnoses absent or incompatible indexes without creating or migrating them. Returns the same versioned report as lux doctor --json.',
     inputSchema: {
       type: 'object',
       properties: {},

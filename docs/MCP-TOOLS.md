@@ -288,12 +288,11 @@ Returns the `{ stats, overlay, coverage, runtime, freshness }` status payload (`
 
 ## `lux_doctor`
 
-Return the same read-only diagnostic payload as `lux doctor --json`: index statistics, overlay trust,
-working-tree freshness, and `coverage.languages`. Each language lists source files selected only
-from `source-code` knowledge metadata and explicit syntax/symbol/import/call/reference/framework
-capability states. Structural output counts come from local canonical nodes and edges. Unsupported and
-not-applicable states are explicit; missing producer run evidence is reported as failed rather than
-inferred successful from an empty error count. No inputs.
+Return the same versioned, read-only diagnostic report as `lux doctor --json`. Stable check IDs carry
+`pass`, `warn`, `fail`, or `not_applicable` plus actionable remediation; a readable index contributes
+the canonical index/trust/freshness/`coverage.languages` status snapshot. An absent or incompatible
+index is diagnosed without creating or migrating it. Unsupported and not-applicable language states
+remain explicit. No inputs.
 
 ```json
 {}

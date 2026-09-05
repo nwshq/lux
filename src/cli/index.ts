@@ -56,6 +56,7 @@ import { addUsageCommands } from './usage.js';
 import { addDeltaCommand } from './delta.js';
 import { addSiblingsCommand } from './siblings.js';
 import { registerDoctorCommand } from './doctor.js';
+import { registerInitCommand } from './init/index.js';
 import {
   createInvocationId,
   emitUsageEvent,
@@ -1202,6 +1203,9 @@ addDeltaCommand(program);
 
 // Add siblings command
 addSiblingsCommand(program);
+
+// Add safe portable configuration preview/apply command
+registerInitCommand(program);
 
 // Add read-only production diagnostics command
 registerDoctorCommand(program);

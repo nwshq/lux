@@ -18,7 +18,7 @@ import { readFileSync } from 'fs';
 import { LUX_VERSION } from '../utils/version.js';
 import { computeImpact } from '../cli/deps-impact.js';
 import { buildIndexStatusPayload, buildOverlayStatusPayload } from '../cli/status-payload.js';
-import { buildDoctorPayload } from '../cli/doctor.js';
+import { buildDoctorReport, inspectDoctorReport } from '../cli/doctor.js';
 import { persistCoverageProducerRuns } from '../scanner/coverage/producer-runs.js';
 import { getHeadCommit, isGitRepository } from '../scanner/git.js';
 import { executeSpecEvidenceAsk } from '../cli/spec-evidence.js';
@@ -118,6 +118,29 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   try {
     await ensureWorkspaceConfigured();
+    // Doctor must diagnose an absent/skewed index instead of failing before its checks. The
+    // inspection service performs only a read-existing open and returns the same report as CLI.
+    if (name === 'lux_doctor') {
+      const runtime = await workspace.resolveRuntime();
+      try {
+        lease = await workspace.acquire('read-existing');
+        const report = buildDoctorReport(lease.db, lease.runtime);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(withReadTelemetry(report), null, 2) }],
+        };
+      } catch (error) {
+        // An absent/skewed index is a diagnostic input. `inspectDoctorReport` performs a separate
+        // strict read-existing inspection so no index is created or migrated.
+        if (error instanceof WorkspaceUnavailableError && error.reason === 'database-open-failed') {
+          const report = inspectDoctorReport(runtime);
+          return {
+            content: [{ type: 'text', text: JSON.stringify(withReadTelemetry(report), null, 2) }],
+          };
+        }
+        throw error;
+      }
+    }
+
     const openMode =
       name === 'lux_rebuild_index'
         ? 'create-or-migrate'
@@ -599,13 +622,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'lux_overlay_status': {
         // Reuses the canonical status-payload builder shared with `lux overlay status --json`.
         const payload = buildOverlayStatusPayload(db, runtime);
-        return {
-          content: [{ type: 'text', text: JSON.stringify(withReadTelemetry(payload), null, 2) }],
-        };
-      }
-
-      case 'lux_doctor': {
-        const payload = buildDoctorPayload(db, runtime);
         return {
           content: [{ type: 'text', text: JSON.stringify(withReadTelemetry(payload), null, 2) }],
         };

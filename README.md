@@ -27,6 +27,8 @@ artifacts carry their tag version. A source-tree checkout therefore reports `0.0
 
 - `lux index rebuild|sync|status`
 - `lux search`
+- `lux init [--json|--yes]`
+- `lux doctor [--json]`
 - `lux hooks install|uninstall`
 - `lux migrate status|up|create`
 - `lux deps graph|clusters|impact|coverage`

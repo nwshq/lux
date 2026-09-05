@@ -211,19 +211,32 @@ describe.skipIf(!existsSync(DIST_SERVER))(
       expect(payload.freshness?.headMatchesIndex).toBe(true);
     });
 
-    it('lux_index_status and lux_doctor return the same coverage-bearing payload', async () => {
+    it('lux_doctor wraps the canonical coverage-bearing status with stable checks', async () => {
       const status = await client.callTool({ name: 'lux_index_status', arguments: {} });
       const doctor = await client.callTool({ name: 'lux_doctor', arguments: {} });
       expect(status.isError).toBeFalsy();
       expect(doctor.isError).toBeFalsy();
       const payload = parse(status) as {
+        telemetry?: unknown;
         stats?: Record<string, unknown>;
         overlay?: { trustLevel?: string };
         coverage?: { languages?: unknown[] };
         runtime?: { corpusPath?: string };
         freshness?: { indexedCommit?: string | null };
       };
-      expect(parse(doctor)).toEqual(payload);
+      const report = parse(doctor) as {
+        schemaVersion?: number;
+        status?: typeof payload;
+        result?: string;
+        checks?: Array<{ id: string; status: string }>;
+        telemetry?: unknown;
+      };
+      expect(report.schemaVersion).toBe(1);
+      const statusWithoutTelemetry = { ...payload };
+      delete statusWithoutTelemetry.telemetry;
+      expect(report.status).toEqual(statusWithoutTelemetry);
+      expect(report.checks?.length).toBeGreaterThan(0);
+      expect(new Set(report.checks?.map((check) => check.id)).size).toBe(report.checks?.length);
       expect(payload.stats).toBeDefined();
       expect(payload.overlay?.trustLevel).toBeDefined();
       expect(payload.coverage?.languages).toBeInstanceOf(Array);
