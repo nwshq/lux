@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "phase": 3,
+  "implementationSha": "32a9b39",
+  "mergeSha": "b02a0e4975339827e993b1ec301ad510cac73f72",
+  "baselineSha": "9bb533a98aa1d47009f5bed4ed2c6624e142d87e",
+  "criteria": [
+    {
+      "id": "P03-C1",
+      "class": "coverage",
+      "green": {
+        "command": "vitest run Phase 3 focused battery",
+        "exitCode": 0,
+        "observable": "7 files / 40 tests; 13 owner-pinned cases, all five states, six capabilities, PHP/TypeScript/JavaScript/Vue/unsupported, 52 forbidden controls"
+      },
+      "red": {
+        "mutation": "force-producer-failure-while-active",
+        "command": "vitest run src/integration/__tests__/phase-03-acceptance.test.ts",
+        "exitCode": 1,
+        "observable": "checker names language/capability and rejects active state with producer failure"
+      },
+      "verifiedBy": "independent-phase-battery"
+    },
+    {
+      "id": "P03-C2",
+      "class": "status-doctor-parity",
+      "green": {
+        "command": "vitest run status/doctor/MCP coverage tests",
+        "exitCode": 0,
+        "observable": "index status, CLI doctor, and MCP doctor share coverage payload; trust metadata remains unchanged on read"
+      },
+      "red": {
+        "mutation": "unrelated-scoped-language-overwrite",
+        "command": "vitest run src/scanner/coverage/__tests__/builder.test.ts",
+        "exitCode": 1,
+        "observable": "scoped TypeScript failure may not overwrite PHP or Vue producer evidence"
+      },
+      "verifiedBy": "adversarial-review-finding-fixed-and-reverified"
+    },
+    {
+      "id": "P03-C3",
+      "class": "release",
+      "green": {
+        "command": "GitHub PR #89 CI and Release workflows",
+        "exitCode": 0,
+        "observable": "PR auto-merged; PR and main CI green; v2.19.0 tag, release, and tarball published"
+      },
+      "red": {
+        "mutation": "expect-prior-version",
+        "command": "lux --version",
+        "exitCode": 1,
+        "observable": "installed version must differ from prior 2.18.0 sentinel"
+      },
+      "verifiedBy": "github-ci-release-and-local-install-verification"
+    }
+  ],
+  "knownBaselineFailures": [
+    {
+      "tests": [
+        "src/cli/__tests__/index-sync.test.ts:253",
+        "src/cli/__tests__/overlay-cli.test.ts:307"
+      ],
+      "observable": "expected enrichmentStatus active, received inactive",
+      "baselineReproduction": "both assertions reproduced identically on untouched Phase 2 main; Phase 3 full suite otherwise passed 1582 tests"
+    }
+  ],
+  "review": {
+    "codeReview": "APPROVED_AFTER_FIX",
+    "specFidelity": "APPROVED",
+    "independentValidation": "all focused/static/policy gates passed"
+  },
+  "exemptions": []
+}
