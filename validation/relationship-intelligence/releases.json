@@ -24,7 +24,7 @@
       "version": "2.19.0",
       "releaseUrl": "https://github.com/nwshq/lux/releases/tag/v2.19.0",
       "asset": "lux-v2.19.0-linux-x64.tar.gz",
-      "status": "released-and-install-pending"
+      "status": "released-and-installed"
     },
     {
       "phase": 4,
@@ -33,7 +33,17 @@
       "version": "2.20.0",
       "releaseUrl": "https://github.com/nwshq/lux/releases/tag/v2.20.0",
       "asset": "lux-v2.20.0-linux-x64.tar.gz",
-      "status": "released-and-install-pending"
+      "status": "released-and-installed"
+    },
+    {
+      "phase": 5,
+      "pullRequest": 93,
+      "mergeSha": "166b6439226d66c9fa7df7b4cb424855d8eef3e8",
+      "version": "2.21.0",
+      "releaseUrl": "https://github.com/nwshq/lux/releases/tag/v2.21.0",
+      "asset": "lux-v2.21.0-linux-x64.tar.gz",
+      "digest": "sha256:f8980f4b9b182bd7ee5e967c30e6aa4e6bca056673af2b26c4c34b5f582d0d80",
+      "status": "released-and-installed"
     }
   ]
 }

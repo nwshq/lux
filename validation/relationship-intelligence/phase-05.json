@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "phase": 5,
+  "implementationSha": "166b6439226d66c9fa7df7b4cb424855d8eef3e8",
+  "mergeSha": "166b6439226d66c9fa7df7b4cb424855d8eef3e8",
+  "baselineSha": "2c888ff196b26b36ca9b50f916906e26df25b629",
+  "criteria": [
+    {
+      "id": "P05-C1",
+      "class": "portable-corpus-preflight",
+      "green": {
+        "command": "vitest run corpus preflight/runtime and Phase 5 acceptance suites; production corpus preflight and default retrieval probes",
+        "exitCode": 0,
+        "observable": "29 corpus/preflight/runtime tests plus 8 independent T18 tests passed (37 total); all 11 canonical pins resolved in owned isolation; production preflight probes passed and default retrieval scored 1/1"
+      },
+      "red": {
+        "mutation": "alter-remote-sha-owner-checkout-hint-or-override",
+        "command": "vitest run src/integration/__tests__/phase-05-acceptance.test.ts",
+        "exitCode": 1,
+        "observable": "watched-red records reject remote, SHA, owner, checkout-hint, and override mutations before DB open or case execution"
+      },
+      "verifiedBy": "independent-phase-battery-and-production-probes"
+    },
+    {
+      "id": "P05-C2",
+      "class": "corpus-snapshot-security",
+      "green": {
+        "command": "vitest run benchmarks/corpora/__tests__/preflight.test.ts benchmarks/corpora/__tests__/runtime.test.ts",
+        "exitCode": 0,
+        "observable": "replacement-object substitution is disabled; gitlinks and escaping symlinks are rejected; filter/hook execution is neutralized; the global all-corpora barrier prevents partial execution"
+      },
+      "red": {
+        "mutation": "enable-replacement-gitlink-symlink-filter-hook-or-bypass-barrier",
+        "command": "vitest run corpus preflight/runtime security coverage",
+        "exitCode": 1,
+        "observable": "security assertions detect substituted content, unsafe trees, command execution, source mutation, or execution after any preflight refusal"
+      },
+      "verifiedBy": "adversarial-review-findings-fixed-and-reverified"
+    },
+    {
+      "id": "P05-C3",
+      "class": "compatibility-and-release",
+      "green": {
+        "command": "npm run check; npm run typecheck:benchmarks; GitHub PR #93 CI/Release; local Lux, MCP, Goose extension, and plugin verification",
+        "exitCode": 0,
+        "observable": "full check passed 1617 tests with 13 skipped and 0 failed; all static gates and 3/3 benchmark tsc projects passed; PR #93 merged green; v2.21.0 release and tarball published; global lux reports 2.21.0; lux-mcp initialization reports 2.21.0 and 12 tools; Goose still uses /opt/homebrew/bin/lux-mcp; plugin refreshed to main 166b643 while preserving its namespaced skill"
+      },
+      "red": {
+        "mutation": "expect-prior-version",
+        "command": "lux --version",
+        "exitCode": 1,
+        "observable": "installed 2.21.0 differs from prior 2.20.0 sentinel"
+      },
+      "verifiedBy": "github-ci-release-and-local-install-verification"
+    }
+  ],
+  "knownBaselineFailures": [],
+  "review": {
+    "codeReview": "APPROVED_AFTER_REMEDIATION",
+    "specFidelity": "APPROVED_AFTER_FIX",
+    "independentValidation": "37/37 focused tests, 1617 passed/13 skipped/0 failed full check, 3/3 benchmark typechecks, all static gates, 11/11 canonical isolated pins, production probes, and 1/1 default retrieval passed",
+    "adversarialReview": "repository filter execution blocker plus replacement, gitlink, and TOCTOU majors closed by edb9a6f and d74a6fe; frozen CorpusResolutionV1 acceptance blocker fixed by b081cd8",
+    "finalReReviews": "APPROVED"
+  },
+  "exemptions": []
+}
