@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "phase": 2,
+  "implementationSha": "3ce0703edfadd1941875500e3acdf353266d0f75",
+  "mergeSha": "130906ea5735b89ca1a478d9c72a3fc74a393838",
+  "baselineSha": "2fa259b37c3ea7c61a7789bb178f5702834a73ea",
+  "criteria": [
+    {
+      "id": "P02-C1",
+      "class": "required-graph-recall",
+      "green": {
+        "command": "vitest run src/integration/__tests__/phase-02-acceptance.test.ts",
+        "exitCode": 0,
+        "observable": "21 pinned cases; 20 answered; 38 expected edges at 1.0 recall and precision"
+      },
+      "red": {
+        "mutation": "remove-required-edge",
+        "command": "vitest run src/integration/__tests__/phase-02-acceptance.test.ts",
+        "exitCode": 1,
+        "observable": "watched mutation lowers recall below 1.0"
+      },
+      "verifiedBy": "independent-phase-battery-and-test-runner"
+    },
+    {
+      "id": "P02-C2",
+      "class": "forbidden-graph-precision",
+      "green": {
+        "command": "vitest run src/scanner/associations/traversal/__tests__ src/cli/__tests__/trace-command.test.ts src/cli/__tests__/trace-with.test.ts src/mcp/__tests__/federation-params.test.ts",
+        "exitCode": 0,
+        "observable": "direction, canonical endpoints, portable/repo-local federation, dispatch, freshness, shared budgets, and public surfaces pass"
+      },
+      "red": {
+        "mutation": "inject-forbidden-edge",
+        "command": "vitest run src/integration/__tests__/phase-02-acceptance.test.ts",
+        "exitCode": 1,
+        "observable": "watched mutation reports one forbidden edge and precision below 1.0"
+      },
+      "verifiedBy": "independent-phase-battery-and-test-runner"
+    },
+    {
+      "id": "P02-C3",
+      "class": "compatibility-and-release",
+      "green": {
+        "command": "GitHub PR #87 CI and Release workflows",
+        "exitCode": 0,
+        "observable": "PR auto-merged; CI green; v2.18.0 tag, release, tarball, global Lux/MCP, and Goose plugin checkout verified"
+      },
+      "red": {
+        "mutation": "expect-prior-version",
+        "command": "lux --version",
+        "exitCode": 1,
+        "observable": "installed 2.18.0 differs from prior 2.17.0 sentinel"
+      },
+      "verifiedBy": "github-ci-release-and-local-install-verification"
+    }
+  ],
+  "knownBaselineFailures": [
+    {
+      "tests": [
+        "src/cli/__tests__/index-sync.test.ts:253",
+        "src/cli/__tests__/overlay-cli.test.ts:307"
+      ],
+      "observable": "expected enrichmentStatus active, received inactive",
+      "baselineReproduction": "both assertions fail identically on untouched main at 2fa259b; all other full-suite tests passed"
+    }
+  ],
+  "review": {
+    "codeReview": "APPROVE_NO_VERIFIED_BLOCKER_OR_MAJOR",
+    "specFidelity": "APPROVED",
+    "independentValidation": "54/54 focused tests and all static/policy gates passed"
+  },
+  "exemptions": []
+}

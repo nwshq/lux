@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "releases": [
+    {
+      "phase": 1,
+      "pullRequest": 86,
+      "mergeSha": "2fa259b37c3ea7c61a7789bb178f5702834a73ea",
+      "version": "2.17.0",
+      "status": "released-and-installed"
+    },
+    {
+      "phase": 2,
+      "pullRequest": 87,
+      "mergeSha": "130906ea5735b89ca1a478d9c72a3fc74a393838",
+      "version": "2.18.0",
+      "releaseUrl": "https://github.com/nwshq/lux/releases/tag/v2.18.0",
+      "asset": "lux-v2.18.0-linux-x64.tar.gz",
+      "status": "released-and-installed"
+    }
+  ]
+}
