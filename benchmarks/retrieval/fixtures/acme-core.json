@@ -1,7 +1,9 @@
 {
   "schemaVersion": 1,
+  "goldSchemaVersion": 1,
+  "owner": "Example Maintainer",
   "repoId": "auctic-core",
-  "repoPath": "/path/to/auctic-core/vcs",
+  "corpusId": "auctic-core",
   "cases": [
     {
       "id": "core-operational-listener-auction-created",
@@ -38,18 +40,9 @@
         "minStateChanges": 1,
         "minOperationalEffects": 1,
         "minReviewPrompts": 1,
-        "coverageIncludes": [
-          "found",
-          "missing",
-          "unsupported"
-        ],
-        "coverageSignalKeysInclude": [
-          "handled_event",
-          "listener_side_effect"
-        ],
-        "supportIncludes": [
-          "direct"
-        ],
+        "coverageIncludes": ["found", "missing", "unsupported"],
+        "coverageSignalKeysInclude": ["handled_event", "listener_side_effect"],
+        "supportIncludes": ["direct"],
         "sourceFactIncludes": "AuctionCreated",
         "forbiddenTextIncludes": [
           "The system shall",
@@ -100,9 +93,7 @@
       "expect": {
         "exitCode": 1,
         "deltaSchemaVersion": 1,
-        "deltaGateCategoriesInclude": [
-          "client-gap-created"
-        ]
+        "deltaGateCategoriesInclude": ["client-gap-created"]
       }
     },
     {

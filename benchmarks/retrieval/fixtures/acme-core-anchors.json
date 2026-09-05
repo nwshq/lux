@@ -1,7 +1,9 @@
 {
   "schemaVersion": 1,
+  "goldSchemaVersion": 1,
+  "owner": "Example Maintainer",
   "repoId": "auctic-core-anchors",
-  "repoPath": "/path/to/auctic-core/vcs",
+  "corpusId": "auctic-core",
   "cases": [
     {
       "id": "anchors-q2-payment-gateway",
@@ -179,7 +181,9 @@
       "k": 10,
       "knownMiss": true,
       "owner": "Example Maintainer",
-      "expectNodeIdsTopK": ["symbol:php:App\\Services\\Settlement\\SettlementService::splitByPlatform"],
+      "expectNodeIdsTopK": [
+        "symbol:php:App\\Services\\Settlement\\SettlementService::splitByPlatform"
+      ],
       "expect": { "exitCode": 0 }
     },
     {

@@ -36,6 +36,7 @@
     "start": "node dist/cli/index.js",
     "mcp": "node dist/mcp/server.js",
     "benchmark:retrieval": "npm run build && tsx benchmarks/retrieval/run.ts",
+    "typecheck:benchmarks": "tsc -p benchmarks/corpora/tsconfig.json && tsc -p benchmarks/retrieval/tsconfig.json && tsc -p benchmarks/bootstrap/tsconfig.json",
     "benchmark:scoped-refresh": "npm run build && tsx benchmarks/retrieval/scoped-refresh-timing.ts",
     "benchmark:bootstrap": "tsx benchmarks/bootstrap/run.ts"
   },

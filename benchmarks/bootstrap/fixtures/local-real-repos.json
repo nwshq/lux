@@ -1,20 +1,24 @@
 {
   "schemaVersion": 1,
+  "owner": "Example Maintainer",
   "repos": [
     {
       "schemaVersion": 1,
-      "repoId": "auctic-atlas",
-      "repoPath": "/path/to/auctic-atlas/vcs"
+      "goldSchemaVersion": 1,
+      "owner": "Example Maintainer",
+      "corpusId": "auctic-atlas"
     },
     {
       "schemaVersion": 1,
-      "repoId": "auctic-core",
-      "repoPath": "/path/to/auctic-core/vcs"
+      "goldSchemaVersion": 1,
+      "owner": "Example Maintainer",
+      "corpusId": "auctic-core"
     },
     {
       "schemaVersion": 1,
-      "repoId": "example-app",
-      "repoPath": "/path/to/example-app/vcs"
+      "goldSchemaVersion": 1,
+      "owner": "Example Maintainer",
+      "corpusId": "example-app"
     }
   ]
 }

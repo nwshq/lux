@@ -1,0 +1,958 @@
+[
+  {
+    "id": "p05-lux-exact-checkout-runs-existing-control",
+    "corpus": "lux",
+    "capability": "portable-corpus-preflight",
+    "scenario": "exact-checkout",
+    "query": {
+      "tool": "phase5PreflightContract",
+      "args": {
+        "manifest": {
+          "schemaVersion": 1,
+          "owner": "Example Maintainer",
+          "corpora": [
+            {
+              "id": "lux",
+              "remote": "https://github.com/nwshq/lux.git",
+              "checkoutHints": ["~/Code/lux/vcs"],
+              "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+            }
+          ]
+        },
+        "corpusId": "lux",
+        "environment": {
+          "checkouts": [
+            {
+              "hint": "~/Code/lux/vcs",
+              "remote": "https://github.com/nwshq/lux.git",
+              "head": "5f1f053c635a7244d3d1c23045ce398170053623",
+              "reachableCommits": ["5f1f053c635a7244d3d1c23045ce398170053623"],
+              "dirty": false
+            }
+          ],
+          "canCreateIsolatedWorktree": true
+        }
+      }
+    },
+    "benchmarkControl": {
+      "fixture": "lux-ts",
+      "caseId": "lux-ts-search-content-scoped"
+    },
+    "expected": {
+      "preflight": {
+        "status": "ready",
+        "exitCode": 0,
+        "code": "corpus.ready",
+        "resolution": {
+          "id": "lux",
+          "rootPath": "~/Code/lux/vcs",
+          "remote": "github.com/nwshq/lux",
+          "commit": "5f1f053c635a7244d3d1c23045ce398170053623",
+          "owner": "Example Maintainer",
+          "isolated": false
+        }
+      },
+      "events": ["preflight:success", "db:open", "case:lux-ts-search-content-scoped"]
+    },
+    "scoreDimensions": [
+      "status",
+      "exit-code",
+      "stable-code",
+      "resolution-id",
+      "canonical-remote",
+      "exact-commit",
+      "owner-approved",
+      "isolation-policy",
+      "execution-gate",
+      "existing-positive-control",
+      "portable-fixture"
+    ],
+    "forbiddenControls": [
+      "db-open-before-preflight-success",
+      "case-execution-before-preflight-success",
+      "absolute-repo-path",
+      "unchecked-remote",
+      "unchecked-commit",
+      "ownerless-manifest-accepted"
+    ],
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 6,
+      "minForbiddenControls": 4
+    },
+    "watchedMutations": [
+      {
+        "id": "alter-remote",
+        "expectedPreflightExitCode": 1,
+        "expectedCheckerExitCode": 1,
+        "expectedCode": "corpus.remote-mismatch",
+        "expectedObservable": "p05-lux-exact-checkout-runs-existing-control: status"
+      },
+      {
+        "id": "alter-sha",
+        "expectedPreflightExitCode": 1,
+        "expectedCheckerExitCode": 1,
+        "expectedCode": "corpus.commit-unreachable",
+        "expectedObservable": "p05-lux-exact-checkout-runs-existing-control: status"
+      },
+      {
+        "id": "remove-owner",
+        "expectedPreflightExitCode": 1,
+        "expectedCheckerExitCode": 1,
+        "expectedCode": "corpus.owner-missing",
+        "expectedObservable": "p05-lux-exact-checkout-runs-existing-control: status"
+      },
+      {
+        "id": "alter-checkout-hint",
+        "expectedPreflightExitCode": 1,
+        "expectedCheckerExitCode": 1,
+        "expectedCode": "corpus.checkout-missing",
+        "expectedObservable": "p05-lux-exact-checkout-runs-existing-control: status"
+      }
+    ]
+  },
+  {
+    "id": "p05-ssh-checkout-matches-https-manifest",
+    "corpus": "lux",
+    "capability": "portable-corpus-preflight",
+    "scenario": "ssh-https-equivalence",
+    "query": {
+      "tool": "phase5PreflightContract",
+      "args": {
+        "manifest": {
+          "schemaVersion": 1,
+          "owner": "Example Maintainer",
+          "corpora": [
+            {
+              "id": "lux",
+              "remote": "https://github.com/nwshq/lux.git",
+              "checkoutHints": ["~/Code/lux/vcs"],
+              "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+            }
+          ]
+        },
+        "corpusId": "lux",
+        "environment": {
+          "checkouts": [
+            {
+              "hint": "~/Code/lux/vcs",
+              "remote": "git@github.com:nwshq/lux.git",
+              "head": "5f1f053c635a7244d3d1c23045ce398170053623",
+              "reachableCommits": ["5f1f053c635a7244d3d1c23045ce398170053623"],
+              "dirty": false
+            }
+          ],
+          "canCreateIsolatedWorktree": true
+        }
+      }
+    },
+    "expected": {
+      "preflight": {
+        "status": "ready",
+        "exitCode": 0,
+        "code": "corpus.ready",
+        "resolution": {
+          "id": "lux",
+          "rootPath": "~/Code/lux/vcs",
+          "remote": "github.com/nwshq/lux",
+          "commit": "5f1f053c635a7244d3d1c23045ce398170053623",
+          "owner": "Example Maintainer",
+          "isolated": false
+        }
+      },
+      "events": ["preflight:success"]
+    },
+    "scoreDimensions": [
+      "status",
+      "exit-code",
+      "stable-code",
+      "resolution-id",
+      "canonical-remote",
+      "exact-commit",
+      "owner-approved",
+      "isolation-policy",
+      "execution-gate",
+      "portable-fixture"
+    ],
+    "forbiddenControls": [
+      "ssh-https-equivalence-rejected",
+      "db-open-before-preflight-success",
+      "case-execution-before-preflight-success",
+      "absolute-repo-path",
+      "unchecked-remote"
+    ],
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 6,
+      "minForbiddenControls": 4
+    }
+  },
+  {
+    "id": "p05-operator-override-resolves-portably",
+    "corpus": "lux",
+    "capability": "portable-corpus-preflight",
+    "scenario": "operator-override",
+    "query": {
+      "tool": "phase5PreflightContract",
+      "args": {
+        "manifest": {
+          "schemaVersion": 1,
+          "owner": "Example Maintainer",
+          "corpora": [
+            {
+              "id": "lux",
+              "remote": "https://github.com/nwshq/lux.git",
+              "checkoutHints": ["~/Code/lux/not-present"],
+              "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+            }
+          ]
+        },
+        "corpusId": "lux",
+        "operatorOverrides": {
+          "lux": "~/operator/lux"
+        },
+        "environment": {
+          "checkouts": [
+            {
+              "hint": "~/operator/lux",
+              "remote": "ssh://git@github.com/nwshq/lux.git",
+              "head": "5f1f053c635a7244d3d1c23045ce398170053623",
+              "reachableCommits": ["5f1f053c635a7244d3d1c23045ce398170053623"],
+              "dirty": false
+            }
+          ],
+          "canCreateIsolatedWorktree": true
+        }
+      }
+    },
+    "expected": {
+      "preflight": {
+        "status": "ready",
+        "exitCode": 0,
+        "code": "corpus.ready",
+        "resolution": {
+          "id": "lux",
+          "rootPath": "~/operator/lux",
+          "remote": "github.com/nwshq/lux",
+          "commit": "5f1f053c635a7244d3d1c23045ce398170053623",
+          "owner": "Example Maintainer",
+          "isolated": false
+        }
+      },
+      "events": ["preflight:success"]
+    },
+    "scoreDimensions": [
+      "status",
+      "exit-code",
+      "stable-code",
+      "resolution-id",
+      "canonical-remote",
+      "exact-commit",
+      "owner-approved",
+      "isolation-policy",
+      "execution-gate",
+      "portable-fixture"
+    ],
+    "forbiddenControls": [
+      "override-ignored",
+      "db-open-before-preflight-success",
+      "case-execution-before-preflight-success",
+      "absolute-repo-path",
+      "unchecked-remote"
+    ],
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 6,
+      "minForbiddenControls": 4
+    },
+    "watchedMutations": [
+      {
+        "id": "alter-override",
+        "expectedPreflightExitCode": 1,
+        "expectedCheckerExitCode": 1,
+        "expectedCode": "corpus.checkout-missing",
+        "expectedObservable": "p05-operator-override-resolves-portably: status"
+      }
+    ]
+  },
+  {
+    "id": "p05-head-mismatch-uses-detached-isolation",
+    "corpus": "lux",
+    "capability": "portable-corpus-preflight",
+    "scenario": "mismatched-head-isolated",
+    "query": {
+      "tool": "phase5PreflightContract",
+      "args": {
+        "manifest": {
+          "schemaVersion": 1,
+          "owner": "Example Maintainer",
+          "corpora": [
+            {
+              "id": "lux",
+              "remote": "https://github.com/nwshq/lux.git",
+              "checkoutHints": ["~/Code/lux/vcs"],
+              "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+            }
+          ]
+        },
+        "corpusId": "lux",
+        "environment": {
+          "checkouts": [
+            {
+              "hint": "~/Code/lux/vcs",
+              "remote": "https://github.com/nwshq/lux.git",
+              "head": "2c888ff196b26b36ca9b50f916906e26df25b629",
+              "reachableCommits": [
+                "2c888ff196b26b36ca9b50f916906e26df25b629",
+                "5f1f053c635a7244d3d1c23045ce398170053623"
+              ],
+              "dirty": false
+            }
+          ],
+          "canCreateIsolatedWorktree": true
+        }
+      }
+    },
+    "expected": {
+      "preflight": {
+        "status": "ready",
+        "exitCode": 0,
+        "code": "corpus.ready",
+        "resolution": {
+          "id": "lux",
+          "rootPath": "~/Code/lux/vcs#detached:5f1f053c635a7244d3d1c23045ce398170053623",
+          "remote": "github.com/nwshq/lux",
+          "commit": "5f1f053c635a7244d3d1c23045ce398170053623",
+          "owner": "Example Maintainer",
+          "isolated": true
+        }
+      },
+      "events": ["preflight:success"]
+    },
+    "scoreDimensions": [
+      "status",
+      "exit-code",
+      "stable-code",
+      "resolution-id",
+      "canonical-remote",
+      "exact-commit",
+      "owner-approved",
+      "isolation-policy",
+      "execution-gate",
+      "portable-fixture"
+    ],
+    "forbiddenControls": [
+      "mismatched-sha-benchmarked",
+      "db-open-before-preflight-success",
+      "case-execution-before-preflight-success",
+      "absolute-repo-path",
+      "unchecked-commit"
+    ],
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 6,
+      "minForbiddenControls": 4
+    }
+  },
+  {
+    "id": "p05-dirty-checkout-uses-detached-isolation",
+    "corpus": "lux",
+    "capability": "portable-corpus-preflight",
+    "scenario": "dirty-checkout-isolated",
+    "query": {
+      "tool": "phase5PreflightContract",
+      "args": {
+        "manifest": {
+          "schemaVersion": 1,
+          "owner": "Example Maintainer",
+          "corpora": [
+            {
+              "id": "lux",
+              "remote": "https://github.com/nwshq/lux.git",
+              "checkoutHints": ["~/Code/lux/vcs"],
+              "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+            }
+          ]
+        },
+        "corpusId": "lux",
+        "environment": {
+          "checkouts": [
+            {
+              "hint": "~/Code/lux/vcs",
+              "remote": "https://github.com/nwshq/lux.git",
+              "head": "5f1f053c635a7244d3d1c23045ce398170053623",
+              "reachableCommits": ["5f1f053c635a7244d3d1c23045ce398170053623"],
+              "dirty": true
+            }
+          ],
+          "canCreateIsolatedWorktree": true
+        }
+      }
+    },
+    "expected": {
+      "preflight": {
+        "status": "ready",
+        "exitCode": 0,
+        "code": "corpus.ready",
+        "resolution": {
+          "id": "lux",
+          "rootPath": "~/Code/lux/vcs#detached:5f1f053c635a7244d3d1c23045ce398170053623",
+          "remote": "github.com/nwshq/lux",
+          "commit": "5f1f053c635a7244d3d1c23045ce398170053623",
+          "owner": "Example Maintainer",
+          "isolated": true
+        }
+      },
+      "events": ["preflight:success"]
+    },
+    "scoreDimensions": [
+      "status",
+      "exit-code",
+      "stable-code",
+      "resolution-id",
+      "canonical-remote",
+      "exact-commit",
+      "owner-approved",
+      "isolation-policy",
+      "execution-gate",
+      "portable-fixture"
+    ],
+    "forbiddenControls": [
+      "dirty-source-benchmarked",
+      "db-open-before-preflight-success",
+      "case-execution-before-preflight-success",
+      "absolute-repo-path",
+      "unchecked-commit"
+    ],
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 6,
+      "minForbiddenControls": 4
+    }
+  },
+  {
+    "id": "p05-missing-checkout-refuses-before-index",
+    "corpus": "lux",
+    "capability": "portable-corpus-preflight",
+    "scenario": "missing-checkout",
+    "query": {
+      "tool": "phase5PreflightContract",
+      "args": {
+        "manifest": {
+          "schemaVersion": 1,
+          "owner": "Example Maintainer",
+          "corpora": [
+            {
+              "id": "lux",
+              "remote": "https://github.com/nwshq/lux.git",
+              "checkoutHints": ["~/Code/lux/missing"],
+              "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+            }
+          ]
+        },
+        "corpusId": "lux",
+        "environment": {
+          "checkouts": [],
+          "canCreateIsolatedWorktree": true
+        }
+      }
+    },
+    "expected": {
+      "preflight": {
+        "status": "refused",
+        "exitCode": 1,
+        "code": "corpus.checkout-missing"
+      },
+      "events": ["preflight:failure"]
+    },
+    "scoreDimensions": [
+      "status",
+      "exit-code",
+      "stable-code",
+      "no-resolution-on-failure",
+      "execution-gate",
+      "portable-fixture"
+    ],
+    "forbiddenControls": [
+      "db-open-before-preflight-success",
+      "case-execution-before-preflight-success",
+      "absolute-repo-path",
+      "missing-checkout-accepted"
+    ],
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 6,
+      "minForbiddenControls": 4
+    }
+  },
+  {
+    "id": "p05-remote-mismatch-refuses-before-index",
+    "corpus": "lux",
+    "capability": "portable-corpus-preflight",
+    "scenario": "remote-mismatch",
+    "query": {
+      "tool": "phase5PreflightContract",
+      "args": {
+        "manifest": {
+          "schemaVersion": 1,
+          "owner": "Example Maintainer",
+          "corpora": [
+            {
+              "id": "lux",
+              "remote": "https://github.com/nwshq/lux.git",
+              "checkoutHints": ["~/Code/lux/vcs"],
+              "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+            }
+          ]
+        },
+        "corpusId": "lux",
+        "environment": {
+          "checkouts": [
+            {
+              "hint": "~/Code/lux/vcs",
+              "remote": "git@github.com:other/lux.git",
+              "head": "5f1f053c635a7244d3d1c23045ce398170053623",
+              "reachableCommits": ["5f1f053c635a7244d3d1c23045ce398170053623"],
+              "dirty": false
+            }
+          ],
+          "canCreateIsolatedWorktree": true
+        }
+      }
+    },
+    "expected": {
+      "preflight": {
+        "status": "refused",
+        "exitCode": 1,
+        "code": "corpus.remote-mismatch"
+      },
+      "events": ["preflight:failure"]
+    },
+    "scoreDimensions": [
+      "status",
+      "exit-code",
+      "stable-code",
+      "no-resolution-on-failure",
+      "execution-gate",
+      "portable-fixture"
+    ],
+    "forbiddenControls": [
+      "remote-mismatch-accepted",
+      "db-open-before-preflight-success",
+      "case-execution-before-preflight-success",
+      "absolute-repo-path",
+      "unchecked-remote"
+    ],
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 6,
+      "minForbiddenControls": 4
+    }
+  },
+  {
+    "id": "p05-unreachable-commit-refuses-before-index",
+    "corpus": "lux",
+    "capability": "portable-corpus-preflight",
+    "scenario": "unreachable-commit",
+    "query": {
+      "tool": "phase5PreflightContract",
+      "args": {
+        "manifest": {
+          "schemaVersion": 1,
+          "owner": "Example Maintainer",
+          "corpora": [
+            {
+              "id": "lux",
+              "remote": "https://github.com/nwshq/lux.git",
+              "checkoutHints": ["~/Code/lux/vcs"],
+              "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+            }
+          ]
+        },
+        "corpusId": "lux",
+        "environment": {
+          "checkouts": [
+            {
+              "hint": "~/Code/lux/vcs",
+              "remote": "https://github.com/nwshq/lux.git",
+              "head": "2c888ff196b26b36ca9b50f916906e26df25b629",
+              "reachableCommits": ["2c888ff196b26b36ca9b50f916906e26df25b629"],
+              "dirty": false
+            }
+          ],
+          "canCreateIsolatedWorktree": true
+        }
+      }
+    },
+    "expected": {
+      "preflight": {
+        "status": "refused",
+        "exitCode": 1,
+        "code": "corpus.commit-unreachable"
+      },
+      "events": ["preflight:failure"]
+    },
+    "scoreDimensions": [
+      "status",
+      "exit-code",
+      "stable-code",
+      "no-resolution-on-failure",
+      "execution-gate",
+      "portable-fixture"
+    ],
+    "forbiddenControls": [
+      "unreachable-commit-accepted",
+      "db-open-before-preflight-success",
+      "case-execution-before-preflight-success",
+      "absolute-repo-path",
+      "unchecked-commit"
+    ],
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 6,
+      "minForbiddenControls": 4
+    }
+  },
+  {
+    "id": "p05-mismatched-sha-without-isolation-refuses",
+    "corpus": "lux",
+    "capability": "portable-corpus-preflight",
+    "scenario": "mismatched-head-unisolated",
+    "query": {
+      "tool": "phase5PreflightContract",
+      "args": {
+        "manifest": {
+          "schemaVersion": 1,
+          "owner": "Example Maintainer",
+          "corpora": [
+            {
+              "id": "lux",
+              "remote": "https://github.com/nwshq/lux.git",
+              "checkoutHints": ["~/Code/lux/vcs"],
+              "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+            }
+          ]
+        },
+        "corpusId": "lux",
+        "environment": {
+          "checkouts": [
+            {
+              "hint": "~/Code/lux/vcs",
+              "remote": "https://github.com/nwshq/lux.git",
+              "head": "2c888ff196b26b36ca9b50f916906e26df25b629",
+              "reachableCommits": [
+                "2c888ff196b26b36ca9b50f916906e26df25b629",
+                "5f1f053c635a7244d3d1c23045ce398170053623"
+              ],
+              "dirty": false
+            }
+          ],
+          "canCreateIsolatedWorktree": false
+        }
+      }
+    },
+    "expected": {
+      "preflight": {
+        "status": "refused",
+        "exitCode": 1,
+        "code": "corpus.commit-mismatch"
+      },
+      "events": ["preflight:failure"]
+    },
+    "scoreDimensions": [
+      "status",
+      "exit-code",
+      "stable-code",
+      "no-resolution-on-failure",
+      "execution-gate",
+      "portable-fixture"
+    ],
+    "forbiddenControls": [
+      "mismatched-sha-benchmarked",
+      "db-open-before-preflight-success",
+      "case-execution-before-preflight-success",
+      "absolute-repo-path",
+      "unchecked-commit"
+    ],
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 6,
+      "minForbiddenControls": 4
+    }
+  },
+  {
+    "id": "p05-dirty-checkout-without-isolation-refuses",
+    "corpus": "lux",
+    "capability": "portable-corpus-preflight",
+    "scenario": "dirty-checkout-unisolated",
+    "query": {
+      "tool": "phase5PreflightContract",
+      "args": {
+        "manifest": {
+          "schemaVersion": 1,
+          "owner": "Example Maintainer",
+          "corpora": [
+            {
+              "id": "lux",
+              "remote": "https://github.com/nwshq/lux.git",
+              "checkoutHints": ["~/Code/lux/vcs"],
+              "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+            }
+          ]
+        },
+        "corpusId": "lux",
+        "environment": {
+          "checkouts": [
+            {
+              "hint": "~/Code/lux/vcs",
+              "remote": "https://github.com/nwshq/lux.git",
+              "head": "5f1f053c635a7244d3d1c23045ce398170053623",
+              "reachableCommits": ["5f1f053c635a7244d3d1c23045ce398170053623"],
+              "dirty": true
+            }
+          ],
+          "canCreateIsolatedWorktree": false
+        }
+      }
+    },
+    "expected": {
+      "preflight": {
+        "status": "refused",
+        "exitCode": 1,
+        "code": "corpus.dirty-requires-isolation"
+      },
+      "events": ["preflight:failure"]
+    },
+    "scoreDimensions": [
+      "status",
+      "exit-code",
+      "stable-code",
+      "no-resolution-on-failure",
+      "execution-gate",
+      "portable-fixture"
+    ],
+    "forbiddenControls": [
+      "dirty-source-benchmarked",
+      "db-open-before-preflight-success",
+      "case-execution-before-preflight-success",
+      "absolute-repo-path",
+      "unchecked-commit"
+    ],
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 6,
+      "minForbiddenControls": 4
+    }
+  },
+  {
+    "id": "p05-missing-owner-refuses-before-index",
+    "corpus": "lux",
+    "capability": "portable-corpus-preflight",
+    "scenario": "missing-owner",
+    "query": {
+      "tool": "phase5PreflightContract",
+      "args": {
+        "manifest": {
+          "schemaVersion": 1,
+          "corpora": [
+            {
+              "id": "lux",
+              "remote": "https://github.com/nwshq/lux.git",
+              "checkoutHints": ["~/Code/lux/vcs"],
+              "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+            }
+          ]
+        },
+        "corpusId": "lux",
+        "environment": {
+          "checkouts": [
+            {
+              "hint": "~/Code/lux/vcs",
+              "remote": "https://github.com/nwshq/lux.git",
+              "head": "5f1f053c635a7244d3d1c23045ce398170053623",
+              "reachableCommits": ["5f1f053c635a7244d3d1c23045ce398170053623"],
+              "dirty": false
+            }
+          ],
+          "canCreateIsolatedWorktree": true
+        }
+      }
+    },
+    "expected": {
+      "preflight": {
+        "status": "refused",
+        "exitCode": 1,
+        "code": "corpus.owner-missing"
+      },
+      "events": ["preflight:failure"]
+    },
+    "scoreDimensions": [
+      "status",
+      "exit-code",
+      "stable-code",
+      "no-resolution-on-failure",
+      "execution-gate",
+      "portable-fixture"
+    ],
+    "forbiddenControls": [
+      "ownerless-manifest-accepted",
+      "db-open-before-preflight-success",
+      "case-execution-before-preflight-success",
+      "absolute-repo-path",
+      "unchecked-owner"
+    ],
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 6,
+      "minForbiddenControls": 4
+    }
+  },
+  {
+    "id": "p05-schema-drift-refuses-before-index",
+    "corpus": "lux",
+    "capability": "portable-corpus-preflight",
+    "scenario": "schema-drift",
+    "query": {
+      "tool": "phase5PreflightContract",
+      "args": {
+        "manifest": {
+          "schemaVersion": 2,
+          "owner": "Example Maintainer",
+          "corpora": [
+            {
+              "id": "lux",
+              "remote": "https://github.com/nwshq/lux.git",
+              "checkoutHints": ["~/Code/lux/vcs"],
+              "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+            }
+          ]
+        },
+        "corpusId": "lux",
+        "environment": {
+          "checkouts": [
+            {
+              "hint": "~/Code/lux/vcs",
+              "remote": "https://github.com/nwshq/lux.git",
+              "head": "5f1f053c635a7244d3d1c23045ce398170053623",
+              "reachableCommits": ["5f1f053c635a7244d3d1c23045ce398170053623"],
+              "dirty": false
+            }
+          ],
+          "canCreateIsolatedWorktree": true
+        }
+      }
+    },
+    "expected": {
+      "preflight": {
+        "status": "refused",
+        "exitCode": 1,
+        "code": "corpus.schema-unsupported"
+      },
+      "events": ["preflight:failure"]
+    },
+    "scoreDimensions": [
+      "status",
+      "exit-code",
+      "stable-code",
+      "no-resolution-on-failure",
+      "execution-gate",
+      "portable-fixture"
+    ],
+    "forbiddenControls": [
+      "schema-drift-accepted",
+      "db-open-before-preflight-success",
+      "case-execution-before-preflight-success",
+      "absolute-repo-path",
+      "unchecked-schema"
+    ],
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 6,
+      "minForbiddenControls": 4
+    }
+  }
+]

@@ -22,7 +22,10 @@ import { tmpdir } from 'node:os';
 import { LuxDatabase } from '../../src/db/index.js';
 import { rebuildWithOverlay } from '../../src/scanner/rebuild-orchestrator.js';
 import { loadLspConfig } from '../../src/scanner/config.js';
-import { refreshOverlayScoped, type ChangedFile } from '../../src/scanner/associations/overlay-refresh.js';
+import {
+  refreshOverlayScoped,
+  type ChangedFile,
+} from '../../src/scanner/associations/overlay-refresh.js';
 import { collectOverlayRelevantPaths } from '../../src/scanner/incremental.js';
 import { getGitDiff, getHeadCommit } from '../../src/scanner/git.js';
 
@@ -84,7 +87,9 @@ async function main(): Promise<void> {
       process.exit(1);
     }
     const factor = fullMs / Math.max(scopedMs, 1);
-    console.log(`SC-6 PASS: scoped refresh is ${factor.toFixed(1)}× under the same-run full-rebuild baseline.`);
+    console.log(
+      `SC-6 PASS: scoped refresh is ${factor.toFixed(1)}× under the same-run full-rebuild baseline.`
+    );
   } finally {
     db.close();
     rmSync(dbDir, { recursive: true, force: true });

@@ -1,7 +1,9 @@
 {
   "schemaVersion": 1,
+  "goldSchemaVersion": 1,
+  "owner": "Example Maintainer",
   "repoId": "example-app",
-  "repoPath": "/path/to/example-app/vcs",
+  "corpusId": "example-app",
   "cases": [
     {
       "id": "chirocat-status-overlay-complete",
@@ -28,11 +30,7 @@
       "json": true,
       "expect": {
         "exitCode": 1,
-        "forbiddenTextIncludes": [
-          "The system shall",
-          "Approved",
-          "Validated by Lux"
-        ]
+        "forbiddenTextIncludes": ["The system shall", "Approved", "Validated by Lux"]
       }
     },
     {

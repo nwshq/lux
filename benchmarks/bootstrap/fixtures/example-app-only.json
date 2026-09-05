@@ -1,10 +1,12 @@
 {
   "schemaVersion": 1,
+  "owner": "Example Maintainer",
   "repos": [
     {
       "schemaVersion": 1,
-      "repoId": "example-app",
-      "repoPath": "/path/to/example-app/vcs"
+      "goldSchemaVersion": 1,
+      "owner": "Example Maintainer",
+      "corpusId": "example-app"
     }
   ]
 }

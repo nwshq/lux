@@ -6,13 +6,7 @@
       "schemaVersion": 1,
       "goldSchemaVersion": 1,
       "owner": "Example Maintainer",
-      "corpusId": "auctic-atlas"
-    },
-    {
-      "schemaVersion": 1,
-      "goldSchemaVersion": 1,
-      "owner": "Example Maintainer",
-      "corpusId": "auctic-core"
+      "corpusId": "lux"
     }
   ]
 }

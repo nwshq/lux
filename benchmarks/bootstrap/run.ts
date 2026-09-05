@@ -9,8 +9,9 @@ import { LuxDatabase } from '../../src/db/index.js';
 import { rebuildWithOverlay } from '../../src/scanner/rebuild-orchestrator.js';
 import { attachEnrichment } from '../../src/scanner/general.js';
 import { GeneralScanner } from '../../src/scanner/index.js';
-import { createDefaultStages } from '../../src/discovery/defaults.js';
-import { runDiscoveryPipeline } from '../../src/discovery/pipeline.js';
+// The expert runtime is parked in this release. Type-only references preserve the benchmark's
+// established contract; runtime loading is deferred until after corpus preflight so
+// `--preflight-only` remains usable while all deterministic/real/both options stay intact.
 import type {
   DiscoveryContext,
   DiscoveryOptions,
@@ -19,14 +20,45 @@ import type {
   ProposedExpert,
   RegisteredExpert,
   ExpertCountPolicy,
-} from '../../src/discovery/types.js';
+} from './compat/parked-discovery-types.js';
 import type { RebuildResult } from '../../src/scanner/rebuild-orchestrator.js';
-import type { ExpertInsert } from '../../src/db/types.js';
+
+interface ExpertInsert {
+  slug: string;
+  name: string;
+  mount_path: string;
+  model?: string;
+  backend?: string;
+  provider?: string;
+  thinking?: string;
+  claude_md_path?: string;
+  boundary_basis?: string;
+  structural_signature?: string;
+  structural_rationale?: string;
+}
+import type { CorpusManifestEntryV1, CorpusManifestV1 } from '../corpora/preflight.js';
+import {
+  loadCheckoutOverrides,
+  loadRunnerManifest,
+  validateFixtureIdentity,
+  withBenchmarkCorpora,
+} from '../corpora/runtime.js';
 
 interface BootstrapBenchmarkFixture {
   schemaVersion: 1;
+  goldSchemaVersion: 1;
+  owner: string;
+  corpusId: string;
   repoId: string;
   repoPath: string;
+  timeoutMs?: number;
+}
+
+interface PortableBootstrapFixture {
+  schemaVersion: 1;
+  goldSchemaVersion: 1;
+  owner: string;
+  corpusId: string;
   timeoutMs?: number;
 }
 
@@ -36,6 +68,9 @@ interface RunnerOptions {
   keepDbs: boolean;
   discoveryMode: 'deterministic' | 'real' | 'both';
   discoveryOptions: Partial<DiscoveryOptions>;
+  manifestPath?: string;
+  checkoutOverrides?: Readonly<Record<string, string>>;
+  preflightOnly: boolean;
 }
 
 interface MemorySample {
@@ -105,6 +140,9 @@ function parseArgs(argv: string[]): RunnerOptions {
   let keepDbs = false;
   let discoveryMode: RunnerOptions['discoveryMode'] = 'deterministic';
   const discoveryOptions: Partial<DiscoveryOptions> = {};
+  let manifestPath: string | undefined;
+  let checkoutOverrides: Readonly<Record<string, string>> | undefined;
+  let preflightOnly = false;
 
   for (let i = 0; i < argv.length; i++) {
     const token = argv[i];
@@ -117,6 +155,15 @@ function parseArgs(argv: string[]): RunnerOptions {
         break;
       case '--keep-dbs':
         keepDbs = true;
+        break;
+      case '--manifest':
+        manifestPath = resolve(argv[++i] ?? '');
+        break;
+      case '--checkout-overrides':
+        checkoutOverrides = loadCheckoutOverrides(argv[++i] ?? '');
+        break;
+      case '--preflight-only':
+        preflightOnly = true;
         break;
       case '--discovery-mode': {
         const value = argv[++i];
@@ -171,34 +218,51 @@ function parseArgs(argv: string[]): RunnerOptions {
   }
 
   if (fixtures.length === 0) {
-    fixtures.push(join(repoRoot(), 'benchmarks', 'bootstrap', 'fixtures', 'local-real-repos.json'));
+    fixtures.push(join(repoRoot(), 'benchmarks', 'bootstrap', 'fixtures', 'canonical-lux.json'));
   }
 
-  return { fixtures, outDir, keepDbs, discoveryMode, discoveryOptions };
+  return {
+    fixtures,
+    outDir,
+    keepDbs,
+    discoveryMode,
+    discoveryOptions,
+    manifestPath,
+    checkoutOverrides,
+    preflightOnly,
+  };
 }
 
-function readFixtures(paths: string[]): BootstrapBenchmarkFixture[] {
-  const fixtures: BootstrapBenchmarkFixture[] = [];
+function readFixtures(
+  paths: string[],
+  manifest: CorpusManifestV1,
+  entries: ReadonlyMap<string, CorpusManifestEntryV1>
+): PortableBootstrapFixture[] {
+  const fixtures: PortableBootstrapFixture[] = [];
   for (const path of paths) {
     const raw = JSON.parse(readFileSync(path, 'utf8')) as {
       schemaVersion: 1;
-      repos?: BootstrapBenchmarkFixture[];
-      repoId?: string;
-      repoPath?: string;
+      owner?: string;
+      repos?: PortableBootstrapFixture[];
     };
     if (raw.schemaVersion !== 1) throw new Error(`${path}: unsupported schemaVersion`);
-    if (Array.isArray(raw.repos)) {
-      fixtures.push(...raw.repos);
-    } else if (raw.repoId && raw.repoPath) {
-      fixtures.push({ schemaVersion: 1, repoId: raw.repoId, repoPath: raw.repoPath });
-    } else {
-      throw new Error(`${path}: expected repos[] or repoId/repoPath`);
+    if (raw.owner !== manifest.owner) throw new Error(`${path}: owner must match manifest owner`);
+    if (!Array.isArray(raw.repos) || raw.repos.length === 0) {
+      throw new Error(`${path}: expected a non-empty repos[]`);
+    }
+    for (const fixture of raw.repos) {
+      validateFixtureIdentity(fixture, path, manifest, entries);
+      fixtures.push(fixture);
     }
   }
-  return fixtures.map((fixture) => ({
-    ...fixture,
-    repoPath: resolve(fixture.repoPath),
-  }));
+  const ids = new Set<string>();
+  for (const fixture of fixtures) {
+    if (ids.has(fixture.corpusId)) {
+      throw new Error(`Duplicate selected bootstrap corpus ID: ${fixture.corpusId}`);
+    }
+    ids.add(fixture.corpusId);
+  }
+  return fixtures;
 }
 
 function memorySample(phase: string): MemorySample {
@@ -336,7 +400,7 @@ async function benchmarkRepo(
   const repoOutDir = join(outDir, fixture.repoId);
   mkdirSync(repoOutDir, { recursive: true });
   const tmpRoot = mkdtempSync(join(tmpdir(), `lux-bootstrap-${fixture.repoId}-`));
-  const dbPath = join(tmpRoot, 'lux.db');
+  const dbPath = options.keepDbs ? join(repoOutDir, 'lux.db') : join(tmpRoot, 'lux.db');
   const recorder = new PhaseRecorder();
   const phases: PhaseResult[] = [];
   const startedAt = process.hrtime.bigint();
@@ -416,6 +480,7 @@ async function benchmarkRepo(
           runDiscovery(
             db!,
             fixture,
+            repoOutDir,
             {
               rootPath: fixture.repoPath,
               acceptAll: true,
@@ -441,6 +506,7 @@ async function benchmarkRepo(
           runDiscovery(
             db!,
             fixture,
+            repoOutDir,
             {
               rootPath: fixture.repoPath,
               acceptAll: true,
@@ -488,26 +554,56 @@ async function benchmarkRepo(
   } finally {
     recorder.stop();
     db?.close();
-    if (!options.keepDbs) {
-      rmSync(tmpRoot, { recursive: true, force: true });
-    }
+    rmSync(tmpRoot, { recursive: true, force: true });
+  }
+}
+
+async function loadParkedDiscoveryRuntime(): Promise<{
+  createDefaultStages: () => PipelineStages;
+  runDiscoveryPipeline: (
+    db: LuxDatabase,
+    options: DiscoveryOptions,
+    stages: PipelineStages
+  ) => Promise<{
+    proposed: ProposedExpert[];
+    registered: RegisteredExpert[];
+    rationale: string;
+    countPolicy: ExpertCountPolicy;
+  }>;
+}> {
+  try {
+    const [defaults, pipeline] = await Promise.all([
+      import('../../src/' + 'discovery/defaults.js'),
+      import('../../src/' + 'discovery/pipeline.js'),
+    ]);
+    return {
+      createDefaultStages: defaults.createDefaultStages,
+      runDiscoveryPipeline: pipeline.runDiscoveryPipeline,
+    };
+  } catch {
+    throw new Error(
+      'Expert discovery runtime is parked in this build; deterministic/real/both modes require a build containing src/discovery'
+    );
   }
 }
 
 async function runDiscovery(
   db: LuxDatabase,
   fixture: BootstrapBenchmarkFixture,
+  repoOutDir: string,
   options: DiscoveryOptions,
   mode: 'deterministic' | 'real',
   onSummary: (summary: RepoResult['discovery']) => void
 ) {
+  const { createDefaultStages, runDiscoveryPipeline } = await loadParkedDiscoveryRuntime();
   const defaultStages = createDefaultStages();
+  void createSummaryCapture;
   const stagesWithAnalyze =
     mode === 'deterministic' ? createDeterministicStages(defaultStages, onSummary) : defaultStages;
   const stages: PipelineStages = {
     ...stagesWithAnalyze,
-    register: (accepted, db, discoveryOptions) =>
-      registerExpertsInBenchmarkDb(accepted, db, discoveryOptions, mode),
+    register: (accepted: ProposedExpert[], db: LuxDatabase, discoveryOptions: DiscoveryOptions) =>
+      registerExpertsInBenchmarkDb(accepted, db, discoveryOptions, mode, repoOutDir),
   };
   const result = await runDiscoveryPipeline(db, options, stages);
   const previousSummary: RepoResult['discovery'] = {
@@ -519,7 +615,7 @@ async function runDiscovery(
   };
   onSummary(previousSummary);
   writeFileSync(
-    join(fixture.repoPath, '.lux', `benchmark-${mode}-discovery-last.json`),
+    join(repoOutDir, `benchmark-${mode}-discovery-last.json`),
     JSON.stringify(
       {
         schemaVersion: 1,
@@ -542,14 +638,14 @@ function registerExpertsInBenchmarkDb(
   accepted: ProposedExpert[],
   db: LuxDatabase,
   options: DiscoveryOptions,
-  mode: 'deterministic' | 'real'
+  mode: 'deterministic' | 'real',
+  repoOutDir: string
 ): RegisteredExpert[] {
   const registered: RegisteredExpert[] = [];
   for (const proposal of accepted) {
     const mountPath = resolve(options.rootPath, proposal.mountPath);
     const claudeMdPath = join(
-      options.rootPath,
-      '.lux',
+      repoOutDir,
       'benchmark-expert-stubs',
       mode,
       proposal.slug,
@@ -570,7 +666,8 @@ function registerExpertsInBenchmarkDb(
       }),
       ...(proposal.structuralRationale && { structural_rationale: proposal.structuralRationale }),
     };
-    db.insertExpert(insert);
+    const expertDb = db as LuxDatabase & { insertExpert(expert: ExpertInsert): number };
+    expertDb.insertExpert(insert);
     registered.push({ slug: proposal.slug, mountPath, claudeMdPath });
   }
   return registered;
@@ -591,7 +688,7 @@ function createSummaryCapture(stages: PipelineStages): {
     summary,
     stages: {
       ...stages,
-      deriveCandidateRegions: (context, options) => {
+      deriveCandidateRegions: (context: DiscoveryContext, options: DiscoveryOptions) => {
         const derived = stages.deriveCandidateRegions(context, options);
         summary.treeChars = derived.tree.length;
         summary.candidateRegions = derived.candidateRegions?.length ?? 0;
@@ -617,7 +714,7 @@ function createDeterministicStages(
       const candidates = context.candidateRegions ?? [];
       return {
         rationale: 'Deterministic bootstrap benchmark proposals derived from candidate regions.',
-        experts: candidates.slice(0, 6).map((candidate, index) => ({
+        experts: candidates.slice(0, 6).map((candidate, index: number) => ({
           slug: `benchmark-${index + 1}-${slugify(candidate.label)}`,
           name: `Benchmark ${candidate.label}`,
           mountPath: mountDirectory(candidate.anchorPaths[0] ?? '.'),
@@ -684,24 +781,49 @@ function printRepoSummary(result: RepoResult): void {
 
 async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2));
-  mkdirSync(options.outDir, { recursive: true });
-  const fixtures = readFixtures(options.fixtures);
-  const results: RepoResult[] = [];
+  const loaded = loadRunnerManifest(options.manifestPath);
+  const fixtures = readFixtures(options.fixtures, loaded.manifest, loaded.entries);
 
-  for (const fixture of fixtures) {
-    const result = await benchmarkRepo(fixture, options.outDir, options);
-    results.push(result);
-    printRepoSummary(result);
-  }
+  await withBenchmarkCorpora(
+    {
+      corpusIds: fixtures.map((fixture) => fixture.corpusId),
+      manifestPath: loaded.path,
+      checkoutOverrides: options.checkoutOverrides,
+    },
+    async (resolutions) => {
+      if (options.preflightOnly) {
+        console.log(
+          `preflight: ${fixtures.map((fixture) => fixture.corpusId).join(', ')} ready at owner-approved isolated pins`
+        );
+        return;
+      }
 
-  const summary: BenchmarkSummary = {
-    schemaVersion: 1,
-    generatedAt: new Date().toISOString(),
-    results,
-  };
-  const summaryPath = join(options.outDir, 'summary.json');
-  writeFileSync(summaryPath, JSON.stringify(summary, null, 2));
-  console.log(`summary: ${summaryPath}`);
+      // No DB, scanner, or output exists until every selected corpus has crossed the global barrier.
+      mkdirSync(options.outDir, { recursive: true });
+      const results: RepoResult[] = [];
+      for (const fixture of fixtures) {
+        const resolution = resolutions.get(fixture.corpusId);
+        if (!resolution) throw new Error(`Missing prepared corpus: ${fixture.corpusId}`);
+        const runnable: BootstrapBenchmarkFixture = {
+          ...fixture,
+          repoId: fixture.corpusId,
+          repoPath: resolution.rootPath,
+        };
+        const result = await benchmarkRepo(runnable, options.outDir, options);
+        results.push(result);
+        printRepoSummary(result);
+      }
+
+      const summary: BenchmarkSummary = {
+        schemaVersion: 1,
+        generatedAt: new Date().toISOString(),
+        results,
+      };
+      const summaryPath = join(options.outDir, 'summary.json');
+      writeFileSync(summaryPath, JSON.stringify(summary, null, 2));
+      console.log(`summary: ${summaryPath}`);
+    }
+  );
 }
 
 main().catch((error: unknown) => {

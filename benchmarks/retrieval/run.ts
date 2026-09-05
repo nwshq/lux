@@ -1,24 +1,36 @@
 #!/usr/bin/env npx tsx
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { basename, dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import {
+  isPathSafeCorpusOrCaseId,
+  type CorpusManifestEntryV1,
+  type CorpusManifestV1,
+  type CorpusResolutionV1,
+} from '../corpora/preflight.js';
+import {
+  loadCheckoutOverrides,
+  loadRunnerManifest,
+  validateFixtureIdentity,
+  withBenchmarkCorpora,
+} from '../corpora/runtime.js';
 
 interface BenchmarkFixture {
   schemaVersion: 1;
+  goldSchemaVersion: 1;
+  owner: string;
   repoId: string;
-  repoPath: string;
+  corpusId: string;
   cases: BenchmarkCase[];
+  fixturePath: string;
+  rootPath?: string;
+  dbPath?: string;
 }
 
 type BenchmarkSurface =
-  | 'feature-path'
-  | 'operational'
-  | 'status'
-  | 'spec-evidence'
-  | 'delta'
-  | 'search'
-  | 'anchors';
+  'feature-path' | 'operational' | 'status' | 'spec-evidence' | 'delta' | 'search' | 'anchors';
 type BenchmarkMode = 'overlay' | 'status' | 'delta' | 'search' | 'anchors';
 
 interface BenchmarkCase {
@@ -127,7 +139,8 @@ interface BenchmarkExpectation {
   /** require ≥1 gold node id in top-k (non-knownMiss cases). */
   anchorHit?: boolean;
   /** require a refusal of this class. */
-  anchorRefusalReason?: 'invalid-query' | 'fts-unavailable' | 'overlay-missing' | 'anchor-texts-absent';
+  anchorRefusalReason?:
+    'invalid-query' | 'fts-unavailable' | 'overlay-missing' | 'anchor-texts-absent';
   /** require lowConfidence to be exactly this (the confidence-floor guard case). */
   lowConfidence?: boolean;
 }
@@ -245,39 +258,64 @@ interface RunnerOptions {
   fixtures: string[];
   outDir: string;
   luxBin: string;
+  manifestPath?: string;
+  checkoutOverrides?: Readonly<Record<string, string>>;
+  preflightOnly: boolean;
 }
 
-function parseArgs(argv: string[]): RunnerOptions {
+export function parseArgs(argv: string[]): RunnerOptions {
   const root = repoRoot();
   const fixtures: string[] = [];
   let outDir = join(root, 'benchmarks', 'retrieval', 'results', timestampSlug());
   let luxBin = join(root, 'dist', 'cli', 'index.js');
+  let manifestPath: string | undefined;
+  let checkoutOverrides: Readonly<Record<string, string>> | undefined;
+  let preflightOnly = false;
 
+  const valueAfter = (index: number, flag: string): string => {
+    const value = argv[index + 1];
+    if (!value || value.startsWith('--')) throw new Error(`${flag} requires a value`);
+    return value;
+  };
   for (let i = 0; i < argv.length; i++) {
     const token = argv[i];
     switch (token) {
       case '--fixture':
-        fixtures.push(resolve(argv[++i] ?? ''));
+        fixtures.push(resolve(valueAfter(i, token)));
+        i++;
         break;
       case '--out':
-        outDir = resolve(argv[++i] ?? '');
+        outDir = resolve(valueAfter(i, token));
+        i++;
         break;
       case '--lux-bin':
-        luxBin = resolve(argv[++i] ?? '');
+        luxBin = resolve(valueAfter(i, token));
+        i++;
+        break;
+      case '--manifest':
+        manifestPath = resolve(valueAfter(i, token));
+        i++;
+        break;
+      case '--checkout-overrides':
+        checkoutOverrides = loadCheckoutOverrides(valueAfter(i, token));
+        i++;
+        break;
+      case '--preflight-only':
+        preflightOnly = true;
         break;
       default:
         throw new Error(`Unknown argument: ${token}`);
     }
   }
 
+  // Default to one canonical, index-independent Lux refusal case. Legacy fixtures remain available
+  // as history but are selected only explicitly and then refused unless an owner-approved manifest
+  // names their corpus ID.
   if (fixtures.length === 0) {
-    const fixtureDir = join(root, 'benchmarks', 'retrieval', 'fixtures');
-    for (const entry of readdirSync(fixtureDir).sort()) {
-      if (entry.endsWith('.json')) fixtures.push(join(fixtureDir, entry));
-    }
+    fixtures.push(join(root, 'benchmarks', 'retrieval', 'fixtures', 'lux-preflight.json'));
   }
 
-  return { fixtures, outDir, luxBin };
+  return { fixtures, outDir, luxBin, manifestPath, checkoutOverrides, preflightOnly };
 }
 
 function repoRoot(): string {
@@ -288,11 +326,31 @@ function timestampSlug(): string {
   return new Date().toISOString().replace(/[:.]/g, '-');
 }
 
-function readFixture(path: string): BenchmarkFixture {
+export function readFixture(
+  path: string,
+  manifest: CorpusManifestV1,
+  entries: ReadonlyMap<string, CorpusManifestEntryV1>
+): BenchmarkFixture {
   const raw = JSON.parse(readFileSync(path, 'utf8')) as BenchmarkFixture;
-  if (raw.schemaVersion !== 1) throw new Error(`${path}: unsupported schemaVersion`);
-  if (!raw.repoId || !raw.repoPath) throw new Error(`${path}: repoId and repoPath are required`);
-  return raw;
+  validateFixtureIdentity(raw, path, manifest, entries);
+  if (!isPathSafeCorpusOrCaseId(raw.repoId)) {
+    throw new Error(`${path}: repoId must be one path-safe result identity`);
+  }
+  if (!Array.isArray(raw.cases) || raw.cases.length === 0) {
+    throw new Error(`${path}: cases must be a non-empty array`);
+  }
+  const caseIds = new Set<string>();
+  for (const testCase of raw.cases) {
+    if (!testCase || !isPathSafeCorpusOrCaseId(testCase.id)) {
+      throw new Error(`${path}: every case ID must be one path-safe ID`);
+    }
+    if (caseIds.has(testCase.id)) throw new Error(`${path}: duplicate case ID ${testCase.id}`);
+    caseIds.add(testCase.id);
+    if (typeof testCase.question !== 'string' || !testCase.expect) {
+      throw new Error(`${path}: case ${testCase.id} requires question and expect`);
+    }
+  }
+  return { ...raw, fixturePath: path };
 }
 
 function buildCaseCommand(
@@ -301,7 +359,8 @@ function buildCaseCommand(
   testCase: BenchmarkCase,
   exportPath?: string
 ): string[] {
-  const command = ['node', luxBin, '--corpus', fixture.repoPath];
+  if (!fixture.rootPath || !fixture.dbPath) throw new Error('Corpus runtime was not prepared');
+  const command = ['node', luxBin, '--corpus', fixture.rootPath, '--db', fixture.dbPath];
 
   if (testCase.surface === 'status') {
     command.push('index', 'status', '--json');
@@ -630,9 +689,7 @@ function parseSearchPayload(
   testCase: BenchmarkCase
 ): ParsedCasePayload {
   const results = asArray(root.results).map(asRecord);
-  const paths = results
-    .map((r) => asString(r.filePath))
-    .filter((p): p is string => Boolean(p));
+  const paths = results.map((r) => asString(r.filePath)).filter((p): p is string => Boolean(p));
   const refusal = asRecord(root.refusal);
   const gold = testCase.expectPathsTopK ?? [];
   const k = testCase.k ?? 10;
@@ -714,10 +771,13 @@ function validateExpectation(
       failures.push(`expected a gold node id in top-k, got none`);
     if (expect.minMrr !== undefined) {
       const mrr = (actual.anchorHitRank ?? 0) > 0 ? 1 / actual.anchorHitRank! : 0;
-      if (mrr < expect.minMrr) failures.push(`MRR expected >= ${expect.minMrr}, got ${mrr.toFixed(3)}`);
+      if (mrr < expect.minMrr)
+        failures.push(`MRR expected >= ${expect.minMrr}, got ${mrr.toFixed(3)}`);
     }
     if (expect.lowConfidence !== undefined && actual.anchorLowConfidence !== expect.lowConfidence)
-      failures.push(`lowConfidence expected ${expect.lowConfidence}, got ${actual.anchorLowConfidence}`);
+      failures.push(
+        `lowConfidence expected ${expect.lowConfidence}, got ${actual.anchorLowConfidence}`
+      );
   }
   // search-surface scoring (spec 14 Part E). This block runs only for a parsed search payload
   // (parseSearchPayload always sets searchResultPaths); runCase returns EARLY for knownMiss cases,
@@ -853,9 +913,16 @@ function validateExpectation(
       `canSupportSpecDraft expected ${expect.canSupportSpecDraft}, got ${actual.canSupportSpecDraft ?? 'missing'}`
     );
   if (expect.targetKind && actual.targetKind !== expect.targetKind)
-    failures.push(`targetKind expected ${expect.targetKind}, got ${actual.targetKind ?? 'missing'}`);
-  if (expect.minStateChanges !== undefined && (actual.stateChangesCount ?? 0) < expect.minStateChanges)
-    failures.push(`stateChanges expected >= ${expect.minStateChanges}, got ${actual.stateChangesCount ?? 0}`);
+    failures.push(
+      `targetKind expected ${expect.targetKind}, got ${actual.targetKind ?? 'missing'}`
+    );
+  if (
+    expect.minStateChanges !== undefined &&
+    (actual.stateChangesCount ?? 0) < expect.minStateChanges
+  )
+    failures.push(
+      `stateChanges expected >= ${expect.minStateChanges}, got ${actual.stateChangesCount ?? 0}`
+    );
   if (
     expect.minDecisionLogic !== undefined &&
     (actual.decisionLogicCount ?? 0) < expect.minDecisionLogic
@@ -924,9 +991,13 @@ function validateExpectation(
       `deltaSchemaVersion expected ${expect.deltaSchemaVersion}, got ${actual.deltaSchemaVersion ?? 'missing'}`
     );
   if (expect.deltaSurface && actual.deltaSurface !== expect.deltaSurface)
-    failures.push(`deltaSurface expected ${expect.deltaSurface}, got ${actual.deltaSurface ?? 'missing'}`);
+    failures.push(
+      `deltaSurface expected ${expect.deltaSurface}, got ${actual.deltaSurface ?? 'missing'}`
+    );
   if (expect.minTouchedFiles !== undefined && (actual.touchedFiles ?? 0) < expect.minTouchedFiles)
-    failures.push(`touchedFiles expected >= ${expect.minTouchedFiles}, got ${actual.touchedFiles ?? 0}`);
+    failures.push(
+      `touchedFiles expected >= ${expect.minTouchedFiles}, got ${actual.touchedFiles ?? 0}`
+    );
   if (
     expect.minTouchedSymbols !== undefined &&
     (actual.touchedSymbols ?? 0) < expect.minTouchedSymbols
@@ -980,10 +1051,10 @@ function writeText(path: string, content: string): void {
   writeFileSync(path, content);
 }
 
-function runFixture(fixturePath: string, options: RunnerOptions): RepoResult {
-  const fixture = readFixture(fixturePath);
-  if (!existsSync(fixture.repoPath))
-    throw new Error(`${fixture.repoId}: repoPath does not exist: ${fixture.repoPath}`);
+function runFixture(fixture: BenchmarkFixture, options: RunnerOptions): RepoResult {
+  if (!fixture.rootPath || !fixture.dbPath || !existsSync(fixture.rootPath)) {
+    throw new Error(`${fixture.repoId}: isolated corpus runtime is unavailable`);
+  }
 
   const repoOut = join(options.outDir, fixture.repoId);
   mkdirSync(repoOut, { recursive: true });
@@ -992,7 +1063,9 @@ function runFixture(fixturePath: string, options: RunnerOptions): RepoResult {
     'node',
     options.luxBin,
     '--corpus',
-    fixture.repoPath,
+    fixture.rootPath,
+    '--db',
+    fixture.dbPath,
     'index',
     'status',
     '--json',
@@ -1006,7 +1079,7 @@ function runFixture(fixturePath: string, options: RunnerOptions): RepoResult {
   const cases = fixture.cases.map((testCase) => runCase(fixture, testCase, options, repoOut));
   return {
     repoId: fixture.repoId,
-    repoPath: fixture.repoPath,
+    repoPath: fixture.rootPath,
     status: {
       command: statusCommand,
       exitCode: statusResult.exitCode,
@@ -1026,7 +1099,9 @@ function runCase(
   options: RunnerOptions,
   repoOut: string
 ): CaseResult {
-  const exportPath = testCase.export ? join(repoOut, `${testCase.id}.${testCase.export}`) : undefined;
+  const exportPath = testCase.export
+    ? join(repoOut, `${testCase.id}.${testCase.export}`)
+    : undefined;
   const command = buildCaseCommand(options.luxBin, fixture, testCase, exportPath);
   const result = runCommand(command);
   const stdoutPath = join(repoOut, `${testCase.id}.stdout.txt`);
@@ -1111,53 +1186,134 @@ function runCase(
   };
 }
 
-function main(): void {
-  const options = parseArgs(process.argv.slice(2));
-  mkdirSync(options.outDir, { recursive: true });
-  const repos = options.fixtures.map((fixture) => runFixture(fixture, options));
-  const cases = repos.flatMap((repo) => repo.cases);
-  const failedCases = cases.filter((testCase) => !testCase.passed);
-  const knownMisses = cases.filter((c) => c.knownMiss);
-  const knownMissOpen = knownMisses.filter((c) => !c.knownMissClosable).length;
-  const knownMissClosable = knownMisses.filter((c) => c.knownMissClosable).length;
-  const summary = {
-    schemaVersion: 1,
-    generatedAt: new Date().toISOString(),
-    luxBin: options.luxBin,
-    outDir: options.outDir,
-    totals: {
-      repos: repos.length,
-      cases: cases.length,
-      passed: cases.length - failedCases.length,
-      failed: failedCases.length,
-    },
-    knownMiss: {
-      total: knownMisses.length,
-      open: knownMissOpen,
-      closable: knownMissClosable,
-    },
-    repos,
-  };
-
-  const summaryPath = join(options.outDir, 'summary.json');
-  writeText(summaryPath, `${JSON.stringify(summary, null, 2)}\n`);
-
-  for (const repo of repos) {
-    const passed = repo.cases.filter((testCase) => testCase.passed).length;
-    console.log(
-      `${repo.repoId}: ${passed}/${repo.cases.length} cases passed (${repo.status.overlayMode ?? 'unknown trust'})`
+export async function run(argv: string[]): Promise<void> {
+  const options = parseArgs(argv);
+  const loaded = loadRunnerManifest(options.manifestPath);
+  const fixtures = options.fixtures.map((path) =>
+    readFixture(path, loaded.manifest, loaded.entries)
+  );
+  const globalCaseIds = new Set<string>();
+  const caseCounts = new Map<string, number>();
+  for (const fixture of fixtures) {
+    for (const testCase of fixture.cases) {
+      if (globalCaseIds.has(testCase.id)) {
+        throw new Error(`Duplicate selected case ID: ${testCase.id}`);
+      }
+      globalCaseIds.add(testCase.id);
+    }
+    caseCounts.set(
+      fixture.corpusId,
+      (caseCounts.get(fixture.corpusId) ?? 0) + fixture.cases.length
     );
   }
-  if (knownMisses.length > 0)
-    console.log(`knownMiss: ${knownMissOpen} open, ${knownMissClosable} newly-closable`);
-  console.log(`summary: ${summaryPath}`);
-
-  if (failedCases.length > 0) {
-    for (const testCase of failedCases) {
-      console.error(`FAIL ${testCase.repoId}/${testCase.id}: ${testCase.failures.join('; ')}`);
+  for (const [corpusId, count] of caseCounts) {
+    const minimum = loaded.entries.get(corpusId)!.minimumCases;
+    if (count < minimum) {
+      throw new Error(
+        `Selected fixtures for ${corpusId} have ${count} cases; manifest minimumCases is ${minimum}`
+      );
     }
-    process.exitCode = 1;
   }
+  const corpusIds = [...caseCounts.keys()];
+
+  await withBenchmarkCorpora(
+    {
+      corpusIds,
+      manifestPath: loaded.path,
+      checkoutOverrides: options.checkoutOverrides,
+    },
+    (resolutions) => {
+      if (options.preflightOnly) {
+        console.log(`preflight: ${corpusIds.join(', ')} ready at owner-approved isolated pins`);
+        return;
+      }
+      if (!existsSync(options.luxBin)) throw new Error(`Lux CLI does not exist: ${options.luxBin}`);
+
+      const tempRoots: string[] = [];
+      try {
+        const runnable = fixtures.map((fixture) => {
+          const resolution: CorpusResolutionV1 | undefined = resolutions.get(fixture.corpusId);
+          if (!resolution) throw new Error(`Missing prepared corpus: ${fixture.corpusId}`);
+          const tempRoot = mkdtempSync(join(tmpdir(), `lux-retrieval-${fixture.corpusId}-`));
+          tempRoots.push(tempRoot);
+          return {
+            ...fixture,
+            rootPath: resolution.rootPath,
+            dbPath: join(tempRoot, 'lux.db'),
+          };
+        });
+
+        // No output exists before all fixture validation and the T17 all-corpus barrier complete.
+        mkdirSync(options.outDir, { recursive: true });
+        const repos = runnable.map((fixture) => runFixture(fixture, options));
+        const cases = repos.flatMap((repo) => repo.cases);
+        const failedCases = cases.filter((testCase) => !testCase.passed);
+        const knownMisses = cases.filter((testCase) => testCase.knownMiss);
+        const knownMissOpen = knownMisses.filter((testCase) => !testCase.knownMissClosable).length;
+        const knownMissClosable = knownMisses.filter(
+          (testCase) => testCase.knownMissClosable
+        ).length;
+        const summary = {
+          schemaVersion: 1,
+          generatedAt: new Date().toISOString(),
+          manifestPath: loaded.path,
+          owner: loaded.manifest.owner,
+          luxBin: options.luxBin,
+          outDir: options.outDir,
+          totals: {
+            repos: repos.length,
+            cases: cases.length,
+            passed: cases.length - failedCases.length,
+            failed: failedCases.length,
+          },
+          knownMiss: {
+            total: knownMisses.length,
+            open: knownMissOpen,
+            closable: knownMissClosable,
+          },
+          repos,
+        };
+
+        const summaryPath = join(options.outDir, 'summary.json');
+        writeText(summaryPath, `${JSON.stringify(summary, null, 2)}\n`);
+        for (const repo of repos) {
+          const passed = repo.cases.filter((testCase) => testCase.passed).length;
+          console.log(
+            `${repo.repoId}: ${passed}/${repo.cases.length} cases passed (${repo.status.overlayMode ?? 'unknown trust'})`
+          );
+        }
+        if (knownMisses.length > 0) {
+          console.log(`knownMiss: ${knownMissOpen} open, ${knownMissClosable} newly-closable`);
+        }
+        console.log(`summary: ${summaryPath}`);
+        if (failedCases.length > 0) {
+          for (const testCase of failedCases) {
+            console.error(
+              `FAIL ${testCase.repoId}/${testCase.id}: ${testCase.failures.join('; ')}`
+            );
+          }
+          process.exitCode = 1;
+        }
+      } finally {
+        let cleanupError: unknown;
+        for (const root of tempRoots.reverse()) {
+          try {
+            rmSync(root, { recursive: true, force: true });
+          } catch (error) {
+            cleanupError ??= error;
+          }
+        }
+        if (cleanupError !== undefined) throw cleanupError;
+      }
+    }
+  );
 }
 
-main();
+const isEntryPoint =
+  process.argv[1] !== undefined && pathToFileURL(resolve(process.argv[1])).href === import.meta.url;
+if (isEntryPoint) {
+  run(process.argv.slice(2)).catch((error: unknown) => {
+    console.error(error instanceof Error ? (error.stack ?? error.message) : String(error));
+    process.exitCode = 1;
+  });
+}

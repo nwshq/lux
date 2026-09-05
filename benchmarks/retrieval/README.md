@@ -1,76 +1,77 @@
-# Retrieval Benchmark Harness
+# Real-corpus benchmark runners
 
-This harness runs real-repo Lux retrieval questions against explicit corpus roots and records evidence-bearing results. It is the Phase 5 gate for retrieval promotion: new retrieval breadth should be driven by benchmark failures, not by speculative detector expansion.
+The retrieval and bootstrap runners use the owner-approved portable corpus manifest at
+`benchmarks/corpora/manifest.json`. Fixtures name a `corpusId`; they never contain a checkout path.
+Before creating output, opening a DB, constructing a scanner, spawning Lux, running status, or
+executing a case, each runner validates every selected fixture and invokes the T17 batch preflight
+for all unique corpus IDs. Real corpora are always clean, detached isolated checkouts at their exact
+manifest pins.
 
-## Run
+## Positive preflight control
 
 ```bash
 npm run benchmark:retrieval
+npm run benchmark:bootstrap -- --preflight-only
 ```
 
-Optional flags:
+The retrieval default selects only `lux` and runs an index-independent refusal case. This case is
+safe on the v2.16 pinned snapshot and does not claim indexed-content success. The runner uses a new
+explicit temporary `--db` for status and every case command, so status and the case truthfully refuse
+with an absent index while still proving the preflight-to-runner handoff. To test only
+resolution/isolation without spawning Lux or creating output, use:
 
 ```bash
-npx tsx benchmarks/retrieval/run.ts \
-  --fixture benchmarks/retrieval/fixtures/auctic-core.json \
-  --out benchmarks/retrieval/results/manual-run
+npm run benchmark:retrieval -- --preflight-only
 ```
 
-## What it validates
+## Selecting fixtures and checkouts
 
-- Dedicated overlay JSON remains native/unwrapped.
-- Successful retrieval keeps direct evidence and context distinct.
-- Ambiguous or unresolved retrieval refuses honestly and exits nonzero.
-- Each repo matrix captures `lux index status --json` first so trust/state is part of the result.
-- Every command uses explicit `--corpus`; no global/default corpus behavior is allowed.
+```bash
+npm run benchmark:retrieval -- \
+  --manifest benchmarks/corpora/manifest.json \
+  --checkout-overrides /absolute/path/to/checkouts.json \
+  --fixture benchmarks/retrieval/fixtures/auctic-core.json \
+  --fixture benchmarks/retrieval/fixtures/auctic-core-anchors.json \
+  --out benchmarks/retrieval/results/manual
 
-## Fixtures
+npm run benchmark:bootstrap -- \
+  --manifest benchmarks/corpora/manifest.json \
+  --checkout-overrides /absolute/path/to/checkouts.json \
+  --fixture benchmarks/bootstrap/fixtures/canonical-lux.json
+```
 
-Fixture files live in `benchmarks/retrieval/fixtures/` and define:
+The override file is strict JSON containing only a corpus-ID-to-path map, for example:
 
-- `repoId` — stable name for the repository.
-- `repoPath` — explicit corpus root.
-- `cases` — retrieval/status questions and expected structural outcomes.
+```json
+{
+  "lux": "~/Code/lux/vcs",
+  "auctic-core": "/work/checkouts/auctic-core"
+}
+```
 
-Cases may target these surfaces:
+Unknown IDs, non-string values, unsafe IDs, unknown fixture fields required by a newer schema,
+owner/schema/gold-version mismatches, duplicate case IDs, and unmet manifest `minimumCases` refuse
+the whole run. Multiple retrieval fixture files may target one corpus (for example `auctic-core` and
+its anchors fixture): their case counts are aggregated and that corpus appears only once in batch
+preflight.
 
-- `feature-path`
-- `operational`
-- `status`
-- `spec-evidence`
-- `delta` — `lux delta --json` diff-scoped structural delta (spec 14/15/16). Case fields mirror the
-  CLI flags: `base`, `committedOnly`, `depth`, `maxNodes`, `check`, `failOn`. Expectations cover the
-  envelope (`deltaSchemaVersion`, `deltaSurface`, `minTouchedFiles`/`minTouchedSymbols`,
-  `minModulesChanged`, `minEntrySurfaces`, `deltaTruncated`, `deltaGateCategoriesInclude`) and the
-  SC-9 empty-not-errored contract on non-PHP repos (`emptyEntrySurfaces`,
-  `emptyOwnershipTransitions`, `emptySpecTargets`). Delta cases are live-repro: the corpus needs a
-  current `.lux` index (`lux index rebuild`) so the default base (`last_indexed_commit`) is reachable.
+Historical `auctic-atlas` and `example-app` fixtures remain portable but are intentionally noncanonical.
+They are never selected by default and explicit selection refuses unless an owner-approved supplied
+manifest includes their pins. Do not add local or guessed pins to the canonical manifest.
 
-Modes:
+## Isolation, outputs, and cleanup
 
-- `overlay` — dedicated overlay seam.
-- `status` — `lux index status --json`.
-- `delta` — `lux delta --json`.
+- Retrieval invokes the current built CLI path outside the isolated v2.16 Lux corpus. It passes the
+  isolated root as `--corpus` and a temporary explicit `--db` to every status/case command. It never
+  reads or writes the source checkout's `.lux` database.
+- Bootstrap constructs its database only under a temporary directory and writes memory/discovery
+  reports only below `--out`; it never writes corpus `.lux`. The parked model-backed expert runtime
+  remains unavailable, so bootstrap accepts only `--discovery-mode deterministic`.
+- Prepared corpus checkouts and temporary DB directories are removed on success and failure. A
+  cleanup error fails the run. `--keep-dbs` is intentionally refused.
+- Generated retrieval output contains `summary.json`, `<repoId>/status.json`, and per-case stdout and
+  stderr files. Bootstrap contains `summary.json` plus per-corpus memory/discovery reports.
 
-## Output
-
-Each run writes a timestamped directory under `benchmarks/retrieval/results/` by default:
-
-- `summary.json` — aggregate pass/fail summary and compact per-case result.
-- `<repoId>/status.json` — status/trust/runtime snapshot for the repo.
-- `<repoId>/<caseId>.stdout.txt` — raw stdout.
-- `<repoId>/<caseId>.stderr.txt` — raw stderr.
-
-`benchmarks/retrieval/results/` is ignored and intended for generated output. Copy selected summarized reports into CORPUS when preserving validation evidence.
-
-## Phase 5 gate contract
-
-Before promoting new retrieval breadth, run the full harness and preserve a compact report in CORPUS. The report should include:
-
-- Lux commit/tag.
-- Benchmark command and output directory.
-- Per-repo pass totals.
-- Status snapshot summary: overlay mode, corpus source, DB source, surface count, knowledge entries.
-- Any failure messages and the follow-up decision.
-
-A passing Phase 5 gate requires explicit corpora and repo-local DB defaults unless a fixture intentionally tests an override. The runner validates `index status --json` runtime metadata so accidental fallback to implicit/global state is visible.
+The full retrieval fixture schema retains the existing feature-path, operational, status,
+spec-evidence, delta, search, and anchors expectations. Existing historical gold is preserved; only
+portable identity and Phase 5 ownership/version metadata were added.

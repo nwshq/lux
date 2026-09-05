@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "goldSchemaVersion": 1,
+  "owner": "Example Maintainer",
+  "repoId": "lux-preflight",
+  "corpusId": "lux",
+  "cases": [
+    {
+      "id": "lux-preflight-search-invalid-query",
+      "surface": "search",
+      "mode": "search",
+      "question": "\"unterminated phrase",
+      "k": 10,
+      "expect": { "exitCode": 1 }
+    }
+  ]
+}

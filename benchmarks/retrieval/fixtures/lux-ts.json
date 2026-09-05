@@ -1,7 +1,9 @@
 {
   "schemaVersion": 1,
+  "goldSchemaVersion": 1,
+  "owner": "Example Maintainer",
   "repoId": "lux-ts",
-  "repoPath": "/path/to/lux/vcs",
+  "corpusId": "lux",
   "cases": [
     {
       "id": "lux-ts-delta-touch-and-empty-php-projections",
