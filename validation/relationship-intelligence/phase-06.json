@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "phase": 6,
+  "implementationSha": "e3bdf00a085dfeb95e98b9bb71bf1bc7020872f8",
+  "mergeSha": "049265bda52668c2e549bad073f75608d6678246",
+  "baselineSha": "8bdb2754affc6def8e89c9e30c92414eb45020b1",
+  "criteria": [
+    {
+      "id": "P06-C1",
+      "class": "deterministic-javascript-ast",
+      "green": {
+        "command": "vitest run Phase 6 focused and independent acceptance suites; exact-pin real-corpus probes; repeated stable-digest check",
+        "exitCode": 0,
+        "observable": "140/140 focused tests passed; 12/12 exact-pin real cases scored precision 1 and recall 1; repeated observations produced equal stable digest 4d9d...; dist worker passed"
+      },
+      "red": {
+        "mutation": "classify-remove-inject-or-bypass-parser-boundary",
+        "command": "vitest run src/integration/__tests__/phase-06-acceptance.test.ts",
+        "exitCode": 1,
+        "observable": "13 watched-red records reject classification, required-fact removal, forbidden-edge injection, CJS removal, computed require, parser limits, watchdog termination, and realpath-containment bypass"
+      },
+      "verifiedBy": "independent-phase-battery-real-exact-pin-probes-and-dist-worker"
+    },
+    {
+      "id": "P06-C2",
+      "class": "performance-and-compatibility",
+      "green": {
+        "command": "three warmups plus five measured runs for each exact-pin corpus; npm run check; npm run typecheck:benchmarks; dist worker probe",
+        "exitCode": 0,
+        "observable": "After 3 warmups, Lux median wall was 105.791 ms across 5 measured runs with observed process RSS 199507968 bytes; after 3 warmups, acme Core median wall was 117.261 ms across 5 measured runs with observed process RSS 216104960 bytes; no prior JavaScript baseline existed because JavaScript was unsupported; final full suite passed 1682 with 13 skipped and 0 failed; architecture lint 177 files/0 violations, architecture tests 5/5, dead-code validation 991 exports/171 files, native-free and docs-surface passed"
+      },
+      "red": {
+        "mutation": "lower-parser-resource-bound-or-disable-worker-termination",
+        "command": "vitest run src/integration/__tests__/phase-06-acceptance.test.ts",
+        "exitCode": 1,
+        "observable": "watched parser-limit and termination mutations produce nonzero checker exits rather than silently exceeding bounded execution"
+      },
+      "verifiedBy": "independent-performance-static-full-suite-and-distribution-validation"
+    },
+    {
+      "id": "P06-C3",
+      "class": "review-and-release",
+      "green": {
+        "command": "GitHub PR #95 CI/Release; local Lux, MCP, Goose extension, and plugin verification",
+        "exitCode": 0,
+        "observable": "PR #95 merged as 049265bda52668c2e549bad073f75608d6678246; v2.22.0 release and lux-v2.22.0-linux-x64.tar.gz published with sha256:ff815fed3b020fde35ee110384865593476a3c7adf7a2325d9eb4b02c36c8e3e; installed Lux and MCP report 2.22.0 with 12 tools; Goose plugin uses main 049265b while preserving its namespaced skill"
+      },
+      "red": {
+        "mutation": "expect-prior-version",
+        "command": "lux --version",
+        "exitCode": 1,
+        "observable": "installed 2.22.0 differs from prior 2.21.0 sentinel"
+      },
+      "verifiedBy": "github-ci-release-and-local-install-verification"
+    }
+  ],
+  "knownBaselineFailures": [],
+  "review": {
+    "codeReview": "APPROVED_AFTER_REMEDIATION",
+    "specFidelity": "APPROVED_AFTER_REMEDIATION",
+    "independentValidation": "140/140 focused tests, 1682 passed/13 skipped/0 failed final full suite, architecture lint 177 files/0 violations, architecture tests 5/5, dead-code validation 991 exports/171 files, native-free and docs-surface gates, 12/12 exact-pin real cases at precision/recall 1, equal stable digest 4d9d..., 3+5 performance medians, and dist worker passed",
+    "adversarialReview": "ancestor TOCTOU blocker and Windows/provenance majors fixed by 525b1d5, 72bbeee, and e3bdf00; re-review approved",
+    "finalReReviews": "APPROVED",
+    "cleanContextReview": "APPROVED"
+  },
+  "exemptions": []
+}
