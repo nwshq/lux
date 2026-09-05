@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "phase": 4,
+  "implementationSha": "1cf21c6",
+  "mergeSha": "2fc6180c7ad6cd37adebd7b860ac635913dd2377",
+  "baselineSha": "f72d056233674a8f26587a3c258c58e2037710a5",
+  "criteria": [
+    {
+      "id": "P04-C1",
+      "class": "root-path-identity",
+      "green": {
+        "command": "vitest run Phase 4 focused suite and production CLI probes",
+        "exitCode": 0,
+        "observable": "portable relative config; JSON root redacted; dirty/hash/root/symlink checks; preview writes nothing"
+      },
+      "red": {
+        "mutation": "bypass-declined-apply",
+        "command": "vitest run src/integration/__tests__/phase-04-acceptance.test.ts",
+        "exitCode": 1,
+        "observable": "declined apply mutation is detected as a forbidden write"
+      },
+      "verifiedBy": "independent-test-runner-and-adversarial-review"
+    },
+    {
+      "id": "P04-C2",
+      "class": "idempotence",
+      "green": {
+        "command": "lux init --yes twice against isolated fixture",
+        "exitCode": 0,
+        "observable": "second apply leaves lux.yaml and .gitignore byte-identical; interrupted second-target commit rolls back first target"
+      },
+      "red": {
+        "mutation": "timestamp-generated-config",
+        "command": "vitest run src/integration/__tests__/phase-04-acceptance.test.ts",
+        "exitCode": 1,
+        "observable": "timestamp mutation breaks byte idempotence and is named"
+      },
+      "verifiedBy": "independent-phase-battery"
+    },
+    {
+      "id": "P04-C3",
+      "class": "diagnostic-and-release",
+      "green": {
+        "command": "GitHub PR #91 CI/Release plus doctor CLI/MCP tests",
+        "exitCode": 0,
+        "observable": "18 stable checks; absent index diagnosed without DB creation; PR/main CI green; v2.20.0 tag/release/tarball"
+      },
+      "red": {
+        "mutation": "expect-prior-version",
+        "command": "lux --version",
+        "exitCode": 1,
+        "observable": "installed version differs from prior 2.19.0 sentinel"
+      },
+      "verifiedBy": "github-ci-release-and-local-install-verification"
+    }
+  ],
+  "knownBaselineFailures": [
+    {
+      "tests": [
+        "src/cli/__tests__/index-sync.test.ts:253",
+        "src/cli/__tests__/overlay-cli.test.ts:307"
+      ],
+      "observable": "expected enrichmentStatus active, received inactive",
+      "baselineReproduction": "both assertions previously reproduced on untouched main; Phase 4 full suite otherwise passed 1607 tests"
+    }
+  ],
+  "review": {
+    "codeReview": "APPROVED_AFTER_REMEDIATION",
+    "specFidelity": "APPROVED",
+    "independentValidation": "46/46 focused tests and all static/policy gates passed"
+  },
+  "exemptions": []
+}
