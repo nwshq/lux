@@ -27,6 +27,7 @@ function runCli(corpus: string, args: string[]) {
 const SHOW = 'symbol:php:App\\Http\\Ctrl::show';
 const ENGINE = 'symbol:php:acme\\Core\\Engine::run';
 const LEDGER = 'symbol:php:acme\\Core\\Ledger::post';
+const CALLER = 'symbol:php:acme\\Core\\Caller::invoke';
 
 function addNode(db: LuxDatabase, id: string, qualified_name?: string): void {
   db.upsertStructuralNode({
@@ -74,7 +75,9 @@ beforeEach(() => {
   const kernel = new LuxDatabase(siblingDbPath);
   addNode(kernel, ENGINE, 'acme\\Core\\Engine::run');
   addNode(kernel, LEDGER, 'acme\\Core\\Ledger::post');
+  addNode(kernel, CALLER, 'acme\\Core\\Caller::invoke');
   addEdge(kernel, ENGINE, LEDGER);
+  addEdge(kernel, CALLER, ENGINE);
   kernel.close();
 
   writeFileSync(join(corpus, 'lux.yaml'), `siblings:\n  core:\n    db: ${siblingDbPath}\n`);
@@ -97,6 +100,73 @@ describe('lux trace --with', () => {
     expect(result.stats.reposReached.sort()).toEqual(['core', 'main']);
     // SC-9: the federation block is present with the sibling attached.
     expect(result.federation.siblings[0]).toMatchObject({ name: 'core', attached: true });
+  });
+
+  it('traces incoming relationships across a portable identity with canonical endpoints', () => {
+    const res = runCli(corpus, [
+      '--corpus',
+      corpus,
+      'trace',
+      ENGINE,
+      '--with',
+      'core',
+      '--direction',
+      'incoming',
+      '--json',
+    ]);
+    expect(res.status).toBe(0);
+    const result = JSON.parse(res.stdout) as {
+      options: { direction: string };
+      nodes: Array<{ id: string; repo: string }>;
+      edges: Array<{
+        source_node_id: string;
+        target_node_id: string;
+        traversed: string;
+        repo: string;
+        provenance: Array<{ repo: string; freshnessStatus: string }>;
+      }>;
+      stats: { freshness: { fresh: number } };
+    };
+    expect(result.options.direction).toBe('incoming');
+    expect(result.nodes).toEqual(expect.arrayContaining([expect.objectContaining({ id: CALLER })]));
+    expect(result.edges).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          source_node_id: CALLER,
+          target_node_id: ENGINE,
+          traversed: 'reverse',
+          repo: 'core',
+          provenance: [expect.objectContaining({ repo: 'core', freshnessStatus: 'fresh' })],
+        }),
+      ])
+    );
+    expect(result.stats.freshness.fresh).toBeGreaterThan(0);
+  });
+
+  it('keeps explicit outgoing federated JSON byte-identical to the existing default', () => {
+    const implicit = runCli(corpus, [
+      '--corpus',
+      corpus,
+      'trace',
+      SHOW,
+      '--with',
+      'core',
+      '--json',
+    ]);
+    const outgoing = runCli(corpus, [
+      '--corpus',
+      corpus,
+      'trace',
+      SHOW,
+      '--with',
+      'core',
+      '--direction',
+      'outgoing',
+      '--json',
+    ]);
+    expect(outgoing.status).toBe(0);
+    expect(outgoing.stdout).toBe(implicit.stdout);
+    expect(outgoing.stderr).toBe(implicit.stderr);
   });
 
   it('renders a federated text trace with repo grouping + bridged marks', () => {

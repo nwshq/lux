@@ -8,11 +8,26 @@ import type { ConfidenceClass, EdgeType, StructuralEdge, StructuralNode } from '
 import {
   CONFIDENCE_RANK,
   DEFAULT_TRACE_OPTIONS,
+  dispatchTerminusFor,
+  dispatchTerminusForEdge,
   type TerminusReason,
   type TraceOptions,
 } from './trace.js';
 import { federationKey, idBridges, type FederationRepo } from './federation.js';
 import type { FederationBlock } from '../siblings.js';
+import {
+  DEFAULT_TRAVERSAL_OPTIONS,
+  adjacentNode,
+  edgesFor,
+  type TraceOptionsV2,
+  type TraversalDirection,
+  type TraversalDispatchInfo,
+  type TraversalEdgeV1,
+  type TraversalFreshnessStats,
+  type TraversalNodeV1,
+  type TraversalOptions,
+  type TraversedStructuralEdge,
+} from './traversal/index.js';
 
 export interface FederatedRepoHandle {
   repo: FederationRepo;
@@ -58,6 +73,49 @@ export interface FederatedTraceResult {
     edgeCount: number;
     bridgedCount: number;
     reposReached: string[];
+    truncated: boolean;
+  };
+}
+
+export interface FederatedTraversalNode extends TraversalNodeV1 {
+  /** The repo that first contributed this node to the traversal. */
+  repo: string;
+  /** Every repo in which a merged portable identity was observed. */
+  repos?: string[];
+  /** True when discovery crossed from one repo into another on a portable identity. */
+  bridged?: boolean;
+}
+
+export interface FederatedTraversalEdge extends TraversalEdgeV1 {
+  /** The first repo containing this canonical stored relationship. */
+  repo: string;
+  /** All repos containing the deduplicated canonical relationship, in federation order. */
+  repos: string[];
+  /** Per-index evidence retained when the same canonical relationship occurs in multiple repos. */
+  provenance: Array<{
+    repo: string;
+    edgeId: string;
+    freshnessStatus: StructuralEdge['freshness_status'];
+    sourceCommit?: string;
+    provenanceSummary?: string;
+  }>;
+}
+
+export interface FederatedTraversalResult {
+  startId: string;
+  options: TraceOptionsV2;
+  nodes: FederatedTraversalNode[];
+  edges: FederatedTraversalEdge[];
+  federation: FederationBlock;
+  stats: {
+    nodeCount: number;
+    edgeCount: number;
+    externalCount: number;
+    maxDepthReached: number;
+    dispatchBoundaries: number;
+    bridgedCount: number;
+    reposReached: string[];
+    freshness: TraversalFreshnessStats;
     truncated: boolean;
   };
 }
@@ -264,6 +322,306 @@ export function traceFromFederated(
       edgeCount: edges.length,
       bridgedCount,
       reposReached: [...new Set(nodes.map((n) => n.repo))],
+      truncated,
+    },
+  };
+}
+
+function initialTraversalFreshness(): TraversalFreshnessStats {
+  return { fresh: 0, stale: 0, dirtyDependent: 0, unknown: 0 };
+}
+
+function recordTraversalFreshness(
+  stats: TraversalFreshnessStats,
+  edge: TraversedStructuralEdge
+): void {
+  switch (edge.freshness_status) {
+    case 'fresh':
+      stats.fresh++;
+      return;
+    case 'stale':
+      stats.stale++;
+      return;
+    case 'dirty-dependent':
+      stats.dirtyDependent++;
+      return;
+    case 'unknown':
+      stats.unknown++;
+      return;
+  }
+}
+
+interface FederatedEdgeCandidate {
+  edge: TraversedStructuralEdge;
+  foundIn: FederatedRepoHandle;
+  repos: string[];
+  provenance: FederatedTraversalEdge['provenance'];
+}
+
+/**
+ * Direction-aware traversal over the primary and attached sibling indexes.
+ *
+ * This is intentionally a V2 sibling of `traceFromFederated`, not a replacement: callers that
+ * omit `direction` keep using the established function and therefore retain its exact wire shape.
+ * Incoming/both use one frontier and one global node/depth/fanout budget. Portable identities may
+ * be resolved in another repo; repo-local identities are always keyed by their owning repo.
+ */
+export function traverseFromFederated(
+  primary: LuxDatabase,
+  siblings: Array<{ name: string; role: 'kernel' | 'peer'; db: LuxDatabase }>,
+  startId: string,
+  federation: FederationBlock,
+  options: TraversalOptions = {}
+): FederatedTraversalResult {
+  const opts: TraceOptionsV2 = {
+    ...DEFAULT_TRAVERSAL_OPTIONS,
+    ...options,
+    edgeTypes: options.edgeTypes ?? DEFAULT_TRAVERSAL_OPTIONS.edgeTypes,
+  };
+  if (!['outgoing', 'incoming', 'both'].includes(opts.direction)) {
+    throw new RangeError(`Unsupported traversal direction: ${String(opts.direction)}`);
+  }
+  for (const [name, value, minimum] of [
+    ['maxDepth', opts.maxDepth, 0],
+    ['maxNodes', opts.maxNodes, 1],
+    ['maxFanout', opts.maxFanout, 0],
+  ] as const) {
+    if (!Number.isSafeInteger(value) || value < minimum) {
+      throw new RangeError(`${name} must be a safe integer >= ${minimum}`);
+    }
+  }
+  const minRank = CONFIDENCE_RANK[opts.minConfidenceClass];
+  if (minRank === undefined) {
+    throw new RangeError(`Unsupported confidence class: ${String(opts.minConfidenceClass)}`);
+  }
+  const edgeTypeSet = new Set<EdgeType>(opts.edgeTypes);
+  const repos: FederatedRepoHandle[] = [
+    { repo: { name: 'main', role: 'primary' }, db: primary },
+    ...siblings.map((s): FederatedRepoHandle => ({
+      repo: { name: s.name, role: s.role === 'kernel' ? 'kernel' : 'peer' },
+      db: s.db,
+    })),
+  ];
+
+  const nodeCaches = new Map<string, Map<string, StructuralNode | null>>(
+    repos.map((repo) => [repo.repo.name, new Map<string, StructuralNode | null>()])
+  );
+  const loadNode = (repo: FederatedRepoHandle, id: string): StructuralNode | null => {
+    const cache = nodeCaches.get(repo.repo.name)!;
+    if (!cache.has(id)) cache.set(id, repo.db.getStructuralNode(id));
+    return cache.get(id)!;
+  };
+  const labelFor = (node: StructuralNode | null, id: string): string =>
+    node?.qualified_name ?? node?.symbol_name ?? id;
+
+  const nodesByKey = new Map<string, FederatedTraversalNode>();
+  const emittedEdges = new Set<string>();
+  const expanded = new Set<string>();
+  const edges: FederatedTraversalEdge[] = [];
+  const freshness = initialTraversalFreshness();
+  let maxDepthReached = 0;
+  let bridgedCount = 0;
+  let nodeBudgetHit = false;
+
+  const admit = (
+    nodeId: string,
+    home: FederatedRepoHandle,
+    depth: number,
+    bridged: boolean
+  ): { node: FederatedTraversalNode; existing: boolean; key: string } => {
+    const key = federationKey(home.repo, nodeId);
+    const existing = nodesByKey.get(key);
+    if (existing) {
+      const observedRepos = existing.repos ?? [existing.repo];
+      if (!observedRepos.includes(home.repo.name)) observedRepos.push(home.repo.name);
+      if (observedRepos.length > 1) existing.repos = observedRepos;
+      if (bridged && !existing.bridged) {
+        existing.bridged = true;
+        bridgedCount++;
+      }
+      return { node: existing, existing: true, key };
+    }
+
+    const raw = loadNode(home, nodeId);
+    const node: FederatedTraversalNode = {
+      id: nodeId,
+      label: labelFor(raw, nodeId),
+      languageId: raw?.language_id ?? undefined,
+      filePath: raw?.file_path ?? undefined,
+      depth,
+      external: raw ? LuxDatabase.isExternalNode(raw) : false,
+      repo: home.repo.name,
+    };
+    if (bridged) {
+      node.bridged = true;
+      bridgedCount++;
+    }
+    nodesByKey.set(key, node);
+    maxDepthReached = Math.max(maxDepthReached, depth);
+    return { node, existing: false, key };
+  };
+
+  const seedHome = repos[0];
+  const seed = admit(startId, seedHome, 0, false);
+  let frontier: FrontierItem[] = [{ nodeId: startId, home: seedHome, depth: 0, key: seed.key }];
+  const startDispatch = dispatchTerminusFor(loadNode(seedHome, startId) ?? {});
+  if (startDispatch) {
+    seed.node.dispatch = startDispatch;
+    if (opts.direction === 'outgoing') {
+      seed.node.terminus = 'dynamic-dispatch-boundary';
+      frontier = [];
+    }
+  }
+  if (opts.maxDepth === 0 && frontier.length > 0) {
+    seed.node.terminus = 'depth-limit';
+    frontier = [];
+  }
+
+  for (let depth = 1; depth <= opts.maxDepth && frontier.length > 0; depth++) {
+    const next: FrontierItem[] = [];
+
+    for (const item of interleaveByRepo(frontier)) {
+      if (nodeBudgetHit) break;
+      if (expanded.has(item.key)) continue;
+
+      const current = nodesByKey.get(item.key)!;
+      const catalogDispatch = dispatchTerminusFor(loadNode(item.home, item.nodeId) ?? {});
+      const effectiveDirection: TraversalDirection =
+        catalogDispatch && opts.direction === 'both' ? 'incoming' : opts.direction;
+      const expandRepos = repos.filter(
+        (repo) =>
+          idBridges(item.nodeId, item.home.repo, repo.repo) && loadNode(repo, item.nodeId) !== null
+      );
+      if (expandRepos.length > 1) current.repos = expandRepos.map((repo) => repo.repo.name);
+      expanded.add(item.key);
+
+      const candidatesByKey = new Map<string, FederatedEdgeCandidate>();
+      for (const repo of expandRepos) {
+        for (const edge of edgesFor(repo.db, item.nodeId, effectiveDirection)) {
+          if (!edgeTypeSet.has(edge.edge_type)) continue;
+          if (CONFIDENCE_RANK[edge.confidence_class] < minRank) continue;
+          const sourceKey = federationKey(repo.repo, edge.source_node_id);
+          const targetKey = federationKey(repo.repo, edge.target_node_id);
+          const key = `${sourceKey}\0${targetKey}\0${edge.edge_type}\0${edge.traversed}`;
+          const provenance = {
+            repo: repo.repo.name,
+            edgeId: edge.id,
+            freshnessStatus: edge.freshness_status,
+            sourceCommit: edge.source_commit,
+            provenanceSummary: edge.provenance_summary,
+          };
+          const existing = candidatesByKey.get(key);
+          if (existing) {
+            if (!existing.repos.includes(repo.repo.name)) existing.repos.push(repo.repo.name);
+            existing.provenance.push(provenance);
+          } else {
+            candidatesByKey.set(key, {
+              edge,
+              foundIn: repo,
+              repos: [repo.repo.name],
+              provenance: [provenance],
+            });
+          }
+        }
+      }
+
+      const candidates = [...candidatesByKey.entries()]
+        .filter(([key]) => !emittedEdges.has(key))
+        .sort(([, a], [, b]) =>
+          `${a.edge.id}:${a.edge.traversed}:${a.foundIn.repo.name}`.localeCompare(
+            `${b.edge.id}:${b.edge.traversed}:${b.foundIn.repo.name}`
+          )
+        );
+      const capped = candidates.length > opts.maxFanout;
+      const walked = capped ? candidates.slice(0, opts.maxFanout) : candidates;
+      if (capped) current.terminus = 'fanout-cap';
+
+      for (const [edgeKeyV2, candidate] of walked) {
+        const { edge, foundIn } = candidate;
+        const adjacentId = adjacentNode(edge);
+        const adjacentRaw = loadNode(foundIn, adjacentId);
+        if (!opts.includeExternal && adjacentRaw && LuxDatabase.isExternalNode(adjacentRaw))
+          continue;
+
+        const adjacentKey = federationKey(foundIn.repo, adjacentId);
+        const existing = nodesByKey.get(adjacentKey);
+        if (!existing && nodesByKey.size >= opts.maxNodes) {
+          current.terminus = 'node-budget';
+          nodeBudgetHit = true;
+          break;
+        }
+
+        const bridged = foundIn.repo.name !== item.home.repo.name;
+        const admitted = admit(adjacentId, foundIn, depth, bridged);
+        const dispatch =
+          dispatchTerminusForEdge(edge.edge_type) ??
+          dispatchTerminusFor(loadNode(foundIn, edge.target_node_id) ?? {});
+        const traversedDispatch = dispatch
+          ? { ...dispatch, traversed: edge.traversed, boundary: edge.traversed === 'forward' }
+          : undefined;
+
+        edges.push({
+          ...edge,
+          revisit: admitted.existing,
+          dispatch: traversedDispatch,
+          repo: foundIn.repo.name,
+          repos: candidate.repos,
+          provenance: candidate.provenance,
+        });
+        emittedEdges.add(edgeKeyV2);
+        recordTraversalFreshness(freshness, edge);
+
+        if (admitted.existing) continue;
+        const boundary: TraversalDispatchInfo | null =
+          edge.traversed === 'forward' ? dispatch : null;
+        if (boundary) {
+          admitted.node.dispatch = boundary;
+          admitted.node.terminus = 'dynamic-dispatch-boundary';
+          continue;
+        }
+        if (depth === opts.maxDepth) {
+          admitted.node.terminus = 'depth-limit';
+        } else {
+          next.push({ nodeId: adjacentId, home: foundIn, depth, key: admitted.key });
+        }
+      }
+    }
+    frontier = next;
+  }
+
+  for (const [key, node] of nodesByKey) {
+    if (!node.terminus && !expanded.has(key) && node.depth < opts.maxDepth) node.terminus = 'leaf';
+  }
+
+  const nodes = [...nodesByKey.entries()]
+    .sort(
+      ([, a], [, b]) =>
+        a.depth - b.depth || a.repo.localeCompare(b.repo) || a.id.localeCompare(b.id)
+    )
+    .map(([, node]) => node);
+  const truncated = nodes.some(
+    (node) =>
+      node.terminus === 'depth-limit' ||
+      node.terminus === 'node-budget' ||
+      node.terminus === 'fanout-cap'
+  );
+
+  return {
+    startId,
+    options: opts,
+    nodes,
+    edges,
+    federation,
+    stats: {
+      nodeCount: nodes.length,
+      edgeCount: edges.length,
+      externalCount: nodes.filter((node) => node.external).length,
+      maxDepthReached,
+      dispatchBoundaries: nodes.filter((node) => node.terminus === 'dynamic-dispatch-boundary')
+        .length,
+      bridgedCount,
+      reposReached: [...new Set(nodes.map((node) => node.repo))],
+      freshness,
       truncated,
     },
   };

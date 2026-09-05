@@ -18,7 +18,7 @@ does not query an accidental process cwd.
 - `lux_get_file` — read an indexed file by path
 - `lux_rebuild_index` — rescan the corpus and rebuild the index + overlay
 - `lux_spec_derivation_evidence` — source-evidence packet for one operational target
-- `lux_trace` — trace calls from a symbol across the app→vendor boundary (optionally federated)
+- `lux_trace` — trace outgoing calls or incoming/bidirectional relationships (optionally federated)
 - `lux_anchors` — rank structural-node anchors from a natural-language concept
 - `lux_delta` — structural impact of a git change (optionally cross-repo)
 - `lux_deps_impact` — blast radius of changing one file
@@ -121,16 +121,19 @@ returned with `isError: true` (the packet still carries the `target.resolutionSt
 
 ## `lux_trace`
 
-Trace calls from a symbol across the app→vendor boundary. Follows `calls`/`references` edges multi-hop
-into merged vendor nodes; synchronous framework calls reach the resolving in-vendor method, while
-dynamic-dispatch calls (dispatch/event) reach the dispatch machinery and are marked as
-re-entry-deferred boundaries. Returns an annotated node/edge graph.
+Trace relationships from a known symbol. `direction` is `outgoing` (default), `incoming`, or `both`;
+outgoing follows calls/references into merged vendor nodes, while incoming answers callers and other
+consumers. Dynamic-dispatch relationships stop only forward continuation; reverse traversal retains
+the stored dispatch annotation and continues to callers. Incoming/both return canonical stored
+source/target endpoints plus `traversed: "forward" | "reverse"` and freshness.
 
 ```json
 {
   "symbol": "Ns\\Class::method",
+  "direction": "incoming",
   "depth": 8,
   "max_nodes": 2000,
+  "max_fanout": 64,
   "edge_types": ["calls", "references"],
   "min_confidence": "framework-inferred",
   "include_external": true,
@@ -138,10 +141,12 @@ re-entry-deferred boundaries. Returns an annotated node/edge graph.
 }
 ```
 
-Only `symbol` is required (a structural node id, a PHP FQN, or a leaf name). `min_confidence` is one of
-`proven`, `artifact-backed`, `framework-inferred`, `heuristic`. `with` federates across registered
-siblings, crossing repo boundaries only on portable ids (namespace-qualified FQCNs; HTTP surfaces
-toward the kernel). The response is the trace graph (`nodes`, `edges`, `stats`).
+Only `symbol` is required (a structural node id, a PHP FQN, or a leaf name). Omitting `direction`, or
+setting it to `outgoing`, preserves the established outgoing response. `min_confidence` is one of
+`proven`, `artifact-backed`, `framework-inferred`, `heuristic`. `with` federates every direction
+across registered siblings, crossing repo boundaries only on portable ids (namespace-qualified
+FQCNs; HTTP surfaces toward the kernel); path-bearing and TypeScript ids remain repo-local. The
+incoming/both federated response retains edge repo/provenance and uses one global node budget.
 
 **Error behavior:** an unresolvable symbol returns `isError: true` with a plain-text hint to rebuild or
 pass a fully-qualified name; an ambiguous symbol returns `isError: true` with

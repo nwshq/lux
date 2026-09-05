@@ -142,8 +142,20 @@ export const TOOLS: Tool[] = [
           description:
             'Start symbol: a structural node id, a PHP FQN (Ns\\Class::method), or a leaf name.',
         },
+        direction: {
+          type: 'string',
+          enum: ['outgoing', 'incoming', 'both'],
+          description:
+            'Traversal direction over canonical stored edges. Incoming/both responses annotate each edge with `traversed`.',
+          default: 'outgoing',
+        },
         depth: { type: 'number', description: 'Max hops to follow', default: 8 },
         max_nodes: { type: 'number', description: 'Total node budget', default: 2000 },
+        max_fanout: {
+          type: 'number',
+          description: 'Combined per-node edge budget across directions and federated repositories',
+          default: 64,
+        },
         edge_types: {
           type: 'array',
           items: { type: 'string' },

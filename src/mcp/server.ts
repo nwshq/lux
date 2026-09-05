@@ -21,7 +21,14 @@ import { buildIndexStatusPayload, buildOverlayStatusPayload } from '../cli/statu
 import { getHeadCommit, isGitRepository } from '../scanner/git.js';
 import { executeSpecEvidenceAsk } from '../cli/spec-evidence.js';
 import { resolveStartNode, traceFrom } from '../scanner/associations/trace.js';
-import { traceFromFederated } from '../scanner/associations/federation-trace.js';
+import {
+  traceFromFederated,
+  traverseFromFederated,
+} from '../scanner/associations/federation-trace.js';
+import {
+  traverseStructuralGraph,
+  type TraversalDirection,
+} from '../scanner/associations/traversal/index.js';
 import { runFederatedSearch } from '../scanner/search-federation.js';
 import { openFederationHandles } from './federation-handles.js';
 import { computeDelta } from '../scanner/delta/run.js';
@@ -58,6 +65,12 @@ function resolveMinConfidence(value: unknown): ConfidenceClass {
   return typeof value === 'string' && (CONFIDENCE_CLASSES as readonly string[]).includes(value)
     ? (value as ConfidenceClass)
     : 'framework-inferred';
+}
+
+function resolveTraversalDirection(value: unknown): TraversalDirection {
+  if (value === undefined) return 'outgoing';
+  if (value === 'outgoing' || value === 'incoming' || value === 'both') return value;
+  throw new RangeError('direction must be one of: outgoing, incoming, both');
 }
 
 // The runtime is fixed by explicit LUX_* overrides when present. Otherwise, roots-aware MCP clients
@@ -365,20 +378,25 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'lux_trace': {
         const {
           symbol,
+          direction: rawDirection,
           depth = 8,
           max_nodes: maxNodes = 2000,
+          max_fanout: maxFanout = 64,
           edge_types: edgeTypes = ['calls', 'references'],
           min_confidence: minConfidence = 'framework-inferred',
           include_external: includeExternal = true,
         } = args as {
           symbol: string;
+          direction?: string;
           depth?: number;
           max_nodes?: number;
+          max_fanout?: number;
           edge_types?: string[];
           min_confidence?: string;
           include_external?: boolean;
         };
 
+        const direction = resolveTraversalDirection(rawDirection);
         const resolved = resolveStartNode(db, symbol);
         if ('notFound' in resolved) {
           return {
@@ -413,19 +431,34 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           };
         }
 
-        // Federated branch (Decision 5): opt-in via `with`, strictly additive. Returns BEFORE the
-        // plain traceFrom below. Sibling handles are read-only and closed in a finally (SC-7).
+        const traversalOptions = {
+          maxDepth: depth,
+          maxNodes,
+          edgeTypes: edgeTypes as EdgeType[],
+          minConfidenceClass: resolveMinConfidence(minConfidence),
+          includeExternal,
+        };
+
+        // Federation remains opt-in. The legacy outgoing implementation is deliberately retained
+        // for omitted/explicit outgoing requests so its existing JSON bytes do not change.
         const traceWith = Array.isArray(args?.with) ? (args.with as string[]) : undefined;
         if (traceWith && traceWith.length) {
           const fed = openFederationHandles(db, corpusPath, traceWith);
           try {
-            const result = traceFromFederated(db, fed.handles, resolved.nodeId, fed.federation, {
-              maxDepth: depth,
-              maxNodes,
-              edgeTypes: edgeTypes as EdgeType[],
-              minConfidenceClass: minConfidence as ConfidenceClass,
-              includeExternal,
-            });
+            const result =
+              direction === 'outgoing'
+                ? traceFromFederated(
+                    db,
+                    fed.handles,
+                    resolved.nodeId,
+                    fed.federation,
+                    traversalOptions
+                  )
+                : traverseFromFederated(db, fed.handles, resolved.nodeId, fed.federation, {
+                    ...traversalOptions,
+                    direction,
+                    maxFanout,
+                  });
             return {
               content: [{ type: 'text', text: JSON.stringify(withReadTelemetry(result), null, 2) }],
             };
@@ -434,13 +467,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           }
         }
 
-        const result = traceFrom(db, resolved.nodeId, {
-          maxDepth: depth,
-          maxNodes,
-          edgeTypes: edgeTypes as EdgeType[],
-          minConfidenceClass: minConfidence as ConfidenceClass,
-          includeExternal,
-        });
+        const result =
+          direction === 'outgoing'
+            ? traceFrom(db, resolved.nodeId, traversalOptions)
+            : traverseStructuralGraph(db, resolved.nodeId, {
+                ...traversalOptions,
+                direction,
+                maxFanout,
+              });
 
         return {
           content: [{ type: 'text', text: JSON.stringify(withReadTelemetry(result), null, 2) }],

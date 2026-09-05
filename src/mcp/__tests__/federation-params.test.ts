@@ -28,6 +28,7 @@ const DIST_SERVER = join(REPO_ROOT, 'dist', 'mcp', 'server.js');
 const SHOW = 'symbol:php:App\\Http\\Ctrl::show';
 const ENGINE = 'symbol:php:acme\\Core\\Engine::run';
 const LEDGER = 'symbol:php:acme\\Core\\Ledger::post';
+const CALLER = 'symbol:php:acme\\Core\\Caller::invoke';
 
 function node(db: LuxDatabase, id: string, qualified_name: string): void {
   db.upsertStructuralNode({
@@ -74,7 +75,9 @@ function makeFixture(root: string): { corpus: string; dbPath: string; siblingDbP
   const sibling = new LuxDatabase(siblingDbPath);
   node(sibling, ENGINE, 'acme\\Core\\Engine::run');
   node(sibling, LEDGER, 'acme\\Core\\Ledger::post');
+  node(sibling, CALLER, 'acme\\Core\\Caller::invoke');
   edge(sibling, ENGINE, LEDGER);
+  edge(sibling, CALLER, ENGINE);
   sibling.insertKnowledgeEntry({
     type: 'documentation',
     title: 'Kernel Settlement Engine',
@@ -118,13 +121,20 @@ describe.skipIf(!existsSync(DIST_SERVER))(
       rmSync(root, { recursive: true, force: true });
     });
 
-    it('ListTools exposes the `with` param on lux_trace and lux_search', async () => {
+    it('ListTools exposes `direction` on lux_trace and retains federation params', async () => {
       const { tools } = await client.listTools();
       for (const name of ['lux_trace', 'lux_search']) {
         const tool = tools.find((t) => t.name === name);
         expect(tool).toBeDefined();
         const props = (tool!.inputSchema.properties ?? {}) as Record<string, unknown>;
         expect(props.with).toBeDefined();
+        if (name === 'lux_trace') {
+          expect(props.direction).toMatchObject({
+            enum: ['outgoing', 'incoming', 'both'],
+            default: 'outgoing',
+          });
+          expect(props.max_fanout).toMatchObject({ type: 'number', default: 64 });
+        }
       }
     });
 
@@ -145,6 +155,99 @@ describe.skipIf(!existsSync(DIST_SERVER))(
       expect(ledger!.bridged).toBe(true);
       expect(payload.stats.reposReached.sort()).toEqual(['core', 'main']);
       expect(payload.federation.siblings[0]).toMatchObject({ name: 'core', attached: true });
+    });
+
+    it('lux_trace supports non-federated incoming without changing canonical endpoints', async () => {
+      const implicitOutgoing = await client.callTool({
+        name: 'lux_trace',
+        arguments: { symbol: SHOW },
+      });
+      const explicitOutgoing = await client.callTool({
+        name: 'lux_trace',
+        arguments: { symbol: SHOW, direction: 'outgoing' },
+      });
+      expect((explicitOutgoing.content as Array<{ text: string }>)[0].text).toBe(
+        (implicitOutgoing.content as Array<{ text: string }>)[0].text
+      );
+
+      const response = await client.callTool({
+        name: 'lux_trace',
+        arguments: { symbol: ENGINE, direction: 'incoming' },
+      });
+      const content = (response.content as Array<{ type: string; text: string }>)[0];
+      const payload = JSON.parse(content.text) as {
+        options: { direction: string };
+        edges: Array<{
+          source_node_id: string;
+          target_node_id: string;
+          traversed: string;
+        }>;
+      };
+      expect(payload.options.direction).toBe('incoming');
+      expect(payload.edges).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            source_node_id: SHOW,
+            target_node_id: ENGINE,
+            traversed: 'reverse',
+          }),
+        ])
+      );
+    });
+
+    it('lux_trace supports federated incoming with canonical endpoints and provenance', async () => {
+      const implicit = await client.callTool({
+        name: 'lux_trace',
+        arguments: { symbol: SHOW, with: ['core'] },
+      });
+      const explicitOutgoing = await client.callTool({
+        name: 'lux_trace',
+        arguments: { symbol: SHOW, with: ['core'], direction: 'outgoing' },
+      });
+      expect((explicitOutgoing.content as Array<{ text: string }>)[0].text).toBe(
+        (implicit.content as Array<{ text: string }>)[0].text
+      );
+
+      const response = await client.callTool({
+        name: 'lux_trace',
+        arguments: { symbol: ENGINE, with: ['core'], direction: 'incoming' },
+      });
+      const content = (response.content as Array<{ type: string; text: string }>)[0];
+      const payload = JSON.parse(content.text) as {
+        options: { direction: string };
+        edges: Array<{
+          source_node_id: string;
+          target_node_id: string;
+          traversed: string;
+          repo: string;
+          provenance: Array<{ repo: string; freshnessStatus: string }>;
+        }>;
+        stats: { freshness: { fresh: number } };
+      };
+      expect(payload.options.direction).toBe('incoming');
+      expect(payload.edges).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            source_node_id: CALLER,
+            target_node_id: ENGINE,
+            traversed: 'reverse',
+            repo: 'core',
+            provenance: [expect.objectContaining({ repo: 'core', freshnessStatus: 'fresh' })],
+          }),
+        ])
+      );
+      expect(payload.stats.freshness.fresh).toBeGreaterThan(0);
+    });
+
+    it('rejects an explicitly invalid lux_trace direction', async () => {
+      const response = await client.callTool({
+        name: 'lux_trace',
+        arguments: { symbol: SHOW, direction: 'sideways' },
+      });
+      expect(response.isError).toBe(true);
+      expect((response.content as Array<{ text: string }>)[0].text).toContain(
+        'direction must be one of: outgoing, incoming, both'
+      );
     });
 
     it('lux_search with `with: [core]` returns repo-grouped groups + federation block', async () => {

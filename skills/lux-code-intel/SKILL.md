@@ -24,7 +24,8 @@ command help rather than inventing flags.
 ## Query routing
 
 - Fuzzy concept to concrete symbols: `lux_anchors`.
-- Known symbol, calls, consumers, or cross-boundary behavior: `lux_trace`.
+- Known symbol, calls, consumers, or cross-boundary behavior: `lux_trace`. Use `direction: incoming`
+  for callers/consumers and `direction: both` for bidirectional context; omit it for outgoing.
 - Known file or module blast radius: `lux_deps_impact`.
 - Current diff, commit, PR, or change safety: `lux_delta`.
 - Indexed documentation or textual source content: `lux_search`.
@@ -39,6 +40,8 @@ results. Use the CLI as the fallback for commands not exposed through MCP.
 - Carry Lux confidence classes into structural claims: `proven`, `artifact-backed`,
   `framework-inferred`, or `heuristic`.
 - Report index freshness, overlay trust, truncation, unresolved symbols, ambiguity, and refusals.
+- Preserve trace `traversed` separately from canonical source/target endpoints. Federated trace may
+  cross only portable identities; do not infer cross-repo joins for path-bearing/repo-local ids.
 - Open and inspect important source files returned by Lux before drawing conclusions.
 - Treat Lux as structural evidence, not as a substitute for reading the code.
 - If Lux and direct source inspection disagree, report the disagreement instead of selecting the

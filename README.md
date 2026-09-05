@@ -30,7 +30,7 @@ artifacts carry their tag version. A source-tree checkout therefore reports `0.0
 - `lux hooks install|uninstall`
 - `lux migrate status|up|create`
 - `lux deps graph|clusters|impact|coverage`
-- `lux trace <symbol>`
+- `lux trace <symbol> [--direction outgoing|incoming|both] [--max-fanout <n>] [--with <siblings>]`
 - `lux anchors <query> [--limit <n>] [--granularity node|file] [--include-tests] [--json]`
 - `lux delta [--base <ref>] [--check] [--fail-on <list>] [--json]`
 - `lux vendor-pack build|status`

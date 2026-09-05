@@ -27,7 +27,7 @@ Shared resolver: `src/utils/runtime-paths.ts`
 - `lux migrate status|up|create`
 - `lux deps graph|clusters|impact|coverage`
 - `lux vendor-pack build|status`
-- `lux trace <symbol>`
+- `lux trace <symbol> [--direction outgoing|incoming|both] [--max-fanout <n>] [--with <siblings>]`
 - `lux delta [--base <ref>] [--check] [--fail-on <list>] [--json]`
 - `lux overlay status|check|ownership|operational ask|boundaries ...`
 

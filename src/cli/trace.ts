@@ -7,6 +7,12 @@ import {
   type TraceNode,
   type TraceResult,
 } from '../scanner/associations/trace.js';
+import {
+  traverseStructuralGraph,
+  type TraversalDirection,
+  type TraversalNodeV1,
+  type TraversalResultV1,
+} from '../scanner/associations/traversal/index.js';
 import type { ConfidenceClass, EdgeType } from '../db/types.js';
 import { summarizeStaleSupport, staleSupportWarning } from '../scanner/freshness.js';
 import {
@@ -17,8 +23,10 @@ import {
 } from '../scanner/siblings.js';
 import {
   traceFromFederated,
+  traverseFromFederated,
   type FederatedTraceNode,
   type FederatedTraceResult,
+  type FederatedTraversalResult,
 } from '../scanner/associations/federation-trace.js';
 import { openCliReadIndex, withReadTelemetry } from './read-index.js';
 
@@ -26,8 +34,19 @@ export function addTraceCommand(program: Command): void {
   program
     .command('trace <symbol>')
     .description('Trace calls from a symbol across the app→vendor boundary')
+    .option(
+      '--direction <direction>',
+      'Traversal direction: outgoing, incoming, or both',
+      'outgoing'
+    )
     .option('--depth <n>', 'Max hops to follow', (v) => parseInt(v, 10), 8)
     .option('--max-nodes <n>', 'Total node budget', (v) => parseInt(v, 10), 2000)
+    .option(
+      '--max-fanout <n>',
+      'Combined per-node edge budget across directions and repositories',
+      (v) => parseInt(v, 10),
+      64
+    )
     .option('--edge-types <list>', 'Comma-separated edge types', 'calls,references')
     .option(
       '--min-confidence <class>',
@@ -41,8 +60,10 @@ export function addTraceCommand(program: Command): void {
       (
         symbol: string,
         options: {
+          direction: string;
           depth: number;
           maxNodes: number;
+          maxFanout: number;
           edgeTypes: string;
           minConfidence: string;
           external: boolean;
@@ -50,6 +71,11 @@ export function addTraceCommand(program: Command): void {
           json?: boolean;
         }
       ) => {
+        if (!isTraversalDirection(options.direction)) {
+          console.error('Error: --direction must be one of: outgoing, incoming, both.');
+          process.exitCode = 1;
+          return;
+        }
         const opts = program.opts();
         const corpusPath = resolveCorpusPath({ corpus: opts.corpus as string | undefined });
         const dbPath = resolveDbPath({ corpus: corpusPath, db: opts.db as string | undefined });
@@ -115,30 +141,67 @@ export function addTraceCommand(program: Command): void {
                   console.error(`  ⚠ sibling '${r.sibling.name}': ${refusal.message}`);
                 }
               }
-              const result = traceFromFederated(
-                db,
-                handles,
-                resolved.nodeId,
-                buildFederationBlock(effectiveResolutions),
-                {
-                  maxDepth: options.depth,
-                  maxNodes: options.maxNodes,
-                  edgeTypes: options.edgeTypes.split(',').map((s) => s.trim()) as EdgeType[],
-                  minConfidenceClass: options.minConfidence as ConfidenceClass,
-                  includeExternal: options.external,
-                }
-              );
-              console.log(
-                options.json
-                  ? JSON.stringify(withReadTelemetry(result), null, 2)
-                  : renderFederatedTrace(result)
-              );
+              const traversalOptions = {
+                maxDepth: options.depth,
+                maxNodes: options.maxNodes,
+                edgeTypes: options.edgeTypes.split(',').map((s) => s.trim()) as EdgeType[],
+                minConfidenceClass: options.minConfidence as ConfidenceClass,
+                includeExternal: options.external,
+              };
+              const federation = buildFederationBlock(effectiveResolutions);
+              if (options.direction === 'outgoing') {
+                // Keep the established federated function and renderer intact: omitted direction
+                // and explicit `outgoing` retain the shipped result bytes.
+                const result = traceFromFederated(
+                  db,
+                  handles,
+                  resolved.nodeId,
+                  federation,
+                  traversalOptions
+                );
+                console.log(
+                  options.json
+                    ? JSON.stringify(withReadTelemetry(result), null, 2)
+                    : renderFederatedTrace(result)
+                );
+              } else {
+                const result = traverseFromFederated(db, handles, resolved.nodeId, federation, {
+                  ...traversalOptions,
+                  direction: options.direction,
+                  maxFanout: options.maxFanout,
+                });
+                console.log(
+                  options.json
+                    ? JSON.stringify(withReadTelemetry(result), null, 2)
+                    : renderFederatedTraversal(result)
+                );
+              }
             } finally {
               for (const h of handles) h.db.close();
             }
             return;
           }
 
+          if (options.direction !== 'outgoing') {
+            const result = traverseStructuralGraph(db, resolved.nodeId, {
+              direction: options.direction,
+              maxDepth: options.depth,
+              maxNodes: options.maxNodes,
+              maxFanout: options.maxFanout,
+              edgeTypes: options.edgeTypes.split(',').map((s) => s.trim()) as EdgeType[],
+              minConfidenceClass: options.minConfidence as ConfidenceClass,
+              includeExternal: options.external,
+            });
+            console.log(
+              options.json
+                ? JSON.stringify(withReadTelemetry(result), null, 2)
+                : renderTraversalTrace(result)
+            );
+            return;
+          }
+
+          // Keep the established outgoing implementation and renderers intact: an omitted
+          // direction and explicit --direction outgoing retain the shipped byte contract.
           const result = traceFrom(db, resolved.nodeId, {
             maxDepth: options.depth,
             maxNodes: options.maxNodes,
@@ -165,6 +228,10 @@ export function addTraceCommand(program: Command): void {
         }
       }
     );
+}
+
+function isTraversalDirection(value: string): value is TraversalDirection {
+  return value === 'outgoing' || value === 'incoming' || value === 'both';
 }
 
 /** Pretty-print the trace DAG as an indented tree rooted at the start node. */
@@ -220,6 +287,54 @@ function printTrace(result: TraceResult): void {
   );
 }
 
+/** Render a directional traversal while retaining each edge's stored source → target endpoints. */
+function renderTraversalTrace(result: TraversalResultV1): string {
+  const lines: string[] = [];
+  const byId = new Map(result.nodes.map((node) => [node.id, node]));
+  const start = byId.get(result.startId);
+
+  lines.push(`\nTrace ${result.options.direction} from ${start?.label ?? result.startId}`);
+  lines.push(
+    `  depth≤${result.options.maxDepth}  edges:${result.options.edgeTypes.join('/')}  ` +
+      `min-confidence:${result.options.minConfidenceClass}\n`
+  );
+
+  for (const node of result.nodes) {
+    lines.push(`${'  '.repeat(node.depth)}${traversalNodeLabel(node)}`);
+    for (const edge of result.edges.filter((candidate) =>
+      candidate.traversed === 'forward'
+        ? candidate.source_node_id === node.id
+        : candidate.target_node_id === node.id
+    )) {
+      const marker = edge.traversed === 'forward' ? '→' : '←';
+      lines.push(
+        `${'  '.repeat(node.depth + 1)}${marker} ` +
+          `${edge.source_node_id} → ${edge.target_node_id}  ` +
+          `[${edge.edge_type}, ${edge.traversed}]  ` +
+          `{${abbrev(edge.confidence_class)} ${edge.confidence.toFixed(2)}}`
+      );
+    }
+  }
+
+  const freshness = result.stats.freshness;
+  lines.push(
+    `\n${result.stats.nodeCount} nodes, ${result.stats.edgeCount} edges, ` +
+      `${result.stats.externalCount} vendor, ${result.stats.dispatchBoundaries} dispatch boundaries` +
+      (result.stats.truncated ? ' (truncated — raise --depth/--max-nodes)' : '')
+  );
+  lines.push(
+    `Freshness: ${freshness.fresh} fresh, ${freshness.stale} stale, ` +
+      `${freshness.dirtyDependent} dirty-dependent, ${freshness.unknown} unknown`
+  );
+  return lines.join('\n');
+}
+
+function traversalNodeLabel(node: TraversalNodeV1): string {
+  const vendor = node.external ? ' [vendor]' : '';
+  const term = terminusLabel(node);
+  return `${node.label}${vendor}${term}`;
+}
+
 function abbrev(c: ConfidenceClass): string {
   return { proven: 'prv', 'artifact-backed': 'art', 'framework-inferred': 'fwk', heuristic: 'heu' }[
     c
@@ -241,6 +356,47 @@ function terminusLabel(n: TraceNode): string {
     default:
       return '';
   }
+}
+
+/** Render directional federation with canonical endpoints and per-edge traversal/provenance. */
+function renderFederatedTraversal(r: FederatedTraversalResult): string {
+  const lines: string[] = [];
+  const start = r.nodes.find((node) => node.id === r.startId && node.repo === 'main');
+  lines.push(`\nFederated trace ${r.options.direction} from ${start?.label ?? r.startId}`);
+  lines.push(
+    `  repos: ${r.stats.reposReached.join(', ')}  ·  ${r.stats.nodeCount} nodes, ` +
+      `${r.stats.edgeCount} edges, ${r.stats.bridgedCount} bridged` +
+      (r.stats.truncated ? ' (truncated — raise --depth/--max-nodes)' : '')
+  );
+  for (const edge of r.edges) {
+    const marker = edge.traversed === 'forward' ? '→' : '←';
+    lines.push(
+      `  ${marker} ${edge.source_node_id} → ${edge.target_node_id}  ` +
+        `[${edge.edge_type}, ${edge.traversed}; ${edge.repos.join(', ')}]  ` +
+        `{${abbrev(edge.confidence_class)} ${edge.confidence.toFixed(2)}}`
+    );
+  }
+  const freshness = r.stats.freshness;
+  lines.push(
+    `Freshness: ${freshness.fresh} fresh, ${freshness.stale} stale, ` +
+      `${freshness.dirtyDependent} dirty-dependent, ${freshness.unknown} unknown`
+  );
+  for (const sibling of r.federation.siblings) {
+    if (sibling.attached && sibling.freshness) {
+      const drift =
+        sibling.freshness.stale == null
+          ? 'drift unknown'
+          : sibling.freshness.stale
+            ? 'STALE'
+            : 'fresh';
+      lines.push(
+        `  sibling ${sibling.name}: schema ${sibling.freshness.dbSchemaVersion ?? '?'}  ${drift}`
+      );
+    } else if (sibling.refusal) {
+      lines.push(`  ⚠ sibling ${sibling.name}: ${sibling.refusal.message}`);
+    }
+  }
+  return lines.join('\n');
 }
 
 /** Compact renderer for a federated trace: nodes grouped by repo, bridged/×N/vendor marks, then the

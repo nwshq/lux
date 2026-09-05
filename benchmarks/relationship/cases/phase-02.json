@@ -1,0 +1,1200 @@
+[
+  {
+    "id": "p02-direct-callers-incoming",
+    "corpus": "lux",
+    "capability": "incoming-bidirectional-trace",
+    "query": {
+      "tool": "lux_trace",
+      "args": {
+        "symbol": "symbol:php:App\\Services\\Pricing::quote",
+        "direction": "incoming",
+        "maxDepth": 8,
+        "maxNodes": 2000,
+        "maxFanout": 64,
+        "edgeTypes": ["calls"],
+        "minConfidenceClass": "framework-inferred",
+        "includeExternal": true
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\CartController::total",
+        "type": "calls",
+        "target": "symbol:php:App\\Services\\Pricing::quote",
+        "minConfidence": "proven",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      },
+      {
+        "source": "symbol:php:App\\Jobs\\PriceCart::handle",
+        "type": "calls",
+        "target": "symbol:php:App\\Services\\Pricing::quote",
+        "minConfidence": "artifact-backed",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Services\\Pricing::quote",
+        "type": "calls",
+        "target": "symbol:php:App\\Support\\Money::round",
+        "traversed": "forward",
+        "repo": "main"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1
+    }
+  },
+  {
+    "id": "p02-direct-callers-both",
+    "corpus": "lux",
+    "capability": "incoming-bidirectional-trace",
+    "query": {
+      "tool": "lux_trace",
+      "args": {
+        "symbol": "symbol:php:App\\Services\\Pricing::quote",
+        "direction": "both",
+        "maxDepth": 1,
+        "maxNodes": 2000,
+        "maxFanout": 64,
+        "edgeTypes": ["calls"],
+        "minConfidenceClass": "framework-inferred",
+        "includeExternal": true
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\CartController::total",
+        "type": "calls",
+        "target": "symbol:php:App\\Services\\Pricing::quote",
+        "minConfidence": "proven",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      },
+      {
+        "source": "symbol:php:App\\Jobs\\PriceCart::handle",
+        "type": "calls",
+        "target": "symbol:php:App\\Services\\Pricing::quote",
+        "minConfidence": "artifact-backed",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      },
+      {
+        "source": "symbol:php:App\\Services\\Pricing::quote",
+        "type": "calls",
+        "target": "symbol:php:App\\Support\\Money::round",
+        "minConfidence": "proven",
+        "traversed": "forward",
+        "repo": "main",
+        "freshness": "fresh"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Services\\Pricing::quote",
+        "type": "calls",
+        "target": "symbol:php:App\\Support\\Money::round",
+        "traversed": "reverse",
+        "repo": "main"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1
+    }
+  },
+  {
+    "id": "p02-route-handler-inverse",
+    "corpus": "lux",
+    "capability": "incoming-bidirectional-trace",
+    "query": {
+      "tool": "lux_trace",
+      "args": {
+        "symbol": "symbol:php:App\\Http\\Controllers\\OrderController::index",
+        "direction": "incoming",
+        "maxDepth": 8,
+        "maxNodes": 2000,
+        "maxFanout": 64,
+        "edgeTypes": ["handled_by"],
+        "minConfidenceClass": "framework-inferred",
+        "includeExternal": true
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "surface:route:laravel:GET%20%2Forders",
+        "type": "handled_by",
+        "target": "symbol:php:App\\Http\\Controllers\\OrderController::index",
+        "minConfidence": "artifact-backed",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "surface:route:laravel:GET%20%2Forders",
+        "type": "handled_by",
+        "target": "symbol:php:App\\Http\\Controllers\\OrderController::index",
+        "traversed": "forward",
+        "repo": "main"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1
+    }
+  },
+  {
+    "id": "p02-request-contract-inverse",
+    "corpus": "lux",
+    "capability": "incoming-bidirectional-trace",
+    "query": {
+      "tool": "lux_trace",
+      "args": {
+        "symbol": "contract:php:App\\Http\\Requests\\StoreOrderRequest",
+        "direction": "incoming",
+        "maxDepth": 8,
+        "maxNodes": 2000,
+        "maxFanout": 64,
+        "edgeTypes": ["validates_with"],
+        "minConfidenceClass": "framework-inferred",
+        "includeExternal": true
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\OrderController::store",
+        "type": "validates_with",
+        "target": "contract:php:App\\Http\\Requests\\StoreOrderRequest",
+        "minConfidence": "artifact-backed",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\OrderController::store",
+        "type": "validates_with",
+        "target": "contract:php:App\\Http\\Requests\\StoreOrderRequest",
+        "traversed": "forward",
+        "repo": "main"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1
+    }
+  },
+  {
+    "id": "p02-resource-contract-inverse",
+    "corpus": "lux",
+    "capability": "incoming-bidirectional-trace",
+    "query": {
+      "tool": "lux_trace",
+      "args": {
+        "symbol": "contract:php:App\\Http\\Resources\\OrderResource",
+        "direction": "incoming",
+        "maxDepth": 8,
+        "maxNodes": 2000,
+        "maxFanout": 64,
+        "edgeTypes": ["returns_contract"],
+        "minConfidenceClass": "framework-inferred",
+        "includeExternal": true
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\OrderController::store",
+        "type": "returns_contract",
+        "target": "contract:php:App\\Http\\Resources\\OrderResource",
+        "minConfidence": "artifact-backed",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\OrderController::store",
+        "type": "returns_contract",
+        "target": "contract:php:App\\Http\\Resources\\OrderResource",
+        "traversed": "forward",
+        "repo": "main"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1
+    }
+  },
+  {
+    "id": "p02-event-dispatch-listener-inverse",
+    "corpus": "lux",
+    "capability": "incoming-bidirectional-trace",
+    "query": {
+      "tool": "lux_trace",
+      "args": {
+        "symbol": "event:php:App\\Events\\OrderPlaced",
+        "direction": "incoming",
+        "maxDepth": 8,
+        "maxNodes": 2000,
+        "maxFanout": 64,
+        "edgeTypes": ["emits_event", "listens_event"],
+        "minConfidenceClass": "framework-inferred",
+        "includeExternal": true
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Services\\Checkout::place",
+        "type": "emits_event",
+        "target": "event:php:App\\Events\\OrderPlaced",
+        "minConfidence": "framework-inferred",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      },
+      {
+        "source": "symbol:php:App\\Listeners\\SendReceipt::handle",
+        "type": "listens_event",
+        "target": "event:php:App\\Events\\OrderPlaced",
+        "minConfidence": "framework-inferred",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "event:php:App\\Events\\OrderPlaced",
+        "type": "calls",
+        "target": "symbol:php:App\\Projections\\Orders::apply",
+        "traversed": "forward",
+        "repo": "main"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1
+    }
+  },
+  {
+    "id": "p02-job-dispatch-inverse",
+    "corpus": "lux",
+    "capability": "incoming-bidirectional-trace",
+    "query": {
+      "tool": "lux_trace",
+      "args": {
+        "symbol": "artifact:job:App\\Jobs\\SyncOrder",
+        "direction": "incoming",
+        "maxDepth": 8,
+        "maxNodes": 2000,
+        "maxFanout": 64,
+        "edgeTypes": ["dispatches_job", "handles_job"],
+        "minConfidenceClass": "framework-inferred",
+        "includeExternal": true
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\SyncController::queue",
+        "type": "dispatches_job",
+        "target": "artifact:job:App\\Jobs\\SyncOrder",
+        "minConfidence": "artifact-backed",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "artifact:job:App\\Jobs\\SyncOrder",
+        "type": "handles_job",
+        "target": "symbol:php:App\\Jobs\\SyncOrder::handle",
+        "traversed": "forward",
+        "repo": "main"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1
+    }
+  },
+  {
+    "id": "p02-vue-http-consumer-inverse",
+    "corpus": "lux",
+    "capability": "incoming-bidirectional-trace",
+    "query": {
+      "tool": "lux_trace",
+      "args": {
+        "symbol": "surface:route:laravel:GET%20%2Fapi%2Forders",
+        "direction": "incoming",
+        "maxDepth": 8,
+        "maxNodes": 2000,
+        "maxFanout": 64,
+        "edgeTypes": ["calls_surface"],
+        "minConfidenceClass": "framework-inferred",
+        "includeExternal": true
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src/pages/Orders.vue",
+        "type": "calls_surface",
+        "target": "surface:route:laravel:GET%20%2Fapi%2Forders",
+        "minConfidence": "framework-inferred",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src/pages/Orders.vue",
+        "type": "calls_surface",
+        "target": "surface:route:laravel:GET%20%2Fapi%2Forders",
+        "traversed": "forward",
+        "repo": "main"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1
+    }
+  },
+  {
+    "id": "p02-job-both-shared-budget",
+    "corpus": "lux",
+    "capability": "incoming-bidirectional-trace",
+    "query": {
+      "tool": "lux_trace",
+      "args": {
+        "symbol": "artifact:job:App\\Jobs\\SyncOrder",
+        "direction": "both",
+        "maxDepth": 1,
+        "maxNodes": 2000,
+        "maxFanout": 64,
+        "edgeTypes": ["dispatches_job", "handles_job"],
+        "minConfidenceClass": "framework-inferred",
+        "includeExternal": true
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\SyncController::queue",
+        "type": "dispatches_job",
+        "target": "artifact:job:App\\Jobs\\SyncOrder",
+        "minConfidence": "artifact-backed",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      },
+      {
+        "source": "artifact:job:App\\Jobs\\SyncOrder",
+        "type": "handles_job",
+        "target": "symbol:php:App\\Jobs\\SyncOrder::handle",
+        "minConfidence": "artifact-backed",
+        "traversed": "forward",
+        "repo": "main",
+        "freshness": "fresh"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "surface:route:laravel:POST%20%2Fsync",
+        "type": "handled_by",
+        "target": "symbol:php:App\\Http\\Controllers\\SyncController::queue",
+        "traversed": "reverse",
+        "repo": "main"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1
+    }
+  },
+  {
+    "id": "p02-event-both",
+    "corpus": "lux",
+    "capability": "incoming-bidirectional-trace",
+    "query": {
+      "tool": "lux_trace",
+      "args": {
+        "symbol": "event:php:App\\Events\\OrderPlaced",
+        "direction": "both",
+        "maxDepth": 1,
+        "maxNodes": 2000,
+        "maxFanout": 64,
+        "edgeTypes": ["emits_event", "listens_event", "calls"],
+        "minConfidenceClass": "framework-inferred",
+        "includeExternal": true
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Services\\Checkout::place",
+        "type": "emits_event",
+        "target": "event:php:App\\Events\\OrderPlaced",
+        "minConfidence": "framework-inferred",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      },
+      {
+        "source": "symbol:php:App\\Listeners\\SendReceipt::handle",
+        "type": "listens_event",
+        "target": "event:php:App\\Events\\OrderPlaced",
+        "minConfidence": "framework-inferred",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      },
+      {
+        "source": "event:php:App\\Events\\OrderPlaced",
+        "type": "calls",
+        "target": "symbol:php:App\\Projections\\Orders::apply",
+        "minConfidence": "proven",
+        "traversed": "forward",
+        "repo": "main",
+        "freshness": "fresh"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Services\\Checkout::place",
+        "type": "emits_event",
+        "target": "event:php:App\\Events\\OrderPlaced",
+        "traversed": "forward",
+        "repo": "main"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1
+    }
+  },
+  {
+    "id": "p02-cycle-both-once-per-direction",
+    "corpus": "lux",
+    "capability": "incoming-bidirectional-trace",
+    "query": {
+      "tool": "lux_trace",
+      "args": {
+        "symbol": "symbol:ts:src/cycle.ts#A",
+        "direction": "both",
+        "maxDepth": 8,
+        "maxNodes": 2000,
+        "maxFanout": 64,
+        "edgeTypes": ["calls"],
+        "minConfidenceClass": "framework-inferred",
+        "includeExternal": true
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:src/cycle.ts#A",
+        "type": "calls",
+        "target": "symbol:ts:src/cycle.ts#B",
+        "minConfidence": "proven",
+        "traversed": "forward",
+        "repo": "main",
+        "freshness": "fresh"
+      },
+      {
+        "source": "symbol:ts:src/cycle.ts#B",
+        "type": "calls",
+        "target": "symbol:ts:src/cycle.ts#A",
+        "minConfidence": "proven",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      },
+      {
+        "source": "symbol:ts:src/cycle.ts#A",
+        "type": "calls",
+        "target": "symbol:ts:src/cycle.ts#B",
+        "minConfidence": "proven",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      },
+      {
+        "source": "symbol:ts:src/cycle.ts#B",
+        "type": "calls",
+        "target": "symbol:ts:src/cycle.ts#A",
+        "minConfidence": "proven",
+        "traversed": "forward",
+        "repo": "main",
+        "freshness": "fresh"
+      },
+      {
+        "source": "symbol:ts:src/cycle.ts#B",
+        "type": "calls",
+        "target": "symbol:ts:src/cycle.ts#C",
+        "minConfidence": "proven",
+        "traversed": "forward",
+        "repo": "main",
+        "freshness": "fresh"
+      },
+      {
+        "source": "symbol:ts:src/cycle.ts#B",
+        "type": "calls",
+        "target": "symbol:ts:src/cycle.ts#C",
+        "minConfidence": "proven",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:src/depth.ts#one",
+        "type": "calls",
+        "target": "symbol:ts:src/depth.ts#root",
+        "traversed": "reverse",
+        "repo": "main"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1
+    }
+  },
+  {
+    "id": "p02-max-depth-incoming",
+    "corpus": "lux",
+    "capability": "incoming-bidirectional-trace",
+    "query": {
+      "tool": "lux_trace",
+      "args": {
+        "symbol": "symbol:ts:src/depth.ts#root",
+        "direction": "incoming",
+        "maxDepth": 2,
+        "maxNodes": 2000,
+        "maxFanout": 64,
+        "edgeTypes": ["calls"],
+        "minConfidenceClass": "framework-inferred",
+        "includeExternal": true
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:src/depth.ts#one",
+        "type": "calls",
+        "target": "symbol:ts:src/depth.ts#root",
+        "minConfidence": "proven",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      },
+      {
+        "source": "symbol:ts:src/depth.ts#two",
+        "type": "calls",
+        "target": "symbol:ts:src/depth.ts#one",
+        "minConfidence": "proven",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:src/depth.ts#three",
+        "type": "calls",
+        "target": "symbol:ts:src/depth.ts#two",
+        "traversed": "reverse",
+        "repo": "main"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1
+    }
+  },
+  {
+    "id": "p02-max-nodes-shared-both",
+    "corpus": "lux",
+    "capability": "incoming-bidirectional-trace",
+    "query": {
+      "tool": "lux_trace",
+      "args": {
+        "symbol": "symbol:ts:src/budget.ts#root",
+        "direction": "both",
+        "maxDepth": 1,
+        "maxNodes": 3,
+        "maxFanout": 64,
+        "edgeTypes": ["calls"],
+        "minConfidenceClass": "framework-inferred",
+        "includeExternal": true
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:src/budget.ts#a",
+        "type": "calls",
+        "target": "symbol:ts:src/budget.ts#root",
+        "minConfidence": "proven",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      },
+      {
+        "source": "symbol:ts:src/budget.ts#root",
+        "type": "calls",
+        "target": "symbol:ts:src/budget.ts#b",
+        "minConfidence": "proven",
+        "traversed": "forward",
+        "repo": "main",
+        "freshness": "fresh"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:src/budget.ts#c",
+        "type": "calls",
+        "target": "symbol:ts:src/budget.ts#root",
+        "traversed": "reverse",
+        "repo": "main"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1
+    }
+  },
+  {
+    "id": "p02-max-fanout-incoming",
+    "corpus": "lux",
+    "capability": "incoming-bidirectional-trace",
+    "query": {
+      "tool": "lux_trace",
+      "args": {
+        "symbol": "symbol:ts:src/fan.ts#hub",
+        "direction": "incoming",
+        "maxDepth": 1,
+        "maxNodes": 2000,
+        "maxFanout": 2,
+        "edgeTypes": ["calls"],
+        "minConfidenceClass": "framework-inferred",
+        "includeExternal": true
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:src/fan.ts#a",
+        "type": "calls",
+        "target": "symbol:ts:src/fan.ts#hub",
+        "minConfidence": "proven",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      },
+      {
+        "source": "symbol:ts:src/fan.ts#b",
+        "type": "calls",
+        "target": "symbol:ts:src/fan.ts#hub",
+        "minConfidence": "proven",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:src/fan.ts#c",
+        "type": "calls",
+        "target": "symbol:ts:src/fan.ts#hub",
+        "traversed": "reverse",
+        "repo": "main"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1
+    }
+  },
+  {
+    "id": "p02-confidence-threshold-incoming",
+    "corpus": "lux",
+    "capability": "incoming-bidirectional-trace",
+    "query": {
+      "tool": "lux_trace",
+      "args": {
+        "symbol": "symbol:php:App\\Services\\ConfidenceTarget::run",
+        "direction": "incoming",
+        "maxDepth": 8,
+        "maxNodes": 2000,
+        "maxFanout": 64,
+        "edgeTypes": ["calls"],
+        "minConfidenceClass": "artifact-backed",
+        "includeExternal": true
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Exact::call",
+        "type": "calls",
+        "target": "symbol:php:App\\Services\\ConfidenceTarget::run",
+        "minConfidence": "proven",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      },
+      {
+        "source": "symbol:php:App\\Manifest::call",
+        "type": "calls",
+        "target": "symbol:php:App\\Services\\ConfidenceTarget::run",
+        "minConfidence": "artifact-backed",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Convention::call",
+        "type": "calls",
+        "target": "symbol:php:App\\Services\\ConfidenceTarget::run",
+        "traversed": "reverse",
+        "repo": "main"
+      },
+      {
+        "source": "symbol:php:App\\Guess::call",
+        "type": "calls",
+        "target": "symbol:php:App\\Services\\ConfidenceTarget::run",
+        "traversed": "reverse",
+        "repo": "main"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1
+    }
+  },
+  {
+    "id": "p02-stale-edge-is-visible",
+    "corpus": "lux",
+    "capability": "incoming-bidirectional-trace",
+    "query": {
+      "tool": "lux_trace",
+      "args": {
+        "symbol": "symbol:php:App\\Services\\LegacyTarget::run",
+        "direction": "incoming",
+        "maxDepth": 8,
+        "maxNodes": 2000,
+        "maxFanout": 64,
+        "edgeTypes": ["calls"],
+        "minConfidenceClass": "framework-inferred",
+        "includeExternal": true
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\LegacyCaller::call",
+        "type": "calls",
+        "target": "symbol:php:App\\Services\\LegacyTarget::run",
+        "minConfidence": "proven",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "stale"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\LegacyCaller::call",
+        "type": "calls",
+        "target": "symbol:php:App\\Services\\LegacyTarget::run",
+        "traversed": "forward",
+        "repo": "main"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1
+    }
+  },
+  {
+    "id": "p02-reverse-dispatch-continues-to-caller",
+    "corpus": "lux",
+    "capability": "incoming-bidirectional-trace",
+    "query": {
+      "tool": "lux_trace",
+      "args": {
+        "symbol": "artifact:job:App\\Jobs\\SyncOrder",
+        "direction": "incoming",
+        "maxDepth": 2,
+        "maxNodes": 2000,
+        "maxFanout": 64,
+        "edgeTypes": ["dispatches_job", "handled_by"],
+        "minConfidenceClass": "framework-inferred",
+        "includeExternal": true
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\SyncController::queue",
+        "type": "dispatches_job",
+        "target": "artifact:job:App\\Jobs\\SyncOrder",
+        "minConfidence": "artifact-backed",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      },
+      {
+        "source": "surface:route:laravel:POST%20%2Fsync",
+        "type": "handled_by",
+        "target": "symbol:php:App\\Http\\Controllers\\SyncController::queue",
+        "minConfidence": "artifact-backed",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "artifact:job:App\\Jobs\\SyncOrder",
+        "type": "handles_job",
+        "target": "symbol:php:App\\Jobs\\SyncOrder::handle",
+        "traversed": "forward",
+        "repo": "main"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1
+    }
+  },
+  {
+    "id": "p02-federation-portable-incoming",
+    "corpus": "lux",
+    "capability": "incoming-bidirectional-trace",
+    "query": {
+      "tool": "lux_trace",
+      "args": {
+        "symbol": "symbol:php:App\\Contracts\\Billable::bill",
+        "direction": "incoming",
+        "maxDepth": 8,
+        "maxNodes": 2000,
+        "maxFanout": 64,
+        "edgeTypes": ["implements_contract"],
+        "minConfidenceClass": "framework-inferred",
+        "includeExternal": true,
+        "withRepos": ["peer"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Billing\\LocalBillable::bill",
+        "type": "implements_contract",
+        "target": "symbol:php:App\\Contracts\\Billable::bill",
+        "minConfidence": "proven",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      },
+      {
+        "source": "symbol:php:Peer\\Billing\\RemoteBillable::bill",
+        "type": "implements_contract",
+        "target": "symbol:php:App\\Contracts\\Billable::bill",
+        "minConfidence": "proven",
+        "traversed": "reverse",
+        "repo": "peer",
+        "freshness": "fresh"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:src/peer-caller.ts#call",
+        "type": "calls",
+        "target": "symbol:ts:src/shared.ts#run",
+        "traversed": "reverse",
+        "repo": "peer"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1
+    }
+  },
+  {
+    "id": "p02-federation-repo-local-does-not-cross",
+    "corpus": "lux",
+    "capability": "incoming-bidirectional-trace",
+    "query": {
+      "tool": "lux_trace",
+      "args": {
+        "symbol": "symbol:ts:src/shared.ts#run",
+        "direction": "incoming",
+        "maxDepth": 8,
+        "maxNodes": 2000,
+        "maxFanout": 64,
+        "edgeTypes": ["calls"],
+        "minConfidenceClass": "framework-inferred",
+        "includeExternal": true,
+        "withRepos": ["peer"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:src/main-caller.ts#call",
+        "type": "calls",
+        "target": "symbol:ts:src/shared.ts#run",
+        "minConfidence": "proven",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:src/peer-caller.ts#call",
+        "type": "calls",
+        "target": "symbol:ts:src/shared.ts#run",
+        "traversed": "reverse",
+        "repo": "peer"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1
+    }
+  },
+  {
+    "id": "p02-external-caller-excluded",
+    "corpus": "lux",
+    "capability": "incoming-bidirectional-trace",
+    "query": {
+      "tool": "lux_trace",
+      "args": {
+        "symbol": "symbol:php:App\\Services\\LocalTarget::run",
+        "direction": "incoming",
+        "maxDepth": 8,
+        "maxNodes": 2000,
+        "maxFanout": 64,
+        "edgeTypes": ["calls"],
+        "minConfidenceClass": "framework-inferred",
+        "includeExternal": false
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\LocalController::call",
+        "type": "calls",
+        "target": "symbol:php:App\\Services\\LocalTarget::run",
+        "minConfidence": "proven",
+        "traversed": "reverse",
+        "repo": "main",
+        "freshness": "fresh"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:Vendor\\Framework\\Proxy::call",
+        "type": "calls",
+        "target": "symbol:php:App\\Services\\LocalTarget::run",
+        "traversed": "reverse",
+        "repo": "main"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1
+    }
+  },
+  {
+    "id": "p02-ambiguous-start-refused",
+    "corpus": "lux",
+    "capability": "incoming-bidirectional-trace",
+    "query": {
+      "tool": "lux_trace",
+      "args": {
+        "symbol": "SharedHandler",
+        "direction": "incoming",
+        "maxDepth": 8,
+        "maxNodes": 2000,
+        "maxFanout": 64,
+        "edgeTypes": ["calls"],
+        "minConfidenceClass": "framework-inferred",
+        "includeExternal": true
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\One\\SharedHandler::run",
+        "type": "calls",
+        "target": "symbol:php:App\\Target::run",
+        "traversed": "forward",
+        "repo": "main"
+      },
+      {
+        "source": "symbol:php:App\\Two\\SharedHandler::run",
+        "type": "calls",
+        "target": "symbol:php:App\\Target::run",
+        "traversed": "forward",
+        "repo": "main"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1
+    },
+    "expectedRefusalReason": "ambiguous"
+  }
+]
