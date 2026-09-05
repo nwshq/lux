@@ -125,7 +125,7 @@ describe('production coverage builder', () => {
         calls: { state: 'active', edges: 1 },
       },
     });
-    expect(byLanguage.get('javascript')?.capabilities.calls.state).toBe('unsupported');
+    expect(byLanguage.get('javascript')?.capabilities.calls.state).toBe('partial');
     expect(byLanguage.get('vue')?.capabilities.symbols.state).toBe('partial');
     expect(byLanguage.get('ruby')?.capabilities.syntax.state).toBe('unsupported');
     expect(db.getIndexMetadata('overlay_trust_state')).toBe(beforeTrust);
@@ -182,6 +182,10 @@ describe('production coverage builder', () => {
   it('exports an immutable explicit producer catalog', () => {
     expect(Object.isFrozen(COVERAGE_PRODUCER_CATALOG)).toBe(true);
     expect(Object.isFrozen(COVERAGE_PRODUCER_CATALOG.php)).toBe(true);
-    expect(COVERAGE_PRODUCER_CATALOG.javascript.calls.runSignal).toBe('unsupported');
+    expect(COVERAGE_PRODUCER_CATALOG.javascript.calls).toMatchObject({
+      producer: 'javascript-tree-sitter',
+      runSignal: 'overlay',
+      output: 'calls',
+    });
   });
 });

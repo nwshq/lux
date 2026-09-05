@@ -8,7 +8,13 @@
 import type { LuxDatabase } from '../../db/index.js';
 import type { ScanResult } from '../types.js';
 import type { StructuralNode } from '../../db/types.js';
-import { extractSource, getGrammars, langForFile, type Extraction } from './extract.js';
+import {
+  astLanguageId,
+  extractSource,
+  getGrammars,
+  langForFile,
+  type Extraction,
+} from './extract.js';
 import type { SharedExtractions } from './extraction-cache.js';
 import { buildAstSymbolNodes } from './symbols.js';
 import { buildAnchorTexts, type PreparedNodeText } from '../anchors/prepare-node-text.js';
@@ -60,7 +66,11 @@ export async function materializeAstSymbols(
         continue;
       }
     }
-    nodes.push(...buildAstSymbolNodes(relPath, extraction, lang, now));
+    const symbolNodes = buildAstSymbolNodes(relPath, extraction, lang, now);
+    // Force the persisted-language contract at this boundary as well as in the
+    // symbol builder; JS/JSX share a grammar but must never be labeled TypeScript.
+    const languageId = astLanguageId(lang);
+    nodes.push(...symbolNodes.map((node) => ({ ...node, language_id: languageId })));
     // Anchor prep (Decision 5): the extraction's byte ranges + entry.content are both in hand HERE
     // and nowhere downstream — buildAnchorTexts renders one prepared unit per anchor-viable node.
     anchorTexts.push(...buildAnchorTexts(relPath, extraction, lang, entry.content));

@@ -63,11 +63,11 @@ export const COVERAGE_PRODUCER_CATALOG = Object.freeze({
     framework,
   }),
   javascript: Object.freeze({
-    syntax: unsupported,
-    symbols: unsupported,
-    imports: unsupported,
-    calls: unsupported,
-    references: unsupported,
+    syntax: astNodes('javascript-tree-sitter'),
+    symbols: astNodes('javascript-tree-sitter'),
+    imports: astEdges('javascript-tree-sitter', 'references'),
+    calls: astEdges('javascript-tree-sitter', 'calls'),
+    references: astEdges('javascript-tree-sitter', 'references'),
     framework,
   }),
   vue: Object.freeze({

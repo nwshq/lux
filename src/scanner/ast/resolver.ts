@@ -25,6 +25,7 @@ import {
   langForFile,
   getGrammars,
   extractSource,
+  astLanguageId,
   type AstLang,
   type Extraction,
   type ImportBinding,
@@ -133,7 +134,7 @@ function defEntries(f: FileExtraction): DefEntry[] {
 }
 
 function sameFileEdges(f: FileExtraction, resolver: string, now: number): StructuralRelationEdge[] {
-  const languageId = f.lang === 'php' ? 'php' : 'typescript';
+  const languageId = astLanguageId(f.lang);
   const defs = defEntries(f);
 
   // Bare calls / constructions target a same-file function or class (first
@@ -217,7 +218,7 @@ function crossFileEdges(
 ): StructuralRelationEdge[] {
   const imports = f.extraction.imports ?? [];
   if (imports.length === 0) return [];
-  const languageId = f.lang === 'php' ? 'php' : 'typescript';
+  const languageId = astLanguageId(f.lang);
 
   const importMap = new Map<string, ImportBinding>();
   for (const imp of imports) if (!importMap.has(imp.local)) importMap.set(imp.local, imp);

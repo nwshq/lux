@@ -10,6 +10,10 @@ beforeAll(async () => {
 
 describe('langForFile', () => {
   it('maps supported extensions and rejects others', () => {
+    expect(langForFile('a.js')).toBe('javascript');
+    expect(langForFile('a.jsx')).toBe('jsx');
+    expect(langForFile('a.mjs')).toBe('javascript');
+    expect(langForFile('a.cjs')).toBe('javascript');
     expect(langForFile('a.ts')).toBe('typescript');
     expect(langForFile('a.tsx')).toBe('tsx');
     expect(langForFile('a.php')).toBe('php');

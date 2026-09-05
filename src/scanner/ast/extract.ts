@@ -70,14 +70,39 @@ export interface AstEdge {
   member?: string;
 }
 
+/** Kinds of statically-understood ECMAScript module syntax. */
+export type ModuleSyntaxKind =
+  | 'esm-import'
+  | 'esm-export-default'
+  | 'esm-export-named'
+  | 'esm-reexport-named'
+  | 'esm-reexport-all'
+  | 'commonjs-require'
+  | 'commonjs-module-exports'
+  | 'commonjs-exports-member';
+
+/** One deterministic import/export observation, before project resolution. */
+export interface ModuleSyntaxFact {
+  kind: ModuleSyntaxKind;
+  localName?: string;
+  importedName?: string;
+  exportedName?: string;
+  specifier?: string;
+  range: AstRange;
+}
+
 /** An imported name bound in a file, for cross-file resolution. */
 export interface ImportBinding {
   /** Local name the import is bound to in this file. */
   local: string;
-  /** Original exported name in the source module (TS), or the FQN (PHP). */
+  /** Original exported name in the source module (TS/JS), or the FQN (PHP). */
   imported: string;
   /** Module specifier for TS/JS imports; absent for PHP `use`. */
   module?: string;
+  /** Present on all extractor-produced bindings; optional for legacy handcrafted callers. */
+  syntax?: 'esm' | 'commonjs';
+  /** Exact local binding token range; present on all extractor-produced bindings. */
+  range?: AstRange;
 }
 
 export interface Extraction {
@@ -87,23 +112,42 @@ export interface Extraction {
   namespace?: string;
   /** Import bindings (local name -> source), for cross-file resolution. */
   imports?: ImportBinding[];
+  /** Always populated by extractSource; optional only for legacy handcrafted callers. */
+  moduleFacts?: ModuleSyntaxFact[];
+  /** Always populated by extractSource; optional only for legacy handcrafted callers. */
+  diagnostics?: Array<{ code: string; message: string; range?: AstRange }>;
 }
 
 // ---------------------------------------------------------------------------
 // Grammar wiring
 // ---------------------------------------------------------------------------
 
-export type AstLang = 'typescript' | 'tsx' | 'php';
+export type AstLang = 'javascript' | 'jsx' | 'typescript' | 'tsx' | 'php';
 
 const GRAMMAR_WASM: Record<AstLang, string> = {
+  javascript: join(WASM_DIR, 'tree-sitter-javascript.wasm'),
+  jsx: join(WASM_DIR, 'tree-sitter-javascript.wasm'),
   typescript: join(WASM_DIR, 'tree-sitter-typescript.wasm'),
   tsx: join(WASM_DIR, 'tree-sitter-tsx.wasm'),
   php: join(WASM_DIR, 'tree-sitter-php.wasm'),
 };
 
+/** Collapse grammar variants to their persisted language id. */
+export function astLanguageId(lang: AstLang): 'javascript' | 'typescript' | 'php' {
+  if (lang === 'javascript' || lang === 'jsx') return 'javascript';
+  if (lang === 'typescript' || lang === 'tsx') return 'typescript';
+  return 'php';
+}
+
 /** Map a file path to a supported AST language, or null if unsupported. */
 export function langForFile(file: string): AstLang | null {
-  switch (extname(file)) {
+  switch (extname(file).toLowerCase()) {
+    case '.js':
+    case '.mjs':
+    case '.cjs':
+      return 'javascript';
+    case '.jsx':
+      return 'jsx';
     case '.ts':
       return 'typescript';
     case '.tsx':
@@ -177,15 +221,16 @@ function enclosingTsClassName(node: TsNode): string | undefined {
       return nameOf(cur) ?? undefined;
     }
     if (cur.type === 'class') {
-      // Class expression: only surfaced (and thus referenceable) when assigned
-      // to a variable — that name is also what the class node is extracted as.
-      // An unsurfaced class expression (object-literal value, argument, IIFE)
-      // has no stable id, so its methods are skipped rather than given an
-      // orphan container that references no class node.
+      // Class expressions are surfaced only when directly assigned to a stable
+      // identifier (`const X = class {}` or `X = class {}`).
       const decl = cur.parent;
       if (decl?.type === 'variable_declarator') {
         const nm = decl.childForFieldName('name');
-        if (nm) return nm.text;
+        if (nm?.type === 'identifier') return nm.text;
+      }
+      if (decl?.type === 'assignment_expression') {
+        const nm = decl.childForFieldName('left');
+        if (nm?.type === 'identifier') return nm.text;
       }
       return undefined;
     }
@@ -220,7 +265,7 @@ function lastNamespaceSegment(fqn: string): string {
   return idx >= 0 ? fqn.slice(idx + 1) : fqn;
 }
 
-/** Extract local->imported bindings from a TS `import_statement`. */
+/** Extract local->imported bindings from an ECMAScript `import_statement`. */
 function tsImportBindings(importStmt: TsNode, module: string): ImportBinding[] {
   const out: ImportBinding[] = [];
   const clause = importStmt.namedChildren.find((c) => c && c.type === 'import_clause');
@@ -228,18 +273,42 @@ function tsImportBindings(importStmt: TsNode, module: string): ImportBinding[] {
   for (const child of clause.namedChildren) {
     if (!child) continue;
     if (child.type === 'identifier') {
-      out.push({ local: child.text, imported: 'default', module });
+      out.push({
+        local: child.text,
+        imported: 'default',
+        module,
+        syntax: 'esm',
+        range: toRange(child),
+      });
     } else if (child.type === 'named_imports') {
       for (const spec of child.namedChildren) {
         if (!spec || spec.type !== 'import_specifier') continue;
         const nameNode = spec.childForFieldName('name');
         const aliasNode = spec.childForFieldName('alias');
         const imported = nameNode?.text;
-        if (imported) out.push({ local: aliasNode?.text ?? imported, imported, module });
+        const localNode = aliasNode ?? nameNode;
+        if (imported && localNode) {
+          out.push({
+            local: localNode.text,
+            imported,
+            module,
+            syntax: 'esm',
+            range: toRange(localNode),
+          });
+        }
+      }
+    } else if (child.type === 'namespace_import') {
+      const localNode = child.namedChildren.find((c) => c?.type === 'identifier');
+      if (localNode) {
+        out.push({
+          local: localNode.text,
+          imported: '*',
+          module,
+          syntax: 'esm',
+          range: toRange(localNode),
+        });
       }
     }
-    // namespace_import (`* as ns`) is intentionally skipped — member access via
-    // the namespace object needs resolution beyond a direct binding.
   }
   return out;
 }
@@ -256,7 +325,12 @@ function phpUseBindings(useDecl: TsNode): ImportBinding[] {
     const fqn = nameNode.text;
     const aliasNode = clause.namedChildren.find((c) => c && c.type === 'namespace_aliasing_clause');
     const alias = aliasNode?.namedChildren.find((c) => c && /(name|identifier)/.test(c.type))?.text;
-    out.push({ local: alias ?? lastNamespaceSegment(fqn), imported: fqn });
+    out.push({
+      local: alias ?? lastNamespaceSegment(fqn),
+      imported: fqn,
+      syntax: 'esm',
+      range: toRange(clause),
+    });
   }
   return out;
 }
@@ -265,11 +339,137 @@ function phpUseBindings(useDecl: TsNode): ImportBinding[] {
 // Extraction
 // ---------------------------------------------------------------------------
 
+function stringLiteralValue(node: TsNode | null | undefined): string | undefined {
+  if (!node || node.type !== 'string') return undefined;
+  return node.text.slice(1, -1);
+}
+
+function moduleCallSpecifier(call: TsNode): string | undefined {
+  const args = call.childForFieldName('arguments');
+  if (!args || args.namedChildCount !== 1) return undefined;
+  return stringLiteralValue(args.namedChild(0));
+}
+
+function assignedName(value: TsNode): { name: string; rangeNode: TsNode } | undefined {
+  const parent = value.parent;
+  if (parent?.type === 'variable_declarator') {
+    const name = parent.childForFieldName('name');
+    if (name?.type === 'identifier') return { name: name.text, rangeNode: parent };
+  }
+  if (parent?.type === 'assignment_expression') {
+    const left = parent.childForFieldName('left');
+    if (left?.type === 'identifier') return { name: left.text, rangeNode: parent };
+  }
+  return undefined;
+}
+
+function exportedDeclarationNames(declaration: TsNode): string[] {
+  if (
+    DEF_TYPES.ts.function.includes(declaration.type as never) ||
+    DEF_TYPES.ts.class.includes(declaration.type as never)
+  ) {
+    const name = nameOf(declaration);
+    return name ? [name] : [];
+  }
+  if (declaration.type === 'lexical_declaration' || declaration.type === 'variable_declaration') {
+    return declaration.namedChildren.flatMap((child) => {
+      if (child?.type !== 'variable_declarator') return [];
+      const name = child.childForFieldName('name');
+      return name?.type === 'identifier' ? [name.text] : [];
+    });
+  }
+  return [];
+}
+
+function commonJsMember(
+  left: TsNode
+):
+  | { kind: 'default'; exportedName: 'default' }
+  | { kind: 'member'; exportedName: string }
+  | { kind: 'computed' }
+  | undefined {
+  if (left.type === 'subscript_expression') {
+    const object = left.childForFieldName('object');
+    if (object?.text === 'exports' || object?.text === 'module.exports')
+      return { kind: 'computed' };
+    return undefined;
+  }
+  if (left.type !== 'member_expression') return undefined;
+  const object = left.childForFieldName('object');
+  const property = left.childForFieldName('property');
+  if (object?.text === 'module' && property?.text === 'exports') {
+    return { kind: 'default', exportedName: 'default' };
+  }
+  if (object?.text === 'exports' && property) {
+    return { kind: 'member', exportedName: property.text };
+  }
+  if (object?.text === 'module.exports' && property) {
+    return { kind: 'member', exportedName: property.text };
+  }
+  return undefined;
+}
+
+function requireBindings(call: TsNode, module: string): ImportBinding[] {
+  const declarator = call.parent;
+  if (
+    declarator?.type !== 'variable_declarator' ||
+    declarator.childForFieldName('value')?.id !== call.id
+  ) {
+    return [];
+  }
+  const name = declarator.childForFieldName('name');
+  if (!name) return [];
+  if (name.type === 'identifier') {
+    return [
+      { local: name.text, imported: 'default', module, syntax: 'commonjs', range: toRange(name) },
+    ];
+  }
+  if (name.type !== 'object_pattern') return [];
+  const bindings: ImportBinding[] = [];
+  for (const child of name.namedChildren) {
+    if (!child) continue;
+    if (child.type === 'pair_pattern') {
+      const importedNode = child.namedChildren[0];
+      const localNode = child.childForFieldName('value');
+      if (importedNode && localNode?.type === 'identifier') {
+        bindings.push({
+          local: localNode.text,
+          imported: importedNode.text,
+          module,
+          syntax: 'commonjs',
+          range: toRange(localNode),
+        });
+      }
+    } else if (child.type === 'shorthand_property_identifier_pattern') {
+      bindings.push({
+        local: child.text,
+        imported: child.text,
+        module,
+        syntax: 'commonjs',
+        range: toRange(child),
+      });
+    }
+  }
+  return bindings;
+}
+
+function diagnostic(
+  diagnostics: Array<{ code: string; message: string; range?: AstRange }>,
+  node: TsNode,
+  message: string
+): void {
+  diagnostics.push({ code: 'unsupported-dynamic-module', message, range: toRange(node) });
+}
+
 function extractTs(root: TsNode, file: string): Extraction {
   const nodes: AstNode[] = [];
   const edges: AstEdge[] = [];
   const imports: ImportBinding[] = [];
+  const moduleFacts: ModuleSyntaxFact[] = [];
+  const diagnostics: Array<{ code: string; message: string; range?: AstRange }> = [];
   const localDefs = new Set<string>();
+  const moduleAliases = new Set<string>();
+  const exportsAliases = new Set<string>();
 
   walk(root, (n) => {
     if (DEF_TYPES.ts.function.includes(n.type as never)) {
@@ -279,8 +479,6 @@ function extractTs(root: TsNode, file: string): Extraction {
         localDefs.add(name);
       }
     } else if (DEF_TYPES.ts.method.includes(n.type as never)) {
-      // Only class members are surfaced; object-literal shorthand methods are
-      // not class methods and would collide with top-level symbols by id.
       const container = enclosingTsClassName(n);
       if (container === undefined) return;
       const name = nameOf(n);
@@ -294,38 +492,217 @@ function extractTs(root: TsNode, file: string): Extraction {
         nodes.push({ type: 'class', name, file, range: toRange(n) });
         localDefs.add(name);
       }
-    } else if (n.type === 'variable_declarator') {
-      const value = n.childForFieldName('value');
+    } else if (/^(arrow_function|function_expression|function|class)$/.test(n.type)) {
+      const assigned = assignedName(n);
+      if (assigned) {
+        const type = n.type === 'class' ? 'class' : 'function';
+        nodes.push({ type, name: assigned.name, file, range: toRange(assigned.rangeNode) });
+        localDefs.add(assigned.name);
+      }
+    }
+
+    if (n.type === 'variable_declarator') {
       const name = n.childForFieldName('name');
-      if (value && name) {
-        if (/^(arrow_function|function_expression|function)$/.test(value.type)) {
-          // const foo = (...) => {...}  /  const foo = function () {...}
-          nodes.push({ type: 'function', name: name.text, file, range: toRange(n) });
-          localDefs.add(name.text);
-        } else if (value.type === 'class') {
-          // const Widget = class {...}: extract as a class so its methods get a
-          // `Widget.` container (see enclosingTsClassName) instead of bare ids.
-          nodes.push({ type: 'class', name: name.text, file, range: toRange(n) });
-          localDefs.add(name.text);
-        }
+      const value = n.childForFieldName('value');
+      if (name?.type === 'identifier' && value?.text === 'module') moduleAliases.add(name.text);
+      if (name?.type === 'identifier' && value?.text === 'exports') exportsAliases.add(name.text);
+    }
+  });
+
+  // ESM declarations and re-exports.
+  walk(root, (n) => {
+    if (n.type === 'import_statement') {
+      const source = n.childForFieldName('source');
+      const specifier = stringLiteralValue(source);
+      if (specifier === undefined) {
+        diagnostic(diagnostics, n, 'Non-literal ESM import is unsupported');
+        return;
+      }
+      edges.push({
+        type: 'import',
+        fromFile: file,
+        toRaw: specifier,
+        range: toRange(n),
+        nameRange: toRange(source!),
+      });
+      const bindings = tsImportBindings(n, specifier);
+      imports.push(...bindings);
+      if (bindings.length === 0) {
+        moduleFacts.push({ kind: 'esm-import', specifier, range: toRange(n) });
+      } else {
+        moduleFacts.push(
+          ...bindings.map((binding) => ({
+            kind: 'esm-import' as const,
+            localName: binding.local,
+            importedName: binding.imported,
+            specifier,
+            range: binding.range ?? toRange(n),
+          }))
+        );
+      }
+      return;
+    }
+    if (n.type !== 'export_statement') return;
+
+    const source = n.childForFieldName('source');
+    const specifier = source ? stringLiteralValue(source) : undefined;
+    const declaration = n.childForFieldName('declaration');
+    const value = n.childForFieldName('value');
+    const clause = n.namedChildren.find((child) => child?.type === 'export_clause');
+    const namespaceExport = n.namedChildren.find((child) => child?.type === 'namespace_export');
+    const isDefault = /^export\s+default\b/.test(n.text);
+
+    if (source && specifier === undefined) {
+      diagnostic(diagnostics, n, 'Non-literal ESM re-export is unsupported');
+      return;
+    }
+    if (specifier !== undefined) {
+      edges.push({
+        type: 'import',
+        fromFile: file,
+        toRaw: specifier,
+        range: toRange(n),
+        nameRange: toRange(source!),
+      });
+    }
+    if (isDefault) {
+      const localName = declaration ? (nameOf(declaration) ?? undefined) : value?.text;
+      moduleFacts.push({
+        kind: 'esm-export-default',
+        ...(localName ? { localName } : {}),
+        exportedName: 'default',
+        range: toRange(n),
+      });
+      return;
+    }
+    if (clause) {
+      for (const spec of clause.namedChildren) {
+        if (spec?.type !== 'export_specifier') continue;
+        const name = spec.childForFieldName('name');
+        const alias = spec.childForFieldName('alias');
+        if (!name) continue;
+        moduleFacts.push({
+          kind: specifier === undefined ? 'esm-export-named' : 'esm-reexport-named',
+          localName: name.text,
+          importedName: name.text,
+          exportedName: alias?.text ?? name.text,
+          ...(specifier === undefined ? {} : { specifier }),
+          range: toRange(spec),
+        });
+      }
+      return;
+    }
+    if (specifier !== undefined) {
+      const exportedName = namespaceExport?.namedChildren[0]?.text;
+      moduleFacts.push({
+        kind: 'esm-reexport-all',
+        ...(exportedName ? { exportedName } : {}),
+        specifier,
+        range: toRange(namespaceExport ?? n),
+      });
+      return;
+    }
+    if (declaration) {
+      for (const name of exportedDeclarationNames(declaration)) {
+        moduleFacts.push({
+          kind: 'esm-export-named',
+          localName: name,
+          exportedName: name,
+          range: toRange(declaration),
+        });
       }
     }
   });
 
-  // Imports & re-exports (source string in field `source`).
+  // CommonJS imports/exports and dynamic-module diagnostics.
   walk(root, (n) => {
-    if (n.type === 'import_statement' || n.type === 'export_statement') {
-      const source = n.childForFieldName('source');
-      if (source) {
-        const module = source.text.replace(/^['"`]|['"`]$/g, '');
+    if (n.type === 'call_expression') {
+      const callee = n.childForFieldName('function');
+      if (!callee) return;
+      if (callee.text === 'require' || callee.type === 'import') {
+        const specifier = moduleCallSpecifier(n);
+        if (specifier === undefined) {
+          diagnostic(
+            diagnostics,
+            n,
+            callee.text === 'require'
+              ? 'Non-literal require() is unsupported'
+              : 'Non-literal dynamic import() is unsupported'
+          );
+          return;
+        }
         edges.push({
           type: 'import',
           fromFile: file,
-          toRaw: module,
+          toRaw: specifier,
           range: toRange(n),
-          nameRange: toRange(source),
+          nameRange: toRange(n.childForFieldName('arguments')?.namedChild(0) ?? n),
         });
-        if (n.type === 'import_statement') imports.push(...tsImportBindings(n, module));
+        if (callee.type === 'import') {
+          moduleFacts.push({ kind: 'esm-import', specifier, range: toRange(n) });
+          return;
+        }
+        const bindings = requireBindings(n, specifier);
+        imports.push(...bindings);
+        if (bindings.length === 0) {
+          moduleFacts.push({ kind: 'commonjs-require', specifier, range: toRange(n) });
+        } else {
+          moduleFacts.push(
+            ...bindings.map((binding) => ({
+              kind: 'commonjs-require' as const,
+              localName: binding.local,
+              importedName: binding.imported,
+              specifier,
+              range: binding.range ?? toRange(n),
+            }))
+          );
+        }
+        return;
+      }
+      if (callee.text === 'eval') {
+        diagnostic(diagnostics, n, 'eval() can mutate module state dynamically');
+      } else if (callee.text === 'Object.assign') {
+        const first = n.childForFieldName('arguments')?.namedChild(0)?.text;
+        if (first === 'exports' || first === 'module.exports') {
+          diagnostic(diagnostics, n, 'Runtime mutation of CommonJS exports is unsupported');
+        }
+      }
+      return;
+    }
+
+    if (n.type === 'assignment_expression') {
+      const left = n.childForFieldName('left');
+      if (!left) return;
+      const commonJs = commonJsMember(left);
+      if (commonJs?.kind === 'computed') {
+        diagnostic(diagnostics, n, 'Computed CommonJS export members are unsupported');
+        return;
+      }
+      if (commonJs) {
+        const right = n.childForFieldName('right');
+        const localName = right?.type === 'identifier' ? right.text : undefined;
+        moduleFacts.push({
+          kind: commonJs.kind === 'default' ? 'commonjs-module-exports' : 'commonjs-exports-member',
+          ...(localName ? { localName } : {}),
+          exportedName: commonJs.exportedName,
+          range: toRange(n),
+        });
+        return;
+      }
+      const object = left.childForFieldName('object');
+      if (
+        (object && (moduleAliases.has(object.text) || exportsAliases.has(object.text))) ||
+        moduleAliases.has(left.text) ||
+        exportsAliases.has(left.text)
+      ) {
+        diagnostic(diagnostics, n, 'Assignment through a module/exports alias is unsupported');
+      }
+      return;
+    }
+
+    if (n.type === 'augmented_assignment_expression' || n.type === 'update_expression') {
+      if (/^(?:module\.exports|exports)(?:\.|\[)/.test(n.text)) {
+        diagnostic(diagnostics, n, 'Runtime mutation of CommonJS exports is unsupported');
       }
     }
   });
@@ -336,22 +713,9 @@ function extractTs(root: TsNode, file: string): Extraction {
       const callee = n.childForFieldName('function');
       if (!callee) return;
       const calleeText = callee.text;
-      // require()/import('...') are imports, not calls.
-      if (calleeText === 'require' || calleeText === 'import') {
-        const args = n.childForFieldName('arguments');
-        const strArg = args?.namedChildren.find((c) => c && c.type === 'string');
-        if (strArg) {
-          edges.push({
-            type: 'import',
-            fromFile: file,
-            toRaw: strArg.text.replace(/^['"`]|['"`]$/g, ''),
-            range: toRange(n),
-          });
-          return;
-        }
-      }
+      // Module loaders and eval are facts/diagnostics, never direct call targets.
+      if (calleeText === 'require' || callee.type === 'import' || calleeText === 'eval') return;
       if (callee.type === 'identifier') {
-        // Bare call `foo()`: a same-file function/class or an import-bound name.
         const name = callee.text;
         const edge: AstEdge = {
           type: 'call',
@@ -368,8 +732,6 @@ function extractTs(root: TsNode, file: string): Extraction {
         }
         edges.push(edge);
       } else if (callee.type === 'member_expression') {
-        // `receiver.method()`: resolvable same-file only when the receiver is
-        // `this` (own class); any other receiver is typed — left for LSP.
         const property = callee.childForFieldName('property');
         const object = callee.childForFieldName('object');
         const member = property?.text ?? callee.text;
@@ -383,8 +745,6 @@ function extractTs(root: TsNode, file: string): Extraction {
           member,
         });
       } else {
-        // Any other callee form (call chains, parenthesized, etc.): unresolved
-        // typed receiver — leave for LSP.
         const member = callee.text.split(/[.?!]/).filter(Boolean).pop() ?? callee.text;
         edges.push({
           type: 'call',
@@ -416,7 +776,7 @@ function extractTs(root: TsNode, file: string): Extraction {
     }
   });
 
-  return { nodes, edges, imports };
+  return { nodes, edges, imports, moduleFacts, diagnostics };
 }
 
 function extractPhp(root: TsNode, file: string): Extraction {
@@ -559,7 +919,7 @@ function extractPhp(root: TsNode, file: string): Extraction {
     }
   });
 
-  return { nodes, edges, namespace, imports };
+  return { nodes, edges, namespace, imports, moduleFacts: [], diagnostics: [] };
 }
 
 // ---------------------------------------------------------------------------
@@ -603,11 +963,38 @@ export function extractSource(
   try {
     parser.setLanguage(grammar);
     const tree = parser.parse(source);
-    if (!tree) return { extraction: { nodes: [], edges: [] }, hadError: true };
+    if (!tree) {
+      return {
+        extraction: {
+          nodes: [],
+          edges: [],
+          moduleFacts: [],
+          diagnostics: [{ code: 'parse-error', message: 'tree-sitter returned no syntax tree' }],
+        },
+        hadError: true,
+      };
+    }
     try {
       const hadError = tree.rootNode.hasError;
       const extraction =
         lang === 'php' ? extractPhp(tree.rootNode, relPath) : extractTs(tree.rootNode, relPath);
+      if (hadError) {
+        const errorNodes: TsNode[] = [];
+        walk(tree.rootNode, (node) => {
+          if (node.isError || node.isMissing) errorNodes.push(node);
+        });
+        if (errorNodes.length === 0) errorNodes.push(tree.rootNode);
+        extraction.diagnostics ??= [];
+        extraction.diagnostics.push(
+          ...errorNodes.map((node) => ({
+            code: 'parse-error',
+            message: node.isMissing
+              ? `tree-sitter missing ${node.type}`
+              : `tree-sitter syntax error at ${node.type}`,
+            range: toRange(node),
+          }))
+        );
+      }
       return { extraction, hadError };
     } finally {
       tree.delete();

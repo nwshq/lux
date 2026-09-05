@@ -36,6 +36,26 @@ export function persistCoverageProducerRuns(db: LuxDatabase, scan: GeneralScanRe
     };
   }
 
+  const javascriptCandidates = candidateCounts.get('javascript') ?? 0;
+  const javascriptFacts =
+    scan.overlay?.programAnalysis?.facts.filter((facts) => facts.languageId === 'javascript') ?? [];
+  const javascriptFailures =
+    scan.overlay?.programAnalysis?.diagnostics.filter((diagnostic) =>
+      ['timeout', 'limit', 'parse-error', 'path-escape', 'worker-error'].includes(diagnostic.code)
+    ).length ?? 0;
+  runs['javascript-tree-sitter'] = {
+    status:
+      javascriptCandidates === 0
+        ? 'not-applicable'
+        : !scan.overlay || javascriptFacts.length === 0
+          ? 'failed'
+          : javascriptFailures > 0 || javascriptFacts.length < javascriptCandidates
+            ? 'partial'
+            : 'success',
+    failures: javascriptFailures || (!scan.overlay ? javascriptCandidates : 0),
+    completedCandidates: javascriptFacts.length,
+  };
+
   const vueCandidates = candidateCounts.get('vue') ?? 0;
   const vueCompleted = [...scan.enrichments.values()].filter(
     (result) => result.languageId === 'vue'
@@ -76,7 +96,7 @@ export function persistScopedCoverageProducerRuns(
 
   // A scoped run says nothing about languages outside its refresh set. Preserve their last
   // complete-run evidence rather than fabricating a new success/failure from an unrelated change.
-  for (const language of ['php', 'typescript'] as const) {
+  for (const language of ['php', 'typescript', 'javascript'] as const) {
     const count = touched.get(language) ?? 0;
     if (count === 0) continue;
     const producer = `${language}-tree-sitter`;
@@ -88,6 +108,12 @@ export function persistScopedCoverageProducerRuns(
       };
     } else if (!previous[producer]) {
       next[producer] = { status: 'success', failures: 0, completedCandidates: count };
+    } else {
+      next[producer] = {
+        status: 'success',
+        failures: 0,
+        completedCandidates: previous[producer].completedCandidates,
+      };
     }
   }
 

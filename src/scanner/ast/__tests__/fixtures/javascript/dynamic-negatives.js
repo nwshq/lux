@@ -1,0 +1,13 @@
+const target = './dynamic.js';
+const dynamicRequire = require(target);
+const dynamicImport = import(target);
+module.exports[target] = dynamicRequire;
+exports['literal-looking-computed'] = dynamicRequire;
+const moduleAlias = module;
+moduleAlias.exports = dynamicRequire;
+const exportsAlias = exports;
+exportsAlias.named = dynamicRequire;
+Object.assign(exports, dynamicRequire);
+eval('module.exports = dynamicRequire');
+module.exports.named += dynamicRequire;
+exports.named++;

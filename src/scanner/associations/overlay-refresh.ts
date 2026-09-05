@@ -21,10 +21,10 @@ import type { AssociationContext, StructuralRelationEdge } from './types.js';
 import type { EnrichmentMap } from '../lsp/index.js';
 import type { Extraction } from '../ast/extract.js';
 import type { SharedExtractions } from '../ast/extraction-cache.js';
+import { analyzeProgram, type ProgramAnalysisV1 } from '../adapters/program-analysis.js';
 import { getHeadCommit, isGitRepository } from '../git.js';
 import { materializeNodes } from './materializer.js';
 import { materializeAstSymbols } from '../ast/materialize.js';
-import { buildSharedExtractions } from '../ast/extraction-cache.js';
 import { AstStructuralResolver } from '../ast/resolver.js';
 import { AssociationEngine } from './engine.js';
 import { createDefaultResolvers } from './framework/index.js';
@@ -179,9 +179,12 @@ export async function refreshOverlayScoped(
   // 2. Async pre-compute (reads only) — extraction + LSP so tier fate is known before the clear.
   const scanR: ScanResult = { knowledge: buildScanFor(rootPath, rematPaths) };
   let sharedExtractions: SharedExtractions | undefined;
+  let programAnalysis: ProgramAnalysisV1 | undefined;
   let astOk = true;
   try {
-    sharedExtractions = await buildSharedExtractions(scanR, rootPath, report);
+    const analysis = await analyzeProgram(scanR, rootPath, report);
+    sharedExtractions = analysis.shared.extractions;
+    programAnalysis = analysis;
   } catch {
     astOk = false;
   }
@@ -237,6 +240,7 @@ export async function refreshOverlayScoped(
     currentCommit, // toDbEdge stamps source_commit for the resolver tiers
     dirtyFiles: [],
     sharedExtractions,
+    programAnalysis,
   };
   const resolvers = [
     ...createDefaultResolvers(),

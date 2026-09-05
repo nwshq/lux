@@ -2,7 +2,14 @@ import eslint from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
 
-const ignorePatterns = ['dist/**', 'node_modules/**', '*.config.js', '*.config.mjs'];
+const ignorePatterns = [
+  'dist/**',
+  'node_modules/**',
+  '*.config.js',
+  '*.config.mjs',
+  'src/scanner/ast/__tests__/fixtures/javascript/**',
+  'src/scanner/adapters/__tests__/fixtures/**',
+];
 
 export default [
   {
@@ -33,6 +40,7 @@ export default [
         clearInterval: 'readonly',
         queueMicrotask: 'readonly',
         URL: 'readonly',
+        TextDecoder: 'readonly',
         // WHATWG fetch family — Node 22 globals (used by the embeddings weight-cache fetch path).
         fetch: 'readonly',
         Response: 'readonly',

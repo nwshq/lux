@@ -6,6 +6,7 @@
 
 import type { StructuralNode, EdgeType, ConfidenceClass } from '../../db/types.js';
 import type { SharedExtractions } from '../ast/extraction-cache.js';
+import type { ProgramAnalysisV1 } from '../adapters/program-analysis.js';
 
 // Re-export node type alias for convenience
 export type {
@@ -40,6 +41,8 @@ export interface AssociationContext {
    * When present, AST-based resolvers read from it instead of re-parsing.
    */
   sharedExtractions?: SharedExtractions;
+  /** Contract-shaped parser analysis shared by relationship resolvers. */
+  programAnalysis?: ProgramAnalysisV1;
 }
 
 // ---------------------------------------------------------------------------

@@ -1,0 +1,1415 @@
+[
+  {
+    "id": "js-declarations-assigned-calls-new",
+    "corpus": "synthetic",
+    "capability": "deterministic-javascript-ast",
+    "query": {
+      "tool": "phase6SourceFactsContract",
+      "args": {
+        "filePath": "synthetic/declarations.js",
+        "source": "function top() {\n  helper();\n  this.refresh();\n  service.run();\n  new Worker();\n}\nclass Box {\n  open() { helper(); }\n}\nconst arrow = () => { helper(); };\nconst assignedFunction = function () { helper(); };\nconst AssignedClass = class {\n  close() { helper(); }\n};\n"
+      }
+    },
+    "expectedDeclarations": [
+      {
+        "localId": "top",
+        "kind": "function",
+        "name": "top"
+      },
+      {
+        "localId": "Box",
+        "kind": "class",
+        "name": "Box"
+      },
+      {
+        "localId": "Box.open",
+        "kind": "method",
+        "name": "open",
+        "container": "Box"
+      },
+      {
+        "localId": "arrow",
+        "kind": "function",
+        "name": "arrow"
+      },
+      {
+        "localId": "assignedFunction",
+        "kind": "function",
+        "name": "assignedFunction"
+      },
+      {
+        "localId": "AssignedClass",
+        "kind": "class",
+        "name": "AssignedClass"
+      },
+      {
+        "localId": "AssignedClass.close",
+        "kind": "method",
+        "name": "close",
+        "container": "AssignedClass"
+      }
+    ],
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:synthetic/declarations.js#top",
+        "type": "calls",
+        "target": "symbol-ref:helper",
+        "minConfidence": "proven",
+        "factKind": "call"
+      },
+      {
+        "source": "symbol:ts:synthetic/declarations.js#top",
+        "type": "calls",
+        "target": "symbol-ref:this.refresh",
+        "minConfidence": "proven",
+        "factKind": "call",
+        "member": "refresh"
+      },
+      {
+        "source": "symbol:ts:synthetic/declarations.js#top",
+        "type": "calls",
+        "target": "symbol-ref:service.run",
+        "minConfidence": "proven",
+        "factKind": "call",
+        "member": "run"
+      },
+      {
+        "source": "symbol:ts:synthetic/declarations.js#top",
+        "type": "references",
+        "target": "symbol-ref:Worker",
+        "minConfidence": "proven",
+        "factKind": "reference"
+      },
+      {
+        "source": "symbol:ts:synthetic/declarations.js#Box.open",
+        "type": "calls",
+        "target": "symbol-ref:helper",
+        "minConfidence": "proven",
+        "factKind": "call"
+      },
+      {
+        "source": "symbol:ts:synthetic/declarations.js#arrow",
+        "type": "calls",
+        "target": "symbol-ref:helper",
+        "minConfidence": "proven",
+        "factKind": "call"
+      },
+      {
+        "source": "symbol:ts:synthetic/declarations.js#assignedFunction",
+        "type": "calls",
+        "target": "symbol-ref:helper",
+        "minConfidence": "proven",
+        "factKind": "call"
+      },
+      {
+        "source": "symbol:ts:synthetic/declarations.js#AssignedClass.close",
+        "type": "calls",
+        "target": "symbol-ref:helper",
+        "minConfidence": "proven",
+        "factKind": "call"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "type": "calls",
+        "target": "symbol-ref:Worker"
+      },
+      {
+        "target": "symbol-ref:eval"
+      },
+      {
+        "target": "module:dynamic"
+      },
+      {
+        "source": "symbol:ts:synthetic/declarations.js#Box",
+        "type": "calls"
+      }
+    ],
+    "expectedDiagnostics": [],
+    "expectedCoverage": "active",
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "fixture://phase-06/javascript",
+      "commit": "0000000000000000000000000000000000000000"
+    },
+    "forms": [
+      "js",
+      "function-declaration",
+      "class-declaration",
+      "class-method",
+      "assigned-arrow",
+      "assigned-function",
+      "assigned-class",
+      "bare-call",
+      "this-call",
+      "member-call",
+      "new-construction"
+    ],
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 30,
+      "minForbiddenControls": 15,
+      "maxDangling": 0
+    },
+    "watchedMutations": [
+      {
+        "id": "classify-js-as-typescript",
+        "expectedCheckerExitCode": 1,
+        "expectedObservable": "js-declarations-assigned-calls-new: languageId javascript"
+      },
+      {
+        "id": "remove-required",
+        "expectedCheckerExitCode": 1,
+        "expectedObservable": "js-declarations-assigned-calls-new: missing required edge"
+      },
+      {
+        "id": "inject-forbidden",
+        "expectedCheckerExitCode": 1,
+        "expectedObservable": "js-declarations-assigned-calls-new: forbidden edge"
+      }
+    ]
+  },
+  {
+    "id": "jsx-declarations-and-direct-calls",
+    "corpus": "synthetic",
+    "capability": "deterministic-javascript-ast",
+    "query": {
+      "tool": "phase6SourceFactsContract",
+      "args": {
+        "filePath": "synthetic/declarations.jsx",
+        "source": "export function Card() { helper(); return <article />; }\nexport class Gallery {\n  open() { this.show(); }\n}\nexport const Item = () => { create(); return <span />; };\n"
+      }
+    },
+    "expectedDeclarations": [
+      {
+        "localId": "Card",
+        "kind": "function",
+        "name": "Card"
+      },
+      {
+        "localId": "Gallery",
+        "kind": "class",
+        "name": "Gallery"
+      },
+      {
+        "localId": "Gallery.open",
+        "kind": "method",
+        "name": "open",
+        "container": "Gallery"
+      },
+      {
+        "localId": "Item",
+        "kind": "function",
+        "name": "Item"
+      }
+    ],
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:synthetic/declarations.jsx#Card",
+        "type": "references",
+        "target": "export:Card",
+        "minConfidence": "proven",
+        "factKind": "export",
+        "member": "Card"
+      },
+      {
+        "source": "symbol:ts:synthetic/declarations.jsx#Card",
+        "type": "calls",
+        "target": "symbol-ref:helper",
+        "minConfidence": "proven",
+        "factKind": "call"
+      },
+      {
+        "source": "symbol:ts:synthetic/declarations.jsx#Gallery.open",
+        "type": "calls",
+        "target": "symbol-ref:this.show",
+        "minConfidence": "proven",
+        "factKind": "call",
+        "member": "show"
+      },
+      {
+        "source": "symbol:ts:synthetic/declarations.jsx#Item",
+        "type": "references",
+        "target": "export:Item",
+        "minConfidence": "proven",
+        "factKind": "export",
+        "member": "Item"
+      },
+      {
+        "source": "symbol:ts:synthetic/declarations.jsx#Item",
+        "type": "calls",
+        "target": "symbol-ref:create",
+        "minConfidence": "proven",
+        "factKind": "call"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "target": "symbol-ref:article"
+      },
+      {
+        "target": "symbol-ref:span"
+      },
+      {
+        "target": "symbol-ref:show"
+      }
+    ],
+    "expectedDiagnostics": [],
+    "expectedCoverage": "active",
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "fixture://phase-06/javascript",
+      "commit": "0000000000000000000000000000000000000000"
+    },
+    "forms": ["jsx", "named-export", "assigned-arrow", "bare-call", "this-call"],
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 30,
+      "minForbiddenControls": 15,
+      "maxDangling": 0
+    },
+    "watchedMutations": []
+  },
+  {
+    "id": "mjs-all-esm-module-forms",
+    "corpus": "synthetic",
+    "capability": "deterministic-javascript-ast",
+    "query": {
+      "tool": "phase6SourceFactsContract",
+      "args": {
+        "filePath": "synthetic/modules.mjs",
+        "source": "import defaultThing from \"./default.js\";\nimport { named as localNamed, other } from \"./named.js\";\nimport * as namespace from \"./namespace.js\";\nimport \"./side-effect.js\";\nexport default function main() { return defaultThing(localNamed); }\nexport { main as namedMain };\nexport { upstream as downstream } from \"./upstream.js\";\nexport * from \"./all.js\";\nconst lazy = import(\"./lazy.js\");\n"
+      }
+    },
+    "expectedDeclarations": [
+      {
+        "localId": "main",
+        "kind": "function",
+        "name": "main"
+      }
+    ],
+    "expectedEdges": [
+      {
+        "source": "file:synthetic/modules.mjs",
+        "type": "references",
+        "target": "module:./default.js",
+        "minConfidence": "proven",
+        "factKind": "import",
+        "member": "default"
+      },
+      {
+        "source": "file:synthetic/modules.mjs",
+        "type": "references",
+        "target": "module:./named.js",
+        "minConfidence": "proven",
+        "factKind": "import",
+        "member": "named"
+      },
+      {
+        "source": "file:synthetic/modules.mjs",
+        "type": "references",
+        "target": "module:./named.js",
+        "minConfidence": "proven",
+        "factKind": "import",
+        "member": "other"
+      },
+      {
+        "source": "file:synthetic/modules.mjs",
+        "type": "references",
+        "target": "module:./namespace.js",
+        "minConfidence": "proven",
+        "factKind": "import",
+        "member": "*"
+      },
+      {
+        "source": "file:synthetic/modules.mjs",
+        "type": "references",
+        "target": "module:./side-effect.js",
+        "minConfidence": "proven",
+        "factKind": "import",
+        "member": "side-effect"
+      },
+      {
+        "source": "symbol:ts:synthetic/modules.mjs#main",
+        "type": "references",
+        "target": "export:default",
+        "minConfidence": "proven",
+        "factKind": "export",
+        "member": "default"
+      },
+      {
+        "source": "symbol:ts:synthetic/modules.mjs#main",
+        "type": "calls",
+        "target": "symbol-ref:defaultThing",
+        "minConfidence": "proven",
+        "factKind": "call"
+      },
+      {
+        "source": "file:synthetic/modules.mjs",
+        "type": "references",
+        "target": "export:namedMain",
+        "minConfidence": "proven",
+        "factKind": "export",
+        "member": "namedMain"
+      },
+      {
+        "source": "file:synthetic/modules.mjs",
+        "type": "references",
+        "target": "module:./upstream.js",
+        "minConfidence": "proven",
+        "factKind": "export",
+        "member": "downstream"
+      },
+      {
+        "source": "file:synthetic/modules.mjs",
+        "type": "references",
+        "target": "module:./all.js",
+        "minConfidence": "proven",
+        "factKind": "export",
+        "member": "*"
+      },
+      {
+        "source": "file:synthetic/modules.mjs",
+        "type": "references",
+        "target": "module:./lazy.js",
+        "minConfidence": "proven",
+        "factKind": "import",
+        "member": "dynamic"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "target": "module:defaultThing"
+      },
+      {
+        "target": "module:localNamed"
+      },
+      {
+        "target": "module:namespace"
+      }
+    ],
+    "expectedDiagnostics": [],
+    "expectedCoverage": "active",
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "fixture://phase-06/javascript",
+      "commit": "0000000000000000000000000000000000000000"
+    },
+    "forms": [
+      "mjs",
+      "esm-default-import",
+      "esm-named-import",
+      "esm-namespace-import",
+      "esm-side-effect-import",
+      "esm-default-export",
+      "esm-named-export",
+      "esm-named-reexport",
+      "esm-all-reexport",
+      "literal-dynamic-import"
+    ],
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 30,
+      "minForbiddenControls": 15,
+      "maxDangling": 0
+    },
+    "watchedMutations": []
+  },
+  {
+    "id": "cjs-all-commonjs-module-forms",
+    "corpus": "synthetic",
+    "capability": "deterministic-javascript-ast",
+    "query": {
+      "tool": "phase6SourceFactsContract",
+      "args": {
+        "filePath": "synthetic/modules.cjs",
+        "source": "function main() {}\nfunction helper() {}\nfunction other() {}\nconst defaultDep = require(\"./default.cjs\");\nconst { named: localNamed, other: importedOther } = require(\"./named.cjs\");\nrequire(\"./side-effect.cjs\");\nmodule.exports = main;\nmodule.exports.named = helper;\nexports.other = other;\n"
+      }
+    },
+    "expectedDeclarations": [
+      {
+        "localId": "main",
+        "kind": "function",
+        "name": "main"
+      },
+      {
+        "localId": "helper",
+        "kind": "function",
+        "name": "helper"
+      },
+      {
+        "localId": "other",
+        "kind": "function",
+        "name": "other"
+      }
+    ],
+    "expectedEdges": [
+      {
+        "source": "file:synthetic/modules.cjs",
+        "type": "references",
+        "target": "module:./default.cjs",
+        "minConfidence": "proven",
+        "factKind": "import",
+        "member": "default"
+      },
+      {
+        "source": "file:synthetic/modules.cjs",
+        "type": "references",
+        "target": "module:./named.cjs",
+        "minConfidence": "proven",
+        "factKind": "import",
+        "member": "named"
+      },
+      {
+        "source": "file:synthetic/modules.cjs",
+        "type": "references",
+        "target": "module:./named.cjs",
+        "minConfidence": "proven",
+        "factKind": "import",
+        "member": "other"
+      },
+      {
+        "source": "file:synthetic/modules.cjs",
+        "type": "references",
+        "target": "module:./side-effect.cjs",
+        "minConfidence": "proven",
+        "factKind": "import",
+        "member": "side-effect"
+      },
+      {
+        "source": "file:synthetic/modules.cjs",
+        "type": "references",
+        "target": "export:default",
+        "minConfidence": "proven",
+        "factKind": "export",
+        "member": "default"
+      },
+      {
+        "source": "file:synthetic/modules.cjs",
+        "type": "references",
+        "target": "export:named",
+        "minConfidence": "proven",
+        "factKind": "export",
+        "member": "named"
+      },
+      {
+        "source": "file:synthetic/modules.cjs",
+        "type": "references",
+        "target": "export:other",
+        "minConfidence": "proven",
+        "factKind": "export",
+        "member": "other"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "target": "module:defaultDep"
+      },
+      {
+        "target": "export:localNamed"
+      },
+      {
+        "target": "export:importedOther"
+      }
+    ],
+    "expectedDiagnostics": [],
+    "expectedCoverage": "active",
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "fixture://phase-06/javascript",
+      "commit": "0000000000000000000000000000000000000000"
+    },
+    "forms": [
+      "cjs",
+      "commonjs-default-require",
+      "commonjs-destructured-require",
+      "commonjs-side-effect-require",
+      "commonjs-default-export",
+      "commonjs-module-named-export",
+      "commonjs-exports-named-export"
+    ],
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 30,
+      "minForbiddenControls": 15,
+      "maxDangling": 0
+    },
+    "watchedMutations": [
+      {
+        "id": "remove-cjs",
+        "expectedCheckerExitCode": 1,
+        "expectedObservable": "cjs-all-commonjs-module-forms: languageId javascript"
+      }
+    ]
+  },
+  {
+    "id": "malformed-retains-partial-facts",
+    "corpus": "synthetic",
+    "capability": "deterministic-javascript-ast",
+    "query": {
+      "tool": "phase6SourceFactsContract",
+      "args": {
+        "filePath": "synthetic/malformed.js",
+        "source": "function recovered() { helper(); }\nexport const broken = (\n"
+      }
+    },
+    "expectedDeclarations": [
+      {
+        "localId": "recovered",
+        "kind": "function",
+        "name": "recovered"
+      }
+    ],
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:synthetic/malformed.js#recovered",
+        "type": "calls",
+        "target": "symbol-ref:helper",
+        "minConfidence": "proven",
+        "factKind": "call"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "target": "symbol-ref:broken"
+      }
+    ],
+    "expectedDiagnostics": [
+      {
+        "code": "parse-error"
+      }
+    ],
+    "expectedCoverage": "partial",
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "fixture://phase-06/javascript",
+      "commit": "0000000000000000000000000000000000000000"
+    },
+    "forms": ["js", "malformed-partial"],
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 30,
+      "minForbiddenControls": 15,
+      "maxDangling": 0
+    },
+    "watchedMutations": []
+  },
+  {
+    "id": "dynamic-computed-eval-diagnostics",
+    "corpus": "synthetic",
+    "capability": "deterministic-javascript-ast",
+    "query": {
+      "tool": "phase6SourceFactsContract",
+      "args": {
+        "filePath": "synthetic/dynamic-negatives.js",
+        "source": "const name = \"./runtime.js\";\nconst byName = require(name);\nconst byComputed = require(\"./\" + name);\nconst member = module[\"exports\"];\nmodule[\"exports\"] = byName;\nexports[name] = byComputed;\nconst moduleAlias = module;\nmoduleAlias.exports = member;\neval(\"require('./evil.js')\");\nimport(\"./literal-ok.js\");\n"
+      }
+    },
+    "expectedDeclarations": [],
+    "expectedEdges": [
+      {
+        "source": "file:synthetic/dynamic-negatives.js",
+        "type": "references",
+        "target": "module:./literal-ok.js",
+        "minConfidence": "proven",
+        "factKind": "import",
+        "member": "dynamic"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "target": "module:name",
+        "factKind": "import"
+      },
+      {
+        "target": "module:./",
+        "factKind": "import"
+      },
+      {
+        "target": "module:./runtime.js",
+        "factKind": "import"
+      },
+      {
+        "target": "export:default",
+        "factKind": "export"
+      },
+      {
+        "target": "export:name",
+        "factKind": "export"
+      },
+      {
+        "target": "export:exports",
+        "factKind": "export"
+      },
+      {
+        "target": "module:./evil.js",
+        "factKind": "import"
+      },
+      {
+        "target": "symbol-ref:eval",
+        "factKind": "call"
+      }
+    ],
+    "expectedDiagnostics": [
+      {
+        "code": "unsupported-dynamic-module",
+        "count": 6
+      }
+    ],
+    "expectedCoverage": "partial",
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "fixture://phase-06/javascript",
+      "commit": "0000000000000000000000000000000000000000"
+    },
+    "forms": ["js", "dynamic-negative", "literal-dynamic-import"],
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 30,
+      "minForbiddenControls": 15,
+      "maxDangling": 0
+    },
+    "watchedMutations": [
+      {
+        "id": "allow-computed-require",
+        "expectedCheckerExitCode": 1,
+        "expectedObservable": "dynamic-computed-eval-diagnostics: forbidden edge dynamic-require"
+      }
+    ]
+  },
+  {
+    "id": "lux-owner-gold-scorecard-declarations",
+    "corpus": "lux",
+    "capability": "deterministic-javascript-ast",
+    "query": {
+      "tool": "phase6SourceFactsContract",
+      "args": {
+        "filePath": "scripts/run-overlay-scorecard.mjs",
+        "source": "const get = (sql) => db.prepare(sql).get();\nconst all = (sql) => db.prepare(sql).all();\n"
+      }
+    },
+    "expectedDeclarations": [
+      {
+        "localId": "get",
+        "kind": "function",
+        "name": "get"
+      },
+      {
+        "localId": "all",
+        "kind": "function",
+        "name": "all"
+      }
+    ],
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:scripts/run-overlay-scorecard.mjs#get",
+        "type": "calls",
+        "target": "symbol-ref:db.prepare",
+        "minConfidence": "proven",
+        "factKind": "call",
+        "member": "prepare"
+      },
+      {
+        "source": "symbol:ts:scripts/run-overlay-scorecard.mjs#all",
+        "type": "calls",
+        "target": "symbol-ref:db.prepare",
+        "minConfidence": "proven",
+        "factKind": "call",
+        "member": "prepare"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "target": "symbol-ref:sql"
+      },
+      {
+        "target": "module:db"
+      }
+    ],
+    "expectedDiagnostics": [],
+    "expectedCoverage": "active",
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "forms": ["mjs", "real-owner-gold", "assigned-arrow", "member-call"],
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 30,
+      "minForbiddenControls": 15,
+      "maxDangling": 0
+    },
+    "watchedMutations": []
+  },
+  {
+    "id": "auctic-core-owner-gold-offer-rule-declarations",
+    "corpus": "auctic-core",
+    "capability": "deterministic-javascript-ast",
+    "query": {
+      "tool": "phase6SourceFactsContract",
+      "args": {
+        "filePath": "resources/js/Pages/Account/Offers/offer-bucket-rules.js",
+        "source": "function listingClosedToBackups(chain) { return !!chain; }\nfunction chainHoldsHighestOffer(chain, latestOffer) { return latestOffer.amount >= chain.listing_highest_offer; }\nexport function isDeFactoWinningChain(chain, latestOffer) { return chainHoldsHighestOffer(chain, latestOffer); }\nexport function isBackupChainOnClosedListing(chain, latestOffer) { return !chainHoldsHighestOffer(chain, latestOffer); }\nexport function isRejectedOnClosedListing(chain, latestOffer) { return listingClosedToBackups(chain); }\n"
+      }
+    },
+    "expectedDeclarations": [
+      {
+        "localId": "listingClosedToBackups",
+        "kind": "function",
+        "name": "listingClosedToBackups"
+      },
+      {
+        "localId": "chainHoldsHighestOffer",
+        "kind": "function",
+        "name": "chainHoldsHighestOffer"
+      },
+      {
+        "localId": "isDeFactoWinningChain",
+        "kind": "function",
+        "name": "isDeFactoWinningChain"
+      },
+      {
+        "localId": "isBackupChainOnClosedListing",
+        "kind": "function",
+        "name": "isBackupChainOnClosedListing"
+      },
+      {
+        "localId": "isRejectedOnClosedListing",
+        "kind": "function",
+        "name": "isRejectedOnClosedListing"
+      }
+    ],
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:resources/js/Pages/Account/Offers/offer-bucket-rules.js#isDeFactoWinningChain",
+        "type": "references",
+        "target": "export:isDeFactoWinningChain",
+        "minConfidence": "proven",
+        "factKind": "export",
+        "member": "isDeFactoWinningChain"
+      },
+      {
+        "source": "symbol:ts:resources/js/Pages/Account/Offers/offer-bucket-rules.js#isDeFactoWinningChain",
+        "type": "calls",
+        "target": "symbol-ref:chainHoldsHighestOffer",
+        "minConfidence": "proven",
+        "factKind": "call"
+      },
+      {
+        "source": "symbol:ts:resources/js/Pages/Account/Offers/offer-bucket-rules.js#isBackupChainOnClosedListing",
+        "type": "references",
+        "target": "export:isBackupChainOnClosedListing",
+        "minConfidence": "proven",
+        "factKind": "export",
+        "member": "isBackupChainOnClosedListing"
+      },
+      {
+        "source": "symbol:ts:resources/js/Pages/Account/Offers/offer-bucket-rules.js#isBackupChainOnClosedListing",
+        "type": "calls",
+        "target": "symbol-ref:chainHoldsHighestOffer",
+        "minConfidence": "proven",
+        "factKind": "call"
+      },
+      {
+        "source": "symbol:ts:resources/js/Pages/Account/Offers/offer-bucket-rules.js#isRejectedOnClosedListing",
+        "type": "references",
+        "target": "export:isRejectedOnClosedListing",
+        "minConfidence": "proven",
+        "factKind": "export",
+        "member": "isRejectedOnClosedListing"
+      },
+      {
+        "source": "symbol:ts:resources/js/Pages/Account/Offers/offer-bucket-rules.js#isRejectedOnClosedListing",
+        "type": "calls",
+        "target": "symbol-ref:listingClosedToBackups",
+        "minConfidence": "proven",
+        "factKind": "call"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "target": "symbol-ref:latestOffer"
+      },
+      {
+        "target": "module:chain"
+      }
+    ],
+    "expectedDiagnostics": [],
+    "expectedCoverage": "active",
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "forms": ["js", "real-owner-gold", "function-declaration", "named-export", "bare-call"],
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 30,
+      "minForbiddenControls": 15,
+      "maxDangling": 0
+    },
+    "watchedMutations": []
+  },
+  {
+    "id": "parser-boundaries-all-languages",
+    "corpus": "synthetic",
+    "capability": "bounded-parser-host",
+    "query": {
+      "tool": "phase6ParserHostContract",
+      "args": {
+        "filePath": "fixtures/inside.js",
+        "canonicalPath": "fixtures/inside.js",
+        "allowedRoot": "fixtures",
+        "metrics": {
+          "bytes": 100,
+          "depth": 10,
+          "nodes": 20,
+          "references": 8,
+          "durationMs": 50,
+          "resultBytes": 200
+        },
+        "limits": {
+          "maxBytes": 100,
+          "maxDepth": 10,
+          "maxNodes": 20,
+          "maxReferences": 8,
+          "timeoutMs": 50,
+          "maxResultBytes": 200
+        },
+        "parsers": ["javascript", "typescript", "php"]
+      }
+    },
+    "expectedDeclarations": [],
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedDiagnostics": [],
+    "expectedCoverage": "active",
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "fixture://phase-06/javascript",
+      "commit": "0000000000000000000000000000000000000000"
+    },
+    "forms": [],
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 30,
+      "minForbiddenControls": 15,
+      "maxDangling": 0
+    },
+    "watchedMutations": [
+      {
+        "id": "lower-max-bytes",
+        "expectedCheckerExitCode": 1,
+        "expectedObservable": "parser-boundaries-all-languages: maxBytes limit"
+      },
+      {
+        "id": "lower-max-depth",
+        "expectedCheckerExitCode": 1,
+        "expectedObservable": "parser-boundaries-all-languages: maxDepth limit"
+      },
+      {
+        "id": "lower-max-nodes",
+        "expectedCheckerExitCode": 1,
+        "expectedObservable": "parser-boundaries-all-languages: maxNodes limit"
+      },
+      {
+        "id": "lower-max-references",
+        "expectedCheckerExitCode": 1,
+        "expectedObservable": "parser-boundaries-all-languages: maxReferences limit"
+      },
+      {
+        "id": "lower-timeout",
+        "expectedCheckerExitCode": 1,
+        "expectedObservable": "parser-boundaries-all-languages: timeoutMs timeout"
+      },
+      {
+        "id": "lower-max-result-bytes",
+        "expectedCheckerExitCode": 1,
+        "expectedObservable": "parser-boundaries-all-languages: maxResultBytes limit"
+      }
+    ]
+  },
+  {
+    "id": "hostile-maxBytes",
+    "corpus": "synthetic",
+    "capability": "bounded-parser-host",
+    "query": {
+      "tool": "phase6ParserHostContract",
+      "args": {
+        "filePath": "fixtures/inside.js",
+        "canonicalPath": "fixtures/inside.js",
+        "allowedRoot": "fixtures",
+        "metrics": {
+          "bytes": 101,
+          "depth": 10,
+          "nodes": 20,
+          "references": 8,
+          "durationMs": 50,
+          "resultBytes": 200
+        },
+        "limits": {
+          "maxBytes": 100,
+          "maxDepth": 10,
+          "maxNodes": 20,
+          "maxReferences": 8,
+          "timeoutMs": 50,
+          "maxResultBytes": 200
+        },
+        "parsers": ["javascript", "typescript", "php"]
+      }
+    },
+    "expectedDeclarations": [],
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedDiagnostics": [
+      {
+        "code": "limit",
+        "detail": "maxBytes"
+      }
+    ],
+    "expectedCoverage": "failed",
+    "expectedOutcome": "refused",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "fixture://phase-06/javascript",
+      "commit": "0000000000000000000000000000000000000000"
+    },
+    "forms": [],
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 30,
+      "minForbiddenControls": 15,
+      "maxDangling": 0
+    },
+    "watchedMutations": []
+  },
+  {
+    "id": "hostile-maxDepth",
+    "corpus": "synthetic",
+    "capability": "bounded-parser-host",
+    "query": {
+      "tool": "phase6ParserHostContract",
+      "args": {
+        "filePath": "fixtures/inside.js",
+        "canonicalPath": "fixtures/inside.js",
+        "allowedRoot": "fixtures",
+        "metrics": {
+          "bytes": 100,
+          "depth": 11,
+          "nodes": 20,
+          "references": 8,
+          "durationMs": 50,
+          "resultBytes": 200
+        },
+        "limits": {
+          "maxBytes": 100,
+          "maxDepth": 10,
+          "maxNodes": 20,
+          "maxReferences": 8,
+          "timeoutMs": 50,
+          "maxResultBytes": 200
+        },
+        "parsers": ["javascript", "typescript", "php"]
+      }
+    },
+    "expectedDeclarations": [],
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedDiagnostics": [
+      {
+        "code": "limit",
+        "detail": "maxDepth"
+      }
+    ],
+    "expectedCoverage": "failed",
+    "expectedOutcome": "refused",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "fixture://phase-06/javascript",
+      "commit": "0000000000000000000000000000000000000000"
+    },
+    "forms": [],
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 30,
+      "minForbiddenControls": 15,
+      "maxDangling": 0
+    },
+    "watchedMutations": []
+  },
+  {
+    "id": "hostile-maxNodes",
+    "corpus": "synthetic",
+    "capability": "bounded-parser-host",
+    "query": {
+      "tool": "phase6ParserHostContract",
+      "args": {
+        "filePath": "fixtures/inside.js",
+        "canonicalPath": "fixtures/inside.js",
+        "allowedRoot": "fixtures",
+        "metrics": {
+          "bytes": 100,
+          "depth": 10,
+          "nodes": 21,
+          "references": 8,
+          "durationMs": 50,
+          "resultBytes": 200
+        },
+        "limits": {
+          "maxBytes": 100,
+          "maxDepth": 10,
+          "maxNodes": 20,
+          "maxReferences": 8,
+          "timeoutMs": 50,
+          "maxResultBytes": 200
+        },
+        "parsers": ["javascript", "typescript", "php"]
+      }
+    },
+    "expectedDeclarations": [],
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedDiagnostics": [
+      {
+        "code": "limit",
+        "detail": "maxNodes"
+      }
+    ],
+    "expectedCoverage": "failed",
+    "expectedOutcome": "refused",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "fixture://phase-06/javascript",
+      "commit": "0000000000000000000000000000000000000000"
+    },
+    "forms": [],
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 30,
+      "minForbiddenControls": 15,
+      "maxDangling": 0
+    },
+    "watchedMutations": []
+  },
+  {
+    "id": "hostile-maxReferences",
+    "corpus": "synthetic",
+    "capability": "bounded-parser-host",
+    "query": {
+      "tool": "phase6ParserHostContract",
+      "args": {
+        "filePath": "fixtures/inside.js",
+        "canonicalPath": "fixtures/inside.js",
+        "allowedRoot": "fixtures",
+        "metrics": {
+          "bytes": 100,
+          "depth": 10,
+          "nodes": 20,
+          "references": 9,
+          "durationMs": 50,
+          "resultBytes": 200
+        },
+        "limits": {
+          "maxBytes": 100,
+          "maxDepth": 10,
+          "maxNodes": 20,
+          "maxReferences": 8,
+          "timeoutMs": 50,
+          "maxResultBytes": 200
+        },
+        "parsers": ["javascript", "typescript", "php"]
+      }
+    },
+    "expectedDeclarations": [],
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedDiagnostics": [
+      {
+        "code": "limit",
+        "detail": "maxReferences"
+      }
+    ],
+    "expectedCoverage": "failed",
+    "expectedOutcome": "refused",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "fixture://phase-06/javascript",
+      "commit": "0000000000000000000000000000000000000000"
+    },
+    "forms": [],
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 30,
+      "minForbiddenControls": 15,
+      "maxDangling": 0
+    },
+    "watchedMutations": []
+  },
+  {
+    "id": "hostile-timeoutMs",
+    "corpus": "synthetic",
+    "capability": "bounded-parser-host",
+    "query": {
+      "tool": "phase6ParserHostContract",
+      "args": {
+        "filePath": "fixtures/inside.js",
+        "canonicalPath": "fixtures/inside.js",
+        "allowedRoot": "fixtures",
+        "metrics": {
+          "bytes": 100,
+          "depth": 10,
+          "nodes": 20,
+          "references": 8,
+          "durationMs": 51,
+          "resultBytes": 200
+        },
+        "limits": {
+          "maxBytes": 100,
+          "maxDepth": 10,
+          "maxNodes": 20,
+          "maxReferences": 8,
+          "timeoutMs": 50,
+          "maxResultBytes": 200
+        },
+        "parsers": ["javascript"]
+      }
+    },
+    "expectedDeclarations": [],
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedDiagnostics": [
+      {
+        "code": "timeout",
+        "detail": "timeoutMs"
+      }
+    ],
+    "expectedCoverage": "failed",
+    "expectedOutcome": "refused",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "fixture://phase-06/javascript",
+      "commit": "0000000000000000000000000000000000000000"
+    },
+    "forms": [],
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 30,
+      "minForbiddenControls": 15,
+      "maxDangling": 0
+    },
+    "watchedMutations": [
+      {
+        "id": "disable-terminate",
+        "expectedCheckerExitCode": 1,
+        "expectedObservable": "hostile-timeoutMs: outer watchdog 6000ms exceeded"
+      }
+    ]
+  },
+  {
+    "id": "hostile-maxResultBytes",
+    "corpus": "synthetic",
+    "capability": "bounded-parser-host",
+    "query": {
+      "tool": "phase6ParserHostContract",
+      "args": {
+        "filePath": "fixtures/inside.js",
+        "canonicalPath": "fixtures/inside.js",
+        "allowedRoot": "fixtures",
+        "metrics": {
+          "bytes": 100,
+          "depth": 10,
+          "nodes": 20,
+          "references": 8,
+          "durationMs": 50,
+          "resultBytes": 201
+        },
+        "limits": {
+          "maxBytes": 100,
+          "maxDepth": 10,
+          "maxNodes": 20,
+          "maxReferences": 8,
+          "timeoutMs": 50,
+          "maxResultBytes": 200
+        },
+        "parsers": ["javascript"]
+      }
+    },
+    "expectedDeclarations": [],
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedDiagnostics": [
+      {
+        "code": "limit",
+        "detail": "maxResultBytes"
+      }
+    ],
+    "expectedCoverage": "failed",
+    "expectedOutcome": "refused",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "fixture://phase-06/javascript",
+      "commit": "0000000000000000000000000000000000000000"
+    },
+    "forms": [],
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 30,
+      "minForbiddenControls": 15,
+      "maxDangling": 0
+    },
+    "watchedMutations": []
+  },
+  {
+    "id": "path-realpath-inside",
+    "corpus": "synthetic",
+    "capability": "bounded-parser-host",
+    "query": {
+      "tool": "phase6ParserHostContract",
+      "args": {
+        "filePath": "fixtures/link-inside.js",
+        "canonicalPath": "fixtures/inside.js",
+        "allowedRoot": "fixtures",
+        "metrics": {
+          "bytes": 1,
+          "depth": 1,
+          "nodes": 1,
+          "references": 0,
+          "durationMs": 1,
+          "resultBytes": 1
+        },
+        "limits": {
+          "maxBytes": 100,
+          "maxDepth": 10,
+          "maxNodes": 20,
+          "maxReferences": 8,
+          "timeoutMs": 50,
+          "maxResultBytes": 200
+        },
+        "parsers": ["javascript"]
+      }
+    },
+    "expectedDeclarations": [],
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedDiagnostics": [],
+    "expectedCoverage": "active",
+    "expectedOutcome": "answered",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "fixture://phase-06/javascript",
+      "commit": "0000000000000000000000000000000000000000"
+    },
+    "forms": [],
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 30,
+      "minForbiddenControls": 15,
+      "maxDangling": 0
+    },
+    "watchedMutations": []
+  },
+  {
+    "id": "path-realpath-outside",
+    "corpus": "synthetic",
+    "capability": "bounded-parser-host",
+    "query": {
+      "tool": "phase6ParserHostContract",
+      "args": {
+        "filePath": "fixtures/link-outside.js",
+        "canonicalPath": "../outside.js",
+        "allowedRoot": "fixtures",
+        "metrics": {
+          "bytes": 1,
+          "depth": 1,
+          "nodes": 1,
+          "references": 0,
+          "durationMs": 1,
+          "resultBytes": 1
+        },
+        "limits": {
+          "maxBytes": 100,
+          "maxDepth": 10,
+          "maxNodes": 20,
+          "maxReferences": 8,
+          "timeoutMs": 50,
+          "maxResultBytes": 200
+        },
+        "parsers": ["javascript"]
+      }
+    },
+    "expectedDeclarations": [],
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedDiagnostics": [
+      {
+        "code": "path-escape",
+        "detail": "realpath-containment"
+      }
+    ],
+    "expectedCoverage": "failed",
+    "expectedOutcome": "refused",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "fixture://phase-06/javascript",
+      "commit": "0000000000000000000000000000000000000000"
+    },
+    "forms": [],
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 30,
+      "minForbiddenControls": 15,
+      "maxDangling": 0
+    },
+    "watchedMutations": [
+      {
+        "id": "skip-realpath-containment",
+        "expectedCheckerExitCode": 1,
+        "expectedObservable": "path-realpath-outside: expected refused"
+      }
+    ]
+  }
+]

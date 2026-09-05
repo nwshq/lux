@@ -10,7 +10,7 @@
 
 import type { StructuralNode } from '../../db/types.js';
 import { phpSymbolNodeId, tsSymbolNodeId } from '../associations/types.js';
-import type { AstLang, AstNode, Extraction } from './extract.js';
+import { astLanguageId, type AstLang, type AstNode, type Extraction } from './extract.js';
 
 const SYMBOL_KIND_LABEL: Record<'function' | 'method' | 'class', string> = {
   function: 'Function',
@@ -63,7 +63,7 @@ export function buildAstSymbolNodes(
   lang: AstLang,
   updatedAt: number
 ): StructuralNode[] {
-  const isPhp = lang === 'php';
+  const languageId = astLanguageId(lang);
   const nodes: StructuralNode[] = [];
   const seen = new Set<string>();
 
@@ -76,7 +76,7 @@ export function buildAstSymbolNodes(
       id,
       node_type: 'symbol',
       file_path: relPath,
-      language_id: isPhp ? 'php' : 'typescript',
+      language_id: languageId,
       symbol_name: def.name,
       symbol_kind: SYMBOL_KIND_LABEL[def.type],
       ...(qualifiedName ? { qualified_name: qualifiedName } : {}),

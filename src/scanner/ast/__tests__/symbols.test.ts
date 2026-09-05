@@ -55,6 +55,23 @@ describe('buildAstSymbolNodes — TypeScript', () => {
   });
 });
 
+describe('buildAstSymbolNodes — JavaScript', () => {
+  it('keeps canonical symbol:ts ids while persisting JavaScript language rows', () => {
+    const src = ['export function run() {}', 'class App { render() {} }'].join('\n');
+    const { extraction } = extractSource(grammars, src, 'src/app.js', 'javascript');
+    const nodes = buildAstSymbolNodes('src/app.js', extraction, 'javascript', 1000);
+
+    expect(nodes.find((n) => n.symbol_name === 'run')?.id).toBe('symbol:ts:src/app.js#run');
+    expect(nodes.find((n) => n.symbol_name === 'render')?.id).toBe(
+      'symbol:ts:src/app.js#App.render'
+    );
+    expect(nodes.every((n) => n.language_id === 'javascript')).toBe(true);
+    expect(astSymbolIdentity('src/app.js', extraction.nodes[0], 'javascript').id).toBe(
+      tsSymbolNodeId('src/app.js', 'run')
+    );
+  });
+});
+
 describe('buildAstSymbolNodes — PHP', () => {
   it('qualifies ids with namespace and class', () => {
     const src = [

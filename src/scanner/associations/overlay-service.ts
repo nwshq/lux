@@ -18,7 +18,8 @@ import type { EnrichmentMap } from '../lsp/index.js';
 import { isGitRepository, getHeadCommit, getDirtyFiles } from '../git.js';
 import { materializeNodes } from './materializer.js';
 import { materializeAstSymbols } from '../ast/materialize.js';
-import { buildSharedExtractions, type SharedExtractions } from '../ast/extraction-cache.js';
+import type { SharedExtractions } from '../ast/extraction-cache.js';
+import { analyzeProgram, type ProgramAnalysisV1 } from '../adapters/program-analysis.js';
 import { AstStructuralResolver } from '../ast/resolver.js';
 import { AssociationEngine } from './engine.js';
 import { createDefaultResolvers } from './framework/index.js';
@@ -68,6 +69,8 @@ export interface OverlayRebuildResult {
    * it instead of re-parsing every file a third time.
    */
   sharedExtractions?: SharedExtractions;
+  /** Contract-shaped facts, project context, diagnostics, and producer evidence. */
+  programAnalysis?: ProgramAnalysisV1;
 }
 
 /**
@@ -127,9 +130,12 @@ export async function rebuildStructuralOverlay(
   // read one Extraction per file instead of re-parsing it three times. Isolated:
   // a build failure degrades to each consumer parsing on demand (cache absent).
   let sharedExtractions: SharedExtractions | undefined;
+  let programAnalysis: ProgramAnalysisV1 | undefined;
   if (options.astEnabled) {
     try {
-      sharedExtractions = await buildSharedExtractions(scan, rootPath, report);
+      const analysis = await analyzeProgram(scan, rootPath, report);
+      sharedExtractions = analysis.shared.extractions;
+      programAnalysis = analysis;
     } catch (error) {
       report(
         `Warning: shared AST extraction failed — ${error instanceof Error ? error.message : String(error)}`
@@ -170,6 +176,7 @@ export async function rebuildStructuralOverlay(
     currentCommit,
     dirtyFiles,
     sharedExtractions,
+    programAnalysis,
   };
 
   // 5. Run association engine
@@ -243,6 +250,7 @@ export async function rebuildStructuralOverlay(
     surfaceEdgesStored: detectorResult.surfaceEdgesStored,
     propagationEdgesAdded,
     sharedExtractions,
+    programAnalysis,
   };
 }
 

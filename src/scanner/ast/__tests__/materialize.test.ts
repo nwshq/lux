@@ -28,6 +28,13 @@ describe('materializeAstSymbols', () => {
         },
         {
           type: 'source-code',
+          title: 'app.js',
+          filePath: '/repo/app.js',
+          frontmatter: { language: 'javascript' },
+          content: 'export function render() {}',
+        },
+        {
+          type: 'source-code',
           title: 'Ledger.php',
           filePath: '/repo/Ledger.php',
           frontmatter: { language: 'php' },
@@ -49,6 +56,8 @@ describe('materializeAstSymbols', () => {
     const ids = sink.map((n) => n.id);
     expect(ids).toContain('symbol:ts:a.ts#foo');
     expect(ids).toContain('symbol:ts:a.ts#Bar');
+    expect(ids).toContain('symbol:ts:app.js#render');
+    expect(sink.find((n) => n.id === 'symbol:ts:app.js#render')?.language_id).toBe('javascript');
     expect(ids).toContain('symbol:php:App\\Ledger');
     expect(ids.some((id) => id.includes('r.md'))).toBe(false); // unsupported lang skipped
     expect(count).toBe(sink.length);
