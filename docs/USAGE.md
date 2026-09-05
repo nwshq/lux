@@ -24,6 +24,15 @@ Notes:
 - `index status --json` is the canonical machine-readable status envelope; it includes index stats, overlay trust diagnostics, and runtime corpus/DB provenance
 - `overlay status --json` emits the native overlay trust payload plus the same runtime provenance
 
+## Doctor
+
+```bash
+lux doctor --json
+```
+
+`doctor` is read-only and returns the exact same diagnostic payload as MCP `lux_doctor`, including
+`coverage.languages`. It does not create or migrate an index.
+
 ## Search
 
 ```bash

@@ -24,6 +24,7 @@ does not query an accidental process cwd.
 - `lux_deps_impact` — blast radius of changing one file
 - `lux_overlay_status` — structural-overlay trust state and freshness
 - `lux_index_status` — index freshness and knowledge/event stats
+- `lux_doctor` — read-only index/trust/freshness and per-language capability diagnostics
 
 ## `lux_search`
 
@@ -283,7 +284,20 @@ Read-only. Mirrors CLI `lux index status --json`. No inputs.
 {}
 ```
 
-Returns the `{ stats, overlay, runtime, freshness }` status payload (`buildIndexStatusPayload`).
+Returns the `{ stats, overlay, coverage, runtime, freshness }` status payload (`buildIndexStatusPayload`).
+
+## `lux_doctor`
+
+Return the same read-only diagnostic payload as `lux doctor --json`: index statistics, overlay trust,
+working-tree freshness, and `coverage.languages`. Each language lists source files selected only
+from `source-code` knowledge metadata and explicit syntax/symbol/import/call/reference/framework
+capability states. Structural output counts come from local canonical nodes and edges. Unsupported and
+not-applicable states are explicit; missing producer run evidence is reported as failed rather than
+inferred successful from an empty error count. No inputs.
+
+```json
+{}
+```
 
 ## Usage observability
 

@@ -53,6 +53,7 @@ From `src/mcp/server.ts`:
 - `lux_deps_impact`
 - `lux_overlay_status`
 - `lux_index_status`
+- `lux_doctor`
 
 ## `lux delta` — diff-scoped structural delta
 

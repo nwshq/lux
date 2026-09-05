@@ -1,0 +1,575 @@
+[
+  {
+    "id": "p03-php-syntax-active",
+    "corpus": "lux",
+    "capability": "language-capability-coverage",
+    "query": {
+      "tool": "deriveCapability",
+      "args": {
+        "languageId": "php",
+        "capability": "syntax",
+        "input": {
+          "producer": "php-tree-sitter",
+          "candidates": 8,
+          "configured": true,
+          "ran": true,
+          "failures": 0,
+          "nodes": 18,
+          "edges": 0,
+          "documentedSubset": false
+        }
+      }
+    },
+    "expectedCoverage": {
+      "state": "active",
+      "producer": "php-tree-sitter",
+      "nodes": 18,
+      "edges": 0,
+      "failures": 0
+    },
+    "forbiddenStates": ["partial", "unsupported", "failed", "not_applicable"],
+    "expectedOutcome": "reported",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 1,
+      "minForbiddenControls": 4
+    },
+    "watchedMutation": {
+      "id": "force-producer-failure-while-active",
+      "forceFailures": 1,
+      "keepState": "active",
+      "expectedProducerExitCode": 1,
+      "expectedCheckerExitCode": 1,
+      "expectedObservable": "php/syntax"
+    }
+  },
+  {
+    "id": "p03-php-framework-active",
+    "corpus": "lux",
+    "capability": "language-capability-coverage",
+    "query": {
+      "tool": "deriveCapability",
+      "args": {
+        "languageId": "php",
+        "capability": "framework",
+        "input": {
+          "producer": "laravel-framework",
+          "candidates": 5,
+          "configured": true,
+          "ran": true,
+          "failures": 0,
+          "nodes": 2,
+          "edges": 6,
+          "documentedSubset": false
+        }
+      }
+    },
+    "expectedCoverage": {
+      "state": "active",
+      "producer": "laravel-framework",
+      "nodes": 2,
+      "edges": 6,
+      "failures": 0
+    },
+    "forbiddenStates": ["partial", "unsupported", "failed", "not_applicable"],
+    "expectedOutcome": "reported",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 1,
+      "minForbiddenControls": 4
+    }
+  },
+  {
+    "id": "p03-typescript-symbols-active",
+    "corpus": "lux",
+    "capability": "language-capability-coverage",
+    "query": {
+      "tool": "deriveCapability",
+      "args": {
+        "languageId": "typescript",
+        "capability": "symbols",
+        "input": {
+          "producer": "typescript-compiler",
+          "candidates": 10,
+          "configured": true,
+          "ran": true,
+          "failures": 0,
+          "nodes": 24,
+          "edges": 0,
+          "documentedSubset": false
+        }
+      }
+    },
+    "expectedCoverage": {
+      "state": "active",
+      "producer": "typescript-compiler",
+      "nodes": 24,
+      "edges": 0,
+      "failures": 0
+    },
+    "forbiddenStates": ["partial", "unsupported", "failed", "not_applicable"],
+    "expectedOutcome": "reported",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 1,
+      "minForbiddenControls": 4
+    }
+  },
+  {
+    "id": "p03-typescript-imports-active",
+    "corpus": "lux",
+    "capability": "language-capability-coverage",
+    "query": {
+      "tool": "deriveCapability",
+      "args": {
+        "languageId": "typescript",
+        "capability": "imports",
+        "input": {
+          "producer": "typescript-compiler",
+          "candidates": 10,
+          "configured": true,
+          "ran": true,
+          "failures": 0,
+          "nodes": 0,
+          "edges": 11,
+          "documentedSubset": false
+        }
+      }
+    },
+    "expectedCoverage": {
+      "state": "active",
+      "producer": "typescript-compiler",
+      "nodes": 0,
+      "edges": 11,
+      "failures": 0
+    },
+    "forbiddenStates": ["partial", "unsupported", "failed", "not_applicable"],
+    "expectedOutcome": "reported",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 1,
+      "minForbiddenControls": 4
+    }
+  },
+  {
+    "id": "p03-javascript-calls-active",
+    "corpus": "lux",
+    "capability": "language-capability-coverage",
+    "query": {
+      "tool": "deriveCapability",
+      "args": {
+        "languageId": "javascript",
+        "capability": "calls",
+        "input": {
+          "producer": "javascript-parser",
+          "candidates": 6,
+          "configured": true,
+          "ran": true,
+          "failures": 0,
+          "nodes": 0,
+          "edges": 7,
+          "documentedSubset": false
+        }
+      }
+    },
+    "expectedCoverage": {
+      "state": "active",
+      "producer": "javascript-parser",
+      "nodes": 0,
+      "edges": 7,
+      "failures": 0
+    },
+    "forbiddenStates": ["partial", "unsupported", "failed", "not_applicable"],
+    "expectedOutcome": "reported",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 1,
+      "minForbiddenControls": 4
+    }
+  },
+  {
+    "id": "p03-javascript-references-active",
+    "corpus": "lux",
+    "capability": "language-capability-coverage",
+    "query": {
+      "tool": "deriveCapability",
+      "args": {
+        "languageId": "javascript",
+        "capability": "references",
+        "input": {
+          "producer": "javascript-parser",
+          "candidates": 6,
+          "configured": true,
+          "ran": true,
+          "failures": 0,
+          "nodes": 0,
+          "edges": 9,
+          "documentedSubset": false
+        }
+      }
+    },
+    "expectedCoverage": {
+      "state": "active",
+      "producer": "javascript-parser",
+      "nodes": 0,
+      "edges": 9,
+      "failures": 0
+    },
+    "forbiddenStates": ["partial", "unsupported", "failed", "not_applicable"],
+    "expectedOutcome": "reported",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 1,
+      "minForbiddenControls": 4
+    }
+  },
+  {
+    "id": "p03-vue-framework-active",
+    "corpus": "lux",
+    "capability": "language-capability-coverage",
+    "query": {
+      "tool": "deriveCapability",
+      "args": {
+        "languageId": "vue",
+        "capability": "framework",
+        "input": {
+          "producer": "vue-sfc-compiler",
+          "candidates": 4,
+          "configured": true,
+          "ran": true,
+          "failures": 0,
+          "nodes": 4,
+          "edges": 8,
+          "documentedSubset": false
+        }
+      }
+    },
+    "expectedCoverage": {
+      "state": "active",
+      "producer": "vue-sfc-compiler",
+      "nodes": 4,
+      "edges": 8,
+      "failures": 0
+    },
+    "forbiddenStates": ["partial", "unsupported", "failed", "not_applicable"],
+    "expectedOutcome": "reported",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 1,
+      "minForbiddenControls": 4
+    }
+  },
+  {
+    "id": "p03-ruby-syntax-unsupported",
+    "corpus": "lux",
+    "capability": "language-capability-coverage",
+    "query": {
+      "tool": "deriveCapability",
+      "args": {
+        "languageId": "ruby",
+        "capability": "syntax",
+        "input": {
+          "producer": "none",
+          "candidates": 4,
+          "configured": false,
+          "ran": false,
+          "failures": 0,
+          "nodes": 0,
+          "edges": 0,
+          "documentedSubset": false
+        }
+      }
+    },
+    "expectedCoverage": {
+      "state": "unsupported",
+      "producer": "none",
+      "nodes": 0,
+      "edges": 0,
+      "failures": 0,
+      "reason": "no producer configured"
+    },
+    "forbiddenStates": ["active", "partial", "failed", "not_applicable"],
+    "expectedOutcome": "reported",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 1,
+      "minForbiddenControls": 4
+    }
+  },
+  {
+    "id": "p03-markdown-zero-candidates-not-applicable",
+    "corpus": "lux",
+    "capability": "language-capability-coverage",
+    "query": {
+      "tool": "deriveCapability",
+      "args": {
+        "languageId": "markdown",
+        "capability": "framework",
+        "input": {
+          "producer": "none",
+          "candidates": 0,
+          "configured": false,
+          "ran": false,
+          "failures": 0,
+          "nodes": 0,
+          "edges": 0,
+          "documentedSubset": false
+        }
+      }
+    },
+    "expectedCoverage": {
+      "state": "not_applicable",
+      "producer": "none",
+      "nodes": 0,
+      "edges": 0,
+      "failures": 0,
+      "reason": "no applicable candidates"
+    },
+    "forbiddenStates": ["active", "partial", "unsupported", "failed"],
+    "expectedOutcome": "reported",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 1,
+      "minForbiddenControls": 4
+    }
+  },
+  {
+    "id": "p03-go-configured-producer-did-not-run",
+    "corpus": "lux",
+    "capability": "language-capability-coverage",
+    "query": {
+      "tool": "deriveCapability",
+      "args": {
+        "languageId": "go",
+        "capability": "imports",
+        "input": {
+          "producer": "go-parser",
+          "candidates": 3,
+          "configured": true,
+          "ran": false,
+          "failures": 0,
+          "nodes": 0,
+          "edges": 0,
+          "documentedSubset": false
+        }
+      }
+    },
+    "expectedCoverage": {
+      "state": "failed",
+      "producer": "go-parser",
+      "nodes": 0,
+      "edges": 0,
+      "failures": 0,
+      "reason": "configured producer did not run"
+    },
+    "forbiddenStates": ["active", "partial", "unsupported", "not_applicable"],
+    "expectedOutcome": "reported",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 1,
+      "minForbiddenControls": 4
+    }
+  },
+  {
+    "id": "p03-vue-documented-subset-partial",
+    "corpus": "lux",
+    "capability": "language-capability-coverage",
+    "query": {
+      "tool": "deriveCapability",
+      "args": {
+        "languageId": "vue",
+        "capability": "calls",
+        "input": {
+          "producer": "vue-sfc-compiler",
+          "candidates": 5,
+          "configured": true,
+          "ran": true,
+          "failures": 0,
+          "nodes": 3,
+          "edges": 2,
+          "documentedSubset": true
+        }
+      }
+    },
+    "expectedCoverage": {
+      "state": "partial",
+      "producer": "vue-sfc-compiler",
+      "nodes": 3,
+      "edges": 2,
+      "failures": 0,
+      "reason": "documented subset"
+    },
+    "forbiddenStates": ["active", "unsupported", "failed", "not_applicable"],
+    "expectedOutcome": "reported",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 1,
+      "minForbiddenControls": 4
+    }
+  },
+  {
+    "id": "p03-typescript-producer-failures-partial",
+    "corpus": "lux",
+    "capability": "language-capability-coverage",
+    "query": {
+      "tool": "deriveCapability",
+      "args": {
+        "languageId": "typescript",
+        "capability": "references",
+        "input": {
+          "producer": "typescript-compiler",
+          "candidates": 6,
+          "configured": true,
+          "ran": true,
+          "failures": 2,
+          "nodes": 5,
+          "edges": 3,
+          "documentedSubset": false
+        }
+      }
+    },
+    "expectedCoverage": {
+      "state": "partial",
+      "producer": "typescript-compiler",
+      "nodes": 5,
+      "edges": 3,
+      "failures": 2,
+      "reason": "2 producer failure(s)"
+    },
+    "forbiddenStates": ["active", "unsupported", "failed", "not_applicable"],
+    "expectedOutcome": "reported",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 1,
+      "minForbiddenControls": 4
+    }
+  },
+  {
+    "id": "p03-javascript-candidates-zero-output-partial",
+    "corpus": "lux",
+    "capability": "language-capability-coverage",
+    "query": {
+      "tool": "deriveCapability",
+      "args": {
+        "languageId": "javascript",
+        "capability": "symbols",
+        "input": {
+          "producer": "javascript-parser",
+          "candidates": 3,
+          "configured": true,
+          "ran": true,
+          "failures": 0,
+          "nodes": 0,
+          "edges": 0,
+          "documentedSubset": false
+        }
+      }
+    },
+    "expectedCoverage": {
+      "state": "partial",
+      "producer": "javascript-parser",
+      "nodes": 0,
+      "edges": 0,
+      "failures": 0,
+      "reason": "applicable candidates produced no structural output"
+    },
+    "forbiddenStates": ["active", "unsupported", "failed", "not_applicable"],
+    "expectedOutcome": "reported",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5f1f053c635a7244d3d1c23045ce398170053623"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveChecks": 1,
+      "minForbiddenControls": 4
+    }
+  }
+]

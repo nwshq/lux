@@ -282,6 +282,15 @@ export const TOOLS: Tool[] = [
     },
   },
   {
+    name: 'lux_doctor',
+    description:
+      'Read-only production diagnostics for index statistics, overlay trust, working-tree freshness, and explicit per-language structural coverage. Returns the same payload as lux doctor --json.',
+    inputSchema: {
+      type: 'object',
+      properties: {},
+    },
+  },
+  {
     name: 'lux_index_status',
     description:
       'Preflight for indexed content retrieval: report the active workspace, index statistics, ' +

@@ -86,6 +86,7 @@ const REQUIRED_SKILL_TOOL_NAMES = [
   'lux_deps_impact',
   'lux_overlay_status',
   'lux_index_status',
+  'lux_doctor',
 ];
 const REQUIRED_SKILL_FRONTMATTER = {
   name: 'lux-code-intel',

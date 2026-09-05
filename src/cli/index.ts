@@ -25,6 +25,10 @@ import { decideScopedEligibility, decideForcedScoped } from '../scanner/sync-esc
 import type { ScopedDecision } from '../scanner/sync-escalation.js';
 import { persistStructuralConfigFingerprint } from '../scanner/config-fingerprint.js';
 import { buildIndexStatusPayload } from './status-payload.js';
+import {
+  persistCoverageProducerRuns,
+  persistScopedCoverageProducerRuns,
+} from '../scanner/coverage/producer-runs.js';
 import { openCliReadIndex, withReadTelemetry } from './read-index.js';
 import {
   isGitRepository,
@@ -51,6 +55,7 @@ import { addOverlayCommands } from './overlay.js';
 import { addUsageCommands } from './usage.js';
 import { addDeltaCommand } from './delta.js';
 import { addSiblingsCommand } from './siblings.js';
+import { registerDoctorCommand } from './doctor.js';
 import {
   createInvocationId,
   emitUsageEvent,
@@ -334,6 +339,7 @@ indexCmd
         }
       }
 
+      persistCoverageProducerRuns(db, generalResult);
       if (overlayResult) {
         persistRebuildTrustState(db, overlayResult, {
           lastIndexedCommit: headCommitForTrustState,
@@ -495,6 +501,7 @@ indexCmd
             });
             const headCommit = getHeadCommit(corpusPath);
             db.setIndexMetadata('last_indexed_commit', headCommit);
+            persistCoverageProducerRuns(db, scanResult);
             persistRebuildTrustState(db, result, {
               lastIndexedCommit: headCommit,
             });
@@ -552,6 +559,7 @@ indexCmd
             });
             const headCommit = getHeadCommit(corpusPath);
             db.setIndexMetadata('last_indexed_commit', headCommit);
+            persistCoverageProducerRuns(db, scanResult);
             persistRebuildTrustState(db, result, {
               lastIndexedCommit: headCommit,
             });
@@ -657,6 +665,7 @@ indexCmd
               quiet: options.quiet === true,
             });
             db.setIndexMetadata('last_indexed_commit', headCommit);
+            persistCoverageProducerRuns(db, scanResult);
             persistRebuildTrustState(db, result, {
               lastIndexedCommit: headCommit,
             });
@@ -728,6 +737,11 @@ indexCmd
               });
             }
             db.setIndexMetadata('last_indexed_commit', headCommit); // OQ4-safe (Phase 2 mark-read landed)
+            persistScopedCoverageProducerRuns(
+              db,
+              result,
+              changed.map((file) => file.relPath)
+            );
             if (prior) {
               persistRefreshTrustState(db, prior, {
                 lastIndexedCommit: headCommit,
@@ -804,6 +818,7 @@ indexCmd
               quiet: options.quiet === true,
             });
             db.setIndexMetadata('last_indexed_commit', headCommit);
+            persistCoverageProducerRuns(db, scanResult);
             persistRebuildTrustState(db, result, {
               lastIndexedCommit: headCommit,
             });
@@ -1187,6 +1202,9 @@ addDeltaCommand(program);
 
 // Add siblings command
 addSiblingsCommand(program);
+
+// Add read-only production diagnostics command
+registerDoctorCommand(program);
 
 // ---------------------------------------------------------------------------
 // Anchor embed-pass helpers (spec 16 Part B) — the four terminal-point tail

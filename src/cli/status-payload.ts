@@ -7,6 +7,7 @@ import {
   type PersistedOverlayTrustState,
 } from '../scanner/overlay-trust-state.js';
 import { assessWorkingTreeFreshness, type WorkingTreeFreshness } from '../scanner/freshness.js';
+import { buildCoverage, type CoveragePayload } from '../scanner/coverage/builder.js';
 
 export interface FreshnessStatusPayload {
   assessment: WorkingTreeFreshness['assessment'];
@@ -52,6 +53,7 @@ export interface OverlayStatusPayloadWithRuntime {
 export interface IndexStatusPayload {
   stats: ReturnType<LuxDatabase['getStats']>;
   overlay: OverlayTrustPayload;
+  coverage: CoveragePayload;
   runtime?: RuntimeStatusPayload;
   freshness?: FreshnessStatusPayload;
 }
@@ -107,6 +109,7 @@ export function buildIndexStatusPayload(
   return {
     stats: db.getStats(),
     overlay: buildOverlayTrustPayload(db),
+    coverage: buildCoverage(db, { corpusPath: runtime?.corpusPath }),
     ...(runtime ? { runtime: buildRuntimeStatusPayload(runtime) } : {}),
     ...(runtime ? { freshness: buildFreshnessPayload(db, runtime.corpusPath) } : {}),
   };

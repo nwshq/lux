@@ -9,8 +9,8 @@ Use Lux as the primary structural-intelligence system for indexed repositories.
 
 ## Preflight
 
-1. Establish the active repository with `lux_overlay_status` for structural work or
-   `lux_index_status` for content retrieval.
+1. Establish the active repository and language capability coverage with `lux_doctor`; use
+   `lux_overlay_status` for focused structural trust or `lux_index_status` for focused content state.
 2. Confirm the reported runtime points at the repository being investigated.
 3. Do not silently trust a missing, stale, content-only, or degraded structural overlay.
 4. Read tools never create or migrate an index; treat `index-absent`/schema refusals as state, not a
@@ -23,6 +23,7 @@ command help rather than inventing flags.
 
 ## Query routing
 
+- Runtime, trust, freshness, and language capability diagnosis: `lux_doctor`.
 - Fuzzy concept to concrete symbols: `lux_anchors`.
 - Known symbol, calls, consumers, or cross-boundary behavior: `lux_trace`. Use `direction: incoming`
   for callers/consumers and `direction: both` for bidirectional context; omit it for outgoing.

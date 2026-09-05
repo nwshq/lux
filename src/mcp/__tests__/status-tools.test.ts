@@ -1,4 +1,4 @@
-// The MCP parity trio — lux_deps_impact / lux_overlay_status / lux_index_status. Each MCP handler
+// MCP status parity — deps impact, overlay/index status, and doctor. Each MCP handler
 // delegates to the SAME library the CLI uses (computeImpact from src/cli/deps-impact.ts;
 // buildOverlayStatusPayload / buildIndexStatusPayload from src/cli/status-payload.ts) — the tools do
 // not fork the query logic. These tests exercise the shared functions directly and — for
@@ -18,6 +18,7 @@ import {
 import { LuxDatabase } from '../../db/index.js';
 import { computeImpact } from '../../cli/deps-impact.js';
 import { buildIndexStatusPayload, buildOverlayStatusPayload } from '../../cli/status-payload.js';
+import { buildDoctorPayload } from '../../cli/doctor.js';
 import { resolveRuntimePaths } from '../../utils/runtime-paths.js';
 
 const REPO_ROOT = resolve(__dirname, '..', '..', '..');
@@ -109,14 +110,19 @@ describe('MCP parity trio — shared library contracts (direct call)', () => {
     }
   });
 
-  it('buildIndexStatusPayload (with runtime) carries stats + overlay + runtime + freshness', () => {
+  it('buildIndexStatusPayload and doctor carry identical coverage without mutating trust', () => {
     const runtime = resolveRuntimePaths({ corpus, db: dbPath });
+    const beforeTrust = db.getIndexMetadata('overlay_trust_state');
     const payload = buildIndexStatusPayload(db, runtime);
+    const doctor = buildDoctorPayload(db, runtime);
     expect(payload.stats).toBeDefined();
     expect(payload.overlay.trustLevel).toBeDefined();
+    expect(payload.coverage.languages).toBeInstanceOf(Array);
+    expect(doctor).toEqual(payload);
     expect(payload.runtime?.corpusPath).toBe(corpus);
     expect(payload.freshness?.indexedCommit).not.toBeNull();
     expect(payload.freshness?.headMatchesIndex).toBe(true);
+    expect(db.getIndexMetadata('overlay_trust_state')).toBe(beforeTrust);
   });
 });
 
@@ -156,7 +162,7 @@ describe.skipIf(!existsSync(DIST_SERVER))(
     it('lists the three new tools with their documented input schemas', async () => {
       const { tools } = await client.listTools();
       const names = tools.map((t) => t.name);
-      for (const n of ['lux_deps_impact', 'lux_overlay_status', 'lux_index_status']) {
+      for (const n of ['lux_deps_impact', 'lux_overlay_status', 'lux_index_status', 'lux_doctor']) {
         expect(names).toContain(n);
       }
       const depsImpact = tools.find((t) => t.name === 'lux_deps_impact');
@@ -205,17 +211,22 @@ describe.skipIf(!existsSync(DIST_SERVER))(
       expect(payload.freshness?.headMatchesIndex).toBe(true);
     });
 
-    it('lux_index_status returns stats + overlay + runtime + freshness', async () => {
-      const res = await client.callTool({ name: 'lux_index_status', arguments: {} });
-      expect(res.isError).toBeFalsy();
-      const payload = parse(res) as {
+    it('lux_index_status and lux_doctor return the same coverage-bearing payload', async () => {
+      const status = await client.callTool({ name: 'lux_index_status', arguments: {} });
+      const doctor = await client.callTool({ name: 'lux_doctor', arguments: {} });
+      expect(status.isError).toBeFalsy();
+      expect(doctor.isError).toBeFalsy();
+      const payload = parse(status) as {
         stats?: Record<string, unknown>;
         overlay?: { trustLevel?: string };
+        coverage?: { languages?: unknown[] };
         runtime?: { corpusPath?: string };
         freshness?: { indexedCommit?: string | null };
       };
+      expect(parse(doctor)).toEqual(payload);
       expect(payload.stats).toBeDefined();
       expect(payload.overlay?.trustLevel).toBeDefined();
+      expect(payload.coverage?.languages).toBeInstanceOf(Array);
       expect(payload.runtime?.corpusPath).toBe(corpus);
       expect(payload.freshness?.indexedCommit).toBeTruthy();
     });

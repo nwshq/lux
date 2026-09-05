@@ -18,6 +18,8 @@ import { readFileSync } from 'fs';
 import { LUX_VERSION } from '../utils/version.js';
 import { computeImpact } from '../cli/deps-impact.js';
 import { buildIndexStatusPayload, buildOverlayStatusPayload } from '../cli/status-payload.js';
+import { buildDoctorPayload } from '../cli/doctor.js';
+import { persistCoverageProducerRuns } from '../scanner/coverage/producer-runs.js';
 import { getHeadCommit, isGitRepository } from '../scanner/git.js';
 import { executeSpecEvidenceAsk } from '../cli/spec-evidence.js';
 import { resolveStartNode, traceFrom } from '../scanner/associations/trace.js';
@@ -289,6 +291,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         const headCommit = isGitRepository(corpusPath) ? getHeadCommit(corpusPath) : null;
         if (headCommit) db.setIndexMetadata('last_indexed_commit', headCommit);
+        persistCoverageProducerRuns(db, scanResult);
         const trustState = persistRebuildTrustState(db, result, {
           lastIndexedCommit: headCommit ?? undefined,
         });
@@ -596,6 +599,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'lux_overlay_status': {
         // Reuses the canonical status-payload builder shared with `lux overlay status --json`.
         const payload = buildOverlayStatusPayload(db, runtime);
+        return {
+          content: [{ type: 'text', text: JSON.stringify(withReadTelemetry(payload), null, 2) }],
+        };
+      }
+
+      case 'lux_doctor': {
+        const payload = buildDoctorPayload(db, runtime);
         return {
           content: [{ type: 'text', text: JSON.stringify(withReadTelemetry(payload), null, 2) }],
         };
