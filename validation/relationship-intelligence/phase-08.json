@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "phase": 8,
+  "implementationSha": "9b2f26a19706e694d538aa362768c7e2c13a2531",
+  "mergeSha": "67e333167a9deb4a426a3491390ea7d01f88880f",
+  "baselineSha": "5a0d0822d3592d0b34a2cae744ab28e38de6168d",
+  "criteria": [
+    {
+      "id": "P08-C1",
+      "class": "project-and-workspace-resolution",
+      "green": {
+        "command": "vitest run Phase 8 focused and expanded acceptance suites; synthetic resolution corpus; exact-pin acme Core and example-workspace probes; repeated stable-digest checks",
+        "exitCode": 0,
+        "observable": "32/32 synthetic positive cases and 16/16 forbidden cases scored precision 1 and recall 1; 9/9 exact-pin acme Core cases and 8/8 exact-pin example-workspace cases passed; 230/230 focused tests passed before the final expanded battery also passed; repeated observations produced stable digests"
+      },
+      "red": {
+        "mutation": "project-config-workspace-export-provenance-containment-or-edge-contract-regressions",
+        "command": "vitest run src/integration/__tests__/phase-08-acceptance.test.ts",
+        "exitCode": 1,
+        "observable": "12 watched-red records reject project-config, workspace-export, provenance, containment, required-edge, and forbidden-edge regressions"
+      },
+      "verifiedBy": "independent-synthetic-focused-expanded-exact-pin-and-stable-digest-validation"
+    },
+    {
+      "id": "P08-C2",
+      "class": "performance-and-compatibility",
+      "green": {
+        "command": "three warmups plus five measured resolver runs for each exact-pin corpus; npm run check; architecture, dead-code, native-free, and docs-surface gates",
+        "exitCode": 0,
+        "observable": "After 3 warmups, acme Core median wall was 16.298 ms and example-workspace median wall was 2.568 ms across 5 measured runs each, with stable digests; the recorded final full suite passed 1867 with 13 skipped and 0 failed; architecture lint checked 188 files with 0 violations, architecture tests passed, dead-code validation checked 1028 exports across 182 files, and all remaining gates passed"
+      },
+      "red": {
+        "mutation": "watched-project-and-workspace-resolution-contract-regressions",
+        "command": "vitest run src/integration/__tests__/phase-08-acceptance.test.ts",
+        "exitCode": 1,
+        "observable": "watched resolver and graph mutations produce nonzero checker exits rather than silently changing deterministic project or workspace resolution"
+      },
+      "verifiedBy": "independent-performance-static-full-suite-and-compatibility-validation"
+    },
+    {
+      "id": "P08-C3",
+      "class": "review-and-release",
+      "green": {
+        "command": "GitHub PR #99 CI/Release; installed plugin verification",
+        "exitCode": 0,
+        "observable": "PR #99 merged as 67e333167a9deb4a426a3491390ea7d01f88880f; v2.24.0 release and lux-v2.24.0-linux-x64.tar.gz published with sha256:635462457503cdc838b0512b7f2cec5a8fe58549a6e9af7e759b3fc6edf5e126; installed plugin reports 2.24.0"
+      },
+      "red": {
+        "mutation": "expect-prior-version",
+        "command": "installed plugin version check",
+        "exitCode": 1,
+        "observable": "installed 2.24.0 differs from prior 2.23.0 sentinel"
+      },
+      "verifiedBy": "github-ci-release-and-installed-plugin-verification"
+    }
+  ],
+  "knownBaselineFailures": [],
+  "review": {
+    "codeReview": "APPROVED",
+    "independentValidation": "32/32 synthetic positive and 16/16 forbidden cases at precision/recall 1, 12 watched-red records, 9/9 acme Core and 8/8 example-workspace exact-pin cases, 230/230 focused tests followed by the passing final expanded battery, 1867 passed/13 skipped/0 failed recorded final full suite, architecture lint 188 files/0 violations, architecture tests, dead-code validation 1028 exports/182 files, all remaining gates, stable digests, 3+5 performance medians, and installed-plugin release verification passed",
+    "acceptanceReview": "APPROVED"
+  },
+  "exemptions": []
+}
