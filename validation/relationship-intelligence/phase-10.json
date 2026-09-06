@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "phase": 10,
+  "implementationSha": "0891309c00b42a12937abbba4ef7b3f54c0c9fa5",
+  "mergeSha": "f7b1521083804f180612354ce4ee4e4d82aebff0",
+  "baselineSha": "adbb7c141c700c13a1a54c71893fb9303cc65ba2",
+  "criteria": [
+    {
+      "id": "P10-C1",
+      "class": "vue-composable-and-store-semantics",
+      "green": {
+        "command": "vitest run Phase 10 focused acceptance suites; composable and store cohort scoring; watched-red controls; repeated stable-digest checks",
+        "exitCode": 0,
+        "observable": "The composable cohort passed 22/22 positive and 11/11 forbidden cases at precision 1 and recall 1; the store cohort passed 25/25 positive and 12/12 forbidden cases at precision 1 and recall 1; all 8 watched mutations were detected; repeated observations produced stable digests"
+      },
+      "red": {
+        "mutation": "eight-watched-composable-store-refresh-and-edge-contract-regressions",
+        "command": "vitest run src/integration/__tests__/phase-10-acceptance.test.ts with each watched mutation",
+        "exitCode": 1,
+        "observable": "Each of the 8 watched composable, store, refresh, required-edge, and forbidden-edge mutations produced a nonzero checker exit"
+      },
+      "verifiedBy": "independent-cohort-watched-mutation-refresh-and-stable-digest-validation"
+    },
+    {
+      "id": "P10-C2",
+      "class": "performance-and-compatibility",
+      "green": {
+        "command": "three warmups plus five measured Phase 10 semantic runs; npm run check; architecture, dead-code, and remaining repository gates",
+        "exitCode": 0,
+        "observable": "After 3 warmups, median wall was 82.813 ms across 5 measured runs with observed process RSS 89800704 bytes and stable digests; the recorded final full suite passed 1917 with 13 skipped and 0 failed; architecture lint checked 198 files with 0 violations, dead-code validation checked 1047 exports across 191 files, and all gates passed"
+      },
+      "red": {
+        "mutation": "watched-composable-store-semantics-regressions",
+        "command": "vitest run src/integration/__tests__/phase-10-acceptance.test.ts with watched mutations",
+        "exitCode": 1,
+        "observable": "The compatibility battery rejects all 8 watched semantic and refresh regressions with nonzero checker exits"
+      },
+      "verifiedBy": "independent-performance-static-full-suite-and-compatibility-validation"
+    },
+    {
+      "id": "P10-C3",
+      "class": "review-and-release",
+      "green": {
+        "command": "GitHub PR #103 CI/Release; installed plugin verification",
+        "exitCode": 0,
+        "observable": "PR #103 merged as f7b1521083804f180612354ce4ee4e4d82aebff0; v2.26.0 release and lux-v2.26.0-linux-x64.tar.gz published with sha256:b9e8cfa68ba1a8da8ce40caba43ac0a57988cd23d55a7a1d4aba0f5437de9731; installed plugin reports 2.26.0"
+      },
+      "red": {
+        "mutation": "expect-prior-version",
+        "command": "installed plugin version check",
+        "exitCode": 1,
+        "observable": "installed 2.26.0 differs from prior 2.25.0 sentinel"
+      },
+      "verifiedBy": "github-ci-release-and-installed-plugin-verification"
+    }
+  ],
+  "knownBaselineFailures": [],
+  "review": {
+    "codeReview": "APPROVED",
+    "independentValidation": "Composable 22/22 positive and 11/11 forbidden cases and store 25/25 positive and 12/12 forbidden cases at precision/recall 1, all 8 watched mutations detected, 1917 passed/13 skipped/0 failed final full suite, architecture lint 198 files/0 violations, dead-code validation 1047 exports/191 files, all gates passed, stable digests, 3+5 performance median 82.813 ms with RSS 89800704 bytes, and installed-plugin 2.26.0 release verification passed",
+    "acceptanceReview": "APPROVED"
+  },
+  "exemptions": []
+}
