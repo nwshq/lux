@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "phase": 13,
+  "implementationSha": "0a41e09fe2052b8c3f6fae017664988511d34d3a",
+  "mergeSha": "13c57bde684e774cb914f0b29b2f9c1c675a9e32",
+  "baselineSha": "9234de2d050aeed3ae88df4682a9fc1e62a7759f",
+  "criteria": [
+    {
+      "id": "P13-C1",
+      "class": "static-livewire-class-view-mount-bridge",
+      "green": {
+        "command": "vitest run Phase 13 focused acceptance suites; synthetic and exact-pin cohort scoring; watched-red controls; repeated stable-digest checks",
+        "exitCode": 0,
+        "observable": "All 30 focused tests passed; the synthetic battery passed 26 positive and 18 forbidden cases at precision 1 and recall 1; the exact-pin acme cohort was not_applicable with zero candidates outside synthetic scoring; all 8 watched mutations were detected; repeated observations produced equal stable digest 795d11ce93373a36ea8aed9169e1f1a88faaca156bbbbc510767725b1b63972c; production gaps for basename resolution, Volt, anonymous components, and producer classification were fixed"
+      },
+      "red": {
+        "mutation": "eight-watched-livewire-view-mount-evidence-and-edge-contract-regressions",
+        "command": "vitest run src/integration/__tests__/phase-13-acceptance.test.ts with each watched mutation",
+        "exitCode": 1,
+        "observable": "Each of the 8 watched missing-view, reverse-edge, global-basename, commented-mount, Volt, evidence, remove-edge, and inject-edge mutations produced a nonzero checker exit"
+      },
+      "verifiedBy": "independent-livewire-cohort-watched-mutation-invalidation-and-stable-digest-validation"
+    },
+    {
+      "id": "P13-C2",
+      "class": "performance-and-compatibility",
+      "green": {
+        "command": "three warmups plus five measured Phase 13 semantic runs; focused and full Vitest runs; architecture, dead-code, documentation, and native-free gates",
+        "exitCode": 0,
+        "observable": "After 3 warmups, median wall was 279.81166599999983 ms across 5 measured runs with observed process RSS 103809024 bytes and equal stable digest 795d11ce93373a36ea8aed9169e1f1a88faaca156bbbbc510767725b1b63972c; a normal full run had 2 unrelated concurrency timeouts, independent reruns passed 17/17, and a bounded full Vitest run passed 1989 with 13 skipped and 0 failed; architecture lint checked 207 files with 0 violations, architecture tests passed 5, dead-code validation checked 1093 exports across 200 files, and native-free and documentation gates passed"
+      },
+      "red": {
+        "mutation": "watched-livewire-bridge-semantics-regressions",
+        "command": "vitest run src/integration/__tests__/phase-13-acceptance.test.ts with watched mutations",
+        "exitCode": 1,
+        "observable": "The compatibility battery rejects all 8 watched Livewire resolution, mount, evidence, and edge-contract regressions with nonzero checker exits"
+      },
+      "verifiedBy": "independent-performance-focused-full-suite-static-and-compatibility-validation"
+    },
+    {
+      "id": "P13-C3",
+      "class": "review-and-release",
+      "green": {
+        "command": "GitHub PR #108 CI/Release; global CLI/package, MCP, and installed Goose plugin verification",
+        "exitCode": 0,
+        "observable": "PR #108 merged as 13c57bde684e774cb914f0b29b2f9c1c675a9e32; v2.29.0 release and lux-v2.29.0-linux-x64.tar.gz published with sha256:3b70088380b50e21f6c5e89a96ff1e878e157001de3a51cf5326d74e8276f184; installed CLI/package and MCP report 2.29.0 with 12 tools; the Goose plugin is at 13c57bd and preserves the namespaced Skill; Phase 12 implementation d66ea1b and v2.28.0 were the released predecessor, while its evidence commit 9234de2 merged after the Phase 13 implementation base"
+      },
+      "red": {
+        "mutation": "expect-prior-version",
+        "command": "installed CLI/package and MCP version check",
+        "exitCode": 1,
+        "observable": "installed 2.29.0 differs from the prior released dependency 2.28.0 sentinel"
+      },
+      "verifiedBy": "github-ci-release-global-cli-mcp-and-goose-plugin-verification"
+    }
+  ],
+  "knownBaselineFailures": [],
+  "review": {
+    "codeReview": "APPROVED",
+    "independentValidation": "Independent review and acceptance APPROVED; the synthetic battery passed 26 positive and 18 forbidden cases at precision/recall 1, exact-pin acme was not_applicable with zero candidates, all 8 watched mutations were detected, all 30 focused tests passed, independent reruns passed 17/17 after 2 unrelated concurrency timeouts in a normal full run, and bounded full Vitest passed 1989/13 skipped/0 failed; architecture lint checked 207 files/0 violations, architecture tests passed 5, dead-code validation checked 1093 exports/200 files, native-free and documentation gates passed, equal stable digest 795d11ce93373a36ea8aed9169e1f1a88faaca156bbbbc510767725b1b63972c, 3+5 performance median 279.81166599999983 ms with RSS 103809024 bytes, installed CLI/package and MCP 2.29.0 with 12 tools, and Goose plugin 13c57bd namespaced-Skill verification passed",
+    "acceptanceReview": "APPROVED"
+  },
+  "exemptions": []
+}
