@@ -26,6 +26,8 @@ import { getHeadCommit, isGitRepository } from '../git.js';
 import { materializeNodes } from './materializer.js';
 import { materializeAstSymbols } from '../ast/materialize.js';
 import { buildVueComponentNodes } from '../vue/materialize.js';
+import { VueEventResolver } from '../vue/event-resolver.js';
+import { buildVueEventNodes } from '../vue/event-materialize.js';
 import { AstStructuralResolver } from '../ast/resolver.js';
 import { AssociationEngine } from './engine.js';
 import { createDefaultResolvers } from './framework/index.js';
@@ -247,6 +249,11 @@ export async function refreshOverlayScoped(
       for (const node of buildVueComponentNodes(programAnalysis.vueFacts, now)) {
         db.upsertStructuralNode(node);
       }
+      const artifacts = new VueEventResolver({ now: () => now }).resolve(
+        programAnalysis.vueFacts,
+        []
+      ).artifacts;
+      for (const node of buildVueEventNodes(artifacts, now)) db.upsertStructuralNode(node);
     });
   }
 

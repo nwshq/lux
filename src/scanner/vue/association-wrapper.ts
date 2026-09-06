@@ -7,6 +7,7 @@ import type {
 import { VueComponentResolver } from './component-resolver.js';
 import { VueComposableResolver } from './composable-resolver.js';
 import { VueStoreResolver } from './store-resolver.js';
+import { VueEventResolver, type VueResolvedChildV1 } from './event-resolver.js';
 
 const VUE_SFC_PRODUCER = 'vue-compiler-sfc';
 
@@ -58,5 +59,52 @@ export class VueStoreAssociationResolver extends VueAnalysisAssociationResolver 
   readonly name = 'vue-store';
   constructor(resolver: RelationshipResolverV1 = new VueStoreResolver()) {
     super(resolver);
+  }
+}
+
+export class VueEventAssociationResolver implements AssociationResolver {
+  readonly name = 'vue-component-event';
+
+  constructor(private readonly resolver = new VueEventResolver()) {}
+
+  supports(context: AssociationContext): boolean {
+    return Boolean(context.programAnalysis?.producersRun.has(VUE_SFC_PRODUCER));
+  }
+
+  resolve(context: AssociationContext): Promise<StructuralRelationEdge[]> {
+    const analysis = context.programAnalysis;
+    if (!analysis?.producersRun.has(VUE_SFC_PRODUCER)) return Promise.resolve([]);
+    const componentEdges = new VueComponentResolver({ now: () => 0 });
+    return componentEdges.resolve(analysis.facts, analysis.project).then((edges) => {
+      const byLocation = new Map(
+        analysis.vueFacts.flatMap((parent) =>
+          parent.templateElements.map((element) => [
+            `${parent.componentId}\0${element.location.filePath}\0${element.location.line}\0${element.location.column}`,
+            { parent, element },
+          ])
+        )
+      );
+      const children: VueResolvedChildV1[] = [];
+      for (const edge of edges) {
+        const use = edge.provenance.evidenceLocations.find((location) =>
+          location.note?.startsWith('static template use')
+        );
+        if (!use?.line) continue;
+        const match = [...byLocation.values()].find(
+          ({ parent, element }) =>
+            parent.componentId === edge.sourceNodeId &&
+            element.location.filePath === use.filePath &&
+            element.location.line === use.line
+        );
+        if (!match) continue;
+        children.push({
+          parentComponentId: edge.sourceNodeId,
+          childComponentId: edge.targetNodeId,
+          childTag: match.element.staticIs ?? match.element.tag,
+          location: match.element.location,
+        });
+      }
+      return this.resolver.resolve(analysis.vueFacts, children).edges;
+    });
   }
 }

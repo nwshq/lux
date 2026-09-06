@@ -22,6 +22,8 @@ import type { SharedExtractions } from '../ast/extraction-cache.js';
 import { analyzeProgram, type ProgramAnalysisV1 } from '../adapters/program-analysis.js';
 import { AstStructuralResolver } from '../ast/resolver.js';
 import { buildVueComponentNodes } from '../vue/materialize.js';
+import { VueEventResolver } from '../vue/event-resolver.js';
+import { buildVueEventNodes } from '../vue/event-materialize.js';
 import { AssociationEngine } from './engine.js';
 import { createDefaultResolvers } from './framework/index.js';
 import type { AssociationContext, AssociationResolver } from './types.js';
@@ -180,6 +182,16 @@ export async function rebuildStructuralOverlay(
       for (const node of vueNodes) db.upsertStructuralNode(node);
     });
     symbolNodes += vueNodes.length;
+    const eventNodes = buildVueEventNodes(
+      new VueEventResolver({ now: () => Math.floor(Date.now() / 1000) }).resolve(
+        programAnalysis.vueFacts,
+        []
+      ).artifacts,
+      Math.floor(Date.now() / 1000)
+    );
+    db.transaction(() => {
+      for (const node of eventNodes) db.upsertStructuralNode(node);
+    });
   }
 
   // 4. Assemble association context

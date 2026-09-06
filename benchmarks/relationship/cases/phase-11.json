@@ -1,0 +1,2321 @@
+[
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-01-define-emits-array-single",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P01.vue",
+        "parentSource": "<script setup>\nimport Child01 from \"./C01.vue\"\n</script>\n<template><Child01 @saved=\"onSaved\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C01.vue",
+            "tag": "Child01",
+            "source": "<script setup>\ndefineEmits(['saved'])\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC01.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC01.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP01.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC01.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "fixture": {
+      "rootPath": ".",
+      "subtrees": [
+        "declarations",
+        "calls",
+        "listeners",
+        "models",
+        "sync",
+        "collisions",
+        "negatives",
+        "refresh"
+      ]
+    },
+    "performanceProtocol": {
+      "warmups": 3,
+      "measurements": 5,
+      "maxRegressionRatio": 1.2,
+      "baselineWallMs": 1000,
+      "baselineRssBytes": 268435456
+    },
+    "watchedMutations": [
+      {
+        "id": "remove-child-from-event-identity",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p11-positive-27-two-child-change-collision"
+      },
+      {
+        "id": "scope-event-to-parent",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p11-positive-01-define-emits-array-single"
+      },
+      {
+        "id": "permit-dynamic-name",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p11-forbidden-04-dynamic-declaration-variable"
+      },
+      {
+        "id": "handler-without-child-declaration",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p11-forbidden-03-undeclared-child-event"
+      },
+      {
+        "id": "swap-canonical-direction",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p11-positive-01-define-emits-array-single"
+      },
+      {
+        "id": "remove-required-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p11-positive-01-define-emits-array-single"
+      },
+      {
+        "id": "inject-forbidden-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p11-forbidden-01-imported-unused"
+      },
+      {
+        "id": "duplicate-row",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "integrity"
+      },
+      {
+        "id": "dangling-target",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "integrity"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-02-define-emits-array-double-quote",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P02.vue",
+        "parentSource": "<script setup>\nimport Child02 from \"./C02.vue\"\n</script>\n<template><Child02 v-on:changed=\"onChanged\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C02.vue",
+            "tag": "Child02",
+            "source": "<script setup>\ndefineEmits([\"changed\"])\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC02.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC02.vue:event:changed",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP02.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC02.vue:event:changed",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-03-define-emits-array-member",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P03.vue",
+        "parentSource": "<script setup>\nimport Child03 from \"./C03.vue\"\n</script>\n<template><Child03 @closed=\"close\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C03.vue",
+            "tag": "Child03",
+            "source": "<script setup>\ndefineEmits(['opened', 'closed'])\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC03.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC03.vue:event:closed",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP03.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC03.vue:event:closed",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-04-define-emits-object-identifier",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P04.vue",
+        "parentSource": "<script setup>\nimport Child04 from \"./C04.vue\"\n</script>\n<template><Child04 @approved=\"approve\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C04.vue",
+            "tag": "Child04",
+            "source": "<script setup>\ndefineEmits({ approved: null })\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC04.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC04.vue:event:approved",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP04.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC04.vue:event:approved",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-05-define-emits-object-quoted",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P05.vue",
+        "parentSource": "<script setup>\nimport Child05 from \"./C05.vue\"\n</script>\n<template><Child05 @item-added=\"add\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C05.vue",
+            "tag": "Child05",
+            "source": "<script setup>\ndefineEmits({ 'item-added': null })\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC05.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC05.vue:event:item-added",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP05.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC05.vue:event:item-added",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-06-typed-call-signature",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P06.vue",
+        "parentSource": "<script setup>\nimport Child06 from \"./C06.vue\"\n</script>\n<template><Child06 @submitted=\"submit\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C06.vue",
+            "tag": "Child06",
+            "source": "<script setup lang=\"ts\">\ndefineEmits<{ (event: 'submitted'): void }>()\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC06.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC06.vue:event:submitted",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP06.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC06.vue:event:submitted",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-07-typed-call-union",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P07.vue",
+        "parentSource": "<script setup>\nimport Child07 from \"./C07.vue\"\n</script>\n<template><Child07 @declined=\"decline\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C07.vue",
+            "tag": "Child07",
+            "source": "<script setup lang=\"ts\">\ndefineEmits<{ (event: 'accepted' | 'declined'): void }>()\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC07.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC07.vue:event:declined",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP07.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC07.vue:event:declined",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-08-typed-property",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P08.vue",
+        "parentSource": "<script setup>\nimport Child08 from \"./C08.vue\"\n</script>\n<template><Child08 @selected=\"select\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C08.vue",
+            "tag": "Child08",
+            "source": "<script setup lang=\"ts\">\ndefineEmits<{ selected: [id: string] }>()\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC08.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC08.vue:event:selected",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP08.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC08.vue:event:selected",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-09-typed-quoted-property",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P09.vue",
+        "parentSource": "<script setup>\nimport Child09 from \"./C09.vue\"\n</script>\n<template><Child09 @row-clicked=\"clickRow\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C09.vue",
+            "tag": "Child09",
+            "source": "<script setup lang=\"ts\">\ndefineEmits<{ 'row-clicked': [id: string] }>()\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC09.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC09.vue:event:row-clicked",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP09.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC09.vue:event:row-clicked",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-10-returned-binding-call",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P10.vue",
+        "parentSource": "<script setup>\nimport Child10 from \"./C10.vue\"\n</script>\n<template><Child10 @saved=\"save\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C10.vue",
+            "tag": "Child10",
+            "source": "<script setup>\nconst emit = defineEmits([])\nemit('saved')\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC10.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC10.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP10.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC10.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-11-returned-alias-call",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P11.vue",
+        "parentSource": "<script setup>\nimport Child11 from \"./C11.vue\"\n</script>\n<template><Child11 @ready=\"ready\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C11.vue",
+            "tag": "Child11",
+            "source": "<script setup>\nconst dispatch = defineEmits({})\ndispatch('ready')\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC11.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC11.vue:event:ready",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP11.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC11.vue:event:ready",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-12-options-emits-array",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P12.vue",
+        "parentSource": "<script setup>\nimport Child12 from \"./C12.vue\"\n</script>\n<template><Child12 @removed=\"remove\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C12.vue",
+            "tag": "Child12",
+            "source": "<script>\nexport default { emits: ['removed'] }\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC12.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC12.vue:event:removed",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP12.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC12.vue:event:removed",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-13-options-emits-object",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P13.vue",
+        "parentSource": "<script setup>\nimport Child13 from \"./C13.vue\"\n</script>\n<template><Child13 @restored=\"restore\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C13.vue",
+            "tag": "Child13",
+            "source": "<script>\nexport default { emits: { restored: null } }\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC13.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC13.vue:event:restored",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP13.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC13.vue:event:restored",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-14-options-this-emit",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P14.vue",
+        "parentSource": "<script setup>\nimport Child14 from \"./C14.vue\"\n</script>\n<template><Child14 @saved=\"save\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C14.vue",
+            "tag": "Child14",
+            "source": "<script>\nexport default { methods: { save() { this.$emit('saved') } } }\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC14.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC14.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP14.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC14.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-15-setup-destructured-emit",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P15.vue",
+        "parentSource": "<script setup>\nimport Child15 from \"./C15.vue\"\n</script>\n<template><Child15 @mounted=\"mount\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C15.vue",
+            "tag": "Child15",
+            "source": "<script>\nexport default { setup(_props, { emit }) { emit('mounted') } }\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC15.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC15.vue:event:mounted",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP15.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC15.vue:event:mounted",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-16-setup-aliased-emit",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P16.vue",
+        "parentSource": "<script setup>\nimport Child16 from \"./C16.vue\"\n</script>\n<template><Child16 @sent=\"sent\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C16.vue",
+            "tag": "Child16",
+            "source": "<script>\nexport default { setup(_props, { emit: send }) { send('sent') } }\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC16.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC16.vue:event:sent",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP16.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC16.vue:event:sent",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-17-setup-context-emit",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P17.vue",
+        "parentSource": "<script setup>\nimport Child17 from \"./C17.vue\"\n</script>\n<template><Child17 @loaded=\"load\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C17.vue",
+            "tag": "Child17",
+            "source": "<script>\nexport default { setup(_props, context) { context.emit('loaded') } }\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC17.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC17.vue:event:loaded",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP17.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC17.vue:event:loaded",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-18-define-model-default",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P18.vue",
+        "parentSource": "<script setup>\nimport Child18 from \"./C18.vue\"\n</script>\n<template><Child18 v-model=\"value\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C18.vue",
+            "tag": "Child18",
+            "source": "<script setup>\ndefineModel()\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC18.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC18.vue:event:update%3AmodelValue",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP18.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC18.vue:event:update%3AmodelValue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-19-define-model-named",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P19.vue",
+        "parentSource": "<script setup>\nimport Child19 from \"./C19.vue\"\n</script>\n<template><Child19 v-model:amount=\"amount\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C19.vue",
+            "tag": "Child19",
+            "source": "<script setup>\ndefineModel('amount')\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC19.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC19.vue:event:update%3Aamount",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP19.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC19.vue:event:update%3Aamount",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-20-declared-default-model-listener",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P20.vue",
+        "parentSource": "<script setup>\nimport Child20 from \"./C20.vue\"\n</script>\n<template><Child20 v-model=\"value\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C20.vue",
+            "tag": "Child20",
+            "source": "<script setup>\ndefineEmits(['update:modelValue'])\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC20.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC20.vue:event:update%3AmodelValue",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP20.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC20.vue:event:update%3AmodelValue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-21-declared-argument-model-listener",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P21.vue",
+        "parentSource": "<script setup>\nimport Child21 from \"./C21.vue\"\n</script>\n<template><Child21 v-model:title=\"title\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C21.vue",
+            "tag": "Child21",
+            "source": "<script setup>\ndefineEmits(['update:title'])\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC21.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC21.vue:event:update%3Atitle",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP21.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC21.vue:event:update%3Atitle",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-22-vue2-static-sync",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P22.vue",
+        "parentSource": "<script setup>\nimport Child22 from \"./C22.vue\"\n</script>\n<template><Child22 :legacy.sync=\"legacy\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C22.vue",
+            "tag": "Child22",
+            "source": "<script setup>\ndefineEmits(['update:legacy'])\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC22.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC22.vue:event:update%3Alegacy",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP22.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC22.vue:event:update%3Alegacy",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-23-kebab-child-static-listener",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P23.vue",
+        "parentSource": "<script setup>\nimport ChildCard from \"./C23.vue\"\n</script>\n<template><ChildCard @focused=\"focus\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C23.vue",
+            "tag": "ChildCard",
+            "source": "<script setup>\ndefineEmits(['focused'])\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC23.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC23.vue:event:focused",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP23.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC23.vue:event:focused",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-24-inline-handler-evidence",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P24.vue",
+        "parentSource": "<script setup>\nimport Child24 from \"./C24.vue\"\n</script>\n<template><Child24 @picked=\"value = $event\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C24.vue",
+            "tag": "Child24",
+            "source": "<script setup>\ndefineEmits(['picked'])\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC24.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC24.vue:event:picked",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP24.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC24.vue:event:picked",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-25-listener-without-expression",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P25.vue",
+        "parentSource": "<script setup>\nimport Child25 from \"./C25.vue\"\n</script>\n<template><Child25 @close /></template>",
+        "children": [
+          {
+            "path": "src/events/C25.vue",
+            "tag": "Child25",
+            "source": "<script setup>\ndefineEmits(['close'])\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC25.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC25.vue:event:close",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP25.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC25.vue:event:close",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-26-define-component-options",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P26.vue",
+        "parentSource": "<script setup>\nimport Child26 from \"./C26.vue\"\n</script>\n<template><Child26 v-on:confirmed=\"confirm\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C26.vue",
+            "tag": "Child26",
+            "source": "<script>\nexport default defineComponent({ emits: ['confirmed'] })\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC26.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC26.vue:event:confirmed",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP26.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC26.vue:event:confirmed",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-27-two-child-change-collision",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/CollisionParent.vue",
+        "parentSource": "<script setup>\nimport AlphaChild from './AlphaChild.vue'\nimport BetaChild from './BetaChild.vue'\n</script>\n<template><AlphaChild @change=\"alpha\" /><BetaChild @change=\"beta\" /></template>",
+        "children": [
+          {
+            "path": "src/events/AlphaChild.vue",
+            "tag": "AlphaChild",
+            "source": "<script setup>defineEmits(['change'])</script>"
+          },
+          {
+            "path": "src/events/BetaChild.vue",
+            "tag": "BetaChild",
+            "source": "<script setup>defineEmits({ change: null })</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FAlphaChild.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FAlphaChild.vue:event:change",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FCollisionParent.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FAlphaChild.vue:event:change",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FBetaChild.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FBetaChild.vue:event:change",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FCollisionParent.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FBetaChild.vue:event:change",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-positive-28-type-method-signature",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/P28.vue",
+        "parentSource": "<script setup>\nimport Child28 from \"./C28.vue\"\n</script>\n<template><Child28 @validated=\"validate\" /></template>",
+        "children": [
+          {
+            "path": "src/events/C28.vue",
+            "tag": "Child28",
+            "source": "<script setup lang=\"ts\">\ndefineEmits<{ validated(value: boolean): void }>()\n</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FC28.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FC28.vue:event:validated",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:src%2Fevents%2FP28.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FC28.vue:event:validated",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-forbidden-01-imported-unused",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/N01.vue",
+        "parentSource": "<script setup>\nimport Forbidden01 from './Forbidden01.vue'\n</script>\n<template><div /></template>",
+        "children": [
+          {
+            "path": "src/events/Forbidden01.vue",
+            "tag": "Forbidden01",
+            "source": "<script setup>defineEmits(['saved'])</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FForbidden01.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden01.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FN01.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden01.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-forbidden-02-unknown-child-tag",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/N02.vue",
+        "parentSource": "<template><UnknownChild @saved=\"save\" /></template>",
+        "children": []
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FN02.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden02.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-forbidden-03-undeclared-child-event",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/N03.vue",
+        "parentSource": "<script setup>\nimport Forbidden03 from './Forbidden03.vue'\n</script>\n<template><Forbidden03 @saved=\"save\" /></template>",
+        "children": [
+          {
+            "path": "src/events/Forbidden03.vue",
+            "tag": "Forbidden03",
+            "source": "<script setup>defineEmits(['closed'])</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FN03.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden03.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-forbidden-04-dynamic-declaration-variable",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/N04.vue",
+        "parentSource": "<script setup>\nimport Forbidden04 from './Forbidden04.vue'\n</script>\n<template><Forbidden04 @saved=\"save\" /></template>",
+        "children": [
+          {
+            "path": "src/events/Forbidden04.vue",
+            "tag": "Forbidden04",
+            "source": "<script setup>const name = 'saved'; defineEmits([name])</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FN04.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden04.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-forbidden-05-dynamic-concatenation",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/N05.vue",
+        "parentSource": "<script setup>\nimport Forbidden05 from './Forbidden05.vue'\n</script>\n<template><Forbidden05 @saved=\"save\" /></template>",
+        "children": [
+          {
+            "path": "src/events/Forbidden05.vue",
+            "tag": "Forbidden05",
+            "source": "<script setup>const suffix='ved'; defineEmits(['sa' + suffix])</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FN05.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden05.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-forbidden-06-dynamic-template-substitution",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/N06.vue",
+        "parentSource": "<script setup>\nimport Forbidden06 from './Forbidden06.vue'\n</script>\n<template><Forbidden06 @saved=\"save\" /></template>",
+        "children": [
+          {
+            "path": "src/events/Forbidden06.vue",
+            "tag": "Forbidden06",
+            "source": "<script setup>const suffix=\"ved\"; defineEmits([`sa${suffix}`])</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FN06.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden06.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-forbidden-07-spread-array-declaration",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/N07.vue",
+        "parentSource": "<script setup>\nimport Forbidden07 from './Forbidden07.vue'\n</script>\n<template><Forbidden07 @saved=\"save\" /></template>",
+        "children": [
+          {
+            "path": "src/events/Forbidden07.vue",
+            "tag": "Forbidden07",
+            "source": "<script setup>const names=['saved']; defineEmits([...names])</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FN07.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden07.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-forbidden-08-spread-object-declaration",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/N08.vue",
+        "parentSource": "<script setup>\nimport Forbidden08 from './Forbidden08.vue'\n</script>\n<template><Forbidden08 @saved=\"save\" /></template>",
+        "children": [
+          {
+            "path": "src/events/Forbidden08.vue",
+            "tag": "Forbidden08",
+            "source": "<script setup>const names={saved:null}; defineEmits({...names})</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FN08.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden08.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-forbidden-09-arbitrary-emit-function",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/N09.vue",
+        "parentSource": "<script setup>\nimport Forbidden09 from './Forbidden09.vue'\n</script>\n<template><Forbidden09 @saved=\"save\" /></template>",
+        "children": [
+          {
+            "path": "src/events/Forbidden09.vue",
+            "tag": "Forbidden09",
+            "source": "<script setup>function emit(name){}; emit('saved')</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FN09.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden09.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-forbidden-10-shadowed-define-emits",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/N10.vue",
+        "parentSource": "<script setup>\nimport Forbidden10 from './Forbidden10.vue'\n</script>\n<template><Forbidden10 @saved=\"save\" /></template>",
+        "children": [
+          {
+            "path": "src/events/Forbidden10.vue",
+            "tag": "Forbidden10",
+            "source": "<script setup>const defineEmits=(x)=>x; const emit=defineEmits([]); emit('saved')</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FN10.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden10.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-forbidden-11-dynamic-listener-argument",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/N11.vue",
+        "parentSource": "<script setup>\nimport Forbidden11 from './Forbidden11.vue'\n</script>\n<template><Forbidden11 @[eventName]=\"save\" /></template>",
+        "children": [
+          {
+            "path": "src/events/Forbidden11.vue",
+            "tag": "Forbidden11",
+            "source": "<script setup>defineEmits(['saved'])</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FForbidden11.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden11.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FN11.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden11.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-forbidden-12-listener-object",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/N12.vue",
+        "parentSource": "<script setup>\nimport Forbidden12 from './Forbidden12.vue'\n</script>\n<template><Forbidden12 v-on=\"handlers\" /></template>",
+        "children": [
+          {
+            "path": "src/events/Forbidden12.vue",
+            "tag": "Forbidden12",
+            "source": "<script setup>defineEmits(['saved'])</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FForbidden12.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden12.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FN12.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden12.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-forbidden-13-dynamic-model-argument",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/N13.vue",
+        "parentSource": "<script setup>\nimport Forbidden13 from './Forbidden13.vue'\n</script>\n<template><Forbidden13 v-model:[field]=\"value\" /></template>",
+        "children": [
+          {
+            "path": "src/events/Forbidden13.vue",
+            "tag": "Forbidden13",
+            "source": "<script setup>defineEmits(['update:saved'])</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FForbidden13.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden13.vue:event:update%3Asaved",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FN13.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden13.vue:event:update%3Asaved",
+        "minConfidence": "framework-inferred"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-forbidden-14-dynamic-sync-argument",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/N14.vue",
+        "parentSource": "<script setup>\nimport Forbidden14 from './Forbidden14.vue'\n</script>\n<template><Forbidden14 :[field].sync=\"value\" /></template>",
+        "children": [
+          {
+            "path": "src/events/Forbidden14.vue",
+            "tag": "Forbidden14",
+            "source": "<script setup>defineEmits(['update:saved'])</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FForbidden14.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden14.vue:event:update%3Asaved",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FN14.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden14.vue:event:update%3Asaved",
+        "minConfidence": "framework-inferred"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["vue-sfc-parse-error"],
+    "id": "p11-forbidden-15-malformed-child-sfc",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/N15.vue",
+        "parentSource": "<script setup>\nimport Forbidden15 from './Forbidden15.vue'\n</script>\n<template><Forbidden15 @saved=\"save\" /></template>",
+        "children": [
+          {
+            "path": "src/events/Forbidden15.vue",
+            "tag": "Forbidden15",
+            "source": "<script setup>defineEmits(['saved'])\n<template><div></template>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FN15.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden15.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["vue-sfc-parse-error"],
+    "id": "p11-forbidden-16-malformed-parent-sfc",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/N16.vue",
+        "parentSource": "<script setup>import Forbidden16 from './Forbidden16.vue'</script><template><Forbidden16 @saved=\"save\"></template>",
+        "children": [
+          {
+            "path": "src/events/Forbidden16.vue",
+            "tag": "Forbidden16",
+            "source": "<script setup>defineEmits(['saved'])</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FForbidden16.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden16.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FN16.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden16.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-forbidden-17-forwarded-attrs",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/N17.vue",
+        "parentSource": "<script setup>\nimport Forbidden17 from './Forbidden17.vue'\n</script>\n<template><Forbidden17 v-bind=\"$attrs\" /></template>",
+        "children": [
+          {
+            "path": "src/events/Forbidden17.vue",
+            "tag": "Forbidden17",
+            "source": "<script setup>defineEmits(['saved'])</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FForbidden17.vue",
+        "type": "emits_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden17.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FN17.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden17.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-11-vue-event-synthetic",
+    "capability": "vue-component-event-semantics",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 25,
+      "minForbiddenCases": 15
+    },
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "id": "p11-forbidden-18-shadowed-setup-emit",
+    "query": {
+      "tool": "phase11VueEventSeam",
+      "args": {
+        "parentPath": "src/events/N18.vue",
+        "parentSource": "<script setup>\nimport Forbidden18 from './Forbidden18.vue'\n</script>\n<template><Forbidden18 @saved=\"save\" /></template>",
+        "children": [
+          {
+            "path": "src/events/Forbidden18.vue",
+            "tag": "Forbidden18",
+            "source": "<script>export default { setup(){ function emit(){}; emit('saved') } }</script>"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fevents%2FN18.vue",
+        "type": "handles_component_event",
+        "target": "component:vue:src%2Fevents%2FForbidden18.vue:event:saved",
+        "minConfidence": "framework-inferred"
+      }
+    ]
+  }
+]

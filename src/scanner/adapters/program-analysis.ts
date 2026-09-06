@@ -7,6 +7,7 @@ import type {
   SourceFactsV1,
 } from '../contracts/program.js';
 import { isVueSfcFacts, type VueSfcFactsV1 } from '../vue/types.js';
+import { extractVueEvents } from '../vue/event-extract.js';
 import { DEFAULT_PARSER_LIMITS } from './types.js';
 import { sourceAdapterForLanguage } from './registry.js';
 import {
@@ -55,8 +56,18 @@ export async function analyzeProgram(
       shared.dependencies.push(...output.dependencies);
       shared.diagnostics.push(...output.diagnostics);
       if (isVueSfcFacts(output.facts)) {
-        vueFacts.push(output.facts);
-        shared.facts.push(output.facts);
+        const source = entry.content ?? '';
+        const eventFacts = source ? extractVueEvents(source, output.facts.filePath) : undefined;
+        const enriched = eventFacts
+          ? {
+              ...output.facts,
+              events: eventFacts.events,
+              templateListeners: eventFacts.listeners,
+              diagnostics: [...output.facts.diagnostics, ...eventFacts.diagnostics],
+            }
+          : output.facts;
+        vueFacts.push(enriched);
+        shared.facts.push(enriched);
       }
     }
   }

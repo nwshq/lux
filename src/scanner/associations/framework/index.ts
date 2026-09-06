@@ -10,6 +10,7 @@ import {
   VueComponentAssociationResolver,
   VueComposableAssociationResolver,
   VueStoreAssociationResolver,
+  VueEventAssociationResolver,
 } from '../../vue/association-wrapper.js';
 import type { AssociationResolver } from '../types.js';
 
@@ -23,5 +24,6 @@ export function createDefaultResolvers(): AssociationResolver[] {
     new VueComponentAssociationResolver(),
     new VueComposableAssociationResolver(),
     new VueStoreAssociationResolver(),
+    new VueEventAssociationResolver(),
   ];
 }
