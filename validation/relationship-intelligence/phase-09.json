@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "phase": 9,
+  "implementationSha": "b34c183afaa6577b4652433d4cf7e2b66b011a47",
+  "mergeSha": "31edaeea7307ec83b5d9153bb47922798566a146",
+  "baselineSha": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db",
+  "criteria": [
+    {
+      "id": "P09-C1",
+      "class": "deterministic-vue-component-graph",
+      "green": {
+        "command": "vitest run Phase 9 focused acceptance suites; exact-pin acme Core probe; source-mapping spike; Vue LSP parity and repeated stable-digest checks",
+        "exitCode": 0,
+        "observable": "95/95 focused tests passed; the exact-pin acme Core probe returned 8/8 expected edges at precision 1 and recall 1; the source-mapping spike preserved script-setup/template starts 14/2348, while a +1 shift exited 1; LSP off/on output was identical; repeated clean builds produced equal stable digests beginning 921d"
+      },
+      "red": {
+        "mutation": "one-byte-source-location-shift",
+        "command": "independent exact-pin acme Core source-mapping spike with +1 shift",
+        "exitCode": 1,
+        "observable": "Shifting the expected source locations by one caused the mapping check to exit 1 instead of silently accepting incorrect offsets"
+      },
+      "verifiedBy": "independent-focused-exact-pin-mapping-parity-and-stable-digest-validation"
+    },
+    {
+      "id": "P09-C2",
+      "class": "performance-and-compatibility",
+      "green": {
+        "command": "three warmups plus five measured Phase 9 graph runs; npm run check; architecture and dead-code gates",
+        "exitCode": 0,
+        "observable": "After 3 warmups, median wall was 213.171 ms across 5 measured runs with observed process RSS 224624640 bytes and equal digests beginning 921d; the recorded final full suite passed 1899 with 13 skipped and 0 failed; architecture lint checked 196 files with 0 violations, and dead-code validation checked 1040 exports across 189 files"
+      },
+      "red": {
+        "mutation": "one-byte-source-location-shift",
+        "command": "independent exact-pin acme Core source-mapping spike with +1 shift",
+        "exitCode": 1,
+        "observable": "The compatibility battery rejects a one-byte mapping regression with a nonzero exit"
+      },
+      "verifiedBy": "independent-performance-static-full-suite-and-compatibility-validation"
+    },
+    {
+      "id": "P09-C3",
+      "class": "review-and-release",
+      "green": {
+        "command": "GitHub PR #101 CI/Release; installed plugin verification",
+        "exitCode": 0,
+        "observable": "PR #101 merged as 31edaeea7307ec83b5d9153bb47922798566a146; v2.25.0 release and lux-v2.25.0-linux-x64.tar.gz published with sha256:159d2ee2ee896926f52ef291e225290dbb0a008fb8f8b91996ca272e18dcf3c2; installed plugin reports 2.25.0"
+      },
+      "red": {
+        "mutation": "expect-prior-version",
+        "command": "installed plugin version check",
+        "exitCode": 1,
+        "observable": "installed 2.25.0 differs from prior 2.24.0 sentinel"
+      },
+      "verifiedBy": "github-ci-release-and-installed-plugin-verification"
+    }
+  ],
+  "knownBaselineFailures": [],
+  "review": {
+    "codeReview": "APPROVED",
+    "independentValidation": "95/95 focused tests, 1899 passed/13 skipped/0 failed final full suite, architecture lint 196 files/0 violations, dead-code validation 1040 exports/189 files, 8/8 exact-pin acme Core edges at precision/recall 1, source-mapping starts 14/2348 with the +1 shift exiting 1, LSP parity, equal stable digests beginning 921d, 3+5 performance median 213.171 ms with RSS 224624640 bytes, and installed-plugin release verification passed",
+    "acceptanceReview": "APPROVED"
+  },
+  "exemptions": []
+}
