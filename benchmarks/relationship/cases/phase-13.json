@@ -1,0 +1,2021 @@
+[
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-01-explicit-single",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/Panel1.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass Panel1 extends Component { public function render() { return view('livewire.panel-one'); } }\n",
+          "resources/views/livewire/panel-one.blade.php": "<div>fixture</div>"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Livewire\\Panel1",
+        "type": "renders_template",
+        "target": "template:blade:resources%2Fviews%2Flivewire%2Fpanel-one.blade.php",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "fixture": {
+      "rootPath": ".",
+      "subtrees": [
+        "explicit-views",
+        "conventional-views",
+        "namespaces",
+        "class-roots",
+        "mounts",
+        "aliases",
+        "negative-safety"
+      ]
+    },
+    "performanceProtocol": {
+      "warmups": 3,
+      "measurements": 5,
+      "maxRegressionRatio": 1.2,
+      "baselineWallMs": 1000,
+      "baselineRssBytes": 268435456
+    },
+    "watchedMutations": [
+      {
+        "id": "accept-missing-view",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p13-forbidden-01-missing-view"
+      },
+      {
+        "id": "reverse-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p13-positive-01-explicit-single"
+      },
+      {
+        "id": "global-basename-resolution",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p13-forbidden-16-global-basename"
+      },
+      {
+        "id": "parse-commented-mount",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p13-forbidden-08-blade-commented-mount"
+      },
+      {
+        "id": "classify-volt-supported",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p13-forbidden-10-volt-component"
+      },
+      {
+        "id": "omit-namespace-evidence",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p13-positive-11-configured-view-namespace"
+      },
+      {
+        "id": "remove-required-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p13-positive-01-explicit-single"
+      },
+      {
+        "id": "inject-forbidden-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p13-forbidden-01-missing-view"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-02-explicit-double",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/Panel2.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass Panel2 extends Component { public function render() { return view(\"livewire.panel-two\"); } }\n",
+          "resources/views/livewire/panel-two.blade.php": "<div>fixture</div>"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Livewire\\Panel2",
+        "type": "renders_template",
+        "target": "template:blade:resources%2Fviews%2Flivewire%2Fpanel-two.blade.php",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-03-explicit-nested",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/Panel3.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass Panel3 extends Component { public function render() { return view('livewire.admin.panel-three'); } }\n",
+          "resources/views/livewire/admin/panel-three.blade.php": "<div>fixture</div>"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Livewire\\Panel3",
+        "type": "renders_template",
+        "target": "template:blade:resources%2Fviews%2Flivewire%2Fadmin%2Fpanel-three.blade.php",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-04-literal-layout",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/Panel4.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass Panel4 extends Component { public function render() { return view('livewire.body')->layout('layouts.shell'); } }\n",
+          "resources/views/layouts/shell.blade.php": "<div>fixture</div>",
+          "resources/views/livewire/body.blade.php": "<div>body</div>"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Livewire\\Panel4",
+        "type": "renders_template",
+        "target": "template:blade:resources%2Fviews%2Flivewire%2Fbody.blade.php",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "symbol:php:App\\Livewire\\Panel4",
+        "type": "renders_template",
+        "target": "template:blade:resources%2Fviews%2Flayouts%2Fshell.blade.php",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-05-render-and-layout",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/Panel5.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass Panel5 extends Component { public function render() { return view('livewire.panel-five')->layout('layouts.app'); } }\n",
+          "resources/views/livewire/panel-five.blade.php": "<div>fixture</div>",
+          "resources/views/layouts/app.blade.php": "<main />"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Livewire\\Panel5",
+        "type": "renders_template",
+        "target": "template:blade:resources%2Fviews%2Flivewire%2Fpanel-five.blade.php",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "symbol:php:App\\Livewire\\Panel5",
+        "type": "renders_template",
+        "target": "template:blade:resources%2Fviews%2Flayouts%2Fapp.blade.php",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-06-convention-app-root",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/AccountCard.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass AccountCard extends Component {  }\n",
+          "resources/views/livewire/account-card.blade.php": "<div />"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views/livewire"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Livewire\\AccountCard",
+        "type": "renders_template",
+        "target": "template:blade:resources%2Fviews%2Flivewire%2Faccount-card.blade.php",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-07-convention-http-root",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Http/Livewire/LegacyCard.php": "<?php\nnamespace App\\Http\\Livewire;\nuse Livewire\\Component;\nclass LegacyCard extends Component {  }\n",
+          "resources/views/livewire/legacy-card.blade.php": "<div />"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views/livewire"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Livewire\\LegacyCard",
+        "type": "renders_template",
+        "target": "template:blade:resources%2Fviews%2Flivewire%2Flegacy-card.blade.php",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-08-convention-nested",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/Admin/UserTable.php": "<?php\nnamespace App\\Livewire\\Admin;\nuse Livewire\\Component;\nclass UserTable extends Component {  }\n",
+          "resources/views/livewire/admin/user-table.blade.php": "<div />"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views/livewire"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Livewire\\Admin\\UserTable",
+        "type": "renders_template",
+        "target": "template:blade:resources%2Fviews%2Flivewire%2Fadmin%2Fuser-table.blade.php",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-09-imported-component-alias",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/AliasPanel.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component as BaseComponent;\nclass AliasPanel extends BaseComponent {  }\n",
+          "resources/views/livewire/alias-panel.blade.php": "<div />"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views/livewire"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Livewire\\AliasPanel",
+        "type": "renders_template",
+        "target": "template:blade:resources%2Fviews%2Flivewire%2Falias-panel.blade.php",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-10-resolved-livewire-subclass",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/BasePanel.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass BasePanel extends Component {  }\n",
+          "app/Livewire/ChildPanel.php": "<?php\nnamespace App\\Livewire;\n\nclass ChildPanel extends BasePanel {  }\n",
+          "resources/views/livewire/child-panel.blade.php": "<div />",
+          "resources/views/livewire/base-panel.blade.php": "<div />"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views/livewire"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Livewire\\BasePanel",
+        "type": "renders_template",
+        "target": "template:blade:resources%2Fviews%2Flivewire%2Fbase-panel.blade.php",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "symbol:php:App\\Livewire\\ChildPanel",
+        "type": "renders_template",
+        "target": "template:blade:resources%2Fviews%2Flivewire%2Fchild-panel.blade.php",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-11-configured-view-namespace",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/BillingPanel.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass BillingPanel extends Component { public function render(){ return view('billing::panels.summary'); } }\n",
+          "src/Module/Billing/resources/views/panels/summary.blade.php": "<div />"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {
+          "billing": ["src/Module/Billing/resources/views"]
+        },
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Livewire\\BillingPanel",
+        "type": "renders_template",
+        "target": "template:blade:src%2FModule%2FBilling%2Fresources%2Fviews%2Fpanels%2Fsummary.blade.php",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "expectedEvidenceFiles": ["app/Livewire/BillingPanel.php", "lux.yaml"]
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-12-discovered-view-namespace",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/PackagePanel.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass PackagePanel extends Component { public function render(){ return view('acme::panels.package'); } }\n",
+          "app/Providers/AppServiceProvider.php": "<?php namespace App\\Providers; class AppServiceProvider { function boot(){ $this->loadViewsFrom(resource_path('views/vendor/acme'), 'acme'); } }",
+          "resources/views/vendor/acme/panels/package.blade.php": "<div />"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Livewire\\PackagePanel",
+        "type": "renders_template",
+        "target": "template:blade:resources%2Fviews%2Fvendor%2Facme%2Fpanels%2Fpackage.blade.php",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "expectedEvidenceFiles": [
+      "app/Livewire/PackagePanel.php",
+      "app/Providers/AppServiceProvider.php"
+    ]
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-13-custom-class-view-roots",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "src/Components/ReportWidget.php": "<?php\nnamespace Domain\\Components;\nuse Livewire\\Component;\nclass ReportWidget extends Component {  }\n",
+          "src/Views/widgets/report-widget.blade.php": "<div />"
+        },
+        "classRoots": ["src/Components"],
+        "viewRoots": ["src/Views/widgets"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:Domain\\Components\\ReportWidget",
+        "type": "renders_template",
+        "target": "template:blade:src%2FViews%2Fwidgets%2Freport-widget.blade.php",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-14-published-namespace",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/PublishedPanel.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass PublishedPanel extends Component { public function render(){ return view('shared::published'); } }\n",
+          "resources/views/vendor/shared/published.blade.php": "<div />"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {
+          "shared": ["resources/views/vendor/shared"]
+        },
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Livewire\\PublishedPanel",
+        "type": "renders_template",
+        "target": "template:blade:resources%2Fviews%2Fvendor%2Fshared%2Fpublished.blade.php",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "expectedEvidenceFiles": ["app/Livewire/PublishedPanel.php", "lux.yaml"]
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-15-tag-self-closing",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/WelcomePanel.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass WelcomePanel extends Component {  }\n",
+          "resources/views/pages/mount-15.blade.php": "<livewire:welcome-panel />"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "template:blade:resources%2Fviews%2Fpages%2Fmount-15.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:App\\Livewire\\WelcomePanel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-16-tag-open",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/WelcomePanel.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass WelcomePanel extends Component {  }\n",
+          "resources/views/pages/mount-16.blade.php": "<livewire:welcome-panel>content</livewire:welcome-panel>"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "template:blade:resources%2Fviews%2Fpages%2Fmount-16.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:App\\Livewire\\WelcomePanel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-17-directive-single",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/WelcomePanel.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass WelcomePanel extends Component {  }\n",
+          "resources/views/pages/mount-17.blade.php": "@livewire('welcome-panel')"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "template:blade:resources%2Fviews%2Fpages%2Fmount-17.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:App\\Livewire\\WelcomePanel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-18-directive-double",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/WelcomePanel.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass WelcomePanel extends Component {  }\n",
+          "resources/views/pages/mount-18.blade.php": "@livewire(\"welcome-panel\", [\"x\" => 1])"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "template:blade:resources%2Fviews%2Fpages%2Fmount-18.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:App\\Livewire\\WelcomePanel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-19-qualified-facade",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/WelcomePanel.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass WelcomePanel extends Component {  }\n",
+          "resources/views/pages/mount-19.blade.php": "\\Livewire\\Livewire::mount('welcome-panel')"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "template:blade:resources%2Fviews%2Fpages%2Fmount-19.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:App\\Livewire\\WelcomePanel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-20-short-facade",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/WelcomePanel.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass WelcomePanel extends Component {  }\n",
+          "resources/views/pages/mount-20.blade.php": "Livewire::mount('welcome-panel')"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "template:blade:resources%2Fviews%2Fpages%2Fmount-20.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:App\\Livewire\\WelcomePanel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-21-registered-alias-tag",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/WelcomePanel.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass WelcomePanel extends Component {  }\n",
+          "resources/views/pages/mount-21.blade.php": "<livewire:marketing.hero />",
+          "app/Providers/AppServiceProvider.php": "<?php namespace App\\Providers; use App\\Livewire\\WelcomePanel; use Livewire\\Livewire; class AppServiceProvider { function boot(){ Livewire::component('marketing.hero', WelcomePanel::class); } }"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "template:blade:resources%2Fviews%2Fpages%2Fmount-21.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:App\\Livewire\\WelcomePanel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-22-registered-alias-directive",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/WelcomePanel.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass WelcomePanel extends Component {  }\n",
+          "resources/views/pages/mount-22.blade.php": "@livewire('marketing.hero')",
+          "app/Providers/AppServiceProvider.php": "<?php namespace App\\Providers; use App\\Livewire\\WelcomePanel; use Livewire\\Livewire; class AppServiceProvider { function boot(){ Livewire::component('marketing.hero', WelcomePanel::class); } }"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "template:blade:resources%2Fviews%2Fpages%2Fmount-22.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:App\\Livewire\\WelcomePanel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-23-registered-alias-facade",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/WelcomePanel.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass WelcomePanel extends Component {  }\n",
+          "resources/views/pages/mount-23.blade.php": "Livewire::mount('marketing.hero')",
+          "app/Providers/AppServiceProvider.php": "<?php namespace App\\Providers; use App\\Livewire\\WelcomePanel; use Livewire\\Livewire; class AppServiceProvider { function boot(){ Livewire::component('marketing.hero', WelcomePanel::class); } }"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "template:blade:resources%2Fviews%2Fpages%2Fmount-23.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:App\\Livewire\\WelcomePanel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-24-nested-component-tag",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "resources/views/pages/mount-24.blade.php": "<livewire:admin.user-table />",
+          "app/Livewire/Admin/UserTable.php": "<?php\nnamespace App\\Livewire\\Admin;\nuse Livewire\\Component;\nclass UserTable extends Component {  }\n"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "template:blade:resources%2Fviews%2Fpages%2Fmount-24.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:App\\Livewire\\Admin\\UserTable",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-25-http-root-directive",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Http/Livewire/LegacyPanel.php": "<?php\nnamespace App\\Http\\Livewire;\nuse Livewire\\Component;\nclass LegacyPanel extends Component {  }\n",
+          "resources/views/pages/mount-25.blade.php": "@livewire('legacy-panel')"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "template:blade:resources%2Fviews%2Fpages%2Fmount-25.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:App\\Http\\Livewire\\LegacyPanel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-positive-26-registration-precedes-convention",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/Marketing/Hero.php": "<?php\nnamespace App\\Livewire\\Marketing;\nuse Livewire\\Component;\nclass Hero extends Component {  }\n",
+          "app/Livewire/PromotedHero.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass PromotedHero extends Component {  }\n",
+          "app/Providers/AppServiceProvider.php": "<?php namespace App\\Providers; use App\\Livewire\\PromotedHero; class AppServiceProvider { function boot(){ \\Livewire\\Livewire::component('marketing.hero', PromotedHero::class); } }",
+          "resources/views/pages/alias-precedence.blade.php": "<livewire:marketing.hero />"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "template:blade:resources%2Fviews%2Fpages%2Falias-precedence.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:App\\Livewire\\PromotedHero",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-forbidden-01-missing-view",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/MissingPanel.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass MissingPanel extends Component { function render(){ return view('livewire.missing-panel'); } }\n"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Livewire\\MissingPanel",
+        "type": "renders_template",
+        "target": "template:blade:resources%2Fviews%2Flivewire%2Fmissing-panel.blade.php",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["livewire-view-missing"]
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-forbidden-02-ambiguous-view",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/DuplicatePanel.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass DuplicatePanel extends Component { function render(){ return view('duplicate'); } }\n",
+          "resources/views/one/duplicate.blade.php": "x",
+          "resources/views/two/duplicate.blade.php": "x"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views/one", "resources/views/two"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Livewire\\DuplicatePanel",
+        "type": "renders_template",
+        "target": "template:blade:resources%2Fviews%2Fone%2Fduplicate.blade.php",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["livewire-view-ambiguous"]
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-forbidden-03-dynamic-view",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/DynamicPanel.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass DynamicPanel extends Component { function render(){ return view($this->name); } }\n",
+          "resources/views/livewire/dynamic-panel.blade.php": "x"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Livewire\\DynamicPanel",
+        "type": "renders_template",
+        "target": "template:blade:resources%2Fviews%2Flivewire%2Fdynamic-panel.blade.php",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["livewire-dynamic-view"]
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-forbidden-04-missing-mount-target",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "resources/views/pages/missing.blade.php": "<livewire:ghost-panel />"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "template:blade:resources%2Fviews%2Fpages%2Fmissing.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:App\\Livewire\\GhostPanel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["livewire-component-missing"]
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-forbidden-05-ambiguous-mount-target",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/One/Duplicate.php": "<?php\nnamespace App\\Livewire\\One;\nuse Livewire\\Component;\nclass Duplicate extends Component {  }\n",
+          "app/Http/Livewire/One/Duplicate.php": "<?php\nnamespace App\\Http\\Livewire\\One;\nuse Livewire\\Component;\nclass Duplicate extends Component {  }\n",
+          "resources/views/pages/ambiguous.blade.php": "<livewire:one.duplicate />",
+          "resources/views/livewire/one/duplicate.blade.php": "x"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "template:blade:resources%2Fviews%2Fpages%2Fambiguous.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:App\\Livewire\\One\\Duplicate",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["livewire-component-ambiguous"]
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-forbidden-06-dynamic-directive",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "resources/views/pages/dynamic.blade.php": "@livewire($component)"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "template:blade:resources%2Fviews%2Fpages%2Fdynamic.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:App\\Livewire\\Secret",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["livewire-dynamic-mount"]
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-forbidden-07-interpolated-directive",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "resources/views/pages/interpolated.blade.php": "@livewire(\"panel.$kind\")"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "template:blade:resources%2Fviews%2Fpages%2Finterpolated.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:App\\Livewire\\PanelAdmin",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["livewire-dynamic-mount"]
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-forbidden-08-blade-commented-mount",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/Commented.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass Commented extends Component {  }\n",
+          "resources/views/pages/comments.blade.php": "{{-- <livewire:commented /> --}}"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "template:blade:resources%2Fviews%2Fpages%2Fcomments.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:App\\Livewire\\Commented",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-forbidden-09-php-commented-mount",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/Commented.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass Commented extends Component {  }\n",
+          "resources/views/pages/comments.blade.php": "@php // @livewire('commented')\n@endphp"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "template:blade:resources%2Fviews%2Fpages%2Fcomments.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:App\\Livewire\\Commented",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-forbidden-10-volt-component",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "resources/views/livewire/counter.blade.php": "<?php use function Livewire\\Volt\\{state}; state(['count'=>0]); ?>"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "template:blade:resources%2Fviews%2Flivewire%2Fcounter.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:Livewire\\Volt\\AnonymousComponent",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["livewire-volt-unsupported"]
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-forbidden-11-anonymous-class",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/anonymous.php": "<?php use Livewire\\Component; return new class extends Component { function render(){ return view('livewire.secret'); } };",
+          "resources/views/livewire/secret.blade.php": "x"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:anonymous",
+        "type": "renders_template",
+        "target": "template:blade:resources%2Fviews%2Flivewire%2Fsecret.blade.php",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["livewire-anonymous-unsupported"]
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-forbidden-12-view-traversal",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/EscapePanel.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass EscapePanel extends Component { function render(){ return view('../secret'); } }\n",
+          "resources/views/secret.blade.php": "x"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Livewire\\EscapePanel",
+        "type": "renders_template",
+        "target": "template:blade:resources%2Fviews%2Fsecret.blade.php",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["livewire-dynamic-view"]
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-forbidden-13-vendor-class",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "vendor/acme/src/VendorPanel.php": "<?php\nnamespace Acme\\Livewire;\nuse Livewire\\Component;\nclass VendorPanel extends Component {  }\n",
+          "resources/views/pages/vendor.blade.php": "<livewire:vendor-panel />"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "template:blade:resources%2Fviews%2Fpages%2Fvendor.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:Acme\\Livewire\\VendorPanel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["livewire-component-missing"]
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-forbidden-14-vendor-mount-source",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/WelcomePanel.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass WelcomePanel extends Component {  }\n",
+          "vendor/acme/views/page.blade.php": "<livewire:welcome-panel />"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "template:blade:vendor%2Facme%2Fviews%2Fpage.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:App\\Livewire\\WelcomePanel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-forbidden-15-computed-namespace",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/ComputedPanel.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass ComputedPanel extends Component { function render(){ return view('acme::panel'); } }\n",
+          "app/Providers/AppServiceProvider.php": "<?php $this->loadViewsFrom(resource_path($path), $namespace);",
+          "resources/views/acme/panel.blade.php": "x"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Livewire\\ComputedPanel",
+        "type": "renders_template",
+        "target": "template:blade:resources%2Fviews%2Facme%2Fpanel.blade.php",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["livewire-view-missing", "livewire-dynamic-namespace"]
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-forbidden-16-global-basename",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/ExpectedPanel.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass ExpectedPanel extends Component { function render(){ return view('cards.summary'); } }\n",
+          "unrelated/deep/summary.blade.php": "x"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Livewire\\ExpectedPanel",
+        "type": "renders_template",
+        "target": "template:blade:unrelated%2Fdeep%2Fsummary.blade.php",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["livewire-view-missing"]
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-forbidden-17-dynamic-registration",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/Secret.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass Secret extends Component {  }\n",
+          "app/Providers/AppServiceProvider.php": "<?php Livewire::component($alias, Secret::class);",
+          "resources/views/pages/dynamic-alias.blade.php": "@livewire('secret.alias')"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "template:blade:resources%2Fviews%2Fpages%2Fdynamic-alias.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:App\\Livewire\\Secret",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["livewire-dynamic-registration", "livewire-component-missing"]
+  },
+  {
+    "corpus": "phase-13-livewire-synthetic",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p13-forbidden-18-mount-traversal",
+    "query": {
+      "tool": "phase13LivewireSeam",
+      "args": {
+        "files": {
+          "app/Livewire/Secret.php": "<?php\nnamespace App\\Livewire;\nuse Livewire\\Component;\nclass Secret extends Component {  }\n",
+          "resources/views/pages/traversal.blade.php": "<livewire:../secret />"
+        },
+        "classRoots": ["app/Livewire", "app/Http/Livewire"],
+        "viewRoots": ["resources/views"],
+        "viewNamespaces": {},
+        "configFile": "lux.yaml"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "template:blade:resources%2Fviews%2Fpages%2Ftraversal.blade.php",
+        "type": "hydrates_component",
+        "target": "symbol:php:App\\Livewire\\Secret",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["livewire-dynamic-mount"]
+  },
+  {
+    "corpus": "auctic-core",
+    "capability": "livewire-class-view-mount-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "id": "p13-auctic-core-exact-pin-not-applicable",
+    "query": {
+      "tool": "phase13LivewirePreflight",
+      "args": {
+        "manifestCorpus": "auctic-core",
+        "resolvedRemote": "https://github.com/auctic-software/auctic-core.git",
+        "resolvedCommit": "3afee6c0a42808c905c6830e5073eb83386c8409",
+        "candidateFiles": []
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedOutcome": "unsupported",
+    "expectedCoverage": "not_applicable",
+    "expectedCandidateCount": 0,
+    "expectedDiagnostics": ["no-applicable-livewire-candidates"],
+    "expectedRefusalReason": "no-applicable-livewire-candidates"
+  }
+]

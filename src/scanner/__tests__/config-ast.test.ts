@@ -35,4 +35,30 @@ describe('loadLspConfig — AST tier default-on / opt-out', () => {
     writeFileSync(join(dir, 'lux.yaml'), 'ast: {}\n');
     expect(loadLspConfig(dir).ast?.enabled).toBe(true);
   });
+
+  it('loads validated Livewire roots and namespaces and preserves defaults', () => {
+    writeFileSync(
+      join(dir, 'lux.yaml'),
+      [
+        'frameworks:',
+        '  livewire:',
+        '    viewNamespaces:',
+        '      billing:',
+        '        - src/Module/Billing/resources/views',
+      ].join('\n')
+    );
+    expect(loadLspConfig(dir).frameworks?.livewire).toEqual({
+      classRoots: ['app/Livewire', 'app/Http/Livewire'],
+      viewRoots: ['resources/views/livewire'],
+      viewNamespaces: { billing: ['src/Module/Billing/resources/views'] },
+    });
+  });
+
+  it('rejects traversing Livewire roots', () => {
+    writeFileSync(
+      join(dir, 'lux.yaml'),
+      ['frameworks:', '  livewire:', '    viewRoots:', '      - ../external/views'].join('\n')
+    );
+    expect(() => loadLspConfig(dir)).toThrow(/repository-relative/u);
+  });
 });

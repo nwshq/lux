@@ -13,6 +13,7 @@ import {
   VueEventAssociationResolver,
 } from '../../vue/association-wrapper.js';
 import { InertiaAssociationResolver } from './laravel/inertia-resolver.js';
+import { LivewireAssociationResolver } from './laravel/livewire-resolver.js';
 import type { FrontendFrameworkConfigV1 } from '../../config.js';
 import type { AssociationResolver } from '../types.js';
 
@@ -35,6 +36,15 @@ export function createDefaultResolvers(
             pageRoots: frameworks.inertia.pageRoots,
             namespaces: frameworks.inertia.namespaces,
             sourceFile: 'lux.yaml',
+          }
+        : undefined,
+    }),
+    new LivewireAssociationResolver({
+      config: frameworks
+        ? {
+            classRoots: frameworks.livewire.classRoots,
+            viewRoots: frameworks.livewire.viewRoots,
+            viewNamespaces: frameworks.livewire.viewNamespaces,
           }
         : undefined,
     }),

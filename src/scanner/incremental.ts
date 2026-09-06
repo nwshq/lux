@@ -150,7 +150,7 @@ export function buildEntry(rootPath: string, relativePath: string): ScannedKnowl
     }
   } else {
     // Source code file
-    const language = detectLanguage(ext);
+    const language = relativePath.endsWith('.blade.php') ? 'blade' : detectLanguage(ext);
 
     let content: string;
     try {

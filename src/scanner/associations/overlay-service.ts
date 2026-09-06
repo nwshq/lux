@@ -24,6 +24,7 @@ import { AstStructuralResolver } from '../ast/resolver.js';
 import { buildVueComponentNodes } from '../vue/materialize.js';
 import { VueEventResolver } from '../vue/event-resolver.js';
 import { buildVueEventNodes } from '../vue/event-materialize.js';
+import { resolveLivewire } from './framework/laravel/livewire-resolver.js';
 import { AssociationEngine } from './engine.js';
 import { createDefaultResolvers } from './framework/index.js';
 import type { AssociationContext, AssociationResolver } from './types.js';
@@ -215,6 +216,26 @@ export async function rebuildStructuralOverlay(
     sharedExtractions,
     programAnalysis,
   };
+
+  // Livewire edges target canonical Blade template nodes. Materialize those nodes before the
+  // framework resolver pack runs, then refresh the context from the database so endpoint checks
+  // see the exact persisted identities.
+  const livewire = resolveLivewire(context, {
+    config: options.frameworks?.livewire,
+    now: () => Math.floor(Date.now() / 1000),
+  });
+  if (livewire.nodes.length) {
+    db.transaction(() => {
+      for (const node of livewire.nodes) db.upsertStructuralNode(node);
+    });
+    context.nodes = db.getStructuralNodesForFilePaths(
+      scan.knowledge.map((entry) =>
+        entry.filePath.startsWith(rootPath + '/')
+          ? entry.filePath.slice(rootPath.length + 1)
+          : entry.filePath
+      )
+    );
+  }
 
   // 5. Run association engine
   const resolvers =

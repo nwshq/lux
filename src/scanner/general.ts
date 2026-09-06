@@ -216,7 +216,9 @@ export class GeneralScanner {
       for (const sourceFile of sourceFiles) {
         const filePath = join(scanPath, sourceFile);
         const ext = extname(sourceFile);
-        const language = EXTENSION_TO_LANGUAGE[ext] ?? 'unknown';
+        const language = sourceFile.endsWith('.blade.php')
+          ? 'blade'
+          : (EXTENSION_TO_LANGUAGE[ext] ?? 'unknown');
 
         let content: string;
         try {
