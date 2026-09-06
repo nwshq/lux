@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "phase": 7,
+  "implementationSha": "296f8d4a7f9078aa7cbf869ec3ff26387efa0deb",
+  "mergeSha": "b9ae2ae96398def082b3a05846682119e42c6b7f",
+  "baselineSha": "012ac95ec9bc8df37b5c414d0960ce3412ed2d20",
+  "criteria": [
+    {
+      "id": "P07-C1",
+      "class": "canonical-local-module-resolution",
+      "green": {
+        "command": "vitest run Phase 7 focused, broader, and independent acceptance suites; synthetic resolution corpus; repeated stable-digest check",
+        "exitCode": 0,
+        "observable": "32/32 synthetic positive cases and 16/16 forbidden cases scored precision 1 and recall 1; final focused suite passed 10/10 and broader Phase 7 battery passed 235/235; repeated observations produced equal stable digest ac14..."
+      },
+      "red": {
+        "mutation": "reverse-candidate-order-bypass-export-index-or-shared-resolver-remove-cycle-guard-allow-traversal-or-corrupt-edges",
+        "command": "vitest run src/integration/__tests__/phase-07-acceptance.test.ts",
+        "exitCode": 1,
+        "observable": "7 watched-red records reject candidate-order reversal, export-index bypass, shared-resolver bypass, barrel-cycle guard removal, root traversal, forbidden-edge insertion, and required-edge removal"
+      },
+      "verifiedBy": "independent-synthetic-corpus-focused-broader-and-stable-digest-validation"
+    },
+    {
+      "id": "P07-C2",
+      "class": "performance-and-compatibility",
+      "green": {
+        "command": "three warmups plus five measured resolver runs over 10000 resolutions; npm run check; architecture, dead-code, native-free, and docs-surface gates",
+        "exitCode": 0,
+        "observable": "After 3 warmups, resolver median wall was 14.825 ms per 10000 resolutions across 5 measured runs with observed process RSS 129466368 bytes; final full suite passed 1783 with 13 skipped and 0 failed; architecture lint 181 files/0 violations, architecture tests 5/5, dead-code validation 1006 exports/175 files, native-free and docs-surface passed"
+      },
+      "red": {
+        "mutation": "watched-resolution-contract-regressions",
+        "command": "vitest run src/integration/__tests__/phase-07-acceptance.test.ts",
+        "exitCode": 1,
+        "observable": "watched resolver and graph mutations produce nonzero checker exits rather than silently changing canonical resolution"
+      },
+      "verifiedBy": "independent-performance-static-full-suite-and-compatibility-validation"
+    },
+    {
+      "id": "P07-C3",
+      "class": "review-and-release",
+      "green": {
+        "command": "GitHub PR #97 CI/Release; installed package and CLI verification",
+        "exitCode": 0,
+        "observable": "PR #97 merged as b9ae2ae96398def082b3a05846682119e42c6b7f; v2.23.0 release and lux-v2.23.0-linux-x64.tar.gz published with sha256:61fc82c0894c7f021f9e7c7644fc19cf1be1a783d5da8447674d0858fa38faf4; installed Lux CLI, MCP package, and plugin report 2.23.0, and package metadata exposes 12 tools (package/CLI verification; no live MCP handshake claimed)"
+      },
+      "red": {
+        "mutation": "expect-prior-version",
+        "command": "lux --version",
+        "exitCode": 1,
+        "observable": "installed 2.23.0 differs from prior 2.22.0 sentinel"
+      },
+      "verifiedBy": "github-ci-release-and-installed-package-cli-verification"
+    }
+  ],
+  "knownBaselineFailures": [],
+  "review": {
+    "codeReview": "APPROVED",
+    "specFidelity": "APPROVED",
+    "independentValidation": "32/32 synthetic positive and 16/16 forbidden cases at precision/recall 1, 7 watched-red records, 10/10 final focused tests, 235/235 broader tests, 1783 passed/13 skipped/0 failed final full suite, architecture lint 181 files/0 violations, architecture tests 5/5, dead-code validation 1006 exports/175 files, native-free and docs-surface gates, equal stable digest ac14..., 3+5 resolver performance median, and package/CLI release verification passed",
+    "acceptanceReview": "APPROVED"
+  },
+  "exemptions": []
+}
