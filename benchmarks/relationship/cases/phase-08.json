@@ -1,0 +1,2775 @@
+[
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-01",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@exact"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-01",
+        "type": "references",
+        "target": "file:src/exact.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/exact.ts",
+      "via": "tsconfig",
+      "evidenceFile": "tsconfig.json"
+    },
+    "fixture": {
+      "rootPath": ".",
+      "layout": [
+        "tsconfig.json",
+        "legacy/jsconfig.json",
+        "vite.config.js",
+        "package.json",
+        "pnpm-workspace.yaml",
+        "src/caller.ts",
+        "apps/app-a/tsconfig.json",
+        "apps/app-a/src/caller.ts",
+        "apps/ambiguous/tsconfig.json",
+        "apps/ambiguous/jsconfig.json",
+        "packages/pkg-a/package.json",
+        "packages/pkg-a/tsconfig.json",
+        "packages/pkg-a/src/index.ts",
+        "packages/pkg-a/src/feature.ts",
+        "packages/pkg-a/src/features/alpha.ts",
+        "packages/pkg-b/package.json",
+        "packages/pkg-b/src/index.ts",
+        "hostile/outside-alias.vite.config.js",
+        "hostile/dynamic-alias.vite.config.js",
+        "hostile/external-extends.json",
+        "hostile/symlink-escape.json",
+        "src/exact.ts",
+        "src/ts-preferred.ts",
+        "src/base/item.ts",
+        "src/a/single.ts",
+        "src/a/ambiguous.ts",
+        "src/b/ambiguous.ts",
+        "src/lib/button.ts",
+        "src/deep/button.ts",
+        "src/local.ts",
+        "shared/root.ts",
+        "legacy/caller.js",
+        "legacy/exact.js",
+        "apps/app-a/src/widget.ts",
+        "src/vite/object.ts",
+        "src/vite/array.ts",
+        "src/vite/resolve.ts",
+        "src/vite/path-resolve.ts",
+        "src/vite/join.ts",
+        "src/vite/path-join.ts",
+        "src/vite/cwd.ts",
+        "src/vite/dirname.ts",
+        "src/vite/meta-dirname.ts",
+        "src/vite/const.ts",
+        "src/vite/wrong-precedence.ts",
+        "packages/pkg-a/src/conditional.ts",
+        "packages/pkg-a/src/import-only.ts",
+        "packages/pkg-a/src/default-only.ts",
+        "packages/pkg-a/src/require-only.ts",
+        "packages/pkg-a/src/array.ts",
+        "packages/pkg-a/src/remapped.ts",
+        "packages/pkg-b/src/subpath.ts",
+        "packages/npm-pkg/package.json",
+        "packages/npm-pkg/src/index.ts",
+        "packages/duplicate-a/package.json",
+        "packages/duplicate-a/src/index.ts",
+        "packages/duplicate-b/package.json",
+        "packages/duplicate-b/src/index.ts"
+      ]
+    },
+    "watchedMutations": [
+      {
+        "id": "swap-tsconfig-vite-precedence",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p08-positive-05"
+      },
+      {
+        "id": "choose-first-ambiguity",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p08-forbidden-alias-ambiguity"
+      },
+      {
+        "id": "execute-vite-sentinel",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p08-positive-09"
+      },
+      {
+        "id": "omit-fingerprint-input",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p08-positive-01"
+      },
+      {
+        "id": "change-alias-target",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p08-positive-01"
+      },
+      {
+        "id": "change-workspace-name",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p08-positive-19"
+      },
+      {
+        "id": "change-exports-target",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p08-positive-22"
+      },
+      {
+        "id": "change-base-url",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p08-positive-07"
+      },
+      {
+        "id": "permit-external-extends",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p08-forbidden-external-extends"
+      },
+      {
+        "id": "permit-symlink-escape",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p08-forbidden-symlink-escape"
+      },
+      {
+        "id": "remove-required-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p08-positive-01"
+      },
+      {
+        "id": "insert-forbidden-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p08-forbidden-external"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-02",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "apps/app-a/src/caller.ts",
+        "specifier": "@near/widget",
+        "configSelection": "nearest-tsconfig"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:apps/app-a/src/caller.ts#p08-positive-02",
+        "type": "references",
+        "target": "file:apps/app-a/src/widget.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "apps/app-a/src/widget.ts",
+      "via": "tsconfig",
+      "evidenceFile": "apps/app-a/tsconfig.json"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-03",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@lib/button",
+        "aliasRule": "one-star-wildcard"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-03",
+        "type": "references",
+        "target": "file:src/lib/button.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/lib/button.ts",
+      "via": "tsconfig",
+      "evidenceFile": "tsconfig.json"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-04",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@lib/deep/button",
+        "aliasRule": "longest-literal-prefix"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-04",
+        "type": "references",
+        "target": "file:src/deep/button.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/deep/button.ts",
+      "via": "tsconfig",
+      "evidenceFile": "tsconfig.json"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-05",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@prefer",
+        "precedence": "tsconfig-before-vite"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-05",
+        "type": "references",
+        "target": "file:src/ts-preferred.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/ts-preferred.ts",
+      "via": "tsconfig",
+      "evidenceFile": "tsconfig.json"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-06",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "legacy/caller.js",
+        "specifier": "legacyExact"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:legacy/caller.js#p08-positive-06",
+        "type": "references",
+        "target": "file:legacy/exact.js",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "legacy/exact.js",
+      "via": "jsconfig",
+      "evidenceFile": "legacy/jsconfig.json"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-07",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@base/item"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-07",
+        "type": "references",
+        "target": "file:src/base/item.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/base/item.ts",
+      "via": "tsconfig",
+      "evidenceFile": "tsconfig.json"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-08",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@multi/single",
+        "aliasTargets": "multiple-existing-at-winning-rank"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-08",
+        "type": "references",
+        "target": "file:src/a/single.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/a/single.ts",
+      "via": "tsconfig",
+      "evidenceFile": "tsconfig.json"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-09",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@vite-object",
+        "viteAliasForm": "object"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-09",
+        "type": "references",
+        "target": "file:src/vite/object.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/vite/object.ts",
+      "via": "vite",
+      "evidenceFile": "vite.config.js"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-10",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@vite-array",
+        "viteAliasForm": "ordered-array"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-10",
+        "type": "references",
+        "target": "file:src/vite/array.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/vite/array.ts",
+      "via": "vite",
+      "evidenceFile": "vite.config.js"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-11",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@resolve",
+        "viteExpression": "resolve(projectRoot, literal)"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-11",
+        "type": "references",
+        "target": "file:src/vite/resolve.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/vite/resolve.ts",
+      "via": "vite",
+      "evidenceFile": "vite.config.js"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-12",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@path-resolve",
+        "viteExpression": "path.resolve(projectRoot, literal)"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-12",
+        "type": "references",
+        "target": "file:src/vite/path-resolve.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/vite/path-resolve.ts",
+      "via": "vite",
+      "evidenceFile": "vite.config.js"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-13",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@join",
+        "viteExpression": "join(projectRoot, literal)"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-13",
+        "type": "references",
+        "target": "file:src/vite/join.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/vite/join.ts",
+      "via": "vite",
+      "evidenceFile": "vite.config.js"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-14",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@path-join",
+        "viteExpression": "path.join(projectRoot, literal)"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-14",
+        "type": "references",
+        "target": "file:src/vite/path-join.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/vite/path-join.ts",
+      "via": "vite",
+      "evidenceFile": "vite.config.js"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-15",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@cwd",
+        "viteExpression": "process.cwd()"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-15",
+        "type": "references",
+        "target": "file:src/vite/cwd.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/vite/cwd.ts",
+      "via": "vite",
+      "evidenceFile": "vite.config.js"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-16",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@dirname",
+        "viteExpression": "__dirname"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-16",
+        "type": "references",
+        "target": "file:src/vite/dirname.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/vite/dirname.ts",
+      "via": "vite",
+      "evidenceFile": "vite.config.js"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-17",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@meta-dirname",
+        "viteExpression": "import.meta.dirname"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-17",
+        "type": "references",
+        "target": "file:src/vite/meta-dirname.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/vite/meta-dirname.ts",
+      "via": "vite",
+      "evidenceFile": "vite.config.js"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-18",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@const",
+        "viteExpression": "immutable-local-constant"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-18",
+        "type": "references",
+        "target": "file:src/vite/const.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/vite/const.ts",
+      "via": "vite",
+      "evidenceFile": "vite.config.js"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-19",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@scope/pkg-a",
+        "workspaceSource": "package.json#workspaces",
+        "workspaceManifest": "package.json#workspaces"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-19",
+        "type": "references",
+        "target": "file:packages/pkg-a/src/index.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "packages/pkg-a/src/index.ts",
+      "via": "workspace",
+      "evidenceFile": "packages/pkg-a/package.json"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-20",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@scope/pkg-b",
+        "workspaceSource": "pnpm-workspace.yaml#packages",
+        "workspaceManifest": "pnpm-workspace.yaml#packages"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-20",
+        "type": "references",
+        "target": "file:packages/pkg-b/src/index.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "packages/pkg-b/src/index.ts",
+      "via": "workspace",
+      "evidenceFile": "packages/pkg-b/package.json"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-21",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@npm/pkg",
+        "packageExportShape": "root"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-21",
+        "type": "references",
+        "target": "file:packages/npm-pkg/src/index.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "packages/npm-pkg/src/index.ts",
+      "via": "workspace",
+      "evidenceFile": "packages/npm-pkg/package.json"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-22",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@scope/pkg-a/feature",
+        "packageExportShape": "exact-subpath"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-22",
+        "type": "references",
+        "target": "file:packages/pkg-a/src/feature.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "packages/pkg-a/src/feature.ts",
+      "via": "package-exports",
+      "evidenceFile": "packages/pkg-a/package.json"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-23",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@scope/pkg-a/features/alpha",
+        "packageExportShape": "one-star-subpath"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-23",
+        "type": "references",
+        "target": "file:packages/pkg-a/src/features/alpha.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "packages/pkg-a/src/features/alpha.ts",
+      "via": "package-exports",
+      "evidenceFile": "packages/pkg-a/package.json"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-24",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@scope/pkg-a/conditional",
+        "packageExportShape": "conditions:types>import>default>require"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-24",
+        "type": "references",
+        "target": "file:packages/pkg-a/src/conditional.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "packages/pkg-a/src/conditional.ts",
+      "via": "package-exports",
+      "evidenceFile": "packages/pkg-a/package.json"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-25",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@scope/pkg-a/import-only",
+        "packageExportShape": "condition:import"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-25",
+        "type": "references",
+        "target": "file:packages/pkg-a/src/import-only.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "packages/pkg-a/src/import-only.ts",
+      "via": "package-exports",
+      "evidenceFile": "packages/pkg-a/package.json"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-26",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@scope/pkg-a/default-only",
+        "packageExportShape": "condition:default"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-26",
+        "type": "references",
+        "target": "file:packages/pkg-a/src/default-only.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "packages/pkg-a/src/default-only.ts",
+      "via": "package-exports",
+      "evidenceFile": "packages/pkg-a/package.json"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-27",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@scope/pkg-a/require-only",
+        "packageExportShape": "condition:require"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-27",
+        "type": "references",
+        "target": "file:packages/pkg-a/src/require-only.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "packages/pkg-a/src/require-only.ts",
+      "via": "package-exports",
+      "evidenceFile": "packages/pkg-a/package.json"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-28",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@scope/pkg-a/array",
+        "packageExportShape": "array"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-28",
+        "type": "references",
+        "target": "file:packages/pkg-a/src/array.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "packages/pkg-a/src/array.ts",
+      "via": "package-exports",
+      "evidenceFile": "packages/pkg-a/package.json"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-29",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@scope/pkg-a/remapped",
+        "packageExportShape": "outDir-to-rootDir-remap"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-29",
+        "type": "references",
+        "target": "file:packages/pkg-a/src/remapped.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "packages/pkg-a/src/remapped.ts",
+      "via": "package-exports",
+      "evidenceFile": "packages/pkg-a/package.json"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-30",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./local"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-30",
+        "type": "references",
+        "target": "file:src/local.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/local.ts",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-31",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "../shared/root"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-31",
+        "type": "references",
+        "target": "file:shared/root.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "shared/root.ts",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-positive-32",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@scope/pkg-b/subpath"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-positive-32",
+        "type": "references",
+        "target": "file:packages/pkg-b/src/subpath.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "packages/pkg-b/src/subpath.ts",
+      "via": "package-exports",
+      "evidenceFile": "packages/pkg-b/package.json"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-forbidden-nearest-config-ambiguity",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "apps/ambiguous/src/caller.ts",
+        "specifier": "@same"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:apps/ambiguous/src/caller.ts#p08-forbidden-nearest-config-ambiguity"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "project-config-ambiguous",
+    "expectedDiagnostic": "project-config-ambiguous",
+    "expectedResolution": {
+      "status": "ambiguous",
+      "candidates": [],
+      "governingConfigs": ["apps/ambiguous/jsconfig.json", "apps/ambiguous/tsconfig.json"]
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-forbidden-alias-ambiguity",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@multi/ambiguous"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-forbidden-alias-ambiguity"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "module.ambiguous",
+    "expectedDiagnostic": "module.ambiguous",
+    "expectedResolution": {
+      "status": "ambiguous",
+      "candidates": ["src/a/ambiguous.ts", "src/b/ambiguous.ts"],
+      "governingConfigs": ["tsconfig.json"]
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-forbidden-duplicate-workspace",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@scope/duplicate"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-forbidden-duplicate-workspace"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "workspace-package-ambiguous",
+    "expectedDiagnostic": "workspace-package-ambiguous",
+    "expectedResolution": {
+      "status": "ambiguous",
+      "candidates": ["packages/duplicate-a/src/index.ts", "packages/duplicate-b/src/index.ts"],
+      "governingConfigs": ["packages/duplicate-a/package.json", "packages/duplicate-b/package.json"]
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-forbidden-dynamic-call",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@dynamic"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-forbidden-dynamic-call"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "vite-alias-dynamic",
+    "expectedDiagnostic": "vite-alias-dynamic",
+    "expectedResolution": {
+      "status": "missing",
+      "specifier": "@dynamic"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-forbidden-environment-read",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@env"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-forbidden-environment-read"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "vite-alias-dynamic",
+    "expectedDiagnostic": "vite-alias-dynamic",
+    "expectedResolution": {
+      "status": "missing",
+      "specifier": "@env"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-forbidden-spread",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@spread"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-forbidden-spread"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "vite-alias-dynamic",
+    "expectedDiagnostic": "vite-alias-dynamic",
+    "expectedResolution": {
+      "status": "missing",
+      "specifier": "@spread"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-forbidden-regex-find",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@regex"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-forbidden-regex-find"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "vite-alias-dynamic",
+    "expectedDiagnostic": "vite-alias-dynamic",
+    "expectedResolution": {
+      "status": "missing",
+      "specifier": "@regex"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-forbidden-computed-key",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@computed"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-forbidden-computed-key"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "vite-alias-dynamic",
+    "expectedDiagnostic": "vite-alias-dynamic",
+    "expectedResolution": {
+      "status": "missing",
+      "specifier": "@computed"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-forbidden-conditional",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@conditional"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-forbidden-conditional"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "vite-alias-dynamic",
+    "expectedDiagnostic": "vite-alias-dynamic",
+    "expectedResolution": {
+      "status": "missing",
+      "specifier": "@conditional"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-forbidden-template-substitution",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@template"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-forbidden-template-substitution"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "vite-alias-dynamic",
+    "expectedDiagnostic": "vite-alias-dynamic",
+    "expectedResolution": {
+      "status": "missing",
+      "specifier": "@template"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-forbidden-external-extends",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@external-extends"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-forbidden-external-extends"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "project-config-extends-external",
+    "expectedDiagnostic": "project-config-extends-external",
+    "expectedResolution": {
+      "status": "missing",
+      "specifier": "@external-extends"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-forbidden-symlink-escape",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@symlink"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-forbidden-symlink-escape"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "path-outside-allowed-root",
+    "expectedDiagnostic": "path-outside-allowed-root",
+    "expectedResolution": {
+      "status": "missing",
+      "specifier": "@symlink"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-forbidden-missing",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@missing"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-forbidden-missing"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "module.missing",
+    "expectedDiagnostic": "module.missing",
+    "expectedResolution": {
+      "status": "missing",
+      "specifier": "@missing"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-forbidden-traversal",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "../../outside"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-forbidden-traversal"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "path-traversal",
+    "expectedDiagnostic": "path-traversal",
+    "expectedResolution": {
+      "status": "missing",
+      "specifier": "../../outside"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-forbidden-external",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "react"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-forbidden-external"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "module.external",
+    "expectedDiagnostic": "module.external",
+    "expectedResolution": {
+      "status": "external",
+      "specifier": "react"
+    }
+  },
+  {
+    "corpus": "phase-08-project-synthetic",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "5a0d0822d3592d0b34a2cae744ab28e38de6168d"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p08-forbidden-custom-condition",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@scope/pkg-a/custom"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p08-forbidden-custom-condition"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "package-export-missing",
+    "expectedDiagnostic": "package-export-missing",
+    "expectedResolution": {
+      "status": "missing",
+      "specifier": "@scope/pkg-a/custom"
+    }
+  },
+  {
+    "corpus": "auctic-core",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "thresholds": {
+      "minRecall": 0.95,
+      "minPrecision": 1,
+      "minPositiveCases": 0,
+      "minForbiddenCases": 0
+    },
+    "id": "p08-core-01",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "resources/js/admin-app.js",
+        "specifier": "@adminUi/components/PageHeading.vue"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:resources/js/admin-app.js#p08-core-01",
+        "type": "references",
+        "target": "file:resources/js/admin-ui/components/PageHeading.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "resources/js/admin-ui/components/PageHeading.vue",
+      "via": "jsconfig",
+      "evidenceFile": "jsconfig.json"
+    }
+  },
+  {
+    "corpus": "auctic-core",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "thresholds": {
+      "minRecall": 0.95,
+      "minPrecision": 1,
+      "minPositiveCases": 0,
+      "minForbiddenCases": 0
+    },
+    "id": "p08-core-02",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "resources/js/admin-app.js",
+        "specifier": "@adminUi/components/UserSearch.vue"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:resources/js/admin-app.js#p08-core-02",
+        "type": "references",
+        "target": "file:resources/js/admin-ui/components/UserSearch.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "resources/js/admin-ui/components/UserSearch.vue",
+      "via": "jsconfig",
+      "evidenceFile": "jsconfig.json"
+    }
+  },
+  {
+    "corpus": "auctic-core",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "thresholds": {
+      "minRecall": 0.95,
+      "minPrecision": 1,
+      "minPositiveCases": 0,
+      "minForbiddenCases": 0
+    },
+    "id": "p08-core-03",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "resources/js/public-app.js",
+        "specifier": "@commonUi/components/BaseDialog.vue"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:resources/js/public-app.js#p08-core-03",
+        "type": "references",
+        "target": "file:resources/js/common-ui/components/BaseDialog.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "resources/js/common-ui/components/BaseDialog.vue",
+      "via": "jsconfig",
+      "evidenceFile": "jsconfig.json"
+    }
+  },
+  {
+    "corpus": "auctic-core",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "thresholds": {
+      "minRecall": 0.95,
+      "minPrecision": 1,
+      "minPositiveCases": 0,
+      "minForbiddenCases": 0
+    },
+    "id": "p08-core-04",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "resources/js/public-app.js",
+        "specifier": "@clientUi/features/bidding/CoreBiddingButton.vue"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:resources/js/public-app.js#p08-core-04",
+        "type": "references",
+        "target": "file:resources/js/client-ui/features/bidding/CoreBiddingButton.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "resources/js/client-ui/features/bidding/CoreBiddingButton.vue",
+      "via": "jsconfig",
+      "evidenceFile": "jsconfig.json"
+    }
+  },
+  {
+    "corpus": "auctic-core",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "thresholds": {
+      "minRecall": 0.95,
+      "minPrecision": 1,
+      "minPositiveCases": 0,
+      "minForbiddenCases": 0
+    },
+    "id": "p08-core-05",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "resources/js/admin-app.js",
+        "specifier": "@payments/components/BillingAddressSection.vue"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:resources/js/admin-app.js#p08-core-05",
+        "type": "references",
+        "target": "file:src/Module/Payments/resources/js/components/BillingAddressSection.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/Module/Payments/resources/js/components/BillingAddressSection.vue",
+      "via": "jsconfig",
+      "evidenceFile": "jsconfig.json"
+    }
+  },
+  {
+    "corpus": "auctic-core",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "thresholds": {
+      "minRecall": 0.95,
+      "minPrecision": 1,
+      "minPositiveCases": 0,
+      "minForbiddenCases": 0
+    },
+    "id": "p08-core-06",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "resources/js/admin-app.js",
+        "specifier": "@settlement/components/BillingCompany.vue"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:resources/js/admin-app.js#p08-core-06",
+        "type": "references",
+        "target": "file:src/Module/Settlement/resources/js/components/BillingCompany.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/Module/Settlement/resources/js/components/BillingCompany.vue",
+      "via": "jsconfig",
+      "evidenceFile": "jsconfig.json"
+    }
+  },
+  {
+    "corpus": "auctic-core",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "thresholds": {
+      "minRecall": 0.95,
+      "minPrecision": 1,
+      "minPositiveCases": 0,
+      "minForbiddenCases": 0
+    },
+    "id": "p08-core-07",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "resources/js/admin-app.js",
+        "specifier": "@contact/partials/CreateContactDialog.vue"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:resources/js/admin-app.js#p08-core-07",
+        "type": "references",
+        "target": "file:src/Module/Contact/resources/js/partials/CreateContactDialog.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/Module/Contact/resources/js/partials/CreateContactDialog.vue",
+      "via": "jsconfig",
+      "evidenceFile": "jsconfig.json"
+    }
+  },
+  {
+    "corpus": "auctic-core",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "thresholds": {
+      "minRecall": 0.95,
+      "minPrecision": 1,
+      "minPositiveCases": 0,
+      "minForbiddenCases": 0
+    },
+    "id": "p08-core-08",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "resources/js/admin-app.js",
+        "specifier": "@businessEntity/partials/BusinessEntityTable.vue"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:resources/js/admin-app.js#p08-core-08",
+        "type": "references",
+        "target": "file:src/Module/BusinessEntity/resources/js/partials/BusinessEntityTable.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/Module/BusinessEntity/resources/js/partials/BusinessEntityTable.vue",
+      "via": "jsconfig",
+      "evidenceFile": "jsconfig.json"
+    }
+  },
+  {
+    "corpus": "example-workspace",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 0,
+      "minForbiddenCases": 0
+    },
+    "id": "p08-pulse-01",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "apps/cli/src/services/store.ts",
+        "specifier": "@example-workspace/store"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:apps/cli/src/services/store.ts#p08-pulse-01",
+        "type": "references",
+        "target": "file:packages/store/src/index.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "packages/store/src/index.ts",
+      "via": "workspace",
+      "evidenceFile": "packages/store/package.json"
+    }
+  },
+  {
+    "corpus": "example-workspace",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 0,
+      "minForbiddenCases": 0
+    },
+    "id": "p08-pulse-02",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "apps/desktop/src/main/services/sync.ts",
+        "specifier": "@example-workspace/sync"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:apps/desktop/src/main/services/sync.ts#p08-pulse-02",
+        "type": "references",
+        "target": "file:packages/sync/src/index.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "packages/sync/src/index.ts",
+      "via": "workspace",
+      "evidenceFile": "packages/sync/package.json"
+    }
+  },
+  {
+    "corpus": "example-workspace",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 0,
+      "minForbiddenCases": 0
+    },
+    "id": "p08-pulse-03",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "apps/desktop/src/renderer/App.tsx",
+        "specifier": "@example-workspace/ui/primitives"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:apps/desktop/src/renderer/App.tsx#p08-pulse-03",
+        "type": "references",
+        "target": "file:packages/ui/src/primitives/index.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "packages/ui/src/primitives/index.ts",
+      "via": "package-exports",
+      "evidenceFile": "packages/ui/package.json"
+    }
+  },
+  {
+    "corpus": "example-workspace",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 0,
+      "minForbiddenCases": 0
+    },
+    "id": "p08-pulse-04",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "apps/desktop/src/pages/Inbox.tsx",
+        "specifier": "@example-workspace/ui/components"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:apps/desktop/src/pages/Inbox.tsx#p08-pulse-04",
+        "type": "references",
+        "target": "file:packages/ui/src/components/index.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "packages/ui/src/components/index.ts",
+      "via": "package-exports",
+      "evidenceFile": "packages/ui/package.json"
+    }
+  },
+  {
+    "corpus": "example-workspace",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 0,
+      "minForbiddenCases": 0
+    },
+    "id": "p08-pulse-05",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "apps/desktop/src/components/CompanyDetail.tsx",
+        "specifier": "@example-workspace/ui/lib/utils"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:apps/desktop/src/components/CompanyDetail.tsx#p08-pulse-05",
+        "type": "references",
+        "target": "file:packages/ui/src/lib/utils.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "packages/ui/src/lib/utils.ts",
+      "via": "package-exports",
+      "evidenceFile": "packages/ui/package.json"
+    }
+  },
+  {
+    "corpus": "example-workspace",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 0,
+      "minForbiddenCases": 0
+    },
+    "id": "p08-pulse-06",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "apps/desktop/src/pages/Inbox.tsx",
+        "specifier": "@example-workspace/core/browser"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:apps/desktop/src/pages/Inbox.tsx#p08-pulse-06",
+        "type": "references",
+        "target": "file:packages/core/src/browser.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "packages/core/src/browser.ts",
+      "via": "package-exports",
+      "evidenceFile": "packages/core/package.json"
+    }
+  },
+  {
+    "corpus": "example-workspace",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 0,
+      "minForbiddenCases": 0
+    },
+    "id": "p08-pulse-07",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "apps/desktop/src/main/ipc.ts",
+        "specifier": "@example-workspace/core"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:apps/desktop/src/main/ipc.ts#p08-pulse-07",
+        "type": "references",
+        "target": "file:packages/core/src/index.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "packages/core/src/index.ts",
+      "via": "workspace",
+      "evidenceFile": "packages/core/package.json"
+    }
+  },
+  {
+    "corpus": "example-workspace",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 0,
+      "minForbiddenCases": 0
+    },
+    "id": "p08-pulse-08",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "apps/desktop/src/main/services/mcp.ts",
+        "specifier": "@example-workspace/mcp"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:apps/desktop/src/main/services/mcp.ts#p08-pulse-08",
+        "type": "references",
+        "target": "file:packages/mcp/src/index.ts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "packages/mcp/src/index.ts",
+      "via": "workspace",
+      "evidenceFile": "packages/mcp/package.json"
+    }
+  },
+  {
+    "corpus": "auctic-core",
+    "capability": "project-module-resolution",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "thresholds": {
+      "minRecall": 0.95,
+      "minPrecision": 1,
+      "minPositiveCases": 0,
+      "minForbiddenCases": 0
+    },
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "id": "p08-core-09",
+    "query": {
+      "tool": "phase8ProjectResolver",
+      "args": {
+        "importerFile": "resources/js/public-app.js",
+        "specifier": "@/admin-app.js",
+        "viteAliasForm": "defineConfig-callback-static-traversal",
+        "viteExpression": "resolve(process.cwd(), literal)"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:resources/js/public-app.js#p08-core-09",
+        "type": "references",
+        "target": "file:resources/js/admin-app.js",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "resources/js/admin-app.js",
+      "via": "vite",
+      "evidenceFile": "vite.config.js"
+    }
+  }
+]

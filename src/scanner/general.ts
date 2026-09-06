@@ -20,7 +20,8 @@ import {
   detectModuleBoundaries,
   resolveModule as resolveModuleBoundary,
 } from './imports/module-boundary.js';
-import { resolveModule as resolveProjectModule } from './project-resolution/local-resolver.js';
+import { resolveProjectModule } from './project-resolution/resolver.js';
+import { analyzeProgram, type ProgramAnalysisBuildV1 } from './adapters/program-analysis.js';
 import {
   rebuildStructuralOverlay,
   type OverlayRebuildResult,
@@ -561,8 +562,17 @@ export async function generalScan(
     }
   }
 
-  // 2. Parse imports and compute module dependencies (independent of LSP)
-  const dependencies = parseDependencies(scan, rootPath, config, report);
+  // 2. Build the canonical project-resolution snapshot before both dependency and AST consumers.
+  // The overlay reuses the same extraction facts; config parsing is data-only and root-confined.
+  let projectAnalysis: ProgramAnalysisBuildV1 | undefined;
+  try {
+    projectAnalysis = await analyzeProgram(scan, rootPath, report);
+  } catch (error) {
+    report(
+      `Warning: project resolution analysis failed — ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+  const dependencies = parseDependencies(scan, rootPath, config, report, projectAnalysis);
 
   const enrichments: EnrichmentMap = new Map();
   const errors: Array<{ filePath: string; error: string }> = [];
@@ -656,6 +666,9 @@ export async function generalScan(
       overlay = await rebuildStructuralOverlay(options.db, rootPath, overlayScan, enrichments, {
         onProgress: report,
         astEnabled: config.ast?.enabled ?? true,
+        // A promoted first-party overlay has a larger source universe than the app-only dependency
+        // analysis above; let the overlay build one complete context rather than reusing a partial one.
+        programAnalysis: firstPartySource.length === 0 ? projectAnalysis : undefined,
       });
       report(
         `Overlay complete: ${overlay.fileNodes} file node(s), ${overlay.symbolNodes} symbol node(s), ` +
@@ -893,7 +906,8 @@ function parseDependencies(
   scan: ScanResult,
   rootPath: string,
   config: LuxLspConfig,
-  report: (msg: string) => void
+  report: (msg: string) => void,
+  programAnalysis?: ProgramAnalysisBuildV1
 ): AggregatedDependency[] {
   if (!config.deps?.enabled) {
     return [];
@@ -915,13 +929,15 @@ function parseDependencies(
   const depMap = new Map<string, { count: number; sampleFiles: Set<string> }>();
 
   const sourceEntries = scan.knowledge.filter((k) => k.type === 'source-code');
-  const sourceFiles = new Set(
-    sourceEntries.map((entry) =>
-      entry.filePath.startsWith(rootPath + '/')
-        ? entry.filePath.slice(rootPath.length + 1)
-        : entry.filePath
-    )
-  );
+  const sourceFiles =
+    programAnalysis?.project.sourceFiles ??
+    new Set(
+      sourceEntries.map((entry) =>
+        entry.filePath.startsWith(rootPath + '/')
+          ? entry.filePath.slice(rootPath.length + 1)
+          : entry.filePath
+      )
+    );
   let parsedCount = 0;
 
   for (const entry of sourceEntries) {
@@ -949,7 +965,8 @@ function parseDependencies(
         patterns,
         lang,
         sourceFiles,
-        imp.mode
+        imp.mode,
+        programAnalysis
       );
       if (!targetModule || targetModule === sourceModule) continue;
 
@@ -999,7 +1016,8 @@ function resolveImportToModule(
   patterns: string[],
   language: string,
   sourceFiles: ReadonlySet<string>,
-  mode: 'import' | 'require' | 'reexport' | 'dynamic-import' = 'import'
+  mode: 'import' | 'require' | 'reexport' | 'dynamic-import' = 'import',
+  programAnalysis?: ProgramAnalysisBuildV1
 ): string | null {
   if (language === 'php') {
     return resolvePhpNamespaceToModule(rawImport, rootPath, patterns);
@@ -1009,10 +1027,19 @@ function resolveImportToModule(
     const importerFile = sourceFilePath.startsWith(rootPath + '/')
       ? sourceFilePath.slice(rootPath.length + 1)
       : sourceFilePath;
-    const resolution = resolveProjectModule(
-      { importerFile, specifier: rawImport, mode },
-      { sourceFiles }
-    );
+    const resolution = programAnalysis
+      ? resolveProjectModule({ importerFile, specifier: rawImport, mode }, programAnalysis.project)
+      : resolveProjectModule(
+          { importerFile, specifier: rawImport, mode },
+          {
+            rootPath,
+            sourceFiles,
+            aliases: [],
+            workspacePackages: [],
+            exportsByFile: new Map(),
+            fingerprintInputs: [],
+          }
+        );
     if (resolution.status !== 'resolved') return null;
     return resolveModuleBoundary(join(rootPath, resolution.targetFile), rootPath, patterns);
   }

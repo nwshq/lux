@@ -22,7 +22,7 @@ import type {
 } from '../associations/types.js';
 import type { ProjectResolutionContextV1, SourceDiagnosticV1 } from '../contracts/program.js';
 import { buildModuleExportIndexes } from '../project-resolution/export-index.js';
-import { resolveLocalBinding } from '../project-resolution/local-resolver.js';
+import { resolveProjectBinding } from '../project-resolution/resolver.js';
 import { phpSymbolNodeId, tsSymbolNodeId } from '../associations/types.js';
 import {
   langForFile,
@@ -279,6 +279,19 @@ function crossFileEdges(
     const id = `${source.id}→${targetId}:${edgeType}:ast-xf`;
     if (seen.has(id)) continue;
     seen.add(id);
+    const evidenceFiles = [f.relPath];
+    const moduleResolution = resolveProjectBinding(
+      {
+        importerFile: f.relPath,
+        specifier: binding.module ?? '',
+        importedName: binding.imported,
+        mode: binding.syntax === 'commonjs' ? 'require' : 'import',
+      },
+      project
+    ).module;
+    if (moduleResolution.status === 'resolved' && moduleResolution.evidenceFile) {
+      evidenceFiles.push(moduleResolution.evidenceFile);
+    }
     edges.push(
       makeEdge(
         id,
@@ -289,7 +302,7 @@ function crossFileEdges(
         languageId,
         resolver,
         `ast-import-bound-${edge.type}`,
-        f.relPath,
+        evidenceFiles,
         edge.range.startLine,
         now
       )
@@ -313,7 +326,7 @@ function resolveImportTarget(
   }
   if (!binding.module || binding.imported === '*') return undefined;
 
-  const resolution = resolveLocalBinding(
+  const resolution = resolveProjectBinding(
     {
       importerFile: fromRel,
       specifier: binding.module,
@@ -414,10 +427,11 @@ function makeEdge(
   targetLanguage: string,
   resolver: string,
   evidenceKind: string,
-  filePath: string,
+  filePath: string | readonly string[],
   line: number,
   now: number
 ): StructuralRelationEdge {
+  const evidencePaths: readonly string[] = typeof filePath === 'string' ? [filePath] : filePath;
   return {
     id,
     edgeType,
@@ -430,7 +444,11 @@ function makeEdge(
     provenance: {
       resolver,
       evidenceKind,
-      evidenceLocations: [{ filePath, line, note: targetNodeId }],
+      evidenceLocations: evidencePaths.map((path, index) => ({
+        filePath: path,
+        ...(index === 0 ? { line } : {}),
+        note: targetNodeId,
+      })),
       extractedAt: now,
     },
   };

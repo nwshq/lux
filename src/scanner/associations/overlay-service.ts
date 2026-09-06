@@ -48,6 +48,8 @@ export interface OverlayRebuildOptions {
   detectors?: CapabilitySurfaceDetector[];
   /** Override operational extractor pack. */
   operationalExtractors?: OperationalExtractor[];
+  /** Reuse the project/parser analysis already built by the scan orchestrator. */
+  programAnalysis?: ProgramAnalysisV1 & { shared: { extractions: SharedExtractions } };
   /** Progress callback. */
   onProgress?: (message: string) => void;
 }
@@ -129,9 +131,10 @@ export async function rebuildStructuralOverlay(
   // materializer, the structural resolver, and the caller's typed-receiver pass
   // read one Extraction per file instead of re-parsing it three times. Isolated:
   // a build failure degrades to each consumer parsing on demand (cache absent).
-  let sharedExtractions: SharedExtractions | undefined;
-  let programAnalysis: ProgramAnalysisV1 | undefined;
-  if (options.astEnabled) {
+  let sharedExtractions: SharedExtractions | undefined =
+    options.programAnalysis?.shared.extractions;
+  let programAnalysis: ProgramAnalysisV1 | undefined = options.programAnalysis;
+  if (options.astEnabled && !programAnalysis) {
     try {
       const analysis = await analyzeProgram(scan, rootPath, report);
       sharedExtractions = analysis.shared.extractions;

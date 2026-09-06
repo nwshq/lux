@@ -11,7 +11,7 @@ import {
   buildSharedExtractionAnalysis,
   type SharedExtractionBuildV1,
 } from '../ast/extraction-cache.js';
-import { buildModuleExportIndexes } from '../project-resolution/export-index.js';
+import { buildProjectResolutionContext } from '../project-resolution/context.js';
 
 export interface ProgramAnalysisV1 {
   facts: readonly SourceFactsV1[];
@@ -43,23 +43,22 @@ export async function analyzeProgram(
       .filter((entry) => entry.type === 'source-code')
       .map((entry) => toRelative(entry.filePath, rootPath))
   );
-  const exportsByFile = buildModuleExportIndexes(
-    [...shared.extractions].map(([filePath, extraction]) => ({ filePath, extraction }))
-  );
+  const project = await buildProjectResolutionContext({
+    rootPath,
+    allowedRoots: [rootPath],
+    sourceFiles,
+    facts: shared.facts,
+    extractions: shared.extractions,
+  });
 
   return {
     facts: shared.facts,
     vueFacts: shared.facts.filter(isVueSfcFacts),
-    project: {
-      rootPath,
-      sourceFiles,
-      aliases: [],
-      workspacePackages: [],
-      exportsByFile,
-      fingerprintInputs: [],
-    },
-    dependencies: [...new Set(shared.dependencies)].sort(),
-    diagnostics: shared.diagnostics,
+    project: project.context,
+    dependencies: [
+      ...new Set([...shared.dependencies, ...project.context.fingerprintInputs]),
+    ].sort(),
+    diagnostics: [...shared.diagnostics, ...project.diagnostics],
     producersRun: shared.producersRun,
     shared,
   };
