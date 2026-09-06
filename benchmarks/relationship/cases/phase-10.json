@@ -1,0 +1,3123 @@
+[
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-positive-01-function-ts",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/C01.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useAlpha } from \"../composables/useAlpha\"; useAlpha()\n</script>",
+        "files": {
+          "src/composables/useAlpha.ts": "export function useAlpha() { return 1 }"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FC01.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useAlpha.ts#useAlpha",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "fixture": {
+      "rootPath": ".",
+      "subtrees": [
+        "composables",
+        "stores",
+        "barrels",
+        "aliases",
+        "collisions",
+        "refresh",
+        "real-gold"
+      ]
+    },
+    "performanceProtocol": {
+      "warmups": 3,
+      "measurements": 5,
+      "maxRegressionRatio": 1.2,
+      "baselineWallMs": 1000,
+      "baselineRssBytes": 268435456
+    },
+    "watchedMutations": [
+      {
+        "id": "emit-on-import",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p10-composable-forbidden-01-imported-unused"
+      },
+      {
+        "id": "drop-import-binding-resolution",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p10-composable-positive-01-function-ts"
+      },
+      {
+        "id": "classify-lowercase-user-as-composable",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p10-composable-forbidden-06-lowercase-user"
+      },
+      {
+        "id": "globally-bind-this-store",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p10-store-forbidden-07-this-store"
+      },
+      {
+        "id": "retain-edge-after-source-edit",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p10-composable-positive-01-function-ts"
+      },
+      {
+        "id": "retain-alias-edge-after-config-edit",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p10-composable-positive-09-alias-config"
+      },
+      {
+        "id": "remove-required-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p10-composable-positive-01-function-ts"
+      },
+      {
+        "id": "inject-forbidden-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p10-composable-forbidden-01-imported-unused"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-positive-02-arrow-ts",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/C02.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useBeta } from \"../composables/useBeta\"; useBeta()\n</script>",
+        "files": {
+          "src/composables/useBeta.ts": "export const useBeta = () => 2"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FC02.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useBeta.ts#useBeta",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-positive-03-function-js",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/C03.vue",
+        "source": "<script setup>\nimport { useGamma } from \"../composables/useGamma.js\"; useGamma()\n</script>",
+        "files": {
+          "src/composables/useGamma.js": "export function useGamma() { return 3 }"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FC03.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useGamma.js#useGamma",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-positive-04-arrow-js",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/C04.vue",
+        "source": "<script setup>\nimport { useDelta } from \"../composables/useDelta\"; useDelta()\n</script>",
+        "files": {
+          "src/composables/useDelta.js": "export const useDelta = function () { return 4 }"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FC04.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useDelta.js#useDelta",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-positive-05-alias-local",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/C05.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useEcho as invokeEcho } from \"../composables/useEcho\"; invokeEcho()\n</script>",
+        "files": {
+          "src/composables/useEcho.ts": "export function useEcho() {}"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FC05.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useEcho.ts#useEcho",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-positive-06-digit-name",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/C06.vue",
+        "source": "<script setup lang=\"ts\">\nimport { use2fa } from \"../composables/use2fa\"; use2fa()\n</script>",
+        "files": {
+          "src/composables/use2fa.ts": "export const use2fa = () => true"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FC06.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/use2fa.ts#use2fa",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-positive-07-barrel-named",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/C07.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useFoxtrot } from \"../composables\"; useFoxtrot()\n</script>",
+        "files": {
+          "src/composables/useFoxtrot.ts": "export function useFoxtrot() {}",
+          "src/composables/index.ts": "export { useFoxtrot } from \"./useFoxtrot\""
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FC07.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useFoxtrot.ts#useFoxtrot",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-positive-08-barrel-alias",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/C08.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useGolfPublic } from \"../composables/golf\"; useGolfPublic()\n</script>",
+        "files": {
+          "src/composables/useGolf.ts": "export function useGolf() {}",
+          "src/composables/golf.ts": "export { useGolf as useGolfPublic } from \"./useGolf\""
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FC08.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useGolf.ts#useGolf",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-positive-09-alias-config",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/C09.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useHotel } from \"@composables/useHotel\"; useHotel()\n</script>",
+        "files": {
+          "src/composables/useHotel.ts": "export const useHotel = () => ({})",
+          "src/composables/useChanged.ts": "export function useChanged() {}"
+        },
+        "resolutions": {
+          "@composables/useHotel": "src/composables/useHotel.ts"
+        },
+        "configFiles": ["tsconfig.json"],
+        "configMutationResolutions": {
+          "@composables/useHotel": "src/composables/useChanged.ts",
+          "@composables/useIndia": "src/composables/useChanged.ts"
+        }
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FC09.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useHotel.ts#useHotel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-positive-10-alias-config-second",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/C10.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useIndia } from \"@composables/useIndia\"; useIndia()\n</script>",
+        "files": {
+          "src/composables/useIndia.ts": "export function useIndia() {}",
+          "src/composables/useChanged.ts": "export function useChanged() {}"
+        },
+        "resolutions": {
+          "@composables/useIndia": "src/composables/useIndia.ts"
+        },
+        "configFiles": ["tsconfig.json"],
+        "configMutationResolutions": {
+          "@composables/useHotel": "src/composables/useChanged.ts",
+          "@composables/useIndia": "src/composables/useChanged.ts"
+        }
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FC10.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useIndia.ts#useIndia",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-positive-11-script-options",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/C11.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useJuliet } from \"../composables/useJuliet\"; export default { setup() { useJuliet() } }\n</script>",
+        "files": {
+          "src/composables/useJuliet.ts": "export function useJuliet() {}"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FC11.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useJuliet.ts#useJuliet",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-positive-12-nested-call",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/C12.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useKilo } from \"../composables/useKilo\"; function setup(){ useKilo() }; setup()\n</script>",
+        "files": {
+          "src/composables/useKilo.ts": "export function useKilo() {}"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FC12.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useKilo.ts#useKilo",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-positive-13-awaited-call",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/C13.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useLima } from \"../composables/useLima\"; await useLima()\n</script>",
+        "files": {
+          "src/composables/useLima.ts": "export async function useLima() {}"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FC13.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useLima.ts#useLima",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-positive-14-generic-ts",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/C14.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useMike } from \"../composables/useMike\"; useMike<string>()\n</script>",
+        "files": {
+          "src/composables/useMike.ts": "export function useMike<T>(): T | undefined { return undefined }"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FC14.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useMike.ts#useMike",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-positive-15-multiple-imports",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/C15.vue",
+        "source": "<script setup lang=\"ts\">\nimport { ref } from \"vue\"; import { useNovember } from \"../composables/useNovember\"; useNovember()\n</script>",
+        "files": {
+          "src/composables/useNovember.ts": "export const useNovember = () => 15"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FC15.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useNovember.ts#useNovember",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-positive-16-barrel-two-hop",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/C16.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useOscar } from \"../api\"; useOscar()\n</script>",
+        "files": {
+          "src/composables/useOscar.ts": "export function useOscar() {}",
+          "src/composables/index.ts": "export { useOscar } from \"./useOscar\"",
+          "src/api.ts": "export { useOscar } from \"./composables\""
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FC16.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useOscar.ts#useOscar",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-positive-17-same-dir",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/C17.vue",
+        "source": "<script setup>\nimport { usePapa } from \"./usePapa\"; usePapa()\n</script>",
+        "files": {
+          "src/views/usePapa.js": "export function usePapa() {}"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FC17.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/views/usePapa.js#usePapa",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-positive-18-named-default-looking",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/C18.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useQuebec } from \"../composables/useQuebec\"; useQuebec()\n</script>",
+        "files": {
+          "src/composables/useQuebec.ts": "export const useQuebec = function useInner() {}"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FC18.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useQuebec.ts#useQuebec",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-positive-19-destructure-result",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/C19.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useRomeo } from \"../composables/useRomeo\"; const { value } = useRomeo()\n</script>",
+        "files": {
+          "src/composables/useRomeo.ts": "export function useRomeo(){ return { value: 1 } }"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FC19.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useRomeo.ts#useRomeo",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-positive-20-conditional-call",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/C20.vue",
+        "source": "<script setup>\nimport { useSierra } from \"../composables/useSierra\"; if (true) useSierra()\n</script>",
+        "files": {
+          "src/composables/useSierra.js": "export const useSierra = () => 20"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FC20.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useSierra.js#useSierra",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-positive-21-sequence-call",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/C21.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useTango } from \"../composables/useTango\"; (useTango())\n</script>",
+        "files": {
+          "src/composables/useTango.ts": "export function useTango() {}"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FC21.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useTango.ts#useTango",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-positive-22-aliased-barrel-call",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/C22.vue",
+        "source": "<script setup>\nimport { useUniform as useU } from \"../public-composables\"; useU()\n</script>",
+        "files": {
+          "src/composables/useUniform.js": "export function useUniform() {}",
+          "src/public-composables.js": "export { useUniform } from \"./composables/useUniform\""
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FC22.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useUniform.js#useUniform",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-forbidden-01-imported-unused",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/CF01.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useUnused } from \"../composables/useUnused\"\n</script>",
+        "files": {
+          "src/composables/useUnused.ts": "export function useUnused() {}"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FCF01.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useUnused.ts#useUnused"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-forbidden-02-shadowed-local-function",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/CF02.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useShadow } from \"../composables/useShadow\"; function setup(){ function useShadow(){}; useShadow() }; setup()\n</script>",
+        "files": {
+          "src/composables/useShadow.ts": "export function useShadow() {}"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FCF02.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useShadow.ts#useShadow"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-forbidden-03-uncalled-reference",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/CF03.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useRef } from \"../composables/useRef\"; const callback = useRef\n</script>",
+        "files": {
+          "src/composables/useRef.ts": "export function useRef() {}"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FCF03.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useRef.ts#useRef"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-forbidden-04-dynamic-import",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/CF04.vue",
+        "source": "<script setup lang=\"ts\">\nconst mod = await import(\"../composables/useDynamic\"); mod.useDynamic()\n</script>",
+        "files": {
+          "src/composables/useDynamic.ts": "export function useDynamic() {}"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FCF04.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useDynamic.ts#useDynamic"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-forbidden-05-unresolved-alias",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/CF05.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useMissing } from \"@missing/useMissing\"; useMissing()\n</script>",
+        "files": {
+          "src/composables/useMissing.ts": "export function useMissing() {}"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FCF05.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useMissing.ts#useMissing"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["unresolved-import"]
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-forbidden-06-lowercase-user",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/CF06.vue",
+        "source": "<script setup lang=\"ts\">\nimport { user } from \"../composables/user\"; user()\n</script>",
+        "files": {
+          "src/composables/user.ts": "export function user() {}"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FCF06.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/user.ts#user"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-forbidden-07-lowercase-usex",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/CF07.vue",
+        "source": "<script setup lang=\"ts\">\nimport { usewidget } from \"../composables/usewidget\"; usewidget()\n</script>",
+        "files": {
+          "src/composables/usewidget.ts": "export function usewidget() {}"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FCF07.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/usewidget.ts#usewidget"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-forbidden-08-property-name",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/CF08.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useProperty } from \"../composables/useProperty\"; const x = { useProperty }; x.useProperty\n</script>",
+        "files": {
+          "src/composables/useProperty.ts": "export function useProperty() {}"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FCF08.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useProperty.ts#useProperty"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-forbidden-09-type-only",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/CF09.vue",
+        "source": "<script setup lang=\"ts\">\nimport type { useType } from \"../composables/useType\"; let value: typeof useType\n</script>",
+        "files": {
+          "src/composables/useType.ts": "export function useType() {}"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FCF09.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useType.ts#useType"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-forbidden-10-string-name",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/CF10.vue",
+        "source": "<script setup lang=\"ts\">\nconst name = \"useString\"\n</script>",
+        "files": {
+          "src/composables/useString.ts": "export function useString() {}"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FCF10.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useString.ts#useString"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-composable-forbidden-11-non-function-binding",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/CF11.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useValue } from \"../composables/useValue\"; useValue()\n</script>",
+        "files": {
+          "src/composables/useValue.ts": "export const useValue = 42"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FCF11.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:src/composables/useValue.ts#useValue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-01-pinia-setup-ts",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S01.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useAccount } from \"../stores/useAccount\"; useAccount()\n</script>",
+        "files": {
+          "src/stores/useAccount.ts": "export const useAccount = defineStore(\"account\", () => ({ count: 0 }))"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS01.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/stores/useAccount.ts#useAccount",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-02-pinia-options-ts",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S02.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useCart } from \"../stores/useCart\"; useCart()\n</script>",
+        "files": {
+          "src/stores/useCart.ts": "export const useCart = defineStore(\"cart\", { state: () => ({}) })"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS02.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/stores/useCart.ts#useCart",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-03-pinia-setup-js",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S03.vue",
+        "source": "<script setup>\nimport { useDesk } from \"../stores/useDesk\"; useDesk()\n</script>",
+        "files": {
+          "src/stores/useDesk.js": "export const useDesk = defineStore(\"desk\", () => ({}))"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS03.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/stores/useDesk.js#useDesk",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-04-pinia-options-js",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S04.vue",
+        "source": "<script setup>\nimport { useEvents } from \"../stores/useEvents\"; useEvents()\n</script>",
+        "files": {
+          "src/stores/useEvents.js": "export const useEvents = defineStore(\"events\", { state: () => ({}) })"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS04.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/stores/useEvents.js#useEvents",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-05-pinia-import-alias",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S05.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useFiles as openFiles } from \"../stores/useFiles\"; openFiles()\n</script>",
+        "files": {
+          "src/stores/useFiles.ts": "export const useFiles = defineStore(\"files\", () => ({}))"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS05.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/stores/useFiles.ts#useFiles",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-06-pinia-barrel",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S06.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useGrid } from \"../stores\"; useGrid()\n</script>",
+        "files": {
+          "src/stores/useGrid.ts": "export const useGrid = defineStore(\"grid\", {})",
+          "src/stores/index.ts": "export { useGrid } from \"./useGrid\""
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS06.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/stores/useGrid.ts#useGrid",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-07-pinia-barrel-alias",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S07.vue",
+        "source": "<script setup lang=\"ts\">\nimport { publicHud } from \"../store-api\"; publicHud()\n</script>",
+        "files": {
+          "src/stores/useHud.ts": "export const useHud = defineStore(\"hud\", {})",
+          "src/store-api.ts": "export { useHud as publicHud } from \"./stores/useHud\""
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS07.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/stores/useHud.ts#useHud",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-08-pinia-config-alias",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S08.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useInbox } from \"@stores/useInbox\"; useInbox()\n</script>",
+        "files": {
+          "src/stores/useInbox.ts": "export const useInbox = defineStore(\"inbox\", {})",
+          "src/stores/useChanged.ts": "export const useChanged = defineStore(\"changed\", {})",
+          "src/vuex/changed.ts": "export const changedStore = createStore({})"
+        },
+        "resolutions": {
+          "@stores/useInbox": "src/stores/useInbox.ts"
+        },
+        "configFiles": ["tsconfig.json"],
+        "configMutationResolutions": {
+          "@stores/useInbox": "src/stores/useChanged.ts",
+          "@vuex/config": "src/vuex/changed.ts"
+        }
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS08.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/stores/useInbox.ts#useInbox",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-09-pinia-nested",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S09.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useJobs } from \"../stores/useJobs\"; function setup(){ return useJobs() }; setup()\n</script>",
+        "files": {
+          "src/stores/useJobs.ts": "export const useJobs = defineStore(\"jobs\", {})"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS09.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/stores/useJobs.ts#useJobs",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-10-pinia-two-calls-dedup",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S10.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useKeys } from \"../stores/useKeys\"; useKeys(); useKeys()\n</script>",
+        "files": {
+          "src/stores/useKeys.ts": "export const useKeys = defineStore(\"keys\", {})"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS10.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/stores/useKeys.ts#useKeys",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-11-pinia-duplicate-name-a",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S11.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useShared } from \"../stores/a/useShared\"; useShared()\n</script>",
+        "files": {
+          "src/stores/a/useShared.ts": "export const useShared = defineStore(\"shared\", {})"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS11.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/stores/a/useShared.ts#useShared",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-12-pinia-duplicate-name-b",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S12.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useShared } from \"../stores/b/useShared\"; useShared()\n</script>",
+        "files": {
+          "src/stores/b/useShared.ts": "export const useShared = defineStore(\"shared\", {})"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS12.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/stores/b/useShared.ts#useShared",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-13-vuex-default-factory-ts",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S13.vue",
+        "source": "<script setup lang=\"ts\">\nimport mainStore from \"../vuex/main\"; mainStore.commit(\"ready\")\n</script>",
+        "files": {
+          "src/vuex/main.ts": "export default createStore({ state: {} })"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS13.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/vuex/main.ts#default",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-14-vuex-default-factory-js",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S14.vue",
+        "source": "<script setup>\nimport legacyStore from \"../vuex/legacy\"; legacyStore.state\n</script>",
+        "files": {
+          "src/vuex/legacy.js": "export default createStore({ state: {} })"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS14.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/vuex/legacy.js#default",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-15-vuex-named-factory",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S15.vue",
+        "source": "<script setup lang=\"ts\">\nimport { appStore } from \"../vuex/named\"; appStore.dispatch(\"load\")\n</script>",
+        "files": {
+          "src/vuex/named.ts": "export const appStore = createStore({ state: {} })"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS15.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/vuex/named.ts#appStore",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-16-vuex-new-default",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S16.vue",
+        "source": "<script setup>\nimport classic from \"../vuex/classic\"; classic.commit(\"go\")\n</script>",
+        "files": {
+          "src/vuex/classic.js": "export default new Vuex.Store({ state: {} })"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS16.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/vuex/classic.js#default",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-17-vuex-new-named",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S17.vue",
+        "source": "<script setup lang=\"ts\">\nimport { namedClassic } from \"../vuex/named-classic\"; namedClassic.state\n</script>",
+        "files": {
+          "src/vuex/named-classic.ts": "export const namedClassic = new Vuex.Store({ state: {} })"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS17.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/vuex/named-classic.ts#namedClassic",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-18-vuex-default-barrel",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S18.vue",
+        "source": "<script setup lang=\"ts\">\nimport rootStore from \"../vuex\"; rootStore.state\n</script>",
+        "files": {
+          "src/vuex/root.ts": "export default createStore({})",
+          "src/vuex/index.ts": "export { default } from \"./root\""
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS18.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/vuex/root.ts#default",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-19-vuex-named-barrel-alias",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S19.vue",
+        "source": "<script setup lang=\"ts\">\nimport { publicFeature } from \"../vuex/public\"; publicFeature.state\n</script>",
+        "files": {
+          "src/vuex/feature.ts": "export const featureStore = createStore({})",
+          "src/vuex/public.ts": "export { featureStore as publicFeature } from \"./feature\""
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS19.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/vuex/feature.ts#featureStore",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-20-vuex-keyed-default",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S20.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useStore } from \"vuex\"; import { key } from \"../vuex/keyed\"; useStore(key)\n</script>",
+        "files": {
+          "src/vuex/keyed.ts": "export const key = Symbol(); export default createStore({})"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS20.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/vuex/keyed.ts#default",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-21-vuex-keyed-named",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S21.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useStore } from \"vuex\"; import { injectionKey } from \"../vuex/keyed-named\"; useStore(injectionKey)\n</script>",
+        "files": {
+          "src/vuex/keyed-named.ts": "export const injectionKey = Symbol(); export const keyedStore = createStore({})"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS21.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/vuex/keyed-named.ts#keyedStore",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-22-vuex-key-alias",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S22.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useStore } from \"vuex\"; import { key as appKey } from \"../vuex/key-alias\"; useStore(appKey)\n</script>",
+        "files": {
+          "src/vuex/key-alias.ts": "export const key = Symbol(); export default createStore({})"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS22.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/vuex/key-alias.ts#default",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-23-vuex-options-script",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S23.vue",
+        "source": "<script setup>\nimport store from \"../vuex/options\"; export default { mounted(){ store.dispatch(\"ready\") } }\n</script>",
+        "files": {
+          "src/vuex/options.js": "export default createStore({})"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS23.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/vuex/options.js#default",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-positive-24-vuex-config-alias",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/S24.vue",
+        "source": "<script setup lang=\"ts\">\nimport { configStore } from \"@vuex/config\"; configStore.state\n</script>",
+        "files": {
+          "src/vuex/config.ts": "export const configStore = createStore({})",
+          "src/stores/useChanged.ts": "export const useChanged = defineStore(\"changed\", {})",
+          "src/vuex/changed.ts": "export const changedStore = createStore({})"
+        },
+        "resolutions": {
+          "@vuex/config": "src/vuex/config.ts"
+        },
+        "configFiles": ["tsconfig.json"],
+        "configMutationResolutions": {
+          "@stores/useInbox": "src/stores/useChanged.ts",
+          "@vuex/config": "src/vuex/changed.ts"
+        }
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FS24.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/vuex/config.ts#configStore",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-forbidden-01-pinia-imported-unused",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/SF01.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useUnused } from \"../stores/useUnused\"\n</script>",
+        "files": {
+          "src/stores/useUnused.ts": "export const useUnused = defineStore(\"unused\", {})"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FSF01.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/stores/useUnused.ts#useUnused"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-forbidden-02-pinia-shadowed",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/SF02.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useShadow } from \"../stores/useShadow\"; function setup(){ const useShadow = () => null; useShadow() }; setup()\n</script>",
+        "files": {
+          "src/stores/useShadow.ts": "export const useShadow = defineStore(\"shadow\", {})"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FSF02.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/stores/useShadow.ts#useShadow"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-forbidden-03-pinia-uncalled-reference",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/SF03.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useRef } from \"../stores/useRef\"; const factory = useRef\n</script>",
+        "files": {
+          "src/stores/useRef.ts": "export const useRef = defineStore(\"ref\", {})"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FSF03.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/stores/useRef.ts#useRef"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-forbidden-04-dynamic-import",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/SF04.vue",
+        "source": "<script setup lang=\"ts\">\nconst mod = await import(\"../stores/useDynamic\"); mod.useDynamic()\n</script>",
+        "files": {
+          "src/stores/useDynamic.ts": "export const useDynamic = defineStore(\"dynamic\", {})"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FSF04.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/stores/useDynamic.ts#useDynamic"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-forbidden-05-unresolved-alias",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/SF05.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useMissing } from \"@missing/store\"; useMissing()\n</script>",
+        "files": {
+          "src/stores/useMissing.ts": "export const useMissing = defineStore(\"missing\", {})"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FSF05.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/stores/useMissing.ts#useMissing"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["unresolved-import"]
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-forbidden-06-unkeyed-vuex",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/SF06.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useStore } from \"vuex\"; const store = useStore()\n</script>",
+        "files": {
+          "src/vuex/global.ts": "export default createStore({})"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FSF06.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/vuex/global.ts#default"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-forbidden-07-this-store",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/SF07.vue",
+        "source": "<script setup lang=\"ts\">\nexport default { mounted(){ this.$store.dispatch(\"load\") } }\n</script>",
+        "files": {
+          "src/vuex/global.ts": "export default createStore({})"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FSF07.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/vuex/global.ts#default"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-forbidden-08-runtime-plugin",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/SF08.vue",
+        "source": "<script setup lang=\"ts\">\napp.use(store)\n</script>",
+        "files": {
+          "src/vuex/plugin.ts": "export default createStore({})"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FSF08.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/vuex/plugin.ts#default"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-forbidden-09-string-name",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/SF09.vue",
+        "source": "<script setup lang=\"ts\">\nconst storeName = \"named\"\n</script>",
+        "files": {
+          "src/stores/useNamed.ts": "export const useNamed = defineStore(\"named\", {})"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FSF09.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/stores/useNamed.ts#useNamed"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-forbidden-10-plain-function",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/SF10.vue",
+        "source": "<script setup lang=\"ts\">\nimport { usePlain } from \"../stores/usePlain\"; usePlain()\n</script>",
+        "files": {
+          "src/stores/usePlain.ts": "export function usePlain() {}"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FSF10.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/stores/usePlain.ts#usePlain"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-forbidden-11-wrong-duplicate-target",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/SF11.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useTwin } from \"../stores/b/useTwin\"; useTwin()\n</script>",
+        "files": {
+          "src/stores/a/useTwin.ts": "export const useTwin = defineStore(\"twin\", {})",
+          "src/stores/b/useTwin.ts": "export const useTwin = defineStore(\"twin\", {})"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FSF11.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/stores/b/useTwin.ts#useTwin",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FSF11.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/stores/a/useTwin.ts#useTwin"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-10-vue-synthetic",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-store-forbidden-12-key-from-other-module",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "src/views/SF12.vue",
+        "source": "<script setup lang=\"ts\">\nimport { useStore } from \"vuex\"; import { leftKey } from \"../vuex/left\"; useStore(leftKey)\n</script>",
+        "files": {
+          "src/vuex/right.ts": "export const rightKey = Symbol(); export default createStore({})",
+          "src/vuex/left.ts": "export const leftKey = Symbol()"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:src%2Fviews%2FSF12.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:src/vuex/right.ts#default"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "auctic-core",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-auctic-composable-user-alerts",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "resources/js/admin-ui/components/user-alert/UserAlertWrapper.vue",
+        "source": "<script setup>\nimport { onMounted, watch, computed, toRef } from \"vue\";\nimport { useRoute } from \"vue-router\";\nimport { useUserAlerts } from \"./useUserAlerts\";\nimport UserAlertBanner from \"./components/UserAlertBanner.vue\";\nimport UserAlertModal from \"./components/UserAlertModal.vue\";\n\nconst props = defineProps({\n  userId: {\n    type: [Number, null],\n    default: null,\n  },\n  viewName: {\n    type: String,\n    default: null,\n  },\n  shouldHide: {\n    type: Boolean,\n    default: false,\n  },\n});\n\nconst route = useRoute();\nconst userIdRef = toRef(() =>\n  props.userId != null ? parseInt(props.userId, 10) : null,\n);\n\nconst computedViewName = computed(() => {\n  if (props.viewName) {\n    return props.viewName;\n  }\n  return route?.name;\n});\n\nconst { bannerAlerts, modalAlerts, fetchAlerts, dismissAlert } = useUserAlerts(\n  userIdRef,\n  computedViewName,\n);\n\nonMounted(() => {\n  if (props.userId != null && !isNaN(Number(props.userId))) {\n    fetchAlerts();\n  }\n});\n\nwatch([() => props.userId, () => route.name], ([newUserId]) => {\n  if (newUserId != null && !isNaN(Number(newUserId))) {\n    fetchAlerts();\n  }\n});\n\nconst handleBannerDismiss = (alertId, type) => {\n  dismissAlert(alertId, type);\n};\n\n// Handler for modal dismissal\nconst handleModalDismiss = (alertId, type) => {\n  dismissAlert(alertId, type);\n};\n</script>\n\n<template v-if=\"!shouldHide\">\n  <UserAlertBanner\n    :banner-alerts=\"bannerAlerts\"\n    @dismiss=\"handleBannerDismiss\"\n  />\n\n  <UserAlertModal :modal-alerts=\"modalAlerts\" @dismiss=\"handleModalDismiss\" />\n\n  <slot />\n</template>\n",
+        "files": {
+          "resources/js/admin-ui/components/user-alert/useUserAlerts.js": "import { ref, computed, unref } from 'vue';\nimport { userAlertApi } from './user-alert-api';\n\nexport function useUserAlerts(userId, currentRoute = null) {\n    // Persist dismissed alert IDs in sessionStorage - separate for banners and modals\n    const BANNER_STORAGE_KEY = 'adminUserAlertDismissedBannerIds';\n    const MODAL_STORAGE_KEY = 'adminUserAlertDismissedModalIds';\n\n    function loadDismissedIds(storageKey) {\n        try {\n            const raw = sessionStorage.getItem(storageKey);\n            if (raw) {\n                return new Set(JSON.parse(raw));\n            }\n        } catch (e) { /* ignore */ }\n        return new Set();\n    }\n\n    function saveDismissedIds(set, storageKey) {\n        try {\n            sessionStorage.setItem(storageKey, JSON.stringify(Array.from(set)));\n        } catch (e) { /* ignore */ }\n    }\n\n    const alerts = ref([]);\n    const dismissedBannerIds = ref(loadDismissedIds(BANNER_STORAGE_KEY));\n    const dismissedModalIds = ref(loadDismissedIds(MODAL_STORAGE_KEY));\n    const loading = ref(false);\n    const error = ref(null);\n\n    const bannerAlerts = computed(() =>\n        alerts.value\n            .filter(a => ['banner', 'both'].includes(a.presentation_type))\n            .filter(a => !dismissedBannerIds.value.has(a.id))\n    );\n\n    const modalAlerts = computed(() =>\n        alerts.value\n            .filter(a => ['modal', 'both'].includes(a.presentation_type))\n            .filter(a => !dismissedModalIds.value.has(a.id))\n    );\n\n    async function fetchAlerts() {\n        loading.value = true;\n        error.value = null;\n\n        try {\n            // Unwrap refs/computed to get current values\n            const resolvedUserId = unref(userId);\n            const resolvedRoute = unref(currentRoute);\n\n            const response = await userAlertApi.getAlertsForUserByRoute(resolvedUserId, resolvedRoute);\n            alerts.value = response.data?.alerts || [];\n        } catch (err) {\n            error.value = err;\n            console.error('Failed to fetch user alerts:', err);\n        } finally {\n            loading.value = false;\n        }\n    }\n\n    async function dismissAlert(alertId, type = 'both') {\n        if (type === 'banner' || type === 'both') {\n            // Create a new Set to trigger Vue reactivity\n            dismissedBannerIds.value = new Set([...dismissedBannerIds.value, alertId]);\n            saveDismissedIds(dismissedBannerIds.value, BANNER_STORAGE_KEY);\n        }\n\n        if (type === 'modal' || type === 'both') {\n            // Create a new Set to trigger Vue reactivity\n            dismissedModalIds.value = new Set([...dismissedModalIds.value, alertId]);\n            saveDismissedIds(dismissedModalIds.value, MODAL_STORAGE_KEY);\n        }\n    }\n\n    return {\n        alerts,\n        bannerAlerts,\n        modalAlerts,\n        loading,\n        error,\n        fetchAlerts,\n        dismissAlert,\n    };\n}\n"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:resources%2Fjs%2Fadmin-ui%2Fcomponents%2Fuser-alert%2FUserAlertWrapper.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:resources/js/admin-ui/components/user-alert/useUserAlerts.js#useUserAlerts",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "realGold": {
+      "approvedBy": "Example Maintainer",
+      "source": "owner-reviewed exact-commit semantic slice",
+      "portable": true,
+      "sourceSha256": {
+        "resources/js/admin-ui/components/user-alert/UserAlertWrapper.vue": "7f0d2f1a1e6ef070c7cc99f7226684ede23c890b5d9928e850c2f28d475384c6",
+        "resources/js/admin-ui/components/user-alert/useUserAlerts.js": "e18c6d376b38587b671f6ed1163b1bfa150290b5fcc0d227366f7b1f1a000a81"
+      }
+    }
+  },
+  {
+    "corpus": "auctic-core",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-auctic-composable-server-table",
+    "capability": "vue-composable-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "resources/js/admin-ui/views/admin-home/components/NewUsersTable.vue",
+        "source": "<script setup>\nimport { onMounted, ref, watch } from \"vue\";\nimport DataTablePaginated from \"@adminUi/components/data-table/DataTablePaginated.vue\";\nimport { firstPartyApiService } from \"../services/first-party-api\";\nimport { useServerTable } from \"../composables/use-server-table\";\nimport PeriodSelect from \"./PeriodSelect.vue\";\nimport UserColumn from \"./columns/UserColumn.vue\";\nimport IpColumn from \"./columns/IpColumn.vue\";\n\nconst props = defineProps({\n  canTrackLogin: { type: Boolean, default: false },\n});\n\nconst days = ref(7);\nconst count = ref(0); // full period total (independent of search)\n\nconst joined = (iso) =>\n  iso\n    ? new Date(iso).toLocaleString(undefined, {\n        month: \"short\",\n        day: \"numeric\",\n        hour: \"numeric\",\n        minute: \"2-digit\",\n      })\n    : \"\u2014\";\n\n// Props-only \u2014 plain const (canTrackLogin is fixed for the component's lifetime).\nconst columns = (() => {\n  const cols = [\n    {\n      id: \"user\",\n      field: \"name\",\n      header: \"User\",\n      sortable: true,\n      component: UserColumn,\n    },\n    {\n      id: \"company\",\n      field: \"company\",\n      header: \"Company\",\n      sortable: false,\n      formattingFunction: (d) => d.company ?? \"\u2014\",\n    },\n    {\n      id: \"joined\",\n      field: \"createdAt\",\n      header: \"Joined\",\n      sortable: true,\n      formattingFunction: (d) => joined(d.createdAt),\n    },\n    {\n      id: \"stated\",\n      field: \"statedLocation\",\n      header: \"Location\",\n      sortable: true,\n      formattingFunction: (d) => d.statedLocation ?? \"\u2014\",\n    },\n  ];\n  if (props.canTrackLogin) {\n    // Location resolves lazily on IP rollover and shows in the IP cell's tooltip \u2014\n    // no separate location column needed.\n    cols.push({\n      id: \"ip\",\n      field: \"network.ip\",\n      header: \"IP\",\n      component: IpColumn,\n    });\n  }\n  return cols;\n})();\n\nconst {\n  rows,\n  total,\n  loading,\n  currentPage,\n  rowsPerPage,\n  sortField,\n  sortOrder,\n  onPage,\n  onSort,\n  onFilters,\n  reload,\n} = useServerTable(\n  async (p) => {\n    const res = await firstPartyApiService.getNewUsers({\n      days: days.value,\n      page: p.page,\n      perPage: p.perPage,\n      sort: p.sortField,\n      order: p.sortOrder,\n      search: p.search,\n    });\n    count.value = res.count ?? 0;\n    return res;\n  },\n  { sortField: \"createdAt\", sortOrder: -1, rowsPerPage: 10 },\n);\n\nwatch(days, reload);\nonMounted(reload);\n</script>\n\n<template>\n  <section class=\"au-card\">\n    <header class=\"au-card__head\">\n      <h2 class=\"au-card__title\">New users</h2>\n      <span class=\"au-card__count\">{{ count }} in period</span>\n      <PeriodSelect v-model=\"days\" class=\"au-card__period\" />\n      <a class=\"au-card__all\" href=\"/admin/users\">View all \u2192</a>\n    </header>\n\n    <DataTablePaginated\n      :row-data=\"rows\"\n      :columns=\"columns\"\n      :is-loading=\"loading\"\n      data-key=\"id\"\n      noun=\"users\"\n      :total-records=\"total\"\n      :current-page=\"currentPage\"\n      :rows-per-page=\"rowsPerPage\"\n      :sort-field=\"sortField\"\n      :sort-order=\"sortOrder\"\n      global-filter\n      global-filter-placeholder=\"Search name, email, company\u2026\"\n      @page-changed=\"onPage\"\n      @sort-changed=\"onSort\"\n      @filters-changed=\"onFilters\"\n    />\n  </section>\n</template>\n\n<style scoped lang=\"scss\">\n.au-card {\n  background: #fff;\n  border: 1px solid var(--surface-200, #e5e7eb);\n  border-radius: 0.75rem;\n  padding: 1rem 1.25rem;\n  padding-bottom: 60px; // room below the paginated table so the paginator/dropdown clears the card edge\n\n  :deep(.p-paginator) {\n    padding-bottom: 0.5rem;\n    margin-bottom: 0.25rem;\n  }\n\n  &__head {\n    display: flex;\n    align-items: center;\n    gap: 0.6rem;\n    margin-bottom: 0.5rem;\n  }\n\n  &__title {\n    font-size: 0.95rem;\n    font-weight: 600;\n    color: var(--text-color, #374151);\n    margin: 0;\n  }\n\n  &__count {\n    font-size: 0.8rem;\n    color: var(--text-color-secondary, #6b7280);\n  }\n\n  &__period {\n    margin-left: auto;\n  }\n\n  &__all {\n    font-size: 0.8rem;\n    color: var(--primary-color, #2563eb);\n    text-decoration: none;\n  }\n}\n</style>\n",
+        "files": {
+          "resources/js/admin-ui/views/admin-home/composables/use-server-table.js": "import { ref } from 'vue';\n\n// Drives DataTablePaginated server-side: each page/sort/filter change refetches a\n// single page from the backend. No client-side row cap \u2014 the backend returns\n// { data, total } for the requested window.\n//\n// fetchFn receives { page, perPage, sortField, sortOrder, search } and resolves to\n// { data, total, ... }. Extra keys on the response are returned from load().\nexport function useServerTable(fetchFn, opts = {}) {\n  const rows = ref([]);\n  const total = ref(0);\n  const loading = ref(false);\n  const sortField = ref(opts.sortField ?? null);\n  const sortOrder = ref(opts.sortOrder ?? -1);\n  const rowsPerPage = ref(opts.rowsPerPage ?? 10);\n  const currentPage = ref(1);\n  const search = ref('');\n\n  const load = async () => {\n    loading.value = true;\n    try {\n      const res = await fetchFn({\n        page: currentPage.value,\n        perPage: rowsPerPage.value,\n        sortField: sortField.value,\n        sortOrder: sortOrder.value,\n        search: search.value,\n      });\n      rows.value = res?.data ?? [];\n      total.value = res?.total ?? 0;\n      return res;\n    } finally {\n      loading.value = false;\n    }\n  };\n\n  const onPage = (e) => {\n    currentPage.value = e.page ?? 1;\n    rowsPerPage.value = e.rowsPerPage ?? rowsPerPage.value;\n    load();\n  };\n  const onSort = (e) => {\n    sortField.value = e.sortField;\n    sortOrder.value = e.sortOrder;\n    currentPage.value = 1;\n    load();\n  };\n  const onFilters = (f) => {\n    search.value = f?.global?.value ?? '';\n    currentPage.value = 1;\n    load();\n  };\n  const reload = () => {\n    currentPage.value = 1;\n    return load();\n  };\n\n  return { rows, total, loading, currentPage, rowsPerPage, sortField, sortOrder, onPage, onSort, onFilters, reload, load };\n}\n"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:resources%2Fjs%2Fadmin-ui%2Fviews%2Fadmin-home%2Fcomponents%2FNewUsersTable.vue",
+        "type": "uses_composable",
+        "target": "symbol:ts:resources/js/admin-ui/views/admin-home/composables/use-server-table.js#useServerTable",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "realGold": {
+      "approvedBy": "Example Maintainer",
+      "source": "owner-reviewed exact-commit semantic slice",
+      "portable": true,
+      "sourceSha256": {
+        "resources/js/admin-ui/views/admin-home/components/NewUsersTable.vue": "c132e3e7cd293dccdfc073d417a3db0ee6bfc41c2e4297e28543b6a49ee4a4cd",
+        "resources/js/admin-ui/views/admin-home/composables/use-server-table.js": "73ee7935179415ba25d9d9383573b599e33029de3be4eed5f8ce6bd506e27dd3"
+      }
+    }
+  },
+  {
+    "corpus": "auctic-core",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-auctic-store-secure-file",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "resources/js/Pages/Account/SecureDocuments/Index.vue",
+        "source": "<template>\n  <div>\n    <inertia-head>\n      <title>Secure Documents</title>\n    </inertia-head>\n    <heading title=\"Secure Documents\">Secure Documents</heading>\n    <account-layout :page=\"page\">\n      <account-section :page=\"page\">\n        <template #section_title>Secure Documents</template>\n        <template #section_description>\n          Documents you've provided to us.\n        </template>\n        <button\n          v-if=\"redirectUrl && hasDriverLicense\"\n          @click=\"redirectToUrl\"\n          class=\"bg-primary-500 hover:bg-primary-400 active:bg-primary-600 relative mt-4 inline-flex h-9 cursor-pointer items-center justify-center rounded px-3 text-sm font-semibold text-white shadow focus:outline-none focus:ring dark:text-gray-900\"\n        >\n          <svg\n            xmlns=\"http://www.w3.org/2000/svg\"\n            fill=\"none\"\n            viewBox=\"0 0 24 24\"\n            stroke-width=\"1.5\"\n            stroke=\"currentColor\"\n            class=\"mr-2 h-5 w-5\"\n          >\n            <path\n              stroke-linecap=\"round\"\n              stroke-linejoin=\"round\"\n              d=\"M4.5 12.75l6 6 9-13.5\"\n            />\n          </svg>\n          License Uploaded, Continue Registering\n          <svg\n            xmlns=\"http://www.w3.org/2000/svg\"\n            fill=\"none\"\n            viewBox=\"0 0 24 24\"\n            stroke-width=\"1.5\"\n            stroke=\"currentColor\"\n            class=\"ml-2 h-5 w-5\"\n          >\n            <path\n              stroke-linecap=\"round\"\n              stroke-linejoin=\"round\"\n              d=\"M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3\"\n            />\n          </svg>\n        </button>\n        <label\n          for=\"document-type\"\n          class=\"mt-4 block text-sm font-medium text-gray-700\"\n          >Select a Document Type</label\n        >\n        <select\n          v-model=\"selectedDocumentType\"\n          class=\"mt-1 block w-[280px] rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-50\"\n        >\n          <option disabled value=\"\">Select Document Type to Upload</option>\n          <option\n            v-for=\"classification in classifications\"\n            :key=\"classification.key\"\n            :value=\"classification\"\n          >\n            {{ classification.display }}\n          </option>\n        </select>\n\n        <input\n          id=\"secure-image\"\n          type=\"file\"\n          @change=\"handleFileChange\"\n          hidden\n        />\n        <label\n          v-if=\"!uploading && selectedDocumentType\"\n          for=\"secure-image\"\n          class=\"bg-primary-500 hover:bg-primary-400 active:bg-primary-600 relative mt-4 inline-flex h-9 cursor-pointer items-center justify-center rounded px-3 text-sm font-bold text-white shadow focus:outline-none focus:ring dark:text-gray-900\"\n        >\n          Add {{ selectedDocumentType.display }}\n        </label>\n        <button\n          v-if=\"uploading\"\n          type=\"button\"\n          class=\"bg-primary-500 hover:bg-primary-400 active:bg-primary-600 relative mt-4 inline-flex h-9 cursor-not-allowed items-center justify-center rounded px-3 text-sm font-bold text-white shadow focus:outline-none focus:ring dark:text-gray-900\"\n          disabled=\"\"\n        >\n          <Processing />\n          Processing...\n        </button>\n        <div v-if=\"secureDocuments.length\" class=\"pt-8\">\n          <div\n            v-for=\"document in secureDocuments\"\n            :key=\"document.id\"\n            class=\"mb-8\"\n          >\n            <SecureDocument :document=\"document\" />\n            <button\n              v-if=\"canDelete && deletingDocumentId !== document.id\"\n              @click=\"deleteDocumentAndFile(document)\"\n              class=\"mt-2 inline-flex h-6 max-w-[75px] items-center justify-center rounded bg-red-500 px-3 text-xs text-white shadow hover:bg-red-400 focus:outline-none focus:ring active:bg-red-600 dark:text-gray-900\"\n            >\n              Delete\n            </button>\n            <button\n              v-if=\"canDelete && deletingDocumentId === document.id\"\n              type=\"button\"\n              class=\"mt-2 inline-flex h-6 max-w-[75px] cursor-not-allowed items-center justify-center rounded bg-red-500 px-3 text-xs text-white shadow focus:outline-none focus:ring dark:text-gray-900\"\n              disabled=\"\"\n            >\n              <Processing />\n              Deleting...\n            </button>\n          </div>\n        </div>\n        <form @submit.prevent=\"createUserSecureDocument\">\n          <input type=\"hidden\" v-model=\"newFileForm.secure_document_key\" />\n          <input type=\"hidden\" v-model=\"newFileForm.classification\" />\n        </form>\n        <form @submit.prevent=\"deleteUserSecureDocument\">\n          <input type=\"hidden\" v-model=\"deleteFileForm.id\" />\n        </form>\n      </account-section>\n    </account-layout>\n  </div>\n</template>\n\n<script setup>\nimport { watch, ref, getCurrentInstance, onMounted, computed } from \"vue\";\nimport { useSecureFileStore } from \"@aucticCore/Shared/SecureDocument/stores/useSecureFileStore\";\nimport { useForm } from \"@inertiajs/vue3\";\nimport { storeToRefs } from \"pinia\";\nimport Heading from \"@aucticCore/Shared/Heading.vue\";\nimport AccountLayout from \"@aucticCore/Pages/Account/AccountShared/AccountLayout.vue\";\nimport AccountSection from \"@aucticCore/Pages/Account/AccountShared/AccountSection.vue\";\nimport SecureDocument from \"./Components/SecureDocument.vue\";\nimport Processing from \"../Icon/Processing.vue\";\n\nconst props = defineProps({\n  secureDocuments: Array,\n  classification: String,\n  classifications: Array,\n  canDelete: {\n    type: Boolean,\n    default: true,\n  },\n});\n\nconst secureDocuments = ref(props.secureDocuments);\nconst page = ref(\"secure-documents\");\nconst secureFileStore = useSecureFileStore();\n\n/* eslint-disable no-unused-vars */\nconst { uploading, fileUploaded } = storeToRefs(secureFileStore);\n/* eslint-enable no-unused-vars */\n\nconst handleUpload = secureFileStore.handleUpload;\nconst deleteFile = secureFileStore.deleteFile;\n\nconst deletingDocumentId = ref(null);\nconst selectedDocumentType = ref(null);\n\nconst redirectUrl = ref(null);\nredirectUrl.value = new URLSearchParams(window.location.search).get(\"redirect\");\n\nonMounted(() => {\n  selectedDocumentType.value =\n    props.classifications.find(\n      (classification) => classification.key === props.classification,\n    ) || null;\n});\n\n// Set the classification in the form when the selected document type changes\nwatch(selectedDocumentType, (newType) => {\n  newFileForm.classification = newType ? newType.key : \"\";\n});\n\n// Update the secureDocuments array after form submission\nwatch(\n  () => props.secureDocuments,\n  (newDocuments) => {\n    secureDocuments.value = newDocuments;\n  },\n);\n\n// When the s3 secure upload module emits success\n// use the key it provides to associate the file\n// with the user\nwatch(\n  () => secureFileStore.fileUploaded,\n  (newFileKey) => {\n    if (\"failed\" === newFileKey) {\n      proxy.$root.roast({\n        type: \"error\",\n        title: \"Error\",\n        message: \"Failed to upload file to storage\",\n        duration: 4000,\n      });\n      return;\n    }\n\n    createUserSecureDocument(newFileKey);\n\n    proxy.$root.roast({\n      type: \"success\",\n      title: \"Success\",\n      message: \"File uploaded successfully\",\n    });\n  },\n);\n\nconst newFileForm = useForm({\n  secure_document_key: \"\",\n  classification: \"\",\n});\n\nconst deleteFileForm = useForm({\n  id: \"\",\n});\n\nconst { proxy } = getCurrentInstance();\n\nconst handleFileChange = async (event) => {\n  await handleUpload(event);\n  // We only need this so the same\n  // file can be uploaded twice\n  event.target.value = \"\";\n};\n\nconst createUserSecureDocument = (fileKey) => {\n  newFileForm.secure_document_key = fileKey;\n  newFileForm.post(\"/account/secure-documents\", {\n    preserveScroll: true,\n    onSuccess: () => {\n      newFileForm.secure_document_key = \"\";\n      newFileForm.classification = \"\";\n      selectedDocumentType.value = null;\n    },\n    onError: (error) => {\n      console.error(error);\n      proxy.$root.roast({\n        type: \"error\",\n        title: \"Error\",\n        message: \"Failed to save your document\",\n      });\n    },\n  });\n};\n\nconst deleteUserSecureDocument = (id) => {\n  deleteFileForm.id = id;\n  deleteFileForm.delete(`/account/secure-documents/${deleteFileForm.id}`, {\n    preserveScroll: true,\n    onSuccess: () => {\n      deleteFileForm.id = \"\";\n      deletingDocumentId.value = null;\n    },\n    onError: () => {\n      proxy.$root.roast({\n        type: \"error\",\n        title: \"Error\",\n        message: \"Failed to delete your document\",\n      });\n    },\n  });\n};\n\n// We could listen for fileDeleted from the secureFileStore\n// but we need to pass the document id that is being\n// deleted on the click event so we know which user document to delete\nconst deleteDocumentAndFile = async (document) => {\n  deletingDocumentId.value = document.id;\n  try {\n    await deleteFile(document.secure_document_key);\n    deleteUserSecureDocument(document.id);\n  } catch (error) {\n    console.error(error);\n    proxy.$root.roast({\n      type: \"error\",\n      title: \"Error\",\n      message: \"Failed to delete file from storage\",\n    });\n    deletingDocumentId.value = null;\n  }\n};\n\nconst redirectToUrl = () => {\n  proxy.$inertia.visit(redirectUrl.value);\n};\n\n// Add computed property to check for driver's license\nconst hasDriverLicense = computed(() => {\n  return secureDocuments.value.some(\n    (doc) => doc.classification === \"Driving License\",\n  );\n});\n</script>\n\n<script>\nimport { LayoutType } from \"@aucticCore/Shared/const/LayoutType\";\n\nexport default {\n  layout: LayoutType.Default,\n};\n</script>\n",
+        "files": {
+          "resources/js/Shared/SecureDocument/stores/useSecureFileStore.js": "import { defineStore } from 'pinia';\nimport { ref } from 'vue';\n\nexport const useSecureFileStore = defineStore('secureFile', () => {\n    const uploading = ref(false);\n    const file = ref(null);\n    const fileKey = ref(null);\n    const fileUploaded = ref(null);\n    const fileDeleted = ref(null);\n    const preSignedUploadUrl = ref(null);\n\n    const fetchWithCsrf = (url, options) => {\n        return fetch(url, {\n            ...options,\n            headers: {\n                \"Content-Type\": \"application/json\",\n                Accept: \"application/json\",\n                \"X-CSRF-TOKEN\": document\n                    .querySelector('meta[name=\"csrf-token\"]')\n                    .getAttribute(\"content\"),\n            },\n            credentials: \"same-origin\",\n        });\n    };\n\n    const setupUpload = async () => {\n        const response = await fetchWithCsrf(\"/api/sdl/make-upload\", {\n            method: \"POST\",\n            body: JSON.stringify({\n                filename: file.value.name,\n                mimeType: file.value.type,\n            }),\n        });\n\n        if (!response.ok) {\n            throw new Error(\"File upload failed\");\n        }\n\n        const data = await response.json();\n        preSignedUploadUrl.value = data.url;\n        fileKey.value = data.key;\n    };\n\n    const uploadFile = async () => {\n        const response = await fetch(preSignedUploadUrl.value, {\n            method: \"PUT\",\n            body: file.value,\n        });\n\n        if (!response.ok) {\n            throw new Error(\"File upload failed\");\n        }\n    };\n\n    const persistFile = async () => {\n        const response = await fetchWithCsrf(\"/api/sdl/persist\", {\n            method: \"POST\",\n            body: JSON.stringify({\n                key: fileKey.value,\n            }),\n        });\n\n        if (!response.ok) {\n            throw new Error(\"File persist failed\");\n        }\n    };\n\n    const deleteFile = async (key) => {\n        const response = await fetchWithCsrf(`/api/sdl/delete`, {\n            method: \"DELETE\",\n            body: JSON.stringify({\n                key: key,\n            }),\n        });\n\n        if (!response.ok) {\n            throw new Error(\"File delete failed\");\n        }\n\n        useSecureFileStore().$patch({ fileDeleted: key });\n    };\n\n    const handleUpload = async (event) => {\n        file.value = event.target.files[0];\n        uploading.value = true;\n\n        try {\n            await setupUpload();\n            await uploadFile();\n            await persistFile();\n            useSecureFileStore().$patch({ fileUploaded: fileKey.value });\n        } catch (error) {\n            useSecureFileStore().$patch({ fileUploaded: \"failed\" });\n            console.error(error);\n        } finally {\n            uploading.value = false;\n        }\n    };\n\n    return {\n        handleUpload,\n        deleteFile,\n        uploading,\n        fileUploaded,\n        fileDeleted,\n    };\n});"
+        },
+        "resolutions": {
+          "@aucticCore/Shared/SecureDocument/stores/useSecureFileStore": "resources/js/Shared/SecureDocument/stores/useSecureFileStore.js"
+        }
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:resources%2Fjs%2FPages%2FAccount%2FSecureDocuments%2FIndex.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:resources/js/Shared/SecureDocument/stores/useSecureFileStore.js#useSecureFileStore",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "realGold": {
+      "approvedBy": "Example Maintainer",
+      "source": "owner-reviewed exact-commit semantic slice",
+      "portable": true,
+      "sourceSha256": {
+        "resources/js/Pages/Account/SecureDocuments/Index.vue": "3591a7eeaa2fde3edce9a701a99a03da5ee49a3f2c7444e03e69f8430066e44d",
+        "resources/js/Shared/SecureDocument/stores/useSecureFileStore.js": "defda3f74544462c20af336e3e4638e7bb75f022b5257fe949f8f7dca1931bdb"
+      }
+    }
+  },
+  {
+    "corpus": "auctic-core",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p10-auctic-store-reconditioning",
+    "capability": "vue-store-semantics",
+    "query": {
+      "tool": "phase10VueSemanticSeam",
+      "args": {
+        "parentPath": "resources/js/Trucklist/Public/Listing/Reconditioning/Index.vue",
+        "source": "<script setup>\nimport { computed, onMounted, defineProps } from \"vue\";\nimport { useReconditioningStore } from \"./store\";\nimport { currencyFormat } from \"@aucticCore/Shared/utils/format-utils\";\nimport ReconditioningTable from \"./partials/Table.vue\";\n\nconst props = defineProps({\n  listingId: {\n    type: Number,\n    required: true,\n  },\n});\n\nconst store = useReconditioningStore();\nconst localItems = computed(() => store.items);\n\nconst leftItems = computed(() => {\n  const middleIndex = Math.ceil(localItems.value.length / 2);\n  return localItems.value.slice(0, middleIndex);\n});\n\nconst rightItems = computed(() => {\n  const middleIndex = Math.ceil(localItems.value.length / 2);\n  return localItems.value.slice(middleIndex);\n});\n\nconst fetchItems = async () => {\n  try {\n    await store.fetchItems(props.listingId);\n  } catch (error) {\n    console.error(\"Error fetching items:\", error);\n  }\n};\n\nconst deleteItem = async (label) => {\n  try {\n    await store.deleteItem(label, props.listingId);\n  } catch (error) {\n    console.error(\"Error deleting item:\", error);\n  }\n};\n\nconst totalDollarValue = computed(() => {\n  return localItems.value.reduce((sum, item) => sum + item.dollarValue, 0);\n});\n\nonMounted(() => {\n  fetchItems();\n});\n</script>\n\n<template>\n  <div v-if=\"localItems.length > 0\" class=\"reconditioning-index mb-8 pb-4\">\n    <h1 class=\"mb-1 text-2xl font-bold\">Reconditioning Report</h1>\n    <div class=\"mb-4 text-xl\">\n      <span class=\"pr-2 text-gray-400\"\n        >Total Estimated Reconditioning Costs</span\n      >\n      <span class=\"font-semibold text-red-500\">{{\n        currencyFormat(totalDollarValue)\n      }}</span>\n    </div>\n\n    <div class=\"md:hidden\">\n      <ReconditioningTable :items=\"localItems\" :deleteItem=\"deleteItem\" />\n    </div>\n\n    <div class=\"hidden md:flex\">\n      <div class=\"w-1/2 pr-6\">\n        <ReconditioningTable :items=\"leftItems\" :deleteItem=\"deleteItem\" />\n      </div>\n      <div class=\"w-1/2 pl-6\">\n        <ReconditioningTable :items=\"rightItems\" :deleteItem=\"deleteItem\" />\n      </div>\n    </div>\n  </div>\n</template>\n",
+        "files": {
+          "resources/js/Trucklist/Public/Listing/Reconditioning/store.js": "import { defineStore } from 'pinia';\nimport axios from 'axios';\n\nexport const useReconditioningStore = defineStore('reconditioning', {\n    state: () => ({\n        items: []\n    }),\n    actions: {\n        async fetchItems(listingId) {\n            try {\n                const index = `/api/reconditioning-items?listingId=${listingId}`;\n                const response = await axios.get(index);\n                this.items = response.data;\n            } catch (error) {\n                console.error('Error fetching items:', error);\n            }\n        },\n        async createItem(item) {\n            await axios.post('/api/reconditioning-items', item);\n            this.items.push(item);\n        },\n        async deleteItem(label, listingId) {\n            try {\n                await axios.delete('/api/reconditioning-items',\n                    {data: { label, listingId }}\n                );\n                this.items = this.items.filter(item => item.label !== label);\n            } catch (error) {\n                console.error('Error deleting item:', error);\n            }\n        }\n    }\n});"
+        },
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:resources%2Fjs%2FTrucklist%2FPublic%2FListing%2FReconditioning%2FIndex.vue",
+        "type": "uses_store",
+        "target": "symbol:ts:resources/js/Trucklist/Public/Listing/Reconditioning/store.js#useReconditioningStore",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "realGold": {
+      "approvedBy": "Example Maintainer",
+      "source": "owner-reviewed exact-commit semantic slice",
+      "portable": true,
+      "sourceSha256": {
+        "resources/js/Trucklist/Public/Listing/Reconditioning/Index.vue": "6487a8960fa54399522863928d7c7f829e2b44f2961ac3c40e9a49e116069fa2",
+        "resources/js/Trucklist/Public/Listing/Reconditioning/store.js": "a3f34bdfc039b5da34380fd5561420d2f3d242bbb99681ddc895942b891207fc"
+      }
+    }
+  }
+]

@@ -1,0 +1,43 @@
+{
+  "positive": [
+    "pinia-setup-ts",
+    "pinia-options-ts",
+    "pinia-setup-js",
+    "pinia-options-js",
+    "pinia-local-import-alias",
+    "pinia-export-alias",
+    "pinia-barrel",
+    "pinia-tsconfig-alias",
+    "pinia-vite-alias",
+    "pinia-two-calls-one-edge",
+    "pinia-duplicate-name-module-a",
+    "pinia-duplicate-name-module-b",
+    "vuex-create-store-default-ts",
+    "vuex-create-store-default-js",
+    "vuex-new-store-default",
+    "vuex-named-factory",
+    "vuex-direct-dispatch",
+    "vuex-direct-commit",
+    "vuex-keyed-use-store",
+    "vuex-keyed-aliased-import",
+    "vuex-keyed-barrel",
+    "vuex-keyed-alias"
+  ],
+  "forbidden": [
+    "pinia-imported-unused",
+    "pinia-uncalled-reference",
+    "pinia-local-shadow",
+    "dynamic-import",
+    "unresolved-alias",
+    "binding-not-define-store",
+    "unkeyed-global-use-store",
+    "string-use-store-key",
+    "this-dollar-store",
+    "runtime-plugin-registration",
+    "string-store-name",
+    "key-from-non-store-module",
+    "ambiguous-key-module",
+    "shadowed-use-store",
+    "namespace-import"
+  ]
+}

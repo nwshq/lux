@@ -6,7 +6,11 @@
 export { LaravelBoundaryEvidenceResolver } from './laravel-boundary-evidence.js';
 
 import { LaravelBoundaryEvidenceResolver } from './laravel-boundary-evidence.js';
-import { VueComponentAssociationResolver } from '../../vue/association-wrapper.js';
+import {
+  VueComponentAssociationResolver,
+  VueComposableAssociationResolver,
+  VueStoreAssociationResolver,
+} from '../../vue/association-wrapper.js';
 import type { AssociationResolver } from '../types.js';
 
 /**
@@ -14,5 +18,10 @@ import type { AssociationResolver } from '../types.js';
  * Pass the result to AssociationEngine to run the full default pack.
  */
 export function createDefaultResolvers(): AssociationResolver[] {
-  return [new LaravelBoundaryEvidenceResolver(), new VueComponentAssociationResolver()];
+  return [
+    new LaravelBoundaryEvidenceResolver(),
+    new VueComponentAssociationResolver(),
+    new VueComposableAssociationResolver(),
+    new VueStoreAssociationResolver(),
+  ];
 }

@@ -5,32 +5,58 @@ import type {
   StructuralRelationEdge,
 } from '../associations/types.js';
 import { VueComponentResolver } from './component-resolver.js';
+import { VueComposableResolver } from './composable-resolver.js';
+import { VueStoreResolver } from './store-resolver.js';
 
-/** Producer recorded by the compiler-SFC source adapter in ProgramAnalysisV1. */
 const VUE_SFC_PRODUCER = 'vue-compiler-sfc';
 
-/** Thin AssociationEngine adapter around the contract-shaped pure component resolver. */
-export class VueComponentAssociationResolver implements AssociationResolver {
-  readonly name = 'vue-component';
+abstract class VueAnalysisAssociationResolver implements AssociationResolver {
+  abstract readonly name: string;
 
-  constructor(private readonly resolver: RelationshipResolverV1 = new VueComponentResolver()) {}
+  constructor(protected readonly resolver: RelationshipResolverV1) {}
 
   supports(context: AssociationContext): boolean {
-    const analysis = context.programAnalysis;
     return Boolean(
-      analysis?.producersRun.has(VUE_SFC_PRODUCER) &&
-      analysis.vueFacts.some((fact) => fact.templateElements.length > 0)
+      context.programAnalysis?.producersRun.has(VUE_SFC_PRODUCER) &&
+      context.programAnalysis.vueFacts.length > 0
     );
   }
 
   async resolve(context: AssociationContext): Promise<StructuralRelationEdge[]> {
     const analysis = context.programAnalysis;
     if (!analysis?.producersRun.has(VUE_SFC_PRODUCER)) return [];
-
     const materialized = new Set(context.nodes.map((node) => node.id));
     const edges = await this.resolver.resolve(analysis.facts, analysis.project);
     return edges.filter(
       (edge) => materialized.has(edge.sourceNodeId) && materialized.has(edge.targetNodeId)
     );
+  }
+}
+
+export class VueComponentAssociationResolver extends VueAnalysisAssociationResolver {
+  readonly name = 'vue-component';
+  constructor(resolver: RelationshipResolverV1 = new VueComponentResolver()) {
+    super(resolver);
+  }
+
+  override supports(context: AssociationContext): boolean {
+    return Boolean(
+      super.supports(context) &&
+      context.programAnalysis?.vueFacts.some((fact) => fact.templateElements.length > 0)
+    );
+  }
+}
+
+export class VueComposableAssociationResolver extends VueAnalysisAssociationResolver {
+  readonly name = 'vue-composable';
+  constructor(resolver: RelationshipResolverV1 = new VueComposableResolver()) {
+    super(resolver);
+  }
+}
+
+export class VueStoreAssociationResolver extends VueAnalysisAssociationResolver {
+  readonly name = 'vue-store';
+  constructor(resolver: RelationshipResolverV1 = new VueStoreResolver()) {
+    super(resolver);
   }
 }

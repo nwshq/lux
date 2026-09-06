@@ -1,0 +1,42 @@
+{
+  "positive": [
+    "ts-exported-function",
+    "ts-exported-arrow",
+    "js-exported-function",
+    "js-exported-arrow",
+    "named-import",
+    "local-import-alias",
+    "numeric-composable",
+    "barrel-named-reexport",
+    "barrel-export-all",
+    "tsconfig-alias",
+    "jsconfig-alias",
+    "vite-alias",
+    "nested-relative",
+    "index-module",
+    "two-calls-one-edge",
+    "duplicate-name-different-module-a",
+    "duplicate-name-different-module-b",
+    "unicode-before-call",
+    "script-setup",
+    "composition-setup",
+    "aliased-export",
+    "workspace-style-path"
+  ],
+  "forbidden": [
+    "imported-unused",
+    "uncalled-reference",
+    "type-reference",
+    "property-name",
+    "lowercase-user",
+    "lowercase-after-use",
+    "underscore-after-use",
+    "class-named-use",
+    "local-shadow",
+    "dynamic-import",
+    "unresolved-alias",
+    "missing-export",
+    "namespace-import",
+    "ambiguous-export"
+  ]
+}
