@@ -16,7 +16,11 @@ import { PhpLspEnricher } from './lsp/php.js';
 import { TypeScriptLspEnricher } from './lsp/typescript.js';
 import { VueLspEnricher } from './lsp/vue.js';
 import { parseImports } from './imports/index.js';
-import { detectModuleBoundaries, resolveModule } from './imports/module-boundary.js';
+import {
+  detectModuleBoundaries,
+  resolveModule as resolveModuleBoundary,
+} from './imports/module-boundary.js';
+import { resolveModule as resolveProjectModule } from './project-resolution/local-resolver.js';
 import {
   rebuildStructuralOverlay,
   type OverlayRebuildResult,
@@ -911,6 +915,13 @@ function parseDependencies(
   const depMap = new Map<string, { count: number; sampleFiles: Set<string> }>();
 
   const sourceEntries = scan.knowledge.filter((k) => k.type === 'source-code');
+  const sourceFiles = new Set(
+    sourceEntries.map((entry) =>
+      entry.filePath.startsWith(rootPath + '/')
+        ? entry.filePath.slice(rootPath.length + 1)
+        : entry.filePath
+    )
+  );
   let parsedCount = 0;
 
   for (const entry of sourceEntries) {
@@ -919,10 +930,10 @@ function parseDependencies(
     const lang = (entry.frontmatter as Record<string, unknown>)?.language as string | undefined;
     if (!lang) continue;
 
-    const sourceModule = resolveModule(entry.filePath, rootPath, patterns);
+    const sourceModule = resolveModuleBoundary(entry.filePath, rootPath, patterns);
     if (!sourceModule) continue;
 
-    const imports = parseImports(entry.content, lang);
+    const imports = parseImports(entry.content, lang, { includeExternal: true });
     if (imports.length === 0) continue;
 
     parsedCount++;
@@ -936,7 +947,9 @@ function parseDependencies(
         entry.filePath,
         rootPath,
         patterns,
-        lang
+        lang,
+        sourceFiles,
+        imp.mode
       );
       if (!targetModule || targetModule === sourceModule) continue;
 
@@ -984,14 +997,24 @@ function resolveImportToModule(
   sourceFilePath: string,
   rootPath: string,
   patterns: string[],
-  language: string
+  language: string,
+  sourceFiles: ReadonlySet<string>,
+  mode: 'import' | 'require' | 'reexport' | 'dynamic-import' = 'import'
 ): string | null {
   if (language === 'php') {
     return resolvePhpNamespaceToModule(rawImport, rootPath, patterns);
   }
 
   if (language === 'typescript' || language === 'javascript') {
-    return resolveTsPathToModule(rawImport, sourceFilePath, rootPath, patterns);
+    const importerFile = sourceFilePath.startsWith(rootPath + '/')
+      ? sourceFilePath.slice(rootPath.length + 1)
+      : sourceFilePath;
+    const resolution = resolveProjectModule(
+      { importerFile, specifier: rawImport, mode },
+      { sourceFiles }
+    );
+    if (resolution.status !== 'resolved') return null;
+    return resolveModuleBoundary(join(rootPath, resolution.targetFile), rootPath, patterns);
   }
 
   return null;
@@ -1012,7 +1035,7 @@ function resolvePhpNamespaceToModule(
   // Strategy 1: Direct path mapping
   const asPath = segments.join('/');
   const fakePath = join(rootPath, asPath + '.php');
-  const direct = resolveModule(fakePath, rootPath, patterns);
+  const direct = resolveModuleBoundary(fakePath, rootPath, patterns);
   if (direct) return direct;
 
   // Strategy 2: For each pattern, try to match namespace segments
@@ -1043,7 +1066,7 @@ function resolvePhpNamespaceToModule(
         const moduleName = segments[anchorIndex + 1];
         if (existsSync(join(rootPath, patternPrefix, moduleName))) {
           const constructedPath = join(rootPath, patternPrefix, moduleName, 'dummy.php');
-          const resolved = resolveModule(constructedPath, rootPath, patterns);
+          const resolved = resolveModuleBoundary(constructedPath, rootPath, patterns);
           if (resolved) return resolved;
         }
       }
@@ -1057,35 +1080,13 @@ function resolvePhpNamespaceToModule(
       if (existsSync(join(rootPath, patternPrefix, moduleName))) {
         // Verify this forms a valid path under the pattern
         const constructedPath = join(rootPath, patternPrefix, moduleName, 'dummy.php');
-        const resolved = resolveModule(constructedPath, rootPath, patterns);
+        const resolved = resolveModuleBoundary(constructedPath, rootPath, patterns);
         if (resolved) return resolved;
       }
     }
   }
 
   return null;
-}
-
-/**
- * Resolve a relative TS/JS import path to a module by combining it with
- * the source file's directory and applying module boundary resolution.
- */
-function resolveTsPathToModule(
-  importPath: string,
-  sourceFilePath: string,
-  rootPath: string,
-  patterns: string[]
-): string | null {
-  if (!importPath.startsWith('.')) {
-    // Absolute or bare — try direct module resolution
-    const fakePath = join(rootPath, importPath);
-    return resolveModule(fakePath, rootPath, patterns);
-  }
-
-  // Resolve relative to source file
-  const sourceDir = sourceFilePath.substring(0, sourceFilePath.lastIndexOf('/'));
-  const resolved = join(sourceDir, importPath);
-  return resolveModule(resolved, rootPath, patterns);
 }
 
 /**

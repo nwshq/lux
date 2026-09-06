@@ -2,6 +2,8 @@
 export interface ImportStatement {
   /** The raw import path/namespace. */
   rawImport: string;
+  /** Resolution mode used by the canonical project resolver. */
+  mode?: 'import' | 'require' | 'reexport' | 'dynamic-import';
   /** The resolved module name (via boundary detection), or null. */
   resolvedModule: string | null;
   /** The imported symbol name(s). */

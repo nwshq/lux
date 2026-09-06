@@ -11,6 +11,7 @@ import {
   buildSharedExtractionAnalysis,
   type SharedExtractionBuildV1,
 } from '../ast/extraction-cache.js';
+import { buildModuleExportIndexes } from '../project-resolution/export-index.js';
 
 export interface ProgramAnalysisV1 {
   facts: readonly SourceFactsV1[];
@@ -42,6 +43,9 @@ export async function analyzeProgram(
       .filter((entry) => entry.type === 'source-code')
       .map((entry) => toRelative(entry.filePath, rootPath))
   );
+  const exportsByFile = buildModuleExportIndexes(
+    [...shared.extractions].map(([filePath, extraction]) => ({ filePath, extraction }))
+  );
 
   return {
     facts: shared.facts,
@@ -51,7 +55,7 @@ export async function analyzeProgram(
       sourceFiles,
       aliases: [],
       workspacePackages: [],
-      exportsByFile: new Map(),
+      exportsByFile,
       fingerprintInputs: [],
     },
     dependencies: [...new Set(shared.dependencies)].sort(),

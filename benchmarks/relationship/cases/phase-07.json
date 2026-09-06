@@ -1,0 +1,2029 @@
+[
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-01",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./exact.js",
+        "exportedName": "default",
+        "syntax": "static-import"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-01",
+        "type": "calls",
+        "target": "symbol:typescript:src/exact.js#Exact",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/exact.js",
+      "via": "relative"
+    },
+    "fixture": {
+      "rootPath": ".",
+      "layout": [
+        "src/caller.ts",
+        "src/exact.js",
+        "src/extension.ts",
+        "src/extension.js",
+        "src/jsx.jsx",
+        "src/folder/index.ts",
+        "src/default.ts",
+        "src/named.ts",
+        "src/cjs-default.cjs",
+        "src/cjs-named.cjs",
+        "src/barrel/index.ts",
+        "src/barrel/a.ts",
+        "src/barrel/b.ts",
+        "src/cycle/a.ts",
+        "src/cycle/b.ts",
+        "outside.ts"
+      ]
+    },
+    "watchedMutations": [
+      {
+        "id": "reverse-ts-js-candidate-order",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p07-forbidden-ambiguity-relative"
+      },
+      {
+        "id": "bypass-export-index-ast",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p07-positive-01"
+      },
+      {
+        "id": "bypass-shared-dependency-resolver",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p07-positive-05"
+      },
+      {
+        "id": "remove-barrel-visited-set",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p07-forbidden-cycle-a"
+      },
+      {
+        "id": "allow-root-traversal",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p07-forbidden-traversal-outside"
+      },
+      {
+        "id": "insert-forbidden-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p07-forbidden-external-package"
+      },
+      {
+        "id": "remove-required-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p07-positive-01"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-02",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "/src/exact.js",
+        "exportedName": "default",
+        "syntax": "static-import"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-02",
+        "type": "calls",
+        "target": "symbol:typescript:src/exact.js#Exact",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/exact.js",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-03",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./extension.ts",
+        "exportedName": "ExtTs",
+        "syntax": "named-import"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-03",
+        "type": "calls",
+        "target": "symbol:typescript:src/extension.ts#ExtTs",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/extension.ts",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-04",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./extension.js",
+        "exportedName": "ExtJs",
+        "syntax": "named-import"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-04",
+        "type": "calls",
+        "target": "symbol:typescript:src/extension.js#ExtJs",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/extension.js",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-05",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./jsx",
+        "exportedName": "default",
+        "syntax": "default-import"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-05",
+        "type": "references",
+        "target": "symbol:typescript:src/jsx.jsx#JsxView",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/jsx.jsx",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-06",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./jsx.jsx",
+        "exportedName": "default",
+        "syntax": "default-import"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-06",
+        "type": "calls",
+        "target": "symbol:typescript:src/jsx.jsx#JsxView",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/jsx.jsx",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-07",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./folder",
+        "exportedName": "Folder",
+        "syntax": "named-import"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-07",
+        "type": "calls",
+        "target": "symbol:typescript:src/folder/index.ts#Folder",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/folder/index.ts",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-08",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./folder/index",
+        "exportedName": "Folder",
+        "syntax": "named-import"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-08",
+        "type": "calls",
+        "target": "symbol:typescript:src/folder/index.ts#Folder",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/folder/index.ts",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-09",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "/src/folder",
+        "exportedName": "Folder",
+        "syntax": "named-import"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-09",
+        "type": "calls",
+        "target": "symbol:typescript:src/folder/index.ts#Folder",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/folder/index.ts",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-10",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./default",
+        "exportedName": "default",
+        "syntax": "default-import"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-10",
+        "type": "references",
+        "target": "symbol:typescript:src/default.ts#DefaultThing",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/default.ts",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-11",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./default.ts",
+        "exportedName": "default",
+        "syntax": "default-import"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-11",
+        "type": "calls",
+        "target": "symbol:typescript:src/default.ts#DefaultThing",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/default.ts",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-12",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "/src/default",
+        "exportedName": "default",
+        "syntax": "default-import"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-12",
+        "type": "calls",
+        "target": "symbol:typescript:src/default.ts#DefaultThing",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/default.ts",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-13",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./named",
+        "exportedName": "Named",
+        "syntax": "named-import"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-13",
+        "type": "calls",
+        "target": "symbol:typescript:src/named.ts#Named",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/named.ts",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-14",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./named",
+        "exportedName": "Aliased",
+        "syntax": "aliased-named-import"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-14",
+        "type": "calls",
+        "target": "symbol:typescript:src/named.ts#localBar",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/named.ts",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-15",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./named",
+        "exportedName": "Extra",
+        "syntax": "named-import"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-15",
+        "type": "references",
+        "target": "symbol:typescript:src/named.ts#Extra",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/named.ts",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-16",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./barrel",
+        "exportedName": "BarrelDefault",
+        "syntax": "barrel-default-reexport"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-16",
+        "type": "calls",
+        "target": "symbol:typescript:src/default.ts#DefaultThing",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/barrel/index.ts",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-17",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./barrel",
+        "exportedName": "Renamed",
+        "syntax": "barrel-named-reexport"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-17",
+        "type": "calls",
+        "target": "symbol:typescript:src/named.ts#Named",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/barrel/index.ts",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-18",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./barrel",
+        "exportedName": "Alpha",
+        "syntax": "barrel-export-all"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-18",
+        "type": "calls",
+        "target": "symbol:typescript:src/barrel/a.ts#Alpha",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/barrel/index.ts",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-19",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./barrel",
+        "exportedName": "Beta",
+        "syntax": "barrel-export-all"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-19",
+        "type": "calls",
+        "target": "symbol:typescript:src/barrel/b.ts#Beta",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/barrel/index.ts",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-20",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./barrel",
+        "exportedName": "AOnly",
+        "syntax": "barrel-export-all"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-20",
+        "type": "references",
+        "target": "symbol:typescript:src/barrel/a.ts#AOnly",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/barrel/index.ts",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-21",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./barrel",
+        "exportedName": "BOnly",
+        "syntax": "barrel-export-all"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-21",
+        "type": "calls",
+        "target": "symbol:typescript:src/barrel/b.ts#BOnly",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/barrel/index.ts",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-22",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./barrel/index.ts",
+        "exportedName": "Alpha",
+        "syntax": "barrel-explicit-index"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-22",
+        "type": "calls",
+        "target": "symbol:typescript:src/barrel/a.ts#Alpha",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/barrel/index.ts",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-23",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "/src/barrel",
+        "exportedName": "Beta",
+        "syntax": "root-relative-barrel"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-23",
+        "type": "calls",
+        "target": "symbol:typescript:src/barrel/b.ts#Beta",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/barrel/index.ts",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-24",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./cjs-default.cjs",
+        "exportedName": "default",
+        "syntax": "commonjs-require-default"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-24",
+        "type": "calls",
+        "target": "symbol:typescript:src/cjs-default.cjs#LegacyDefault",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/cjs-default.cjs",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-25",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "/src/cjs-default.cjs",
+        "exportedName": "default",
+        "syntax": "commonjs-root-default"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-25",
+        "type": "references",
+        "target": "symbol:typescript:src/cjs-default.cjs#LegacyDefault",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/cjs-default.cjs",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-26",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./cjs-named.cjs",
+        "exportedName": "Foo",
+        "syntax": "commonjs-object-shorthand"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-26",
+        "type": "calls",
+        "target": "symbol:typescript:src/cjs-named.cjs#Foo",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/cjs-named.cjs",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-27",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./cjs-named.cjs",
+        "exportedName": "bar",
+        "syntax": "commonjs-object-alias"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-27",
+        "type": "calls",
+        "target": "symbol:typescript:src/cjs-named.cjs#localBar",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/cjs-named.cjs",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-28",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./cjs-named.cjs",
+        "exportedName": "Direct",
+        "syntax": "commonjs-module-member"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-28",
+        "type": "calls",
+        "target": "symbol:typescript:src/cjs-named.cjs#Direct",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/cjs-named.cjs",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-29",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./cjs-named.cjs",
+        "exportedName": "Shortcut",
+        "syntax": "commonjs-exports-member"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-29",
+        "type": "calls",
+        "target": "symbol:typescript:src/cjs-named.cjs#Shortcut",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/cjs-named.cjs",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-30",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "/src/cjs-named.cjs",
+        "exportedName": "Foo",
+        "syntax": "commonjs-root-named"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-30",
+        "type": "references",
+        "target": "symbol:typescript:src/cjs-named.cjs#Foo",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/cjs-named.cjs",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-31",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./exact",
+        "exportedName": "default",
+        "syntax": "extension-candidate-js"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-31",
+        "type": "calls",
+        "target": "symbol:typescript:src/exact.js#Exact",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/exact.js",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-positive-32",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./folder/index.ts",
+        "exportedName": "Folder",
+        "syntax": "exact-index-file"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-positive-32",
+        "type": "calls",
+        "target": "symbol:typescript:src/folder/index.ts#Folder",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/folder/index.ts",
+      "via": "relative"
+    }
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-forbidden-ambiguity-relative",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./extension",
+        "exportedName": "Named",
+        "syntax": "static-import"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-forbidden-ambiguity-relative",
+        "type": "calls",
+        "target": "symbol:typescript:forbidden#p07-forbidden-ambiguity-relative"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "module.ambiguous",
+    "expectedResolution": {
+      "status": "ambiguous",
+      "candidates": ["src/extension.ts", "src/extension.js"],
+      "governingConfigs": []
+    },
+    "expectedDiagnostic": "module.ambiguous"
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-forbidden-ambiguity-root",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "/src/extension",
+        "exportedName": "Named",
+        "syntax": "root-import"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-forbidden-ambiguity-root",
+        "type": "calls",
+        "target": "symbol:typescript:forbidden#p07-forbidden-ambiguity-root"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "module.ambiguous",
+    "expectedResolution": {
+      "status": "ambiguous",
+      "candidates": ["src/extension.ts", "src/extension.js"],
+      "governingConfigs": []
+    },
+    "expectedDiagnostic": "module.ambiguous"
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-forbidden-ambiguity-emitted",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./extension.mjs",
+        "exportedName": "Named",
+        "syntax": "emitted-extension"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-forbidden-ambiguity-emitted",
+        "type": "calls",
+        "target": "symbol:typescript:forbidden#p07-forbidden-ambiguity-emitted"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "module.ambiguous",
+    "expectedResolution": {
+      "status": "ambiguous",
+      "candidates": ["src/extension.ts", "src/extension.js"],
+      "governingConfigs": []
+    },
+    "expectedDiagnostic": "module.ambiguous"
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-forbidden-external-package",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "lodash",
+        "exportedName": "default",
+        "syntax": "static-import"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-forbidden-external-package",
+        "type": "calls",
+        "target": "symbol:typescript:forbidden#p07-forbidden-external-package"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "module.external",
+    "expectedResolution": {
+      "status": "external",
+      "specifier": "lodash"
+    },
+    "expectedDiagnostic": "module.external"
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-forbidden-external-scoped",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "@scope/pkg",
+        "exportedName": "Thing",
+        "syntax": "require"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-forbidden-external-scoped",
+        "type": "calls",
+        "target": "symbol:typescript:forbidden#p07-forbidden-external-scoped"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "module.external",
+    "expectedResolution": {
+      "status": "external",
+      "specifier": "@scope/pkg"
+    },
+    "expectedDiagnostic": "module.external"
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-forbidden-missing-relative",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./does-not-exist",
+        "exportedName": "Missing",
+        "syntax": "static-import"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-forbidden-missing-relative",
+        "type": "calls",
+        "target": "symbol:typescript:forbidden#p07-forbidden-missing-relative"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "module.missing",
+    "expectedResolution": {
+      "status": "missing",
+      "specifier": "./does-not-exist"
+    },
+    "expectedDiagnostic": "module.missing"
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-forbidden-missing-root",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "/src/absent",
+        "exportedName": "Missing",
+        "syntax": "static-import"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-forbidden-missing-root",
+        "type": "calls",
+        "target": "symbol:typescript:forbidden#p07-forbidden-missing-root"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "module.missing",
+    "expectedResolution": {
+      "status": "missing",
+      "specifier": "/src/absent"
+    },
+    "expectedDiagnostic": "module.missing"
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-forbidden-traversal-outside",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "../../outside",
+        "exportedName": "Outside",
+        "syntax": "static-import"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-forbidden-traversal-outside",
+        "type": "calls",
+        "target": "symbol:typescript:forbidden#p07-forbidden-traversal-outside"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "path-traversal",
+    "expectedResolution": {
+      "status": "missing",
+      "specifier": "../../outside"
+    },
+    "expectedDiagnostic": "path-traversal"
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-forbidden-traversal-deep",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "../../../outside",
+        "exportedName": "Outside",
+        "syntax": "require"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-forbidden-traversal-deep",
+        "type": "calls",
+        "target": "symbol:typescript:forbidden#p07-forbidden-traversal-deep"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "path-traversal",
+    "expectedResolution": {
+      "status": "missing",
+      "specifier": "../../../outside"
+    },
+    "expectedDiagnostic": "path-traversal"
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-forbidden-traversal-root",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "/../outside",
+        "exportedName": "Outside",
+        "syntax": "static-import"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-forbidden-traversal-root",
+        "type": "calls",
+        "target": "symbol:typescript:forbidden#p07-forbidden-traversal-root"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "path-traversal",
+    "expectedResolution": {
+      "status": "missing",
+      "specifier": "/../outside"
+    },
+    "expectedDiagnostic": "path-traversal"
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-forbidden-cycle-a",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./cycle/a",
+        "exportedName": "Loop",
+        "syntax": "named-import"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-forbidden-cycle-a",
+        "type": "calls",
+        "target": "symbol:typescript:forbidden#p07-forbidden-cycle-a"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "barrel-cycle",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/cycle/a.ts",
+      "via": "relative"
+    },
+    "expectedDiagnostic": "barrel-cycle"
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-forbidden-cycle-b",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./cycle/b",
+        "exportedName": "Loop",
+        "syntax": "named-import"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-forbidden-cycle-b",
+        "type": "calls",
+        "target": "symbol:typescript:forbidden#p07-forbidden-cycle-b"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "barrel-cycle",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/cycle/b.ts",
+      "via": "relative"
+    },
+    "expectedDiagnostic": "barrel-cycle"
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-forbidden-computed-dynamic",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "<computed>",
+        "exportedName": "default",
+        "syntax": "computed-dynamic-import"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-forbidden-computed-dynamic",
+        "type": "calls",
+        "target": "symbol:typescript:forbidden#p07-forbidden-computed-dynamic"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "dynamic-computed",
+    "expectedResolution": null,
+    "expectedDiagnostic": "dynamic-computed"
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-forbidden-computed-template",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "<template>",
+        "exportedName": "default",
+        "syntax": "computed-template-import"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-forbidden-computed-template",
+        "type": "calls",
+        "target": "symbol:typescript:forbidden#p07-forbidden-computed-template"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "dynamic-computed",
+    "expectedResolution": null,
+    "expectedDiagnostic": "dynamic-computed"
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-forbidden-conflicting-export",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "./named",
+        "exportedName": "Conflict",
+        "syntax": "named-import"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-forbidden-conflicting-export",
+        "type": "calls",
+        "target": "symbol:typescript:forbidden#p07-forbidden-conflicting-export"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "export-conflict",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/named.ts",
+      "via": "relative"
+    },
+    "expectedDiagnostic": "export-conflict"
+  },
+  {
+    "corpus": "phase-07-local-synthetic",
+    "capability": "canonical-local-module-resolution",
+    "owner": "Example Maintainer",
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "89876761aa3d02fd6594735aa0e35a9fd93bb1de"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p07-forbidden-conflicting-root",
+    "query": {
+      "tool": "phase7ResolutionContract",
+      "args": {
+        "importerFile": "src/caller.ts",
+        "specifier": "/src/named",
+        "exportedName": "Conflict",
+        "syntax": "named-import"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:typescript:src/caller.ts#p07-forbidden-conflicting-root",
+        "type": "calls",
+        "target": "symbol:typescript:forbidden#p07-forbidden-conflicting-root"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "export-conflict",
+    "expectedResolution": {
+      "status": "resolved",
+      "targetFile": "src/named.ts",
+      "via": "relative"
+    },
+    "expectedDiagnostic": "export-conflict"
+  }
+]

@@ -11,11 +11,17 @@ import type { ImportStatement } from './types.js';
  * - `require('path')`
  * - Dynamic `import('path')`
  *
+ * Bare specifiers are retained so the canonical project resolver can classify
+ * them. Phase 7 classifies them as external; later project resolvers may map
+ * aliases and workspace packages before that final classification.
+ *
  * Ignores:
- * - Bare specifiers resolving to node_modules (no `.` or `/` prefix)
  * - Comments
  */
-export function parseTsImports(content: string): ImportStatement[] {
+export function parseTsImports(
+  content: string,
+  options: { includeExternal?: boolean } = {}
+): ImportStatement[] {
   const results: ImportStatement[] = [];
 
   // Strip comments before parsing
@@ -28,11 +34,11 @@ export function parseTsImports(content: string): ImportStatement[] {
 
   while ((match = esmFromRegex.exec(stripped)) !== null) {
     const importPath = match[1];
-    if (isExternalPackage(importPath)) continue;
-
+    if (!options.includeExternal && isExternalPackage(importPath)) continue;
     const symbols = extractImportSymbols(match[0]);
     results.push({
       rawImport: importPath,
+      mode: 'import',
       resolvedModule: null,
       symbols,
     });
@@ -42,10 +48,10 @@ export function parseTsImports(content: string): ImportStatement[] {
   const reExportRegex = /\bexport\s+(?:\{[^}]*\}|\*(?:\s+as\s+\w+)?)\s+from\s+['"]([^'"]+)['"]/g;
   while ((match = reExportRegex.exec(stripped)) !== null) {
     const importPath = match[1];
-    if (isExternalPackage(importPath)) continue;
-
+    if (!options.includeExternal && isExternalPackage(importPath)) continue;
     results.push({
       rawImport: importPath,
+      mode: 'reexport',
       resolvedModule: null,
       symbols: ['*'],
     });
@@ -55,10 +61,10 @@ export function parseTsImports(content: string): ImportStatement[] {
   const requireRegex = /\brequire\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
   while ((match = requireRegex.exec(stripped)) !== null) {
     const importPath = match[1];
-    if (isExternalPackage(importPath)) continue;
-
+    if (!options.includeExternal && isExternalPackage(importPath)) continue;
     results.push({
       rawImport: importPath,
+      mode: 'require',
       resolvedModule: null,
       symbols: [],
     });
@@ -68,13 +74,14 @@ export function parseTsImports(content: string): ImportStatement[] {
   const dynamicImportRegex = /\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
   while ((match = dynamicImportRegex.exec(stripped)) !== null) {
     const importPath = match[1];
-    if (isExternalPackage(importPath)) continue;
+    if (!options.includeExternal && isExternalPackage(importPath)) continue;
 
     // Skip if this path was already captured by ESM regex
     if (results.some((r) => r.rawImport === importPath)) continue;
 
     results.push({
       rawImport: importPath,
+      mode: 'dynamic-import',
       resolvedModule: null,
       symbols: [],
     });
@@ -83,10 +90,7 @@ export function parseTsImports(content: string): ImportStatement[] {
   return results;
 }
 
-/**
- * Determine if an import path refers to an external package (node_modules).
- * External packages don't start with `.`, `/`, or `#`.
- */
+/** Bare package specifiers remain opt-in until Phase 8 can resolve aliases/workspaces. */
 function isExternalPackage(importPath: string): boolean {
   return !importPath.startsWith('.') && !importPath.startsWith('/') && !importPath.startsWith('#');
 }

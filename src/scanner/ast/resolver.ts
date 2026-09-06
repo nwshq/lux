@@ -20,6 +20,9 @@ import type {
   AssociationResolver,
   StructuralRelationEdge,
 } from '../associations/types.js';
+import type { ProjectResolutionContextV1, SourceDiagnosticV1 } from '../contracts/program.js';
+import { buildModuleExportIndexes } from '../project-resolution/export-index.js';
+import { resolveLocalBinding } from '../project-resolution/local-resolver.js';
 import { phpSymbolNodeId, tsSymbolNodeId } from '../associations/types.js';
 import {
   langForFile,
@@ -49,7 +52,12 @@ export class AstStructuralResolver implements AssociationResolver {
    * universe when it is absent from the in-memory (R-only) symbol set. Undefined ⇒ full-rebuild
    * behavior — the in-memory universe IS the whole scan, so no DB fallback is needed.
    */
-  constructor(private readonly options: { verifyExternalTarget?: (id: string) => boolean } = {}) {}
+  constructor(
+    private readonly options: {
+      verifyExternalTarget?: (id: string) => boolean;
+      onDiagnostic?: (diagnostic: SourceDiagnosticV1) => void;
+    } = {}
+  ) {}
 
   supports(context: AssociationContext): boolean {
     return context.entries.some(
@@ -97,12 +105,31 @@ export class AstStructuralResolver implements AssociationResolver {
       }
     }
 
+    const project: ProjectResolutionContextV1 = context.programAnalysis?.project ?? {
+      rootPath: context.rootPath,
+      sourceFiles: relPaths,
+      aliases: [],
+      workspacePackages: [],
+      exportsByFile: buildModuleExportIndexes(
+        files.map((file) => ({ filePath: file.relPath, extraction: file.extraction }))
+      ),
+      fingerprintInputs: [],
+    };
+
     // Pass 2: emit edges (targets are verified against the symbol universe).
     const edges: StructuralRelationEdge[] = [];
     for (const f of files) {
       edges.push(...sameFileEdges(f, this.name, now));
       edges.push(
-        ...crossFileEdges(f, relPaths, symbolIds, this.name, now, this.options.verifyExternalTarget)
+        ...crossFileEdges(
+          f,
+          project,
+          symbolIds,
+          this.name,
+          now,
+          this.options.verifyExternalTarget,
+          this.options.onDiagnostic
+        )
       );
     }
     return edges;
@@ -210,11 +237,12 @@ function sameFileEdges(f: FileExtraction, resolver: string, now: number): Struct
 
 function crossFileEdges(
   f: FileExtraction,
-  relPaths: Set<string>,
+  project: ProjectResolutionContextV1,
   symbolIds: Set<string>,
   resolver: string,
   now: number,
-  verifyExternalTarget?: (id: string) => boolean
+  verifyExternalTarget?: (id: string) => boolean,
+  onDiagnostic?: (diagnostic: SourceDiagnosticV1) => void
 ): StructuralRelationEdge[] {
   const imports = f.extraction.imports ?? [];
   if (imports.length === 0) return [];
@@ -238,7 +266,7 @@ function crossFileEdges(
     const binding = importMap.get(localName);
     if (!binding) continue;
 
-    const targetId = resolveImportTarget(binding, f.relPath, f.lang, relPaths);
+    const targetId = resolveImportTarget(binding, f.relPath, f.lang, project, onDiagnostic);
     if (!targetId) continue;
     // In-memory universe first (co-changed targets in R), then the persisted universe for
     // targets OUTSIDE R (Decision 13). Full rebuild passes no verifier ⇒ in-memory only.
@@ -271,52 +299,94 @@ function crossFileEdges(
   return edges;
 }
 
-/** Resolve an imported binding to a target symbol node id (or undefined). */
+/** Resolve an imported binding to its exported declaration (or refuse with a diagnostic). */
 function resolveImportTarget(
   binding: ImportBinding,
   fromRel: string,
   lang: AstLang,
-  relPaths: Set<string>
+  project: ProjectResolutionContextV1,
+  onDiagnostic?: (diagnostic: SourceDiagnosticV1) => void
 ): string | undefined {
   if (lang === 'php') {
     // PHP `use` gives the FQN directly (e.g. `new Money()` -> the class node).
     return phpSymbolNodeId(binding.imported);
   }
-  // TS/TSX: resolve the relative module to a scanned file, then the named export.
-  if (binding.imported === 'default' || !binding.module) return undefined;
-  const targetFile = resolveTsModule(binding.module, fromRel, relPaths);
-  if (!targetFile) return undefined;
-  return tsSymbolNodeId(targetFile, binding.imported);
-}
+  if (!binding.module || binding.imported === '*') return undefined;
 
-/** Resolve a relative TS/JS module specifier to a scanned file's relative path. */
-function resolveTsModule(
-  module: string,
-  fromRel: string,
-  relPaths: Set<string>
-): string | undefined {
-  if (!module.startsWith('.')) return undefined; // relative imports only
-  const baseDir = fromRel.includes('/') ? fromRel.slice(0, fromRel.lastIndexOf('/')) : '';
-  const joined = normalizeRel(baseDir, module);
-  const stripped = joined.replace(/\.(js|jsx|mjs|cjs)$/, '');
-  const candidates = [
-    `${stripped}.ts`,
-    `${stripped}.tsx`,
-    `${stripped}/index.ts`,
-    `${stripped}/index.tsx`,
-  ];
-  if (joined.endsWith('.ts') || joined.endsWith('.tsx')) candidates.unshift(joined);
-  return candidates.find((c) => relPaths.has(c));
-}
-
-function normalizeRel(baseDir: string, spec: string): string {
-  const parts = baseDir ? baseDir.split('/') : [];
-  for (const seg of spec.split('/')) {
-    if (seg === '' || seg === '.') continue;
-    if (seg === '..') parts.pop();
-    else parts.push(seg);
+  const resolution = resolveLocalBinding(
+    {
+      importerFile: fromRel,
+      specifier: binding.module,
+      importedName: binding.imported,
+      mode: binding.syntax === 'commonjs' ? 'require' : 'import',
+    },
+    project
+  );
+  if (resolution.module.status !== 'resolved') {
+    reportResolutionDiagnostic(resolution.module.status, binding, fromRel, onDiagnostic);
+    return undefined;
   }
-  return parts.join('/');
+  if (!resolution.exported || resolution.exported.status !== 'resolved') {
+    reportExportDiagnostic(
+      resolution.exported?.status ?? 'missing',
+      binding,
+      fromRel,
+      onDiagnostic
+    );
+    return undefined;
+  }
+
+  const target = resolution.exported.target;
+  return tsSymbolNodeId(target.filePath, target.declarationId ?? target.localName);
+}
+
+function reportResolutionDiagnostic(
+  status: 'external' | 'missing' | 'ambiguous',
+  binding: ImportBinding,
+  filePath: string,
+  onDiagnostic?: (diagnostic: SourceDiagnosticV1) => void
+): void {
+  const code = status === 'ambiguous' ? 'module.ambiguous' : `module.${status}`;
+  onDiagnostic?.({
+    code,
+    message: `Cannot resolve ${binding.module ?? ''}: ${status}`,
+    ...(binding.range
+      ? {
+          location: {
+            filePath,
+            line: binding.range.startLine,
+            column: binding.range.startColumn,
+          },
+        }
+      : {}),
+  });
+}
+
+function reportExportDiagnostic(
+  status: 'missing' | 'cycle' | 'ambiguous',
+  binding: ImportBinding,
+  filePath: string,
+  onDiagnostic?: (diagnostic: SourceDiagnosticV1) => void
+): void {
+  const code =
+    status === 'cycle'
+      ? 'barrel-cycle'
+      : status === 'ambiguous'
+        ? 'export-conflict'
+        : 'export-missing';
+  onDiagnostic?.({
+    code,
+    message: `Cannot resolve export ${binding.imported} from ${binding.module ?? ''}: ${status}`,
+    ...(binding.range
+      ? {
+          location: {
+            filePath,
+            line: binding.range.startLine,
+            column: binding.range.startColumn,
+          },
+        }
+      : {}),
+  });
 }
 
 /** Innermost definition whose byte span contains `byte`, or undefined. */
