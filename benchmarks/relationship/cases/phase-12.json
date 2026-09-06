@@ -1,0 +1,2017 @@
+[
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-01-facade-root",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/UsersController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass UsersController { public function index() { return Inertia::render('Users/Index'); } }\n",
+        "files": {
+          "resources/js/Pages/Users/Index.vue": "<template><main /></template>"
+        },
+        "pageRoots": ["resources/js/Pages"],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\UsersController::index",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\UsersController::index",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2FPages%2FUsers%2FIndex.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "fixture": {
+      "rootPath": ".",
+      "subtrees": [
+        "facade",
+        "helper",
+        "plain-roots",
+        "namespaces",
+        "acme",
+        "globs",
+        "module-map",
+        "dynamic",
+        "missing",
+        "ambiguous",
+        "traversal"
+      ]
+    },
+    "performanceProtocol": {
+      "warmups": 3,
+      "measurements": 5,
+      "maxRegressionRatio": 1.2,
+      "baselineWallMs": 1000,
+      "baselineRssBytes": 268435456
+    },
+    "watchedMutations": [
+      {
+        "id": "repository-wide-suffix-search",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p12-forbidden-07-repository-suffix"
+      },
+      {
+        "id": "execute-page-resolver-code",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p12-forbidden-08-dynamic-glob"
+      },
+      {
+        "id": "emit-from-file",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p12-positive-01-facade-root"
+      },
+      {
+        "id": "destroy-page-response",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p12-positive-01-facade-root"
+      },
+      {
+        "id": "permit-dynamic-page",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p12-forbidden-01-dynamic-variable"
+      },
+      {
+        "id": "omit-registry-files-from-fingerprint",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p12-positive-13-static-relative-glob"
+      },
+      {
+        "id": "remove-required-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p12-positive-01-facade-root"
+      },
+      {
+        "id": "inject-forbidden-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p12-forbidden-07-repository-suffix"
+      }
+    ]
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-02-helper-root",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/ReportController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass ReportController { public function show() { return inertia(\"Reports/Show\"); } }\n",
+        "files": {
+          "resources/js/Pages/Reports/Show.vue": "<template><main /></template>"
+        },
+        "pageRoots": ["resources/js/Pages"],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\ReportController::show",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\ReportController::show",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2FPages%2FReports%2FShow.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-03-qualified-facade",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/WelcomeController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass WelcomeController { public function index() { return \\Inertia\\Inertia::render('Welcome'); } }\n",
+        "files": {
+          "resources/js/Pages/Welcome.vue": "<template><main /></template>"
+        },
+        "pageRoots": ["resources/js/Pages"],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\WelcomeController::index",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\WelcomeController::index",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2FPages%2FWelcome.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-04-nested-root",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/AdminController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass AdminController { public function dashboard() { return Inertia::render('Admin/Dashboard'); } }\n",
+        "files": {
+          "resources/js/Pages/Admin/Dashboard.vue": "<template><main /></template>"
+        },
+        "pageRoots": ["resources/js/Pages"],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\AdminController::dashboard",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\AdminController::dashboard",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2FPages%2FAdmin%2FDashboard.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-05-vue-suffix",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/ProfileController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass ProfileController { public function edit() { return inertia('Profile/Edit.vue'); } }\n",
+        "files": {
+          "resources/js/Pages/Profile/Edit.vue": "<template><main /></template>"
+        },
+        "pageRoots": ["resources/js/Pages"],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\ProfileController::edit",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\ProfileController::edit",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2FPages%2FProfile%2FEdit.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-06-helper-props",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/OrderController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass OrderController { public function show() { return inertia('Orders/Show', ['order' => 1]); } }\n",
+        "files": {
+          "resources/js/Pages/Orders/Show.vue": "<template><main /></template>"
+        },
+        "pageRoots": ["resources/js/Pages"],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\OrderController::show",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\OrderController::show",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2FPages%2FOrders%2FShow.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-07-second-root",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/AuditController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass AuditController { public function index() { return Inertia::render('Audit/Index'); } }\n",
+        "files": {
+          "frontend/pages/Audit/Index.vue": "<template><main /></template>"
+        },
+        "pageRoots": ["resources/js/Pages", "frontend/pages"],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\AuditController::index",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\AuditController::index",
+        "type": "hydrates_component",
+        "target": "component:vue:frontend%2Fpages%2FAudit%2FIndex.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-08-deep-page",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/SettingsController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass SettingsController { public function security() { return inertia('Settings/Account/Security'); } }\n",
+        "files": {
+          "resources/js/Pages/Settings/Account/Security.vue": "<template><main /></template>"
+        },
+        "pageRoots": ["resources/js/Pages"],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\SettingsController::security",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\SettingsController::security",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2FPages%2FSettings%2FAccount%2FSecurity.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-09-config-namespace",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/ContactController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass ContactController { public function index() { return Inertia::render('@contact::Web/ContactIndex'); } }\n",
+        "files": {
+          "resources/js/modules/contact/Web/ContactIndex.vue": "<template><main /></template>"
+        },
+        "pageRoots": [],
+        "namespaces": {
+          "@contact": ["resources/js/modules/contact"]
+        },
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\ContactController::index",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\ContactController::index",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2Fmodules%2Fcontact%2FWeb%2FContactIndex.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-10-namespace-case",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/ContactController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass ContactController { public function show() { return inertia('@CONTACT::Web/ContactShow'); } }\n",
+        "files": {
+          "resources/js/modules/contact/Web/ContactShow.vue": "<template><main /></template>"
+        },
+        "pageRoots": [],
+        "namespaces": {
+          "contact": ["resources/js/modules/contact"]
+        },
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\ContactController::show",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\ContactController::show",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2Fmodules%2Fcontact%2FWeb%2FContactShow.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-11-namespace-vue",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/BillingController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass BillingController { public function index() { return Inertia::render('@billing::Invoices/Index.vue'); } }\n",
+        "files": {
+          "resources/js/modules/billing/Invoices/Index.vue": "<template><main /></template>"
+        },
+        "pageRoots": [],
+        "namespaces": {
+          "@billing": ["resources/js/modules/billing"]
+        },
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\BillingController::index",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\BillingController::index",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2Fmodules%2Fbilling%2FInvoices%2FIndex.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-12-legacy-auctic-config",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/CoreController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass CoreController { public function dashboard() { return inertia('@AucticCore::Shared/Dashboard'); } }\n",
+        "files": {
+          "resources/js/core/Shared/Dashboard.vue": "<template><main /></template>"
+        },
+        "pageRoots": [],
+        "namespaces": {
+          "@aucticcore": ["resources/js/core"]
+        },
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\CoreController::dashboard",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\CoreController::dashboard",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2Fcore%2FShared%2FDashboard.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-13-static-relative-glob",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/TeamController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass TeamController { public function index() { return Inertia::render('Teams/Index'); } }\n",
+        "files": {
+          "resources/js/Pages/Teams/Index.vue": "<template><main /></template>"
+        },
+        "pageRoots": [],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [
+          {
+            "filePath": "resources/js/pages.ts",
+            "source": "const pages = import.meta.glob('./Pages/**/*.vue');"
+          }
+        ],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\TeamController::index",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\TeamController::index",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2FPages%2FTeams%2FIndex.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-14-static-single-glob",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/LegalController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass LegalController { public function terms() { return inertia('Legal/Terms'); } }\n",
+        "files": {
+          "resources/js/Pages/Legal/Terms.vue": "<template><main /></template>"
+        },
+        "pageRoots": [],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [
+          {
+            "filePath": "resources/js/pages.js",
+            "source": "const pages = import.meta.glob('./Pages/**/*.vue', { eager: true });"
+          }
+        ],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\LegalController::terms",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\LegalController::terms",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2FPages%2FLegal%2FTerms.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-15-module-map-direct",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/OfferController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass OfferController { public function index() { return Inertia::render('@offers::Web/OfferIndex'); } }\n",
+        "files": {
+          "resources/js/modules/offers/Web/OfferIndex.vue": "<template><main /></template>"
+        },
+        "pageRoots": [],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [
+          {
+            "filePath": "resources/js/modules.ts",
+            "source": "const offers = import.meta.glob('@offers/**/*.vue'); const moduleMap = {'@offers': offers};"
+          }
+        ],
+        "aliases": {
+          "@offers": {
+            "root": "resources/js/modules/offers",
+            "configFile": "jsconfig.json"
+          }
+        },
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\OfferController::index",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\OfferController::index",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2Fmodules%2Foffers%2FWeb%2FOfferIndex.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-16-auctic-module-map",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/BusinessController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass BusinessController { public function index() { return inertia('@AucticCore::Business/Index'); } }\n",
+        "files": {
+          "resources/js/modules/core/Business/Index.vue": "<template><main /></template>"
+        },
+        "pageRoots": [],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [
+          {
+            "filePath": "resources/js/app.js",
+            "source": "const moduleImports = { aucticCore: import.meta.glob('@aucticCore/**/*.vue') }; const moduleMap = {'@AucticCore': moduleImports.aucticCore};"
+          }
+        ],
+        "aliases": {
+          "@aucticCore": {
+            "root": "resources/js/modules/core",
+            "configFile": "jsconfig.json"
+          }
+        },
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\BusinessController::index",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\BusinessController::index",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2Fmodules%2Fcore%2FBusiness%2FIndex.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-17-module-map-contact",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/ContactController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass ContactController { public function create() { return Inertia::render('@contact::Web/ContactCreate'); } }\n",
+        "files": {
+          "resources/js/modules/contact/Web/ContactCreate.vue": "<template><main /></template>"
+        },
+        "pageRoots": [],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [
+          {
+            "filePath": "resources/js/bootstrap.js",
+            "source": "const moduleImports = { contact: import.meta.glob('@contact/**/*.vue') }; const moduleMap = {'@contact': moduleImports.contact};"
+          }
+        ],
+        "aliases": {
+          "@contact": {
+            "root": "resources/js/modules/contact",
+            "configFile": "vite.config.ts"
+          }
+        },
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\ContactController::create",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\ContactController::create",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2Fmodules%2Fcontact%2FWeb%2FContactCreate.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-18-glob-nested-file",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/AccountController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass AccountController { public function index() { return inertia('Account/Index'); } }\n",
+        "files": {
+          "frontend/inertia/Account/Index.vue": "<template><main /></template>"
+        },
+        "pageRoots": [],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [
+          {
+            "filePath": "frontend/register/pages.js",
+            "source": "const pages = import.meta.glob('../inertia/**/*.vue');"
+          }
+        ],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\AccountController::index",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\AccountController::index",
+        "type": "hydrates_component",
+        "target": "component:vue:frontend%2Finertia%2FAccount%2FIndex.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-19-facade-spacing",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/NewsController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass NewsController { public function index() { return Inertia :: render ( /* static */ 'News/Index', [] ); } }\n",
+        "files": {
+          "resources/js/Pages/News/Index.vue": "<template><main /></template>"
+        },
+        "pageRoots": ["resources/js/Pages"],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\NewsController::index",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\NewsController::index",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2FPages%2FNews%2FIndex.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-20-helper-spacing",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/SearchController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass SearchController { public function index() { return inertia ( /* static */ 'Search/Index' ); } }\n",
+        "files": {
+          "resources/js/Pages/Search/Index.vue": "<template><main /></template>"
+        },
+        "pageRoots": ["resources/js/Pages"],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\SearchController::index",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\SearchController::index",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2FPages%2FSearch%2FIndex.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-21-root-exact-unique",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/UserController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass UserController { public function show() { return Inertia::render('Users/Show'); } }\n",
+        "files": {
+          "app-ui/pages/Users/Show.vue": "<template><main /></template>"
+        },
+        "pageRoots": ["app-ui/pages", "resources/js/Pages"],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\UserController::show",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\UserController::show",
+        "type": "hydrates_component",
+        "target": "component:vue:app-ui%2Fpages%2FUsers%2FShow.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-22-namespace-nested",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/SupportController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass SupportController { public function ticket() { return inertia('@support::Agent/Tickets/Show'); } }\n",
+        "files": {
+          "resources/js/modules/support/Agent/Tickets/Show.vue": "<template><main /></template>"
+        },
+        "pageRoots": [],
+        "namespaces": {
+          "support": ["resources/js/modules/support"]
+        },
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\SupportController::ticket",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\SupportController::ticket",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2Fmodules%2Fsupport%2FAgent%2FTickets%2FShow.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-23-static-glob-ts",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/MetricsController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass MetricsController { public function index() { return Inertia::render('Metrics/Index'); } }\n",
+        "files": {
+          "src/ui/Pages/Metrics/Index.vue": "<template><main /></template>"
+        },
+        "pageRoots": [],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [
+          {
+            "filePath": "src/ui/resolve.ts",
+            "source": "export const pageFiles = import.meta.glob('./Pages/**/*.vue');"
+          }
+        ],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\MetricsController::index",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\MetricsController::index",
+        "type": "hydrates_component",
+        "target": "component:vue:src%2Fui%2FPages%2FMetrics%2FIndex.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-positive-24-legacy-auctic-glob",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/SharedController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass SharedController { public function index() { return Inertia::render('@AucticCore::Shared/Index'); } }\n",
+        "files": {
+          "resources/js/core/Shared/Index.vue": "<template><main /></template>"
+        },
+        "pageRoots": [],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [
+          {
+            "filePath": "resources/js/resolve.js",
+            "source": "const corePages = import.meta.glob('@core/**/*.vue'); const moduleMap = {'@AucticCore': corePages};"
+          }
+        ],
+        "aliases": {
+          "@core": {
+            "root": "resources/js/core",
+            "configFile": "vite.config.js"
+          }
+        },
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\SharedController::index",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\SharedController::index",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2Fcore%2FShared%2FIndex.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-forbidden-01-dynamic-variable",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/DynamicController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass DynamicController { public function show() { return Inertia::render($page); } }\n",
+        "files": {
+          "resources/js/Pages/Users/Index.vue": "<template><main /></template>"
+        },
+        "pageRoots": ["resources/js/Pages"],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\DynamicController::show",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\DynamicController::show",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2FPages%2FUsers%2FIndex.vue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["inertia-page-dynamic"]
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-forbidden-02-concatenation",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/ConcatController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass ConcatController { public function show() { return inertia('Users/' . 'Index'); } }\n",
+        "files": {
+          "resources/js/Pages/Users/Index.vue": "<template><main /></template>"
+        },
+        "pageRoots": ["resources/js/Pages"],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\ConcatController::show",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\ConcatController::show",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2FPages%2FUsers%2FIndex.vue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["inertia-page-dynamic"]
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-forbidden-03-conditional",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/ConditionalController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass ConditionalController { public function show() { return inertia($admin ? 'Admin' : 'User'); } }\n",
+        "files": {
+          "resources/js/Pages/Admin.vue": "<template><main /></template>"
+        },
+        "pageRoots": ["resources/js/Pages"],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\ConditionalController::show",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\ConditionalController::show",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2FPages%2FAdmin.vue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["inertia-page-dynamic"]
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-forbidden-04-interpolated",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/InterpolatedController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass InterpolatedController { public function show() { return inertia(\"Users/$id\"); } }\n",
+        "files": {
+          "resources/js/Pages/Users/1.vue": "<template><main /></template>"
+        },
+        "pageRoots": ["resources/js/Pages"],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\InterpolatedController::show",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\InterpolatedController::show",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2FPages%2FUsers%2F1.vue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["inertia-page-dynamic"]
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-forbidden-05-missing-component",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/MissingController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass MissingController { public function show() { return Inertia::render('Missing/Page'); } }\n",
+        "files": {},
+        "pageRoots": ["resources/js/Pages"],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\MissingController::show",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\MissingController::show",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2FPages%2FMissing%2FPage.vue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-forbidden-06-ambiguous-roots",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/AmbiguousController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass AmbiguousController { public function show() { return inertia('Users/Index'); } }\n",
+        "files": {
+          "one/Users/Index.vue": "<template />",
+          "two/Users/Index.vue": "<template />"
+        },
+        "pageRoots": ["one", "two"],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\AmbiguousController::show",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\AmbiguousController::show",
+        "type": "hydrates_component",
+        "target": "component:vue:one%2FUsers%2FIndex.vue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["inertia-page-ambiguous"]
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-forbidden-07-repository-suffix",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/SuffixController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass SuffixController { public function show() { return Inertia::render('Users/Index'); } }\n",
+        "files": {
+          "unrelated/Users/Index.vue": "<template />"
+        },
+        "pageRoots": ["resources/js/Pages"],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\SuffixController::show",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\SuffixController::show",
+        "type": "hydrates_component",
+        "target": "component:vue:unrelated%2FUsers%2FIndex.vue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-forbidden-08-dynamic-glob",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/ResolverController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass ResolverController { public function show() { return inertia('Users/Index'); } }\n",
+        "files": {
+          "resources/js/Pages/Users/Index.vue": "<template><main /></template>"
+        },
+        "pageRoots": [],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [
+          {
+            "filePath": "resources/js/resolve.js",
+            "source": "globalThis.phase12ResolverExecuted = true; const pages = import.meta.glob(pattern); export function resolve(name) { throw new Error(name); }"
+          }
+        ],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\ResolverController::show",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\ResolverController::show",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2FPages%2FUsers%2FIndex.vue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-forbidden-09-page-traversal",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/TraversalController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass TraversalController { public function show() { return Inertia::render('../Secret'); } }\n",
+        "files": {
+          "resources/js/Secret.vue": "<template><main /></template>"
+        },
+        "pageRoots": ["resources/js/Pages"],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\TraversalController::show",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\TraversalController::show",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2FSecret.vue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["inertia-page-invalid"]
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-forbidden-10-namespace-traversal",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/NamespaceTraversalController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass NamespaceTraversalController { public function show() { return inertia('@contact::../Secret'); } }\n",
+        "files": {
+          "resources/js/modules/Secret.vue": "<template><main /></template>"
+        },
+        "pageRoots": [],
+        "namespaces": {
+          "@contact": ["resources/js/modules/contact"]
+        },
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\NamespaceTraversalController::show",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\NamespaceTraversalController::show",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2Fmodules%2FSecret.vue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["inertia-page-invalid"]
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-forbidden-11-root-traversal",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/RootTraversalController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass RootTraversalController { public function show() { return inertia('Secret'); } }\n",
+        "files": {
+          "outside/Secret.vue": "<template><main /></template>"
+        },
+        "pageRoots": ["../outside"],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\RootTraversalController::show",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\RootTraversalController::show",
+        "type": "hydrates_component",
+        "target": "component:vue:outside%2FSecret.vue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["inertia-page-root-invalid"]
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-forbidden-12-helper-alias",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/AliasController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass AliasController { public function show() { return page('Users/Index'); } }\n",
+        "files": {
+          "resources/js/Pages/Users/Index.vue": "<template><main /></template>"
+        },
+        "pageRoots": ["resources/js/Pages"],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\AliasController::show",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\AliasController::show",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2FPages%2FUsers%2FIndex.vue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["inertia-page-dynamic"]
+  },
+  {
+    "corpus": "phase-12-inertia-synthetic",
+    "capability": "inertia-page-hydration",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "id": "p12-forbidden-13-similar-api",
+    "query": {
+      "tool": "phase12InertiaSeam",
+      "args": {
+        "parentPath": "app/Http/Controllers/OtherController.php",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass OtherController { public function show() { return Other::render('Users/Index'); } }\n",
+        "files": {
+          "resources/js/Pages/Users/Index.vue": "<template><main /></template>"
+        },
+        "pageRoots": ["resources/js/Pages"],
+        "namespaces": {},
+        "configFile": "lux.yaml",
+        "registrySources": [],
+        "aliases": {},
+        "pageResponseContracts": [
+          {
+            "source": "symbol:php:App\\Http\\Controllers\\OtherController::show",
+            "contractKind": "page-response"
+          }
+        ]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Http\\Controllers\\OtherController::show",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2FPages%2FUsers%2FIndex.vue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  }
+]

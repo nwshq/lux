@@ -47,6 +47,8 @@ export interface OverlayRebuildOptions {
   includeHeuristics?: boolean;
   /** Override resolver pack (default: createDefaultResolvers()). */
   resolvers?: AssociationResolver[];
+  /** Validated static frontend-framework configuration. */
+  frameworks?: import('../config.js').FrontendFrameworkConfigV1;
   /** Override detector pack (default: createDefaultDetectors()). */
   detectors?: CapabilitySurfaceDetector[];
   /** Override operational extractor pack. */
@@ -218,8 +220,8 @@ export async function rebuildStructuralOverlay(
   const resolvers =
     options.resolvers ??
     (options.astEnabled
-      ? [...createDefaultResolvers(), new AstStructuralResolver()]
-      : createDefaultResolvers());
+      ? [...createDefaultResolvers(options.frameworks), new AstStructuralResolver()]
+      : createDefaultResolvers(options.frameworks));
   const engine = new AssociationEngine(db, resolvers, {
     includeHeuristics: options.includeHeuristics ?? false,
     onProgress: report,

@@ -9,6 +9,7 @@ const ignorePatterns = [
   '*.config.mjs',
   'src/scanner/ast/__tests__/fixtures/javascript/**',
   'src/scanner/adapters/__tests__/fixtures/**',
+  'src/scanner/associations/framework/laravel/__tests__/fixtures/**',
 ];
 
 export default [

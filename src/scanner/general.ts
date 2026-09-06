@@ -669,6 +669,7 @@ export async function generalScan(
         // A promoted first-party overlay has a larger source universe than the app-only dependency
         // analysis above; let the overlay build one complete context rather than reusing a partial one.
         programAnalysis: firstPartySource.length === 0 ? projectAnalysis : undefined,
+        frameworks: config.frameworks,
       });
       report(
         `Overlay complete: ${overlay.fileNodes} file node(s), ${overlay.symbolNodes} symbol node(s), ` +

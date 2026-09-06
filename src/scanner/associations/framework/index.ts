@@ -12,18 +12,31 @@ import {
   VueStoreAssociationResolver,
   VueEventAssociationResolver,
 } from '../../vue/association-wrapper.js';
+import { InertiaAssociationResolver } from './laravel/inertia-resolver.js';
+import type { FrontendFrameworkConfigV1 } from '../../config.js';
 import type { AssociationResolver } from '../types.js';
 
 /**
  * Returns all built-in framework resolver instances.
  * Pass the result to AssociationEngine to run the full default pack.
  */
-export function createDefaultResolvers(): AssociationResolver[] {
+export function createDefaultResolvers(
+  frameworks?: FrontendFrameworkConfigV1
+): AssociationResolver[] {
   return [
     new LaravelBoundaryEvidenceResolver(),
     new VueComponentAssociationResolver(),
     new VueComposableAssociationResolver(),
     new VueStoreAssociationResolver(),
     new VueEventAssociationResolver(),
+    new InertiaAssociationResolver({
+      config: frameworks
+        ? {
+            pageRoots: frameworks.inertia.pageRoots,
+            namespaces: frameworks.inertia.namespaces,
+            sourceFile: 'lux.yaml',
+          }
+        : undefined,
+    }),
   ];
 }

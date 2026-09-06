@@ -71,6 +71,37 @@ export interface ScanConfig {
   ignorePatterns: string[];
 }
 
+export interface InertiaFrameworkConfigV1 {
+  pageRoots: string[];
+  namespaces: Record<string, string[]>;
+}
+
+export interface LivewireFrameworkConfigV1 {
+  classRoots: string[];
+  viewRoots: string[];
+  viewNamespaces: Record<string, string[]>;
+}
+
+export interface NovaFrameworkConfigV1 {
+  enabled: boolean;
+}
+
+export interface FrontendFrameworkConfigV1 {
+  inertia: InertiaFrameworkConfigV1;
+  livewire: LivewireFrameworkConfigV1;
+  nova: NovaFrameworkConfigV1;
+}
+
+const DEFAULT_FRONTEND_FRAMEWORK_CONFIG: FrontendFrameworkConfigV1 = {
+  inertia: { pageRoots: [], namespaces: {} },
+  livewire: {
+    classRoots: ['app/Livewire', 'app/Http/Livewire'],
+    viewRoots: ['resources/views/livewire'],
+    viewNamespaces: {},
+  },
+  nova: { enabled: true },
+};
+
 /** Top-level lux.yaml configuration (LSP-specific fields). */
 export interface LuxLspConfig {
   /** LSP enrichment configuration. */
@@ -89,6 +120,8 @@ export interface LuxLspConfig {
   delta?: DeltaConfig;
   /** Scoped overlay refresh budgets (Decisions 7, 8). */
   refresh?: RefreshConfig;
+  /** Static frontend-framework roots and namespaces. */
+  frameworks?: FrontendFrameworkConfigV1;
   /** Named cross-repo sibling-index registry (federation, Decision 1). */
   siblings?: SiblingsConfig;
   /** Anchor-embedding provider/model (Phase 4, Decision 7/11). Absent ⇒ native-free local default,
@@ -213,6 +246,7 @@ interface RawLuxConfig {
   delta?: unknown;
   refresh?: unknown;
   siblings?: unknown;
+  frameworks?: unknown;
   embedding?: unknown;
 }
 
@@ -269,7 +303,64 @@ function validateConfig(raw: RawLuxConfig): LuxLspConfig {
     delta: validateDeltaConfig(raw.delta),
     refresh: validateRefreshConfig(raw.refresh),
     siblings: validateSiblingsConfig(raw.siblings, overlay),
+    frameworks: validateFrameworksConfig(raw.frameworks),
     embedding: validateEmbeddingConfig(raw.embedding),
+  };
+}
+
+function validFrameworkPath(value: unknown): value is string {
+  if (typeof value !== 'string' || value.trim() === '' || value.startsWith('/')) return false;
+  if ([...value].some((character) => character.charCodeAt(0) <= 0x1f)) return false;
+  return !value.replaceAll('\\', '/').split('/').includes('..');
+}
+
+function frameworkPaths(value: unknown, fallback: string[]): string[] {
+  if (value === undefined) return [...fallback];
+  if (!Array.isArray(value) || !value.every(validFrameworkPath)) {
+    throw new Error('lux.yaml framework paths must be non-empty repository-relative strings.');
+  }
+  return [...new Set(value)];
+}
+
+function frameworkNamespaces(value: unknown): Record<string, string[]> {
+  if (value === undefined) return {};
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('lux.yaml framework namespaces must be a mapping.');
+  }
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).map(([name, paths]) => {
+      if (!validFrameworkPath(name)) throw new Error('lux.yaml framework namespace is invalid.');
+      return [name, frameworkPaths(paths, [])];
+    })
+  );
+}
+
+function validateFrameworksConfig(raw: unknown): FrontendFrameworkConfigV1 {
+  if (raw === undefined || raw === null) return DEFAULT_FRONTEND_FRAMEWORK_CONFIG;
+  if (typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new Error('lux.yaml `frameworks` must be a mapping.');
+  }
+  const value = raw as Record<string, unknown>;
+  const inertia = (value.inertia ?? {}) as Record<string, unknown>;
+  const livewire = (value.livewire ?? {}) as Record<string, unknown>;
+  const nova = (value.nova ?? {}) as Record<string, unknown>;
+  return {
+    inertia: {
+      pageRoots: frameworkPaths(inertia.pageRoots, []),
+      namespaces: frameworkNamespaces(inertia.namespaces),
+    },
+    livewire: {
+      classRoots: frameworkPaths(
+        livewire.classRoots,
+        DEFAULT_FRONTEND_FRAMEWORK_CONFIG.livewire.classRoots
+      ),
+      viewRoots: frameworkPaths(
+        livewire.viewRoots,
+        DEFAULT_FRONTEND_FRAMEWORK_CONFIG.livewire.viewRoots
+      ),
+      viewNamespaces: frameworkNamespaces(livewire.viewNamespaces),
+    },
+    nova: { enabled: nova.enabled !== false },
   };
 }
 
