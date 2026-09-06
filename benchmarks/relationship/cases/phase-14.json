@@ -1,0 +1,1844 @@
+[
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-positive-01-resource-array",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse Laravel\\Nova\\Nova;\n\nclass NovaServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::resources([\\App\\Nova\\User::class]); } }\n",
+        "files": {
+          "app/Nova/User.php": "<?php\nnamespace App\\Nova;\nuse Laravel\\Nova\\Resource;\nclass User extends Resource { public static $model = \\App\\Models\\User::class; }\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Providers\\NovaServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:App\\Nova\\User",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "fixture": {
+      "rootPath": ".",
+      "subtrees": [
+        "resource-arrays",
+        "provider-methods",
+        "tools",
+        "resources-in",
+        "models",
+        "scripts",
+        "styles",
+        "components",
+        "duplicates",
+        "dynamic",
+        "missing",
+        "vendor",
+        "traversal",
+        "acme"
+      ]
+    },
+    "performanceProtocol": {
+      "warmups": 3,
+      "measurements": 5,
+      "maxRegressionRatio": 1.2,
+      "baselineWallMs": 1000,
+      "baselineRssBytes": 268435456
+    },
+    "watchedMutations": [
+      {
+        "id": "include-vendor-resources",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p14-forbidden-04-vendor-resources-in"
+      },
+      {
+        "id": "accept-dynamic-registration",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p14-forbidden-01-dynamic-resource-array"
+      },
+      {
+        "id": "reverse-registration-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p14-positive-01-resource-array"
+      },
+      {
+        "id": "reverse-model-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p14-positive-10-untyped-model-user"
+      },
+      {
+        "id": "bind-resource-by-basename",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p14-forbidden-12-basename-only-resource"
+      },
+      {
+        "id": "emit-duplicate-edges",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p14-positive-19-duplicate-registration-deduplicated"
+      },
+      {
+        "id": "wrong-auctic-model",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p14-auctic-offer-model"
+      },
+      {
+        "id": "remove-required-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p14-positive-01-resource-array"
+      },
+      {
+        "id": "inject-forbidden-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p14-forbidden-07-missing-resource"
+      }
+    ]
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-positive-02-resource-array-alias",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse Laravel\\Nova\\Nova;\nuse Laravel\\Nova\\Nova as AdminNova;\nuse App\\Nova\\InvoiceResource;\nclass NovaServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { AdminNova::resources([InvoiceResource::class]); } }\n",
+        "files": {
+          "app/Nova/InvoiceResource.php": "<?php\nnamespace App\\Nova;\nuse Laravel\\Nova\\Resource;\nclass InvoiceResource extends Resource { public static $model = \\App\\Models\\InvoiceResource::class; }\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Providers\\NovaServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:App\\Nova\\InvoiceResource",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-positive-03-provider-resources-method",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse App\\Nova\\Order;\nclass NovaServiceProvider { public function resources(): array { return [Order::class]; } }",
+        "files": {
+          "app/Nova/Order.php": "<?php\nnamespace App\\Nova;\nuse Laravel\\Nova\\Resource;\nclass Order extends Resource { public static $model = \\App\\Models\\Order::class; }\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Providers\\NovaServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:App\\Nova\\Order",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-positive-04-provider-resources-multiline",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse App\\Nova\\Customer;\nclass NovaServiceProvider { protected function resources() { return [\n Customer::class,\n ]; } }",
+        "files": {
+          "app/Nova/Customer.php": "<?php\nnamespace App\\Nova;\nuse Laravel\\Nova\\Resource;\nclass Customer extends Resource { public static $model = \\App\\Models\\Customer::class; }\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Providers\\NovaServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:App\\Nova\\Customer",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-positive-05-static-tools-array",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse Laravel\\Nova\\Nova;\n\nclass NovaServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::tools([new \\App\\Nova\\Tools\\AuditTool()]); } }\n",
+        "files": {
+          "app/Nova/Tools/AuditTool.php": "<?php\nnamespace App\\Nova\\Tools;\n\nclass AuditTool {}\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Providers\\NovaServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:App\\Nova\\Tools\\AuditTool",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-positive-06-provider-tools-method",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse App\\Nova\\Tools\\ExportTool;\nclass NovaServiceProvider { public function tools(): array { return [new ExportTool()]; } }",
+        "files": {
+          "app/Nova/Tools/ExportTool.php": "<?php\nnamespace App\\Nova\\Tools;\n\nclass ExportTool {}\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Providers\\NovaServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:App\\Nova\\Tools\\ExportTool",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-positive-07-tool-class-literal",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse Laravel\\Nova\\Nova;\n\nclass NovaServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::tools([\\App\\Nova\\Tools\\SearchTool::class]); } }\n",
+        "files": {
+          "app/Nova/Tools/SearchTool.php": "<?php\nnamespace App\\Nova\\Tools;\n\nclass SearchTool {}\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Providers\\NovaServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:App\\Nova\\Tools\\SearchTool",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-positive-08-resources-in",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse Laravel\\Nova\\Nova;\n\nclass NovaServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::resourcesIn('app/Nova/Generated'); } }\n",
+        "files": {
+          "app/Nova/Generated/Alpha.php": "<?php\nnamespace App\\Nova\\Generated;\nuse Laravel\\Nova\\Resource;\nclass Alpha extends Resource { public static $model = \\App\\Models\\Alpha::class; }\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Providers\\NovaServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:App\\Nova\\Generated\\Alpha",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-positive-09-resources-in-nested",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse Laravel\\Nova\\Nova;\n\nclass NovaServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::resourcesIn(\"src/Modules/Sales/Nova\"); } }\n",
+        "files": {
+          "src/Modules/Sales/Nova/Quote.php": "<?php\nnamespace App\\Modules\\Sales\\Nova;\nuse Laravel\\Nova\\Resource;\nclass Quote extends Resource { public static $model = \\App\\Modules\\Sales\\Models\\Quote::class; }\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Providers\\NovaServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:App\\Modules\\Sales\\Nova\\Quote",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-positive-10-untyped-model-user",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Nova/User.php",
+        "source": "<?php\nnamespace App\\Nova;\nuse Laravel\\Nova\\Resource;\nclass User extends Resource { public static $model = \\App\\Models\\User::class; }\n",
+        "files": {
+          "app/Models/User.php": "<?php\nnamespace App\\Models;\n\nclass User {}\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Nova\\User",
+        "type": "transforms_model",
+        "target": "symbol:php:App\\Models\\User",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-positive-11-typed-model-invoice",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Nova/Invoice.php",
+        "source": "<?php\nnamespace App\\Nova;\nuse Laravel\\Nova\\Resource;\nclass Invoice extends Resource { public static string $model = \\App\\Models\\Invoice::class; }\n",
+        "files": {
+          "app/Models/Invoice.php": "<?php\nnamespace App\\Models;\n\nclass Invoice {}\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Nova\\Invoice",
+        "type": "transforms_model",
+        "target": "symbol:php:App\\Models\\Invoice",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-positive-12-untyped-model-nestedorder",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "src/Modules/Sales/Nova/NestedOrder.php",
+        "source": "<?php\nnamespace App\\Modules\\Sales\\Nova;\nuse Laravel\\Nova\\Resource;\nclass NestedOrder extends Resource { public static $model = \\App\\Modules\\Sales\\Models\\NestedOrder::class; }\n",
+        "files": {
+          "src/Modules/Sales/Models/NestedOrder.php": "<?php\nnamespace App\\Modules\\Sales\\Models;\n\nclass NestedOrder {}\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Modules\\Sales\\Nova\\NestedOrder",
+        "type": "transforms_model",
+        "target": "symbol:php:App\\Modules\\Sales\\Models\\NestedOrder",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-positive-13-typed-model-contact",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Nova/Contact.php",
+        "source": "<?php\nnamespace App\\Nova;\nuse Laravel\\Nova\\Resource;\nclass Contact extends Resource { public static string $model = \\App\\Models\\Contact::class; }\n",
+        "files": {
+          "app/Models/Contact.php": "<?php\nnamespace App\\Models;\n\nclass Contact {}\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Nova\\Contact",
+        "type": "transforms_model",
+        "target": "symbol:php:App\\Models\\Contact",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-positive-14-untyped-model-businessentity",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Nova/BusinessEntity.php",
+        "source": "<?php\nnamespace App\\Nova;\nuse Laravel\\Nova\\Resource;\nclass BusinessEntity extends Resource { public static $model = \\App\\Models\\BusinessEntity::class; }\n",
+        "files": {
+          "app/Models/BusinessEntity.php": "<?php\nnamespace App\\Models;\n\nclass BusinessEntity {}\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Nova\\BusinessEntity",
+        "type": "transforms_model",
+        "target": "symbol:php:App\\Models\\BusinessEntity",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-positive-15-script-vue",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse Laravel\\Nova\\Nova;\n\nclass NovaServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::script('dashboard', 'resources/js/nova/Dashboard.vue'); } }\n",
+        "files": {
+          "resources/js/nova/Dashboard.vue": "<template><main /></template>"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "artifact:nova:app%2FProviders%2FNovaServiceProvider.php#dashboard",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2Fnova%2FDashboard.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-positive-16-script-js",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse Laravel\\Nova\\Nova;\n\nclass NovaServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::script('field', 'resources/js/nova/field.js'); } }\n",
+        "files": {
+          "resources/js/nova/field.js": "Nova.booting(() => {})"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "artifact:nova:app%2FProviders%2FNovaServiceProvider.php#field",
+        "type": "hydrates_component",
+        "target": "file:resources/js/nova/field.js",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-positive-17-script-and-style",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse Laravel\\Nova\\Nova;\n\nclass NovaServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::script('reports', 'resources/js/nova/Reports.vue'); Nova::style('reports', 'resources/css/nova/reports.css'); } }\n",
+        "files": {
+          "resources/js/nova/Reports.vue": "<template/>",
+          "resources/css/nova/reports.css": ".report{}"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "artifact:nova:app%2FProviders%2FNovaServiceProvider.php#reports",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2Fnova%2FReports.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-positive-18-card-component",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Nova/Cards/SalesCard.php",
+        "source": "<?php\nnamespace App\\Nova\\Cards;\nclass SalesCard extends \\Laravel\\Nova\\Card { public string $component = 'resources/js/nova/cards/SalesCard.vue'; }",
+        "files": {
+          "resources/js/nova/cards/SalesCard.vue": "<template/>"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "artifact:nova:app%2FNova%2FCards%2FSalesCard.php#component",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2Fnova%2Fcards%2FSalesCard.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-positive-19-duplicate-registration-deduplicated",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse Laravel\\Nova\\Nova;\n\nclass NovaServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::resources([\\App\\Nova\\User::class]); Nova::resources([\\App\\Nova\\User::class]); } }\n",
+        "files": {
+          "app/Nova/User.php": "<?php\nnamespace App\\Nova;\nuse Laravel\\Nova\\Resource;\nclass User extends Resource { public static $model = \\App\\Models\\User::class; }\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Providers\\NovaServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:App\\Nova\\User",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-positive-20-resource-multiple-first",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse Laravel\\Nova\\Nova;\n\nclass NovaServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::resources([\\App\\Nova\\Lead::class]); } }\n",
+        "files": {
+          "app/Nova/Lead.php": "<?php\nnamespace App\\Nova;\nuse Laravel\\Nova\\Resource;\nclass Lead extends Resource { public static $model = \\App\\Models\\Lead::class; }\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Providers\\NovaServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:App\\Nova\\Lead",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-positive-21-resource-multiple-second",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse Laravel\\Nova\\Nova;\n\nclass NovaServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::resources([\\App\\Nova\\Deal::class]); } }\n",
+        "files": {
+          "app/Nova/Deal.php": "<?php\nnamespace App\\Nova;\nuse Laravel\\Nova\\Resource;\nclass Deal extends Resource { public static $model = \\App\\Models\\Deal::class; }\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:App\\Providers\\NovaServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:App\\Nova\\Deal",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-positive-22-tool-component-js",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Nova/Tools/ImportTool.php",
+        "source": "<?php\nnamespace App\\Nova\\Tools;\nclass ImportTool { public $component = 'resources/js/nova/tools/ImportTool.js'; }",
+        "files": {
+          "resources/js/nova/tools/ImportTool.js": "export default {}"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "artifact:nova:app%2FNova%2FTools%2FImportTool.php#component",
+        "type": "hydrates_component",
+        "target": "file:resources/js/nova/tools/ImportTool.js",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["nova-dynamic-registration"],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-forbidden-01-dynamic-resource-array",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse Laravel\\Nova\\Nova;\n\nclass NovaServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::resources($resources); } }\n",
+        "files": {
+          "app/Nova/User.php": "<?php\nnamespace App\\Nova;\nuse Laravel\\Nova\\Resource;\nclass User extends Resource { public static $model = \\App\\Models\\User::class; }\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Providers\\NovaServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:App\\Nova\\User"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["nova-dynamic-registration"],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-forbidden-02-dynamic-provider-return",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php namespace App\\Providers; class NovaServiceProvider { public function resources(): array { return $this->discover(); } }",
+        "files": {
+          "app/Nova/User.php": "<?php\nnamespace App\\Nova;\nuse Laravel\\Nova\\Resource;\nclass User extends Resource { public static $model = \\App\\Models\\User::class; }\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Providers\\NovaServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:App\\Nova\\User"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["nova-dynamic-path"],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-forbidden-03-dynamic-script-path",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse Laravel\\Nova\\Nova;\n\nclass NovaServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::script('field', $path); } }\n",
+        "files": {
+          "resources/js/nova/field.js": "x"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "artifact:nova:app%2FProviders%2FNovaServiceProvider.php#field",
+        "type": "hydrates_component",
+        "target": "file:resources/js/nova/field.js"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["nova-vendor-excluded"],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-forbidden-04-vendor-resources-in",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse Laravel\\Nova\\Nova;\n\nclass NovaServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::resourcesIn('vendor/acme/nova/src'); } }\n",
+        "files": {
+          "vendor/acme/nova/src/Remote.php": "<?php\nnamespace Acme\\Nova;\nuse Laravel\\Nova\\Resource;\nclass Remote extends Resource { public static $model = Acme\\Models\\Remote::class; }\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Providers\\NovaServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:Acme\\Nova\\Remote"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["nova-path-traversal"],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-forbidden-05-traversal-resources-in",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse Laravel\\Nova\\Nova;\n\nclass NovaServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::resourcesIn('../shared/Nova'); } }\n",
+        "files": {
+          "shared/Nova/Remote.php": "<?php\nnamespace Shared\\Nova;\nuse Laravel\\Nova\\Resource;\nclass Remote extends Resource { public static $model = Shared\\Models\\Remote::class; }\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Providers\\NovaServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:Shared\\Nova\\Remote"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["nova-target-missing"],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-forbidden-06-missing-model",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Nova;\nuse Laravel\\Nova\\Resource;\nclass Ghost extends Resource { public static $model = \\App\\Models\\Ghost::class; }\n",
+        "files": {},
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Nova\\Ghost",
+        "type": "transforms_model",
+        "target": "symbol:php:App\\Models\\Ghost"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["nova-target-missing"],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-forbidden-07-missing-resource",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse Laravel\\Nova\\Nova;\n\nclass NovaServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::resources([\\App\\Nova\\Ghost::class]); } }\n",
+        "files": {},
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Providers\\NovaServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:App\\Nova\\Ghost"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["nova-model-missing"],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-forbidden-08-unrelated-static-property",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php namespace App\\Nova; class LabelOnly extends \\Laravel\\Nova\\Resource { public static $label = \\App\\Models\\User::class; }",
+        "files": {
+          "app/Models/User.php": "<?php\nnamespace App\\Models;\n\nclass User {}\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Nova\\LabelOnly",
+        "type": "transforms_model",
+        "target": "symbol:php:App\\Models\\User"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["nova-dynamic-path"],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-forbidden-09-computed-resources-in",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse Laravel\\Nova\\Nova;\n\nclass NovaServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::resourcesIn(base_path('app/Nova')); } }\n",
+        "files": {
+          "app/Nova/User.php": "<?php\nnamespace App\\Nova;\nuse Laravel\\Nova\\Resource;\nclass User extends Resource { public static $model = \\App\\Models\\User::class; }\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Providers\\NovaServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:App\\Nova\\User"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["nova-vendor-excluded"],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-forbidden-10-vendor-script-target",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse Laravel\\Nova\\Nova;\n\nclass NovaServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::script('remote', 'vendor/acme/nova/tool.js'); } }\n",
+        "files": {
+          "vendor/acme/nova/tool.js": "x"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "artifact:nova:app%2FProviders%2FNovaServiceProvider.php#remote",
+        "type": "hydrates_component",
+        "target": "file:vendor/acme/nova/tool.js"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["nova-target-missing"],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-forbidden-11-missing-component-target",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse Laravel\\Nova\\Nova;\n\nclass NovaServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::script('missing', 'resources/js/nova/Missing.vue'); } }\n",
+        "files": {},
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "artifact:nova:app%2FProviders%2FNovaServiceProvider.php#missing",
+        "type": "hydrates_component",
+        "target": "component:vue:resources%2Fjs%2Fnova%2FMissing.vue"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["nova-target-missing"],
+    "corpus": "phase-14-nova-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "adbb7c141c700c13a1a54c71893fb9303cc65ba2"
+    },
+    "id": "p14-forbidden-12-basename-only-resource",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "app/Providers/NovaServiceProvider.php",
+        "source": "<?php\nnamespace App\\Providers;\nuse Laravel\\Nova\\Nova;\n\nclass NovaServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::resources([\\App\\Nova\\User::class]); } }\n",
+        "files": {
+          "src/Other/Nova/User.php": "<?php\nnamespace Other\\Nova;\nuse Laravel\\Nova\\Resource;\nclass User extends Resource { public static $model = Other\\Models\\User::class; }\n"
+        },
+        "firstPartyRoots": ["app", "resources", "src"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:php:App\\Providers\\NovaServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:Other\\Nova\\User"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-core",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "id": "p14-auctic-offers-provider",
+    "sourceFamily": "src/Module/Offers/ServiceProvider.php",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "src/Module/Offers/ServiceProvider.php",
+        "source": "<?php\nnamespace acme\\Core\\Module\\Offers;\nuse Laravel\\Nova\\Nova;\nuse acme\\Core\\Module\\Offers\\Nova;\nclass ServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::resources([Nova\\Offer::class, Nova\\OfferChain::class]); } }\n",
+        "files": {
+          "src/Module/Offers/Nova/Offer.php": "<?php\nnamespace acme\\Core\\Module\\Offers\\Nova;\nuse Laravel\\Nova\\Resource;\nclass Offer extends Resource { public static $model = \\acme\\Core\\Module\\Offers\\Models\\Offer::class; }\n",
+          "src/Module/Offers/Nova/OfferChain.php": "<?php\nnamespace acme\\Core\\Module\\Offers\\Nova;\nuse Laravel\\Nova\\Resource;\nclass OfferChain extends Resource { public static $model = \\acme\\Core\\Module\\Offers\\Models\\OfferChain::class; }\n"
+        },
+        "firstPartyRoots": ["src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:acme\\Core\\Module\\Offers\\ServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:acme\\Core\\Module\\Offers\\Nova\\Offer",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "symbol:php:acme\\Core\\Module\\Offers\\ServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:acme\\Core\\Module\\Offers\\Nova\\OfferChain",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-core",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "id": "p14-auctic-offer-model",
+    "sourceFamily": "src/Module/Offers/Nova/Offer.php",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "src/Module/Offers/Nova/Offer.php",
+        "source": "<?php\nnamespace acme\\Core\\Module\\Offers\\Nova;\nuse Laravel\\Nova\\Resource;\nclass Offer extends Resource { public static $model = \\acme\\Core\\Module\\Offers\\Models\\Offer::class; }\n",
+        "files": {
+          "src/Module/Offers/Models/Offer.php": "<?php\nnamespace acme\\Core\\Module\\Offers\\Models;\n\nclass Offer {}\n"
+        },
+        "firstPartyRoots": ["src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:acme\\Core\\Module\\Offers\\Nova\\Offer",
+        "type": "transforms_model",
+        "target": "symbol:php:acme\\Core\\Module\\Offers\\Models\\Offer",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-core",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "id": "p14-auctic-offer-chain-model",
+    "sourceFamily": "src/Module/Offers/Nova/OfferChain.php",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "src/Module/Offers/Nova/OfferChain.php",
+        "source": "<?php\nnamespace acme\\Core\\Module\\Offers\\Nova;\nuse Laravel\\Nova\\Resource;\nclass OfferChain extends Resource { public static string $model = \\acme\\Core\\Module\\Offers\\Models\\OfferChain::class; }\n",
+        "files": {
+          "src/Module/Offers/Models/OfferChain.php": "<?php\nnamespace acme\\Core\\Module\\Offers\\Models;\n\nclass OfferChain {}\n"
+        },
+        "firstPartyRoots": ["src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:acme\\Core\\Module\\Offers\\Nova\\OfferChain",
+        "type": "transforms_model",
+        "target": "symbol:php:acme\\Core\\Module\\Offers\\Models\\OfferChain",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-core",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "id": "p14-auctic-contact-provider",
+    "sourceFamily": "src/Module/Contact/ServiceProvider.php",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "src/Module/Contact/ServiceProvider.php",
+        "source": "<?php\nnamespace acme\\Core\\Module\\Contact;\nuse Laravel\\Nova\\Nova;\nuse acme\\Core\\Module\\Contact\\Nova;\nclass ServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::resources([Nova\\Contact::class]); } }\n",
+        "files": {
+          "src/Module/Contact/Nova/Contact.php": "<?php\nnamespace acme\\Core\\Module\\Contact\\Nova;\nuse Laravel\\Nova\\Resource;\nclass Contact extends Resource { public static $model = \\acme\\Core\\Module\\Contact\\Models\\Contact::class; }\n"
+        },
+        "firstPartyRoots": ["src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:acme\\Core\\Module\\Contact\\ServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:acme\\Core\\Module\\Contact\\Nova\\Contact",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-core",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "id": "p14-auctic-contact-model",
+    "sourceFamily": "src/Module/Contact/Nova/Contact.php",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "src/Module/Contact/Nova/Contact.php",
+        "source": "<?php\nnamespace acme\\Core\\Module\\Contact\\Nova;\nuse Laravel\\Nova\\Resource;\nclass Contact extends Resource { public static $model = \\acme\\Core\\Module\\Contact\\Models\\Contact::class; }\n",
+        "files": {
+          "src/Module/Contact/Models/Contact.php": "<?php\nnamespace acme\\Core\\Module\\Contact\\Models;\n\nclass Contact {}\n"
+        },
+        "firstPartyRoots": ["src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:acme\\Core\\Module\\Contact\\Nova\\Contact",
+        "type": "transforms_model",
+        "target": "symbol:php:acme\\Core\\Module\\Contact\\Models\\Contact",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-core",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "id": "p14-auctic-business-provider",
+    "sourceFamily": "src/Module/BusinessEntity/ServiceProvider.php",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "src/Module/BusinessEntity/ServiceProvider.php",
+        "source": "<?php\nnamespace acme\\Core\\Module\\BusinessEntity;\nuse Laravel\\Nova\\Nova;\nuse acme\\Core\\Module\\BusinessEntity\\Nova;\nclass ServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::resources([Nova\\BusinessEntity::class, Nova\\BusinessEntityAddress::class]); } }\n",
+        "files": {
+          "src/Module/BusinessEntity/Nova/BusinessEntity.php": "<?php\nnamespace acme\\Core\\Module\\BusinessEntity\\Nova;\nuse Laravel\\Nova\\Resource;\nclass BusinessEntity extends Resource { public static $model = \\acme\\Core\\Module\\BusinessEntity\\Models\\BusinessEntity::class; }\n",
+          "src/Module/BusinessEntity/Nova/BusinessEntityAddress.php": "<?php\nnamespace acme\\Core\\Module\\BusinessEntity\\Nova;\nuse Laravel\\Nova\\Resource;\nclass BusinessEntityAddress extends Resource { public static $model = \\acme\\Core\\Module\\BusinessEntity\\Models\\BusinessEntityAddress::class; }\n"
+        },
+        "firstPartyRoots": ["src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:acme\\Core\\Module\\BusinessEntity\\ServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:acme\\Core\\Module\\BusinessEntity\\Nova\\BusinessEntity",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "symbol:php:acme\\Core\\Module\\BusinessEntity\\ServiceProvider",
+        "type": "provides_capability",
+        "target": "symbol:php:acme\\Core\\Module\\BusinessEntity\\Nova\\BusinessEntityAddress",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-core",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "id": "p14-auctic-business-model",
+    "sourceFamily": "src/Module/BusinessEntity/Nova/BusinessEntity.php",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "src/Module/BusinessEntity/Nova/BusinessEntity.php",
+        "source": "<?php\nnamespace acme\\Core\\Module\\BusinessEntity\\Nova;\nuse Laravel\\Nova\\Resource;\nclass BusinessEntity extends Resource { public static $model = \\acme\\Core\\Module\\BusinessEntity\\Models\\BusinessEntity::class; }\n",
+        "files": {
+          "src/Module/BusinessEntity/Models/BusinessEntity.php": "<?php\nnamespace acme\\Core\\Module\\BusinessEntity\\Models;\n\nclass BusinessEntity {}\n"
+        },
+        "firstPartyRoots": ["src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:acme\\Core\\Module\\BusinessEntity\\Nova\\BusinessEntity",
+        "type": "transforms_model",
+        "target": "symbol:php:acme\\Core\\Module\\BusinessEntity\\Models\\BusinessEntity",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "nova-framework-bridge",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "registrationRecall": 1,
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 20,
+      "minForbiddenCases": 10
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-core",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "id": "p14-auctic-business-address-model",
+    "sourceFamily": "src/Module/BusinessEntity/Nova/BusinessEntityAddress.php",
+    "query": {
+      "tool": "phase14NovaSeam",
+      "args": {
+        "registrationFile": "src/Module/BusinessEntity/Nova/BusinessEntityAddress.php",
+        "source": "<?php\nnamespace acme\\Core\\Module\\BusinessEntity\\Nova;\nuse Laravel\\Nova\\Resource;\nclass BusinessEntityAddress extends Resource { public static string $model = \\acme\\Core\\Module\\BusinessEntity\\Models\\BusinessEntityAddress::class; }\n",
+        "files": {
+          "src/Module/BusinessEntity/Models/BusinessEntityAddress.php": "<?php\nnamespace acme\\Core\\Module\\BusinessEntity\\Models;\n\nclass BusinessEntityAddress {}\n"
+        },
+        "firstPartyRoots": ["src"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:php:acme\\Core\\Module\\BusinessEntity\\Nova\\BusinessEntityAddress",
+        "type": "transforms_model",
+        "target": "symbol:php:acme\\Core\\Module\\BusinessEntity\\Models\\BusinessEntityAddress",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  }
+]

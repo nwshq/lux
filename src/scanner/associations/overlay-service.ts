@@ -25,6 +25,7 @@ import { buildVueComponentNodes } from '../vue/materialize.js';
 import { VueEventResolver } from '../vue/event-resolver.js';
 import { buildVueEventNodes } from '../vue/event-materialize.js';
 import { resolveLivewire } from './framework/laravel/livewire-resolver.js';
+import { NovaAssociationResolver, resolveNova } from './framework/laravel/nova-resolver.js';
 import { AssociationEngine } from './engine.js';
 import { createDefaultResolvers } from './framework/index.js';
 import type { AssociationContext, AssociationResolver } from './types.js';
@@ -50,6 +51,8 @@ export interface OverlayRebuildOptions {
   resolvers?: AssociationResolver[];
   /** Validated static frontend-framework configuration. */
   frameworks?: import('../config.js').FrontendFrameworkConfigV1;
+  /** Canonical source roots promoted by the existing first-party package mechanism. */
+  firstPartyRoots?: readonly string[];
   /** Override detector pack (default: createDefaultDetectors()). */
   detectors?: CapabilitySurfaceDetector[];
   /** Override operational extractor pack. */
@@ -237,12 +240,39 @@ export async function rebuildStructuralOverlay(
     );
   }
 
+  // Nova produces artifact nodes in addition to edges. Persist every node first so the
+  // AssociationEngine can only store edges whose exact PHP/Vue/file endpoints already exist.
+  const novaOptions = { firstPartyRoots: options.firstPartyRoots };
+  const novaResolver = new NovaAssociationResolver(novaOptions);
+  if (options.frameworks?.nova.enabled && novaResolver.supports(context)) {
+    const nova = resolveNova(context, novaOptions);
+    if (nova.nodes.length) {
+      db.transaction(() => {
+        for (const node of nova.nodes) db.upsertStructuralNode(node);
+      });
+      context.nodes = db.getStructuralNodesForFilePaths(
+        scan.knowledge.map((entry) =>
+          entry.filePath.startsWith(rootPath + '/')
+            ? entry.filePath.slice(rootPath.length + 1)
+            : entry.filePath
+        )
+      );
+    }
+  }
+
   // 5. Run association engine
   const resolvers =
     options.resolvers ??
     (options.astEnabled
-      ? [...createDefaultResolvers(options.frameworks), new AstStructuralResolver()]
-      : createDefaultResolvers(options.frameworks));
+      ? [
+          ...createDefaultResolvers(options.frameworks, {
+            firstPartyRoots: options.firstPartyRoots,
+          }),
+          new AstStructuralResolver(),
+        ]
+      : createDefaultResolvers(options.frameworks, {
+          firstPartyRoots: options.firstPartyRoots,
+        }));
   const engine = new AssociationEngine(db, resolvers, {
     includeHeuristics: options.includeHeuristics ?? false,
     onProgress: report,

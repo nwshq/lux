@@ -29,6 +29,7 @@ import { buildVueComponentNodes } from '../vue/materialize.js';
 import { VueEventResolver } from '../vue/event-resolver.js';
 import { buildVueEventNodes } from '../vue/event-materialize.js';
 import { resolveLivewire } from './framework/laravel/livewire-resolver.js';
+import { NovaAssociationResolver, resolveNova } from './framework/laravel/nova-resolver.js';
 import { AstStructuralResolver } from '../ast/resolver.js';
 import { AssociationEngine } from './engine.js';
 import { createDefaultResolvers } from './framework/index.js';
@@ -164,25 +165,34 @@ export async function refreshOverlayScoped(
   const changedPaths = changed.map((c) => c.relPath);
   const closure = await computeReverseImportClosure(db, rootPath, changed);
   let R = [...new Set([...changedPaths, ...closure])];
-  // Component resolution needs the complete materialized Vue universe. When any SFC changes, repair
-  // all persisted Vue files together (plus newly added paths) so an R-local parent can still resolve
-  // a child outside the original reverse-import closure and vice versa.
-  if (changedPaths.some((path) => path.toLowerCase().endsWith('.vue'))) {
-    const persistedVue = db
-      .getLocalStructuralNodesByType('file')
-      .map((node) => node.file_path)
-      .filter((path): path is string => Boolean(path?.toLowerCase().endsWith('.vue')));
-    R = [...new Set([...R, ...persistedVue])];
-  }
-  // Livewire resolution is intentionally whole-program: registrations, namespaces, class roots,
-  // and Blade mounts may live in separate files. Any PHP/Blade change therefore repairs the full
-  // persisted PHP+Blade universe rather than producing a partial graph from an R-local context.
-  if (changedPaths.some((path) => path.toLowerCase().endsWith('.php'))) {
-    const persistedPhp = db
-      .getLocalStructuralNodesByType('file')
-      .map((node) => node.file_path)
-      .filter((path): path is string => Boolean(path?.toLowerCase().endsWith('.php')));
-    R = [...new Set([...R, ...persistedPhp])];
+  const persistedSourcePaths = db
+    .getLocalStructuralNodesByType('file')
+    .map((node) => node.file_path)
+    .filter((path): path is string => Boolean(path));
+  // Nova joins registrations/resources in PHP to JS/TS entrypoints and Vue SFCs. Its scoped
+  // invalidation unit is therefore the complete PHP/JS/Vue program whenever any member changes.
+  // This also subsumes the existing whole-Vue component and whole-PHP Livewire requirements.
+  if (config.frameworks?.nova.enabled && changedPaths.some((path) => isNovaProgramPath(path))) {
+    R = [...new Set([...R, ...persistedSourcePaths.filter(isNovaProgramPath)])];
+  } else {
+    // Component resolution needs the complete materialized Vue universe.
+    if (changedPaths.some((path) => path.toLowerCase().endsWith('.vue'))) {
+      R = [
+        ...new Set([
+          ...R,
+          ...persistedSourcePaths.filter((path) => path.toLowerCase().endsWith('.vue')),
+        ]),
+      ];
+    }
+    // Livewire registrations, namespaces, class roots, and Blade mounts are whole-PHP.
+    if (changedPaths.some((path) => path.toLowerCase().endsWith('.php'))) {
+      R = [
+        ...new Set([
+          ...R,
+          ...persistedSourcePaths.filter((path) => path.toLowerCase().endsWith('.php')),
+        ]),
+      ];
+    }
   }
   const deletedPaths = new Set(changed.filter((c) => c.status === 'deleted').map((c) => c.relPath));
   const rematPaths = R.filter((p) => !deletedPaths.has(p)); // deleted files: nodes stay deleted
@@ -288,6 +298,16 @@ export async function refreshOverlayScoped(
     });
     context.nodes = db.getStructuralNodesForFilePaths(rematPaths);
   }
+  const novaResolver = new NovaAssociationResolver();
+  if (config.frameworks?.nova.enabled && novaResolver.supports(context)) {
+    const nova = resolveNova(context, { now: () => now });
+    if (nova.nodes.length) {
+      db.transaction(() => {
+        for (const node of nova.nodes) db.upsertStructuralNode(node);
+      });
+      context.nodes = db.getStructuralNodesForFilePaths(rematPaths);
+    }
+  }
   const resolvers = [
     ...createDefaultResolvers(config.frameworks),
     new AstStructuralResolver({ verifyExternalTarget: (id) => db.getStructuralNode(id) !== null }),
@@ -363,6 +383,10 @@ export async function refreshOverlayScoped(
 // ---------------------------------------------------------------------------
 // Local helpers
 // ---------------------------------------------------------------------------
+
+function isNovaProgramPath(filePath: string): boolean {
+  return /(?:\.php|\.vue|\.[cm]?[jt]sx?)$/iu.test(filePath);
+}
 
 function safeHead(rootPath: string): string | undefined {
   try {

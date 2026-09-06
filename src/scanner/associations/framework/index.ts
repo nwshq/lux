@@ -14,6 +14,7 @@ import {
 } from '../../vue/association-wrapper.js';
 import { InertiaAssociationResolver } from './laravel/inertia-resolver.js';
 import { LivewireAssociationResolver } from './laravel/livewire-resolver.js';
+import { NovaAssociationResolver } from './laravel/nova-resolver.js';
 import type { FrontendFrameworkConfigV1 } from '../../config.js';
 import type { AssociationResolver } from '../types.js';
 
@@ -22,9 +23,10 @@ import type { AssociationResolver } from '../types.js';
  * Pass the result to AssociationEngine to run the full default pack.
  */
 export function createDefaultResolvers(
-  frameworks?: FrontendFrameworkConfigV1
+  frameworks?: FrontendFrameworkConfigV1,
+  options: { firstPartyRoots?: readonly string[] } = {}
 ): AssociationResolver[] {
-  return [
+  const resolvers: AssociationResolver[] = [
     new LaravelBoundaryEvidenceResolver(),
     new VueComponentAssociationResolver(),
     new VueComposableAssociationResolver(),
@@ -49,4 +51,9 @@ export function createDefaultResolvers(
         : undefined,
     }),
   ];
+  // Keep established precedence intact: Nova is an opt-in tail resolver after Livewire.
+  if (frameworks?.nova.enabled) {
+    resolvers.push(new NovaAssociationResolver({ firstPartyRoots: options.firstPartyRoots }));
+  }
+  return resolvers;
 }

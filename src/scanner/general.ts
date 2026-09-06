@@ -672,6 +672,7 @@ export async function generalScan(
         // analysis above; let the overlay build one complete context rather than reusing a partial one.
         programAnalysis: firstPartySource.length === 0 ? projectAnalysis : undefined,
         frameworks: config.frameworks,
+        firstPartyRoots,
       });
       report(
         `Overlay complete: ${overlay.fileNodes} file node(s), ${overlay.symbolNodes} symbol node(s), ` +
