@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "phase": 12,
+  "implementationSha": "2b5acdc1aedbe3620321f3c1b3d1122101ff907c",
+  "mergeSha": "d66ea1bbd965f1daa0f54bd5fd71584b7701185b",
+  "baselineSha": "c432f7b3b51c090da0f4a8a0f32b9cc79080275c",
+  "criteria": [
+    {
+      "id": "P12-C1",
+      "class": "static-inertia-page-hydration",
+      "green": {
+        "command": "vitest run Phase 12 focused acceptance suites; static cohort scoring; watched-red controls; repeated stable-digest checks",
+        "exitCode": 0,
+        "observable": "All 39 focused tests passed; the static cohort passed 24 positive and 13 forbidden cases, meeting the >=20 positive and >=10 forbidden thresholds at precision 1 and recall 1; all 8 watched mutations were detected; repeated observations produced equal stable digest 73915b908f4b3d130f620611b5599fa6eaec4aa0f412fc6c7e6a67f253a6813e"
+      },
+      "red": {
+        "mutation": "eight-watched-resolution-provenance-invalidation-and-edge-contract-regressions",
+        "command": "vitest run src/integration/__tests__/phase-12-acceptance.test.ts with each watched mutation",
+        "exitCode": 1,
+        "observable": "Each of the 8 watched repository search, resolver execution, provenance, page-response, dynamic page, fingerprint, required-edge, and forbidden-edge mutations produced a nonzero checker exit"
+      },
+      "verifiedBy": "independent-static-cohort-watched-mutation-invalidation-and-stable-digest-validation"
+    },
+    {
+      "id": "P12-C2",
+      "class": "performance-and-compatibility",
+      "green": {
+        "command": "three warmups plus five measured Phase 12 semantic runs; npm run check; architecture, dead-code, documentation, native-free, and remaining repository gates",
+        "exitCode": 0,
+        "observable": "After 3 warmups, median wall was 6.563250000000011 ms across 5 measured runs with observed process RSS 87998464 bytes and equal stable digest 73915b908f4b3d130f620611b5599fa6eaec4aa0f412fc6c7e6a67f253a6813e; the final npm run check exited 0 with 1972 passed, 13 skipped, and 0 failed; 9/9 gates passed; architecture lint checked 204 files with 0 violations, architecture tests passed 5, dead-code validation checked 1072 exports across 197 files, documentation verification checked 12 tools across 3 lists, and native-free verification passed"
+      },
+      "red": {
+        "mutation": "watched-static-inertia-semantics-regressions",
+        "command": "vitest run src/integration/__tests__/phase-12-acceptance.test.ts with watched mutations",
+        "exitCode": 1,
+        "observable": "The compatibility battery rejects all 8 watched static Inertia resolution, provenance, invalidation, and edge-contract regressions with nonzero checker exits"
+      },
+      "verifiedBy": "independent-performance-static-full-suite-and-compatibility-validation"
+    },
+    {
+      "id": "P12-C3",
+      "class": "review-and-release",
+      "green": {
+        "command": "GitHub PR #106 CI/Release; global CLI/package, MCP, and installed Goose plugin verification",
+        "exitCode": 0,
+        "observable": "PR #106 merged green as d66ea1bbd965f1daa0f54bd5fd71584b7701185b; v2.28.0 release and lux-v2.28.0-linux-x64.tar.gz published with sha256:395af86a211e7443afd6b1a054c46c3583b57e6353bff996914e8e2c22a695bb; global CLI/package and MCP report 2.28.0 with 12 tools; the Goose plugin is at d66ea1b and preserves the namespaced Skill; Phase 11 v2.27.0 was the released dependency"
+      },
+      "red": {
+        "mutation": "expect-prior-version",
+        "command": "installed CLI/package and MCP version check",
+        "exitCode": 1,
+        "observable": "installed 2.28.0 differs from the prior released dependency 2.27.0 sentinel"
+      },
+      "verifiedBy": "github-ci-release-global-cli-mcp-and-goose-plugin-verification"
+    }
+  ],
+  "knownBaselineFailures": [],
+  "review": {
+    "codeReview": "APPROVED",
+    "independentValidation": "Adversarial review APPROVED and independent acceptance APPROVED; static cohort 24 positive and 13 forbidden cases met the >=20/10 thresholds at precision/recall 1, all 8 watched mutations were detected, 39 focused tests passed, final npm run check exited 0 with 1972 passed/13 skipped/0 failed and 9/9 gates, architecture lint 204 files/0 violations, architecture tests 5, dead-code validation 1072 exports/197 files, documentation verification 12 tools/3 lists, native-free verification passed, equal stable digest 73915b908f4b3d130f620611b5599fa6eaec4aa0f412fc6c7e6a67f253a6813e, 3+5 performance median 6.563250000000011 ms with RSS 87998464 bytes, global CLI/package and MCP 2.28.0 with 12 tools, and Goose plugin d66ea1b namespaced-Skill verification passed",
+    "acceptanceReview": "APPROVED"
+  },
+  "exemptions": []
+}
