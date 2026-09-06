@@ -7,6 +7,7 @@ export const TREE_SITTER_PRODUCERS = {
   php: 'php-tree-sitter',
   typescript: 'typescript-tree-sitter',
   javascript: 'javascript-tree-sitter',
+  vue: 'vue-compiler-sfc',
 } as const;
 
 function emptyFacts(input: AdapterInputV1, diagnostic: SourceDiagnosticV1): SourceFactsV1 {
@@ -55,11 +56,13 @@ const javascriptTreeSitterAdapter = adapter(TREE_SITTER_PRODUCERS.javascript, [
   'javascript',
   'jsx',
 ]);
+const vueCompilerSfcAdapter = adapter(TREE_SITTER_PRODUCERS.vue, ['vue']);
 
 const DEFAULT_SOURCE_ADAPTERS: readonly SourceAdapterV1[] = [
   phpTreeSitterAdapter,
   typescriptTreeSitterAdapter,
   javascriptTreeSitterAdapter,
+  vueCompilerSfcAdapter,
 ];
 
 export function sourceAdapterForLanguage(language: string): SourceAdapterV1 | undefined {

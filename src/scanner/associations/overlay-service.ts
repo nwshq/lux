@@ -21,6 +21,7 @@ import { materializeAstSymbols } from '../ast/materialize.js';
 import type { SharedExtractions } from '../ast/extraction-cache.js';
 import { analyzeProgram, type ProgramAnalysisV1 } from '../adapters/program-analysis.js';
 import { AstStructuralResolver } from '../ast/resolver.js';
+import { buildVueComponentNodes } from '../vue/materialize.js';
 import { AssociationEngine } from './engine.js';
 import { createDefaultResolvers } from './framework/index.js';
 import type { AssociationContext, AssociationResolver } from './types.js';
@@ -169,12 +170,31 @@ export async function rebuildStructuralOverlay(
     }
   }
 
+  // 3c. Vue components must exist before render edges can reference them.
+  if (programAnalysis?.vueFacts.length) {
+    const vueNodes = buildVueComponentNodes(
+      programAnalysis.vueFacts,
+      Math.floor(Date.now() / 1000)
+    );
+    db.transaction(() => {
+      for (const node of vueNodes) db.upsertStructuralNode(node);
+    });
+    symbolNodes += vueNodes.length;
+  }
+
   // 4. Assemble association context
   const entries = buildContextEntries(scan, enrichments, rootPath);
+  const materializedNodes = db.getStructuralNodesForFilePaths(
+    scan.knowledge.map((entry) =>
+      entry.filePath.startsWith(rootPath + '/')
+        ? entry.filePath.slice(rootPath.length + 1)
+        : entry.filePath
+    )
+  );
 
   const context: AssociationContext = {
     rootPath,
-    nodes: [], // engine fetches nodes from DB via getStructuralNode() as needed
+    nodes: materializedNodes,
     entries,
     currentCommit,
     dirtyFiles,

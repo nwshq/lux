@@ -1,0 +1,3083 @@
+[
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-01-setup-pascal",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/script-setup/Parent01.vue",
+        "source": "<script setup>\nimport Child01 from \"./Child01.vue\"\n</script>\n<template><Child01 /></template>",
+        "existingFiles": ["fixtures/components/script-setup/Child01.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FParent01.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FChild01.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "fixture": {
+      "rootPath": ".",
+      "layout": [
+        "fixtures/components/ambiguous/Bindings.vue",
+        "fixtures/components/ambiguous/MissingChild.vue",
+        "fixtures/components/ambiguous/Parent08.vue",
+        "fixtures/components/ambiguous/Parent09.vue",
+        "fixtures/components/ambiguous/Unknown.vue",
+        "fixtures/components/ambiguous/a/Child.vue",
+        "fixtures/components/ambiguous/a/Item.vue",
+        "fixtures/components/ambiguous/b/Child.vue",
+        "fixtures/components/ambiguous/b/Item.vue",
+        "fixtures/components/async/Child.vue",
+        "fixtures/components/async/Child12.vue",
+        "fixtures/components/async/Child27.vue",
+        "fixtures/components/async/DynamicImport.vue",
+        "fixtures/components/async/Factory.vue",
+        "fixtures/components/async/Parent12.vue",
+        "fixtures/components/async/Parent27.vue",
+        "fixtures/components/composition/Child16.vue",
+        "fixtures/components/composition/Child31.vue",
+        "fixtures/components/composition/NormalChild.vue",
+        "fixtures/components/composition/Parent15.vue",
+        "fixtures/components/composition/Parent16.vue",
+        "fixtures/components/composition/Parent31.vue",
+        "fixtures/components/composition/SetupChild.vue",
+        "fixtures/components/cycles/A.vue",
+        "fixtures/components/cycles/B.vue",
+        "fixtures/components/dynamic/BuiltinKeepAlive.vue",
+        "fixtures/components/dynamic/BuiltinSlot.vue",
+        "fixtures/components/dynamic/BuiltinSuspense.vue",
+        "fixtures/components/dynamic/BuiltinTeleport.vue",
+        "fixtures/components/dynamic/BuiltinTransition.vue",
+        "fixtures/components/dynamic/Child.vue",
+        "fixtures/components/dynamic/Child10.vue",
+        "fixtures/components/dynamic/ChildEleven.vue",
+        "fixtures/components/dynamic/DynamicBindIs.vue",
+        "fixtures/components/dynamic/DynamicIs.vue",
+        "fixtures/components/dynamic/KeepAlive.vue",
+        "fixtures/components/dynamic/NativeHtml.vue",
+        "fixtures/components/dynamic/NativeSvg.vue",
+        "fixtures/components/dynamic/NoIs.vue",
+        "fixtures/components/dynamic/Parent10.vue",
+        "fixtures/components/dynamic/Parent11.vue",
+        "fixtures/components/dynamic/Pug.vue",
+        "fixtures/components/dynamic/ScriptSrc.vue",
+        "fixtures/components/dynamic/Suspense.vue",
+        "fixtures/components/dynamic/Teleport.vue",
+        "fixtures/components/dynamic/Transition.vue",
+        "fixtures/components/dynamic/div.vue",
+        "fixtures/components/dynamic/slot.vue",
+        "fixtures/components/dynamic/svg.vue",
+        "fixtures/components/limits/p09-limit-boundary-maxBytes.vue",
+        "fixtures/components/limits/p09-limit-boundary-maxDepth.vue",
+        "fixtures/components/limits/p09-limit-boundary-maxNodes.vue",
+        "fixtures/components/limits/p09-limit-boundary-maxReferences.vue",
+        "fixtures/components/limits/p09-limit-boundary-maxResultBytes.vue",
+        "fixtures/components/limits/p09-limit-boundary-timeoutMs.vue",
+        "fixtures/components/limits/p09-limit-hostile-maxBytes.vue",
+        "fixtures/components/limits/p09-limit-hostile-maxDepth.vue",
+        "fixtures/components/limits/p09-limit-hostile-maxNodes.vue",
+        "fixtures/components/limits/p09-limit-hostile-maxReferences.vue",
+        "fixtures/components/limits/p09-limit-hostile-maxResultBytes.vue",
+        "fixtures/components/limits/p09-limit-hostile-timeoutMs.vue",
+        "fixtures/components/malformed/Child.vue",
+        "fixtures/components/malformed/Recoverable.vue",
+        "fixtures/components/options/Child.vue",
+        "fixtures/components/options/Child17.vue",
+        "fixtures/components/options/Child18.vue",
+        "fixtures/components/options/Child19.vue",
+        "fixtures/components/options/Child20.vue",
+        "fixtures/components/options/Child21.vue",
+        "fixtures/components/options/Child22.vue",
+        "fixtures/components/options/Parent17.vue",
+        "fixtures/components/options/Parent18.vue",
+        "fixtures/components/options/Parent19.vue",
+        "fixtures/components/options/Parent20.vue",
+        "fixtures/components/options/Parent21.vue",
+        "fixtures/components/options/Parent22.vue",
+        "fixtures/components/options/Unregistered.vue",
+        "fixtures/components/script-setup/CardPanel.vue",
+        "fixtures/components/script-setup/Child.vue",
+        "fixtures/components/script-setup/Child01.vue",
+        "fixtures/components/script-setup/Child02.vue",
+        "fixtures/components/script-setup/Child04.vue",
+        "fixtures/components/script-setup/Child05.vue",
+        "fixtures/components/script-setup/Child23.vue",
+        "fixtures/components/script-setup/Child24.vue",
+        "fixtures/components/script-setup/Child25.vue",
+        "fixtures/components/script-setup/Child26A.vue",
+        "fixtures/components/script-setup/Child26B.vue",
+        "fixtures/components/script-setup/Child28.vue",
+        "fixtures/components/script-setup/Child29.vue",
+        "fixtures/components/script-setup/Child30.vue",
+        "fixtures/components/script-setup/Parent01.vue",
+        "fixtures/components/script-setup/Parent02.vue",
+        "fixtures/components/script-setup/Parent03.vue",
+        "fixtures/components/script-setup/Parent04.vue",
+        "fixtures/components/script-setup/Parent05.vue",
+        "fixtures/components/script-setup/Parent07.vue",
+        "fixtures/components/script-setup/Parent23.vue",
+        "fixtures/components/script-setup/Parent24.vue",
+        "fixtures/components/script-setup/Parent25.vue",
+        "fixtures/components/script-setup/Parent26.vue",
+        "fixtures/components/script-setup/Parent28.vue",
+        "fixtures/components/script-setup/Parent29.vue",
+        "fixtures/components/script-setup/Parent30.vue",
+        "fixtures/components/script-setup/Unused.vue",
+        "fixtures/components/script-setup/children/Child06.vue",
+        "fixtures/components/script-setup/parents/Parent06.vue",
+        "fixtures/components/shared/Child07.vue",
+        "fixtures/components/unicode/Child13.vue",
+        "fixtures/components/unicode/Child14.vue",
+        "fixtures/components/unicode/Child34.vue",
+        "fixtures/components/unicode/Parent13.vue",
+        "fixtures/components/unicode/Parent14.vue",
+        "fixtures/components/unicode/Parent34.vue"
+      ],
+      "subtrees": [
+        "script-setup",
+        "composition",
+        "options",
+        "async",
+        "unicode",
+        "malformed",
+        "dynamic",
+        "ambiguous",
+        "cycles",
+        "limits"
+      ]
+    },
+    "parserLimits": {
+      "maxBytes": 2097152,
+      "maxDepth": 128,
+      "maxNodes": 100000,
+      "maxReferences": 10000,
+      "timeoutMs": 5000,
+      "maxResultBytes": 8388608
+    },
+    "mappingSpike": {
+      "verdict": "HOLDS",
+      "malformedCorrection": "compiler errors force partial or failed coverage",
+      "corpus": "auctic-core",
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409",
+      "owner": "Example Maintainer",
+      "sourcePath": "resources/js/admin-ui/views/users/views/ViewUser/components/MainPanel/components/UserDetails.vue",
+      "sourceSha256": "195f72d4a182e38cfaf4a3e08f2a0bc4c44ca546143114997b8d60541b61f0c1",
+      "scriptSetupStartOffset": 14,
+      "templateStartOffset": 2348,
+      "positive": {
+        "shift": 0,
+        "expectedExitCode": 0,
+        "expectedMatches": [true, true]
+      },
+      "oneByteShift": {
+        "shift": 1,
+        "expectedExitCode": 1,
+        "expectedMatches": [false, false]
+      },
+      "malformed": {
+        "source": "<template><section><Child /></template>\n<script setup>import Child from \"./Child.vue\"</script>",
+        "expectedExitCode": 0,
+        "minimumCompilerErrors": 1,
+        "expectedCoverage": "partial"
+      }
+    },
+    "watchedMutations": [
+      {
+        "id": "offset-plus-one",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p09-auctic-user-details-renders-children"
+      },
+      {
+        "id": "treat-compiler-errors-clean",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p09-positive-35-malformed-recoverable"
+      },
+      {
+        "id": "map-utf8-bytes-as-utf16-units",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p09-positive-34-unicode-nonbmp-column"
+      },
+      {
+        "id": "emit-imported-unused",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p09-forbidden-imported-unused"
+      },
+      {
+        "id": "emit-native-tag",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p09-forbidden-native-html"
+      },
+      {
+        "id": "emit-dynamic-tag",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p09-forbidden-dynamic-is"
+      },
+      {
+        "id": "salt-vue-component-id",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p09-positive-01-setup-pascal"
+      },
+      {
+        "id": "salt-identity",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p09-positive-01-setup-pascal"
+      },
+      {
+        "id": "remove-required-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p09-positive-01-setup-pascal"
+      },
+      {
+        "id": "insert-forbidden-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p09-forbidden-imported-unused"
+      },
+      {
+        "id": "drop-output-without-volar",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p09-positive-01-setup-pascal"
+      },
+      {
+        "id": "duplicate-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p09-positive-01-setup-pascal"
+      },
+      {
+        "id": "dangle-target",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p09-positive-01-setup-pascal"
+      },
+      {
+        "id": "reverse-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p09-positive-01-setup-pascal"
+      },
+      {
+        "id": "lower-max-bytes",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p09-limit-boundary-maxBytes"
+      },
+      {
+        "id": "lower-max-depth",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p09-limit-boundary-maxDepth"
+      },
+      {
+        "id": "lower-max-nodes",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p09-limit-boundary-maxNodes"
+      },
+      {
+        "id": "lower-max-references",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p09-limit-boundary-maxReferences"
+      },
+      {
+        "id": "lower-timeout",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p09-limit-boundary-timeoutMs"
+      },
+      {
+        "id": "lower-max-result-bytes",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p09-limit-boundary-maxResultBytes"
+      }
+    ],
+    "performanceProtocol": {
+      "warmups": 3,
+      "measurements": 5,
+      "maxRegressionRatio": 1.2,
+      "baselineWallMs": 1000,
+      "baselineRssBytes": 268435456
+    }
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-02-setup-kebab",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/script-setup/Parent02.vue",
+        "source": "<script setup>\nimport Child02 from \"./Child02.vue\"\n</script>\n<template><child-02 /></template>",
+        "existingFiles": ["fixtures/components/script-setup/Child02.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FParent02.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FChild02.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-03-default-alias",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/script-setup/Parent03.vue",
+        "source": "<script setup>\nimport RenamedCard from \"./CardPanel.vue\"\n</script>\n<template><renamed-card /></template>",
+        "existingFiles": ["fixtures/components/script-setup/CardPanel.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FParent03.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FCardPanel.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-04-named-default",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/script-setup/Parent04.vue",
+        "source": "<script setup>\nimport { default as Child04 } from \"./Child04.vue\"\n</script>\n<template><Child04 /></template>",
+        "existingFiles": ["fixtures/components/script-setup/Child04.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FParent04.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FChild04.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-05-named-alias",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/script-setup/Parent05.vue",
+        "source": "<script setup>\nimport { Child05 as LocalFive } from \"./Child05.vue\"\n</script>\n<template><local-five /></template>",
+        "existingFiles": ["fixtures/components/script-setup/Child05.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FParent05.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FChild05.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-06-nested-relative",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/script-setup/parents/Parent06.vue",
+        "source": "<script setup>\nimport Child06 from \"../children/Child06.vue\"\n</script>\n<template><Child06 /></template>",
+        "existingFiles": ["fixtures/components/script-setup/children/Child06.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2Fparents%2FParent06.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2Fchildren%2FChild06.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-07-project-alias",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/script-setup/Parent07.vue",
+        "source": "<script setup>\nimport Child07 from \"@components/Child07.vue\"\n</script>\n<template><Child07 /></template>",
+        "existingFiles": ["fixtures/components/shared/Child07.vue"],
+        "resolutions": {
+          "@components/Child07.vue": "fixtures/components/shared/Child07.vue"
+        }
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FParent07.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fshared%2FChild07.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-08-duplicate-basename-a",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/ambiguous/Parent08.vue",
+        "source": "<script setup>\nimport AItem from \"./a/Item.vue\"\n</script>\n<template><AItem /></template>",
+        "existingFiles": ["fixtures/components/ambiguous/a/Item.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fambiguous%2FParent08.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fambiguous%2Fa%2FItem.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-09-duplicate-basename-b",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/ambiguous/Parent09.vue",
+        "source": "<script setup>\nimport BItem from \"./b/Item.vue\"\n</script>\n<template><BItem /></template>",
+        "existingFiles": ["fixtures/components/ambiguous/b/Item.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fambiguous%2FParent09.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fambiguous%2Fb%2FItem.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-10-component-static-is",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/dynamic/Parent10.vue",
+        "source": "<script setup>\nimport Child10 from \"./Child10.vue\"\n</script>\n<template><component is=\"Child10\" /></template>",
+        "existingFiles": ["fixtures/components/dynamic/Child10.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FParent10.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FChild10.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-11-component-static-is-kebab",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/dynamic/Parent11.vue",
+        "source": "<script setup>\nimport ChildEleven from \"./ChildEleven.vue\"\n</script>\n<template><component is=\"child-eleven\" /></template>",
+        "existingFiles": ["fixtures/components/dynamic/ChildEleven.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FParent11.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FChildEleven.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-12-async-literal",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/async/Parent12.vue",
+        "source": "<script setup>\nimport { defineAsyncComponent } from \"vue\"\nconst Child12 = defineAsyncComponent(() => import(\"./Child12.vue\"))\n</script>\n<template><Child12 /></template>",
+        "existingFiles": ["fixtures/components/async/Child12.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fasync%2FParent12.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fasync%2FChild12.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-13-unicode-script-prefix",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/unicode/Parent13.vue",
+        "source": "<script setup>\nconst greeting = \"雪😀\"\nimport Child13 from \"./Child13.vue\"\n</script>\n<template><Child13 /></template>",
+        "existingFiles": ["fixtures/components/unicode/Child13.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Funicode%2FParent13.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Funicode%2FChild13.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "expectedScriptImportLocation": {
+      "line": 3,
+      "column": 0
+    }
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-14-unicode-template-prefix",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/unicode/Parent14.vue",
+        "source": "<script setup>\nimport Child14 from \"./Child14.vue\"\n</script>\n<template><p>雪😀</p><Child14 /></template>",
+        "existingFiles": ["fixtures/components/unicode/Child14.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Funicode%2FParent14.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Funicode%2FChild14.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "expectedTemplateElementLocation": {
+      "line": 4,
+      "column": 20
+    }
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-15-script-and-setup",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/composition/Parent15.vue",
+        "source": "<script>\nimport NormalChild from \"./NormalChild.vue\"\nexport default { components: { NormalChild } }\n</script>\n<script setup>\nimport SetupChild from \"./SetupChild.vue\"\n</script>\n<template><NormalChild/><SetupChild/></template>",
+        "existingFiles": [
+          "fixtures/components/composition/NormalChild.vue",
+          "fixtures/components/composition/SetupChild.vue"
+        ],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fcomposition%2FParent15.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fcomposition%2FNormalChild.vue",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fcomposition%2FParent15.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fcomposition%2FSetupChild.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-16-composition-components",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/composition/Parent16.vue",
+        "source": "<script>\nimport Child16 from \"./Child16.vue\"\nexport default { components: { Child16 }, setup() { return {} } }\n</script>\n<template><Child16 /></template>",
+        "existingFiles": ["fixtures/components/composition/Child16.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fcomposition%2FParent16.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fcomposition%2FChild16.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-17-options-shorthand",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/options/Parent17.vue",
+        "source": "<script>\nimport Child17 from \"./Child17.vue\"\nexport default { components: { Child17 } }\n</script>\n<template><Child17 /></template>",
+        "existingFiles": ["fixtures/components/options/Child17.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Foptions%2FParent17.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Foptions%2FChild17.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-18-options-alias",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/options/Parent18.vue",
+        "source": "<script>\nimport Child18 from \"./Child18.vue\"\nexport default { components: { AliasEighteen: Child18 } }\n</script>\n<template><AliasEighteen /></template>",
+        "existingFiles": ["fixtures/components/options/Child18.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Foptions%2FParent18.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Foptions%2FChild18.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-19-options-alias-kebab",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/options/Parent19.vue",
+        "source": "<script>\nimport Child19 from \"./Child19.vue\"\nexport default { components: { FancyChild: Child19 } }\n</script>\n<template><fancy-child /></template>",
+        "existingFiles": ["fixtures/components/options/Child19.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Foptions%2FParent19.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Foptions%2FChild19.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-20-options-named-import",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/options/Parent20.vue",
+        "source": "<script>\nimport { default as Twenty } from \"./Child20.vue\"\nexport default { components: { Twenty } }\n</script>\n<template><Twenty /></template>",
+        "existingFiles": ["fixtures/components/options/Child20.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Foptions%2FParent20.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Foptions%2FChild20.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-21-options-alias-import",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/options/Parent21.vue",
+        "source": "<script>\nimport ActualChild from \"./Child21.vue\"\nexport default { components: { PublicChild: ActualChild } }\n</script>\n<template><public-child /></template>",
+        "existingFiles": ["fixtures/components/options/Child21.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Foptions%2FParent21.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Foptions%2FChild21.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-22-options-static-is",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/options/Parent22.vue",
+        "source": "<script>\nimport Child22 from \"./Child22.vue\"\nexport default { components: { Child22 } }\n</script>\n<template><component is=\"Child22\" /></template>",
+        "existingFiles": ["fixtures/components/options/Child22.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Foptions%2FParent22.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Foptions%2FChild22.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-23-paired-tag",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/script-setup/Parent23.vue",
+        "source": "<script setup>import Child23 from \"./Child23.vue\"</script><template><Child23></Child23></template>",
+        "existingFiles": ["fixtures/components/script-setup/Child23.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FParent23.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FChild23.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-24-multiline-tag",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/script-setup/Parent24.vue",
+        "source": "<script setup>\nimport Child24 from \"./Child24.vue\"\n</script><template>\n<Child24\n  data-test=\"child\"\n/>\n</template>",
+        "existingFiles": ["fixtures/components/script-setup/Child24.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FParent24.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FChild24.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-25-deduplicated-render",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/script-setup/Parent25.vue",
+        "source": "<script setup>import Child25 from \"./Child25.vue\"</script><template><Child25/><child-25/></template>",
+        "existingFiles": ["fixtures/components/script-setup/Child25.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FParent25.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FChild25.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-26-two-children",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/script-setup/Parent26.vue",
+        "source": "<script setup>\nimport Child26A from \"./Child26A.vue\"\nimport Child26B from \"./Child26B.vue\"\n</script><template><Child26A/><Child26B/></template>",
+        "existingFiles": [
+          "fixtures/components/script-setup/Child26A.vue",
+          "fixtures/components/script-setup/Child26B.vue"
+        ],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FParent26.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FChild26A.vue",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FParent26.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FChild26B.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-27-async-aliased",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/async/Parent27.vue",
+        "source": "<script setup>\nimport { defineAsyncComponent as asyncComponent } from \"vue\"\nconst LazyTwentySeven = asyncComponent(() => import(\"./Child27.vue\"))\n</script><template><LazyTwentySeven/></template>",
+        "existingFiles": ["fixtures/components/async/Child27.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fasync%2FParent27.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fasync%2FChild27.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-28-lang-ts",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/script-setup/Parent28.vue",
+        "source": "<script setup lang=\"ts\">\nimport Child28 from \"./Child28.vue\"\nconst count: number = 1\n</script><template><Child28/></template>",
+        "existingFiles": ["fixtures/components/script-setup/Child28.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FParent28.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FChild28.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-29-lang-js",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/script-setup/Parent29.vue",
+        "source": "<script setup lang=\"js\">import Child29 from \"./Child29.vue\"</script><template><Child29/></template>",
+        "existingFiles": ["fixtures/components/script-setup/Child29.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FParent29.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FChild29.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-30-template-before-script",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/script-setup/Parent30.vue",
+        "source": "<template><Child30/></template><script setup>import Child30 from \"./Child30.vue\"</script>",
+        "existingFiles": ["fixtures/components/script-setup/Child30.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FParent30.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FChild30.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-31-agreeing-duplicate-binding",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/composition/Parent31.vue",
+        "source": "<script>import Child31 from \"./Child31.vue\"; export default { components: { Child31 } }</script><script setup>import Child31 from \"./Child31.vue\"</script><template><Child31/></template>",
+        "existingFiles": ["fixtures/components/composition/Child31.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fcomposition%2FParent31.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fcomposition%2FChild31.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-32-cycle-a-to-b",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/cycles/A.vue",
+        "source": "<script setup>import B from \"./B.vue\"</script><template><B/></template>",
+        "existingFiles": ["fixtures/components/cycles/B.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fcycles%2FA.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fcycles%2FB.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-33-cycle-b-to-a",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/cycles/B.vue",
+        "source": "<script setup>import A from \"./A.vue\"</script><template><A/></template>",
+        "existingFiles": ["fixtures/components/cycles/A.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fcycles%2FB.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fcycles%2FA.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-34-unicode-nonbmp-column",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/unicode/Parent34.vue",
+        "source": "<script setup>const marker=\"😀\"; import Child34 from \"./Child34.vue\"</script><template><span>😀</span>  <Child34/></template>",
+        "existingFiles": ["fixtures/components/unicode/Child34.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Funicode%2FParent34.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Funicode%2FChild34.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "expectedScriptImportLocation": {
+      "line": 1,
+      "column": 33
+    },
+    "expectedTemplateElementLocation": {
+      "line": 1,
+      "column": 104
+    }
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-positive-35-malformed-recoverable",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/malformed/Recoverable.vue",
+        "source": "<template><section><Child /></template>\n<script setup>import Child from \"./Child.vue\"</script>",
+        "existingFiles": ["fixtures/components/malformed/Child.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fmalformed%2FRecoverable.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fmalformed%2FChild.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["compiler-error"]
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-forbidden-imported-unused",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/script-setup/Unused.vue",
+        "source": "<script setup>import Child from \"./Child.vue\"</script><template><p>unused</p></template>",
+        "existingFiles": ["fixtures/components/script-setup/Child.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FUnused.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fscript-setup%2FChild.vue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-forbidden-native-html",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/dynamic/NativeHtml.vue",
+        "source": "<template><div/></template>",
+        "existingFiles": ["fixtures/components/dynamic/div.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FNativeHtml.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fdynamic%2Fdiv.vue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-forbidden-native-svg",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/dynamic/NativeSvg.vue",
+        "source": "<template><svg><path/></svg></template>",
+        "existingFiles": ["fixtures/components/dynamic/svg.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FNativeSvg.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fdynamic%2Fsvg.vue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-forbidden-builtin-teleport",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/dynamic/BuiltinTeleport.vue",
+        "source": "<template><Teleport to=\"body\"/></template>",
+        "existingFiles": ["fixtures/components/dynamic/Teleport.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FBuiltinTeleport.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FTeleport.vue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-forbidden-builtin-suspense",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/dynamic/BuiltinSuspense.vue",
+        "source": "<template><Suspense/></template>",
+        "existingFiles": ["fixtures/components/dynamic/Suspense.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FBuiltinSuspense.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FSuspense.vue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-forbidden-builtin-keepalive",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/dynamic/BuiltinKeepAlive.vue",
+        "source": "<template><KeepAlive/></template>",
+        "existingFiles": ["fixtures/components/dynamic/KeepAlive.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FBuiltinKeepAlive.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FKeepAlive.vue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-forbidden-builtin-transition",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/dynamic/BuiltinTransition.vue",
+        "source": "<template><Transition/></template>",
+        "existingFiles": ["fixtures/components/dynamic/Transition.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FBuiltinTransition.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FTransition.vue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-forbidden-builtin-slot-template",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/dynamic/BuiltinSlot.vue",
+        "source": "<template><slot/><template/></template>",
+        "existingFiles": ["fixtures/components/dynamic/slot.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FBuiltinSlot.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fdynamic%2Fslot.vue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-forbidden-dynamic-is",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/dynamic/DynamicIs.vue",
+        "source": "<script setup>import Child from \"./Child.vue\"; const selected=Child</script><template><component :is=\"selected\"/></template>",
+        "existingFiles": ["fixtures/components/dynamic/Child.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FDynamicIs.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FChild.vue"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["dynamic-component"],
+    "expectedRefusalReason": "vue-component-dynamic"
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-forbidden-dynamic-v-bind-is",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/dynamic/DynamicBindIs.vue",
+        "source": "<script setup>import Child from \"./Child.vue\"</script><template><component v-bind:is=\"choose()\"/></template>",
+        "existingFiles": ["fixtures/components/dynamic/Child.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FDynamicBindIs.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FChild.vue"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["dynamic-component"],
+    "expectedRefusalReason": "vue-component-dynamic"
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-forbidden-component-without-is",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/dynamic/NoIs.vue",
+        "source": "<script setup>import Child from \"./Child.vue\"</script><template><component/></template>",
+        "existingFiles": ["fixtures/components/dynamic/Child.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FNoIs.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FChild.vue"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-forbidden-unknown-tag",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/ambiguous/Unknown.vue",
+        "source": "<template><MissingChild/></template>",
+        "existingFiles": ["fixtures/components/ambiguous/MissingChild.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fambiguous%2FUnknown.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fambiguous%2FMissingChild.vue"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["unresolved-component"],
+    "expectedRefusalReason": "vue-component-missing"
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-forbidden-options-unregistered",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/options/Unregistered.vue",
+        "source": "<script>import Child from \"./Child.vue\"; export default { components: {} }</script><template><Child/></template>",
+        "existingFiles": ["fixtures/components/options/Child.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Foptions%2FUnregistered.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Foptions%2FChild.vue"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["unresolved-component"],
+    "expectedRefusalReason": "vue-component-missing"
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-forbidden-async-arbitrary-factory",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/async/Factory.vue",
+        "source": "<script setup>import { defineAsyncComponent } from \"vue\"; const Child=defineAsyncComponent(loadChild)</script><template><Child/></template>",
+        "existingFiles": ["fixtures/components/async/Child.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fasync%2FFactory.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fasync%2FChild.vue"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["dynamic-component"],
+    "expectedRefusalReason": "vue-component-dynamic"
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-forbidden-async-dynamic-import",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/async/DynamicImport.vue",
+        "source": "<script setup>import { defineAsyncComponent } from \"vue\"; const name=\"Child\"; const Child=defineAsyncComponent(() => import(`./${name}.vue`))</script><template><Child/></template>",
+        "existingFiles": ["fixtures/components/async/Child.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fasync%2FDynamicImport.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fasync%2FChild.vue"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["dynamic-component"],
+    "expectedRefusalReason": "vue-component-dynamic"
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-forbidden-script-src",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/dynamic/ScriptSrc.vue",
+        "source": "<script setup src=\"./external.ts\"></script><template><Child/></template>",
+        "existingFiles": ["fixtures/components/dynamic/Child.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FScriptSrc.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FChild.vue"
+      }
+    ],
+    "expectedOutcome": "unsupported",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["script-src-unsupported"]
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-forbidden-template-preprocessor",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/dynamic/Pug.vue",
+        "source": "<script setup>import Child from \"./Child.vue\"</script><template lang=\"pug\">Child</template>",
+        "existingFiles": ["fixtures/components/dynamic/Child.vue"],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FPug.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fdynamic%2FChild.vue"
+      }
+    ],
+    "expectedOutcome": "unsupported",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["template-preprocessor-unsupported"]
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-forbidden-ambiguous-binding",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/ambiguous/Bindings.vue",
+        "source": "<script>import Child from \"./a/Child.vue\"; export default { components: { Child } }</script><script setup>import Child from \"./b/Child.vue\"</script><template><Child/></template>",
+        "existingFiles": [
+          "fixtures/components/ambiguous/a/Child.vue",
+          "fixtures/components/ambiguous/b/Child.vue"
+        ],
+        "resolutions": {}
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "component:vue:fixtures%2Fcomponents%2Fambiguous%2FBindings.vue",
+        "type": "renders_component",
+        "target": "component:vue:fixtures%2Fcomponents%2Fambiguous%2Fa%2FChild.vue"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedCoverage": "partial",
+    "expectedDiagnostics": ["ambiguous-import-binding"],
+    "expectedRefusalReason": "vue-component-ambiguous"
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "bounded-vue-sfc-parser",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-limit-boundary-maxBytes",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/limits/p09-limit-boundary-maxBytes.vue",
+        "source": "<template><div/></template>",
+        "existingFiles": [],
+        "resolutions": {},
+        "metrics": {
+          "bytes": 100,
+          "depth": 10,
+          "nodes": 20,
+          "references": 8,
+          "durationMs": 50,
+          "resultBytes": 200
+        },
+        "limits": {
+          "maxBytes": 100,
+          "maxDepth": 10,
+          "maxNodes": 20,
+          "maxReferences": 8,
+          "timeoutMs": 50,
+          "maxResultBytes": 200
+        }
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "bounded-vue-sfc-parser",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-limit-boundary-maxDepth",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/limits/p09-limit-boundary-maxDepth.vue",
+        "source": "<template><div/></template>",
+        "existingFiles": [],
+        "resolutions": {},
+        "metrics": {
+          "bytes": 100,
+          "depth": 10,
+          "nodes": 20,
+          "references": 8,
+          "durationMs": 50,
+          "resultBytes": 200
+        },
+        "limits": {
+          "maxBytes": 100,
+          "maxDepth": 10,
+          "maxNodes": 20,
+          "maxReferences": 8,
+          "timeoutMs": 50,
+          "maxResultBytes": 200
+        }
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "bounded-vue-sfc-parser",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-limit-boundary-maxNodes",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/limits/p09-limit-boundary-maxNodes.vue",
+        "source": "<template><div/></template>",
+        "existingFiles": [],
+        "resolutions": {},
+        "metrics": {
+          "bytes": 100,
+          "depth": 10,
+          "nodes": 20,
+          "references": 8,
+          "durationMs": 50,
+          "resultBytes": 200
+        },
+        "limits": {
+          "maxBytes": 100,
+          "maxDepth": 10,
+          "maxNodes": 20,
+          "maxReferences": 8,
+          "timeoutMs": 50,
+          "maxResultBytes": 200
+        }
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "bounded-vue-sfc-parser",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-limit-boundary-maxReferences",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/limits/p09-limit-boundary-maxReferences.vue",
+        "source": "<template><div/></template>",
+        "existingFiles": [],
+        "resolutions": {},
+        "metrics": {
+          "bytes": 100,
+          "depth": 10,
+          "nodes": 20,
+          "references": 8,
+          "durationMs": 50,
+          "resultBytes": 200
+        },
+        "limits": {
+          "maxBytes": 100,
+          "maxDepth": 10,
+          "maxNodes": 20,
+          "maxReferences": 8,
+          "timeoutMs": 50,
+          "maxResultBytes": 200
+        }
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "bounded-vue-sfc-parser",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-limit-boundary-timeoutMs",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/limits/p09-limit-boundary-timeoutMs.vue",
+        "source": "<template><div/></template>",
+        "existingFiles": [],
+        "resolutions": {},
+        "metrics": {
+          "bytes": 100,
+          "depth": 10,
+          "nodes": 20,
+          "references": 8,
+          "durationMs": 50,
+          "resultBytes": 200
+        },
+        "limits": {
+          "maxBytes": 100,
+          "maxDepth": 10,
+          "maxNodes": 20,
+          "maxReferences": 8,
+          "timeoutMs": 50,
+          "maxResultBytes": 200
+        }
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "bounded-vue-sfc-parser",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-limit-boundary-maxResultBytes",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/limits/p09-limit-boundary-maxResultBytes.vue",
+        "source": "<template><div/></template>",
+        "existingFiles": [],
+        "resolutions": {},
+        "metrics": {
+          "bytes": 100,
+          "depth": 10,
+          "nodes": 20,
+          "references": 8,
+          "durationMs": 50,
+          "resultBytes": 200
+        },
+        "limits": {
+          "maxBytes": 100,
+          "maxDepth": 10,
+          "maxNodes": 20,
+          "maxReferences": 8,
+          "timeoutMs": 50,
+          "maxResultBytes": 200
+        }
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "bounded-vue-sfc-parser",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-limit-hostile-maxBytes",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/limits/p09-limit-hostile-maxBytes.vue",
+        "source": "<template><div/></template>",
+        "existingFiles": [],
+        "resolutions": {},
+        "metrics": {
+          "bytes": 101,
+          "depth": 10,
+          "nodes": 20,
+          "references": 8,
+          "durationMs": 50,
+          "resultBytes": 200
+        },
+        "limits": {
+          "maxBytes": 100,
+          "maxDepth": 10,
+          "maxNodes": 20,
+          "maxReferences": 8,
+          "timeoutMs": 50,
+          "maxResultBytes": 200
+        }
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedOutcome": "refused",
+    "expectedCoverage": "failed",
+    "expectedDiagnostics": ["limit:maxBytes"],
+    "expectedRefusalReason": "limit:maxBytes"
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "bounded-vue-sfc-parser",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-limit-hostile-maxDepth",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/limits/p09-limit-hostile-maxDepth.vue",
+        "source": "<template><div/></template>",
+        "existingFiles": [],
+        "resolutions": {},
+        "metrics": {
+          "bytes": 100,
+          "depth": 11,
+          "nodes": 20,
+          "references": 8,
+          "durationMs": 50,
+          "resultBytes": 200
+        },
+        "limits": {
+          "maxBytes": 100,
+          "maxDepth": 10,
+          "maxNodes": 20,
+          "maxReferences": 8,
+          "timeoutMs": 50,
+          "maxResultBytes": 200
+        }
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedOutcome": "refused",
+    "expectedCoverage": "failed",
+    "expectedDiagnostics": ["limit:maxDepth"],
+    "expectedRefusalReason": "limit:maxDepth"
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "bounded-vue-sfc-parser",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-limit-hostile-maxNodes",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/limits/p09-limit-hostile-maxNodes.vue",
+        "source": "<template><div/></template>",
+        "existingFiles": [],
+        "resolutions": {},
+        "metrics": {
+          "bytes": 100,
+          "depth": 10,
+          "nodes": 21,
+          "references": 8,
+          "durationMs": 50,
+          "resultBytes": 200
+        },
+        "limits": {
+          "maxBytes": 100,
+          "maxDepth": 10,
+          "maxNodes": 20,
+          "maxReferences": 8,
+          "timeoutMs": 50,
+          "maxResultBytes": 200
+        }
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedOutcome": "refused",
+    "expectedCoverage": "failed",
+    "expectedDiagnostics": ["limit:maxNodes"],
+    "expectedRefusalReason": "limit:maxNodes"
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "bounded-vue-sfc-parser",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-limit-hostile-maxReferences",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/limits/p09-limit-hostile-maxReferences.vue",
+        "source": "<template><div/></template>",
+        "existingFiles": [],
+        "resolutions": {},
+        "metrics": {
+          "bytes": 100,
+          "depth": 10,
+          "nodes": 20,
+          "references": 9,
+          "durationMs": 50,
+          "resultBytes": 200
+        },
+        "limits": {
+          "maxBytes": 100,
+          "maxDepth": 10,
+          "maxNodes": 20,
+          "maxReferences": 8,
+          "timeoutMs": 50,
+          "maxResultBytes": 200
+        }
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedOutcome": "refused",
+    "expectedCoverage": "failed",
+    "expectedDiagnostics": ["limit:maxReferences"],
+    "expectedRefusalReason": "limit:maxReferences"
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "bounded-vue-sfc-parser",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-limit-hostile-timeoutMs",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/limits/p09-limit-hostile-timeoutMs.vue",
+        "source": "<template><div/></template>",
+        "existingFiles": [],
+        "resolutions": {},
+        "metrics": {
+          "bytes": 100,
+          "depth": 10,
+          "nodes": 20,
+          "references": 8,
+          "durationMs": 51,
+          "resultBytes": 200
+        },
+        "limits": {
+          "maxBytes": 100,
+          "maxDepth": 10,
+          "maxNodes": 20,
+          "maxReferences": 8,
+          "timeoutMs": 50,
+          "maxResultBytes": 200
+        }
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedOutcome": "refused",
+    "expectedCoverage": "failed",
+    "expectedDiagnostics": ["timeout:timeoutMs"],
+    "expectedRefusalReason": "timeout:timeoutMs"
+  },
+  {
+    "corpus": "phase-09-vue-synthetic",
+    "capability": "bounded-vue-sfc-parser",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "9796d27b43b67e1b2f1c4d7adb35ef44c48c60db"
+    },
+    "thresholds": {
+      "minRecall": 1,
+      "minPrecision": 1,
+      "minPositiveCases": 30,
+      "minForbiddenCases": 15
+    },
+    "id": "p09-limit-hostile-maxResultBytes",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "fixtures/components/limits/p09-limit-hostile-maxResultBytes.vue",
+        "source": "<template><div/></template>",
+        "existingFiles": [],
+        "resolutions": {},
+        "metrics": {
+          "bytes": 100,
+          "depth": 10,
+          "nodes": 20,
+          "references": 8,
+          "durationMs": 50,
+          "resultBytes": 201
+        },
+        "limits": {
+          "maxBytes": 100,
+          "maxDepth": 10,
+          "maxNodes": 20,
+          "maxReferences": 8,
+          "timeoutMs": 50,
+          "maxResultBytes": 200
+        }
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "expectedOutcome": "refused",
+    "expectedCoverage": "failed",
+    "expectedDiagnostics": ["limit:maxResultBytes"],
+    "expectedRefusalReason": "limit:maxResultBytes"
+  },
+  {
+    "corpus": "auctic-core",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 1,
+      "minForbiddenCases": 0
+    },
+    "id": "p09-auctic-main-panel-renders-user-details",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "resources/js/admin-ui/views/users/views/ViewUser/components/MainPanel/MainPanel.vue",
+        "source": "<script setup>\nimport { ref } from \"vue\";\nimport { useRouter } from \"vue-router\";\nimport Card from \"primevue/card\";\nimport Avatar from \"primevue/avatar\";\nimport Button from \"primevue/button\";\nimport Tabs from \"primevue/tabs\";\nimport TabList from \"primevue/tablist\";\nimport Tab from \"primevue/tab\";\nimport UserDetails from \"./components/UserDetails.vue\";\nimport BillingShipping from \"./components/BillingShipping.vue\";\nimport ActionsMenu from \"../../../../components/ActionsMenu.vue\";\nimport { usersStateService } from \"@adminUi/views/users/services/users-state\";\nimport MergeUsers from \"@adminUi/components/user-entity-merge/MergeUsers.vue\";\n\ndefineProps({\n  user: {\n    type: Object,\n    required: true,\n  },\n});\n\nconst router = useRouter();\nconst selectedTab = ref(\"details\");\nconst mergeUsersModalVisible = ref(false);\nconst emit = defineEmits([\"user-updated\"]);\n\nconst onUserMerged = (payload = {}) => {\n  mergeUsersModalVisible.value = false;\n  // After merge the current user (the loser) is deleted. Navigate to the\n  // survivor so the operator lands somewhere meaningful.\n  if (payload.survivorUserId) {\n    router.push({ name: \"View User\", params: { id: payload.survivorUserId } });\n    return;\n  }\n  emit(\"user-updated\");\n};\n</script>\n\n<template>\n  <Card class=\"user-main-panel\">\n    <template #content>\n      <div class=\"flex\">\n        <div class=\"flex grow items-center gap-4\">\n          <Avatar\n            :label=\"user.initials\"\n            size=\"xlarge\"\n            shape=\"circle\"\n            style=\"background-color: #343a3f; color: #fff\"\n          ></Avatar>\n          <div class=\"grow\">\n            <div class=\"au-title-sm\">{{ user.name }}</div>\n            <div>{{ user.username }}</div>\n          </div>\n          <div class=\"flex items-start gap-2\">\n            <Button\n              icon=\"mio-edit\"\n              severity=\"secondary\"\n              @click=\"usersStateService.editUser(user)\"\n            />\n            <ActionsMenu\n              :user=\"user\"\n              @merge-user=\"mergeUsersModalVisible = true\"\n            />\n          </div>\n        </div>\n      </div>\n      <Tabs v-model:value=\"selectedTab\" scrollable class=\"mt-8\">\n        <TabList>\n          <Tab value=\"details\">Details</Tab>\n          <Tab value=\"billing-shipping\">Billing & Shipping</Tab>\n        </TabList>\n      </Tabs>\n      <div class=\"tab-content\">\n        <UserDetails\n          v-if=\"selectedTab === 'details'\"\n          :user=\"user\"\n          @user-updated=\"emit('user-updated')\"\n        />\n        <BillingShipping\n          v-if=\"selectedTab === 'billing-shipping'\"\n          :user=\"user\"\n        />\n      </div>\n    </template>\n  </Card>\n  <MergeUsers\n    v-if=\"mergeUsersModalVisible\"\n    :user-id=\"user.id\"\n    @close=\"mergeUsersModalVisible = false\"\n    @updated=\"onUserMerged\"\n  />\n</template>\n\n<style lang=\"scss\">\n.user-main-panel {\n  .tab-content {\n    padding: 24px;\n    min-height: 300px;\n\n    .col {\n      width: 50%;\n      max-width: 600px;\n\n      .row {\n        display: flex;\n        min-height: 32px;\n        align-items: baseline;\n\n        > div {\n          width: 50%;\n\n          &:last-child {\n            font-weight: 500;\n          }\n        }\n      }\n    }\n  }\n}\n</style>\n",
+        "existingFiles": [
+          "resources/js/admin-ui/views/users/views/ViewUser/components/MainPanel/components/UserDetails.vue",
+          "resources/js/admin-ui/views/users/views/ViewUser/components/MainPanel/components/BillingShipping.vue",
+          "resources/js/admin-ui/views/users/components/ActionsMenu.vue",
+          "resources/js/admin-ui/components/user-entity-merge/MergeUsers.vue"
+        ],
+        "resolutions": {
+          "@adminUi/components/user-entity-merge/MergeUsers.vue": "resources/js/admin-ui/components/user-entity-merge/MergeUsers.vue"
+        }
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:resources%2Fjs%2Fadmin-ui%2Fviews%2Fusers%2Fviews%2FViewUser%2Fcomponents%2FMainPanel%2FMainPanel.vue",
+        "type": "renders_component",
+        "target": "component:vue:resources%2Fjs%2Fadmin-ui%2Fviews%2Fusers%2Fviews%2FViewUser%2Fcomponents%2FMainPanel%2Fcomponents%2FUserDetails.vue",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:resources%2Fjs%2Fadmin-ui%2Fviews%2Fusers%2Fviews%2FViewUser%2Fcomponents%2FMainPanel%2FMainPanel.vue",
+        "type": "renders_component",
+        "target": "component:vue:resources%2Fjs%2Fadmin-ui%2Fviews%2Fusers%2Fviews%2FViewUser%2Fcomponents%2FMainPanel%2Fcomponents%2FBillingShipping.vue",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:resources%2Fjs%2Fadmin-ui%2Fviews%2Fusers%2Fviews%2FViewUser%2Fcomponents%2FMainPanel%2FMainPanel.vue",
+        "type": "renders_component",
+        "target": "component:vue:resources%2Fjs%2Fadmin-ui%2Fviews%2Fusers%2Fcomponents%2FActionsMenu.vue",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:resources%2Fjs%2Fadmin-ui%2Fviews%2Fusers%2Fviews%2FViewUser%2Fcomponents%2FMainPanel%2FMainPanel.vue",
+        "type": "renders_component",
+        "target": "component:vue:resources%2Fjs%2Fadmin-ui%2Fcomponents%2Fuser-entity-merge%2FMergeUsers.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  },
+  {
+    "corpus": "auctic-core",
+    "capability": "deterministic-vue-component-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
+    },
+    "thresholds": {
+      "minRecall": 0.9,
+      "minPrecision": 0.95,
+      "minPositiveCases": 1,
+      "minForbiddenCases": 0
+    },
+    "id": "p09-auctic-user-details-renders-children",
+    "query": {
+      "tool": "phase9VueComponentSeam",
+      "args": {
+        "parentPath": "resources/js/admin-ui/views/users/views/ViewUser/components/MainPanel/components/UserDetails.vue",
+        "source": "<script setup>\nimport { computed, onMounted, ref } from \"vue\";\nimport UserTagsEditor from \"./UserTagsEditor.vue\";\nimport UserRolesEditor from \"./UserRolesEditor.vue\";\nimport UserSalespeopleEditor from \"./UserSalespeopleEditor.vue\";\nimport CardBrandIcon from \"@commonUi/features/payments/CardBrandIcon.vue\";\nimport { settingsService } from \"@commonUi/services/settings\";\nimport { usersApi } from \"@adminUi/services/api/users-api\";\n\nconst props = defineProps({\n  user: {\n    type: Object,\n    required: true,\n  },\n});\n\ndefineEmits([\"user-updated\"]);\n\nconst sellerFees = ref([]);\n\nconst hideCompanyForBusinessEntities = computed(() => {\n  const be = settingsService.props.features?.business_entities;\n  return (\n    (be?.enabled ?? false) && !(be?.allow_company_name_on_user_record ?? false)\n  );\n});\n\nconst isDigitalPermanentPaddleNumbersEnabled = computed(() => {\n  return (\n    settingsService.features?.digital_permanent_paddle_numbers?.enabled ?? false\n  );\n});\n\n// settingsService.props is a plain (non-reactive) snapshot taken at init(),\n// not a ref/reactive source — a computed() here would track nothing.\nconst isSalespersonAssignmentEnabled =\n  settingsService.props.features?.salesperson_assignment?.enabled ?? false;\n\n// With digital numbers enabled a profile holds two permanent numbers, so\n// the legacy label is qualified as \"Onsite\" (client dictionary first);\n// flag-off clients keep the unqualified legacy label.\nconst onsiteNumberLabel = computed(() => {\n  if (!isDigitalPermanentPaddleNumbersEnabled.value) {\n    return \"Permanent Bidder Number\";\n  }\n  return (\n    settingsService.terms.permanent_onsite_bidder_number ??\n    \"Permanent Onsite Bidder Number\"\n  );\n});\n\nconst digitalNumberLabel = computed(() => {\n  return (\n    settingsService.terms.permanent_digital_paddle_number ??\n    \"Permanent Digital Paddle Number\"\n  );\n});\n\nonMounted(async () => {\n  const response = await usersApi.getUserBillingFees(props.user.id);\n  sellerFees.value = response.data;\n});\n\nconst paymentMethodSummary = computed(\n  () => props.user.paymentMethodSummary ?? null,\n);\nconst paymentMethodOtherCount = computed(\n  () => paymentMethodSummary.value?.other_count ?? 0,\n);\nconst paymentMethodOtherLabel = computed(() => {\n  const count = paymentMethodOtherCount.value;\n  return `+ ${count} other${count > 1 ? \"s\" : \"\"}`;\n});\n</script>\n\n<template>\n  <div class=\"user-details\">\n    <div class=\"col\">\n      <div v-if=\"settingsService.props.username_required\" class=\"row\">\n        <div>Username</div>\n        <div>{{ user.username }}</div>\n      </div>\n      <div class=\"row\">\n        <div>First Name</div>\n        <div>{{ user.first }}</div>\n      </div>\n      <div class=\"row\">\n        <div>Middle Name</div>\n        <div>{{ user.middle || \"--\" }}</div>\n      </div>\n      <div class=\"row\">\n        <div>Last Name</div>\n        <div>{{ user.last }}</div>\n      </div>\n      <div v-if=\"!hideCompanyForBusinessEntities\" class=\"row\">\n        <div>Company</div>\n        <div>{{ user.extraAttributes?.company_name || \"--\" }}</div>\n      </div>\n      <div v-if=\"settingsService.props.display_buyer_name\" class=\"row\">\n        <div>Buyer Display Name</div>\n        <div>{{ user.defaultBuyerDisplayName || \"--\" }}</div>\n      </div>\n      <template v-if=\"!settingsService.props.features?.user_documents?.enabled\">\n        <div class=\"row\">\n          <div>Tax Exempt</div>\n          <div>\n            {{ user.extraAttributes?.company_tax_exempt ? \"Yes\" : \"No\" }}\n          </div>\n        </div>\n        <div class=\"row\">\n          <div>Tax Exempt ID</div>\n          <div>{{ user.extraAttributes?.tax_exempt_id || \"--\" }}</div>\n        </div>\n        <div class=\"row\">\n          <div>Resell Tax ID</div>\n          <div>{{ user.extraAttributes?.resale_tax_id || \"--\" }}</div>\n        </div>\n      </template>\n      <div class=\"row\">\n        <div>Seller Commission Template</div>\n        <div>{{ user.commissionTemplate?.title || \"--\" }}</div>\n      </div>\n      <div class=\"row\">\n        <div>Two-Factor Authentication</div>\n        <div>{{ user.isTwoFactorEnabled ? \"Enabled\" : \"Disabled\" }}</div>\n      </div>\n      <div class=\"row\">\n        <div>Auto Approve For Bidding</div>\n        <div>{{ user.autoApproveForBidding ? \"Yes\" : \"No\" }}</div>\n      </div>\n      <div class=\"row\">\n        <div>Don't Require Credit Card to Bid</div>\n        <div>{{ user.creditCardExempt ? \"Yes\" : \"No\" }}</div>\n      </div>\n      <div class=\"row\">\n        <div>Bidding Disabled</div>\n        <div>{{ user.isBiddingLocked ? \"Yes\" : \"No\" }}</div>\n      </div>\n      <div class=\"row\">\n        <div>Blocked</div>\n        <div>{{ user.isLocked ? \"Yes\" : \"No\" }}</div>\n      </div>\n      <div class=\"row\">\n        <div>Signed Up for Newsletter</div>\n        <div>{{ user.signedUpForNewsletter ? \"Yes\" : \"No\" }}</div>\n      </div>\n      <div class=\"row checks-accepted\" :class=\"{ true: user.isChecksAccepted }\">\n        <div>Checks Accepted</div>\n        <div>\n          <div class=\"icon\">\n            <i v-if=\"user.isChecksAccepted\" class=\"mi-check\" aria-label=\"Yes\" />\n            <i v-else class=\"mi-close\" aria-label=\"No\" />\n          </div>\n        </div>\n      </div>\n      <div\n        v-if=\"settingsService.props.features?.payments?.enabled\"\n        class=\"row payment-method\"\n      >\n        <div>Payment Method</div>\n        <div>\n          <template v-if=\"!paymentMethodSummary?.has_method\">\n            <span class=\"muted\">No payment method on file</span>\n          </template>\n          <template v-else-if=\"paymentMethodSummary.default.kind === 'card'\">\n            <CardBrandIcon\n              :type=\"paymentMethodSummary.default.brand\"\n              size=\"sm\"\n              aria-hidden=\"true\"\n            />\n            <span\n              >{{ paymentMethodSummary.default.brand }} ••••\n              {{ paymentMethodSummary.default.last_four }}</span\n            >\n            <span v-if=\"paymentMethodOtherCount > 0\" class=\"muted\">{{\n              paymentMethodOtherLabel\n            }}</span>\n          </template>\n          <template v-else-if=\"paymentMethodSummary.default.kind === 'ach'\">\n            <i class=\"mio mio-account_balance\" aria-hidden=\"true\" />\n            <span\n              >Bank account ••••\n              {{ paymentMethodSummary.default.last_four }}</span\n            >\n            <span v-if=\"paymentMethodOtherCount > 0\" class=\"muted\">{{\n              paymentMethodOtherLabel\n            }}</span>\n          </template>\n          <template v-else>\n            <span class=\"muted\">Payment method on file</span>\n          </template>\n        </div>\n      </div>\n    </div>\n    <div class=\"col\">\n      <div class=\"row\">\n        <div>Email</div>\n        <div>{{ user.email }}</div>\n      </div>\n      <div class=\"row\">\n        <div>Email Verified</div>\n        <div>{{ user.isEmailVerified ? \"Yes\" : \"No\" }}</div>\n      </div>\n      <div v-if=\"user.phone\" class=\"row\">\n        <div>Mobile Phone</div>\n        <div>{{ user.phone || \"--\" }}</div>\n      </div>\n      <div v-if=\"user.homePhone\" class=\"row\">\n        <div>Home Phone</div>\n        <div>{{ user.homePhone || \"--\" }}</div>\n      </div>\n      <div v-if=\"user.workPhone\" class=\"row\">\n        <div>Work Phone</div>\n        <div>{{ user.workPhone || \"--\" }}</div>\n      </div>\n      <div class=\"row\">\n        <div>Preferred Contact Method</div>\n        <div>{{ user.preferredContactMethod || \"Any\" }}</div>\n      </div>\n      <div class=\"row\">\n        <div>{{ onsiteNumberLabel }}</div>\n        <div>{{ user.permanentBidderNumber || \"--\" }}</div>\n      </div>\n      <div v-if=\"isDigitalPermanentPaddleNumbersEnabled\" class=\"row\">\n        <div>{{ digitalNumberLabel }}</div>\n        <div>{{ user.permanentAucticPaddleNumber || \"--\" }}</div>\n      </div>\n      <div class=\"row\">\n        <div>Driver's License</div>\n        <div>\n          <span v-if=\"user.driverLicenseNumber\">{{\n            user.driverLicenseNumber\n          }}</span>\n          <span v-else class=\"none-on-file\"><em>none on file</em></span>\n        </div>\n      </div>\n      <UserRolesEditor :user=\"user\" @updated=\"$emit('user-updated')\" />\n      <UserTagsEditor :user=\"user\" @updated=\"$emit('user-updated')\" />\n      <UserSalespeopleEditor\n        v-if=\"isSalespersonAssignmentEnabled\"\n        :user=\"user\"\n        @updated=\"$emit('user-updated')\"\n      />\n      <div class=\"row\">\n        <div>Notes</div>\n        <div>{{ user.extraAttributes?.notes || \"--\" }}</div>\n      </div>\n      <div v-if=\"user.auctionFlexCustomerId\" class=\"row\">\n        <div>Auction Flex Customer Code</div>\n        <div>{{ user.auctionFlexCustomerId }}</div>\n      </div>\n      <div class=\"row\">\n        <div>Seller Expenses</div>\n        <div>\n          <div v-for=\"fee in sellerFees\" :key=\"fee.id\">\n            {{ fee.billing_fee_label }} -\n            {{ fee.billing_fee_calculation_type === \"flat\" ? \"$\" : \"\"\n            }}{{ (fee.billing_fee_amount / 100).toFixed(2)\n            }}{{ fee.billing_fee_calculation_type === \"percent\" ? \"%\" : \"\" }}\n          </div>\n        </div>\n      </div>\n    </div>\n  </div>\n</template>\n\n<style lang=\"scss\" scoped>\n.user-details {\n  display: flex;\n\n  .none-on-file {\n    color: var(--text-muted-color, #6b7280);\n  }\n\n  .checks-accepted {\n    .icon {\n      display: flex;\n      align-items: center;\n      justify-content: center;\n      width: 24px;\n      height: 24px;\n      border-radius: 50%;\n      background-color: var(--danger-color);\n      color: white;\n\n      i {\n        height: 20px;\n      }\n    }\n\n    &.true {\n      .icon {\n        background-color: var(--success-color);\n      }\n    }\n  }\n\n  .payment-method {\n    .muted {\n      color: var(--text-muted-color, #6b7280);\n    }\n\n    > div:last-child {\n      display: flex;\n      align-items: center;\n      gap: 8px;\n    }\n\n    .mio-account_balance {\n      font-size: 20px;\n      color: var(--text-muted-color, #6b7280);\n    }\n  }\n\n  @media (max-width: 640px) {\n    flex-direction: column;\n\n    .col {\n      width: auto !important;\n    }\n  }\n}\n</style>\n",
+        "existingFiles": [
+          "resources/js/admin-ui/views/users/views/ViewUser/components/MainPanel/components/UserTagsEditor.vue",
+          "resources/js/admin-ui/views/users/views/ViewUser/components/MainPanel/components/UserRolesEditor.vue",
+          "resources/js/admin-ui/views/users/views/ViewUser/components/MainPanel/components/UserSalespeopleEditor.vue",
+          "resources/js/common-ui/features/payments/CardBrandIcon.vue"
+        ],
+        "resolutions": {
+          "@commonUi/features/payments/CardBrandIcon.vue": "resources/js/common-ui/features/payments/CardBrandIcon.vue"
+        }
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:vue:resources%2Fjs%2Fadmin-ui%2Fviews%2Fusers%2Fviews%2FViewUser%2Fcomponents%2FMainPanel%2Fcomponents%2FUserDetails.vue",
+        "type": "renders_component",
+        "target": "component:vue:resources%2Fjs%2Fadmin-ui%2Fviews%2Fusers%2Fviews%2FViewUser%2Fcomponents%2FMainPanel%2Fcomponents%2FUserTagsEditor.vue",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:resources%2Fjs%2Fadmin-ui%2Fviews%2Fusers%2Fviews%2FViewUser%2Fcomponents%2FMainPanel%2Fcomponents%2FUserDetails.vue",
+        "type": "renders_component",
+        "target": "component:vue:resources%2Fjs%2Fadmin-ui%2Fviews%2Fusers%2Fviews%2FViewUser%2Fcomponents%2FMainPanel%2Fcomponents%2FUserRolesEditor.vue",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:resources%2Fjs%2Fadmin-ui%2Fviews%2Fusers%2Fviews%2FViewUser%2Fcomponents%2FMainPanel%2Fcomponents%2FUserDetails.vue",
+        "type": "renders_component",
+        "target": "component:vue:resources%2Fjs%2Fadmin-ui%2Fviews%2Fusers%2Fviews%2FViewUser%2Fcomponents%2FMainPanel%2Fcomponents%2FUserSalespeopleEditor.vue",
+        "minConfidence": "framework-inferred"
+      },
+      {
+        "source": "component:vue:resources%2Fjs%2Fadmin-ui%2Fviews%2Fusers%2Fviews%2FViewUser%2Fcomponents%2FMainPanel%2Fcomponents%2FUserDetails.vue",
+        "type": "renders_component",
+        "target": "component:vue:resources%2Fjs%2Fcommon-ui%2Ffeatures%2Fpayments%2FCardBrandIcon.vue",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "expectedCoverage": "active",
+    "expectedDiagnostics": []
+  }
+]

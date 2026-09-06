@@ -164,10 +164,13 @@ async function readConfinedSource(
   }
 }
 
-function workerEntryUrl(): URL {
+function workerEntryUrl(adapterId: string): URL {
+  const vue = adapterId === 'vue-compiler-sfc';
   // Vitest executes sources; released code executes compiled .js from dist.
-  if (import.meta.url.endsWith('.ts')) return new URL('./tree-sitter-worker.ts', import.meta.url);
-  return new URL('./tree-sitter-worker.js', import.meta.url);
+  if (import.meta.url.endsWith('.ts')) {
+    return new URL(vue ? './vue-sfc-worker.ts' : './tree-sitter-worker.ts', import.meta.url);
+  }
+  return new URL(vue ? './vue-sfc-worker.js' : './tree-sitter-worker.js', import.meta.url);
 }
 
 function tsxLoaderUrl(): string {
@@ -227,7 +230,7 @@ async function executeWorker(
     source: confined.source,
     ...(options.includeExtraction ? { includeExtraction: true } : {}),
   };
-  const url = options.workerUrl ?? workerEntryUrl();
+  const url = options.workerUrl ?? workerEntryUrl(request.adapterId);
   const createWorker = options.createWorker ?? defaultCreateWorker;
 
   let worker: WorkerLike;

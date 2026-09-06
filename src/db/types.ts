@@ -190,6 +190,12 @@ export type EdgeType =
   | 'derived_from'
   | 'calls'
   | 'references'
+  // Vue component semantics (Tranche 2, Phases 9–11)
+  | 'renders_component'
+  | 'uses_composable'
+  | 'uses_store'
+  | 'emits_component_event'
+  | 'handles_component_event'
   // Module-boundary evidence expansion edges
   | 'dispatches_job'
   | 'handles_job'

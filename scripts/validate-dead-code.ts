@@ -42,6 +42,9 @@ const ENTRY_POINTS = new Set(['index.ts', 'cli/index.ts', 'mcp/server.ts']);
 const ENTRY_ADJACENT = new Set([
   'scanner/index.ts',
   'scanner/lsp/index.ts',
+  // Frozen Tranche 2 identities are public cross-phase contracts; some are consumed only after
+  // their dependent phases land, so they intentionally precede their first source import.
+  'scanner/identity/program-identity.ts',
 ]);
 
 /**
@@ -55,9 +58,7 @@ const ENTRY_ADJACENT = new Set([
  *     kept behind a dynamic import so the heavy onnxruntime-web weight never eagerly loads. The
  *     static graph cannot see that edge, so the class is a dead-code false positive here.
  */
-const DYNAMIC_IMPORT_MODULES = new Set([
-  'scanner/embeddings/wasm-local-embedder.ts',
-]);
+const DYNAMIC_IMPORT_MODULES = new Set(['scanner/embeddings/wasm-local-embedder.ts']);
 
 // ---------------------------------------------------------------------------
 // Types
@@ -158,9 +159,7 @@ function buildImportGraph(project: Project): ImportRecord[] {
       // Named imports: import { Foo, Bar } from '...'
       for (const named of decl.getNamedImports()) {
         // Use the original name (not alias) for matching
-        const name = named.getAliasNode()
-          ? named.getNameNode().getText()
-          : named.getName();
+        const name = named.getAliasNode() ? named.getNameNode().getText() : named.getName();
         names.add(name);
       }
 
@@ -199,9 +198,7 @@ function buildImportGraph(project: Project): ImportRecord[] {
       const namedExports = exportDecl.getNamedExports();
       if (namedExports.length > 0) {
         for (const named of namedExports) {
-          const name = named.getAliasNode()
-            ? named.getNameNode().getText()
-            : named.getName();
+          const name = named.getAliasNode() ? named.getNameNode().getText() : named.getName();
           names.add(name);
         }
       } else {
@@ -230,7 +227,7 @@ function buildImportGraph(project: Project): ImportRecord[] {
  */
 function analyzeUsage(
   project: Project,
-  importGraph: ImportRecord[],
+  importGraph: ImportRecord[]
 ): Map<string, Map<string, number>> {
   // Map<filePath, Map<exportName, refCount>>
   const usage = new Map<string, Map<string, number>>();
@@ -351,7 +348,7 @@ function main(): void {
   } else {
     if (unused.length === 0) {
       console.log(
-        `Dead code check passed. ${totalExports} exports across ${filesAnalyzed} files, all referenced.`,
+        `Dead code check passed. ${totalExports} exports across ${filesAnalyzed} files, all referenced.`
       );
     } else {
       console.error(`\nUnused exports found:\n`);
@@ -361,7 +358,7 @@ function main(): void {
         console.error('');
       }
       console.error(
-        `${unused.length} unused export(s) across ${filesAnalyzed} files (${totalExports} total exports).`,
+        `${unused.length} unused export(s) across ${filesAnalyzed} files (${totalExports} total exports).`
       );
     }
 

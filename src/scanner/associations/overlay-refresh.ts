@@ -25,6 +25,7 @@ import { analyzeProgram, type ProgramAnalysisV1 } from '../adapters/program-anal
 import { getHeadCommit, isGitRepository } from '../git.js';
 import { materializeNodes } from './materializer.js';
 import { materializeAstSymbols } from '../ast/materialize.js';
+import { buildVueComponentNodes } from '../vue/materialize.js';
 import { AstStructuralResolver } from '../ast/resolver.js';
 import { AssociationEngine } from './engine.js';
 import { createDefaultResolvers } from './framework/index.js';
@@ -159,7 +160,17 @@ export async function refreshOverlayScoped(
   // 0. Repair set R = F ∪ reverse-import-closure(F) (Decision 14).
   const changedPaths = changed.map((c) => c.relPath);
   const closure = await computeReverseImportClosure(db, rootPath, changed);
-  const R = [...new Set([...changedPaths, ...closure])];
+  let R = [...new Set([...changedPaths, ...closure])];
+  // Component resolution needs the complete materialized Vue universe. When any SFC changes, repair
+  // all persisted Vue files together (plus newly added paths) so an R-local parent can still resolve
+  // a child outside the original reverse-import closure and vice versa.
+  if (changedPaths.some((path) => path.toLowerCase().endsWith('.vue'))) {
+    const persistedVue = db
+      .getLocalStructuralNodesByType('file')
+      .map((node) => node.file_path)
+      .filter((path): path is string => Boolean(path?.toLowerCase().endsWith('.vue')));
+    R = [...new Set([...R, ...persistedVue])];
+  }
   const deletedPaths = new Set(changed.filter((c) => c.status === 'deleted').map((c) => c.relPath));
   const rematPaths = R.filter((p) => !deletedPaths.has(p)); // deleted files: nodes stay deleted
   report(
@@ -231,11 +242,18 @@ export async function refreshOverlayScoped(
   if (config.ast?.enabled ?? true) {
     await materializeAstSymbols(db, scanR, rootPath, now, sharedExtractions, report);
   }
+  if (programAnalysis?.vueFacts.length) {
+    db.transaction(() => {
+      for (const node of buildVueComponentNodes(programAnalysis.vueFacts, now)) {
+        db.upsertStructuralNode(node);
+      }
+    });
+  }
 
   // 5. ONE resolver pass over R's entries, DB-backed universe for out-of-R targets (Decision 13).
   const context: AssociationContext = {
     rootPath,
-    nodes: [],
+    nodes: db.getStructuralNodesForFilePaths(rematPaths),
     entries: buildContextEntriesFor(scanR, enrichments, rootPath),
     currentCommit, // toDbEdge stamps source_commit for the resolver tiers
     dirtyFiles: [],

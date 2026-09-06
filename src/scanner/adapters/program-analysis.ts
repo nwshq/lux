@@ -7,6 +7,8 @@ import type {
   SourceFactsV1,
 } from '../contracts/program.js';
 import { isVueSfcFacts, type VueSfcFactsV1 } from '../vue/types.js';
+import { DEFAULT_PARSER_LIMITS } from './types.js';
+import { sourceAdapterForLanguage } from './registry.js';
 import {
   buildSharedExtractionAnalysis,
   type SharedExtractionBuildV1,
@@ -38,6 +40,26 @@ export async function analyzeProgram(
   onWarn?: (message: string) => void
 ): Promise<ProgramAnalysisBuildV1> {
   const shared = await buildSharedExtractionAnalysis(scan, rootPath, onWarn);
+  const vueFacts: VueSfcFactsV1[] = [];
+  const vueAdapter = sourceAdapterForLanguage('vue');
+  if (vueAdapter) {
+    for (const entry of scan.knowledge) {
+      if (entry.type !== 'source-code' || !entry.filePath.toLowerCase().endsWith('.vue')) continue;
+      const output = await vueAdapter.extract({
+        corpusRoot: rootPath,
+        allowedRoots: [rootPath],
+        filePath: entry.filePath,
+        limits: DEFAULT_PARSER_LIMITS,
+      });
+      shared.producersRun.add(vueAdapter.id);
+      shared.dependencies.push(...output.dependencies);
+      shared.diagnostics.push(...output.diagnostics);
+      if (isVueSfcFacts(output.facts)) {
+        vueFacts.push(output.facts);
+        shared.facts.push(output.facts);
+      }
+    }
+  }
   const sourceFiles = new Set(
     scan.knowledge
       .filter((entry) => entry.type === 'source-code')
@@ -53,7 +75,7 @@ export async function analyzeProgram(
 
   return {
     facts: shared.facts,
-    vueFacts: shared.facts.filter(isVueSfcFacts),
+    vueFacts,
     project: project.context,
     dependencies: [
       ...new Set([...shared.dependencies, ...project.context.fingerprintInputs]),

@@ -71,15 +71,11 @@ export const COVERAGE_PRODUCER_CATALOG = Object.freeze({
     framework,
   }),
   vue: Object.freeze({
-    syntax: unsupported,
-    symbols: Object.freeze({
-      producer: 'vue-language-server',
-      runSignal: 'knowledge-lsp',
-      output: 'nodes',
-    }),
-    imports: unsupported,
-    calls: unsupported,
-    references: unsupported,
+    syntax: astNodes('vue-compiler-sfc'),
+    symbols: astNodes('vue-compiler-sfc'),
+    imports: astEdges('vue-compiler-sfc', 'references'),
+    calls: astEdges('vue-compiler-sfc', 'calls'),
+    references: astEdges('vue-compiler-sfc', 'references'),
     framework,
   }),
 } as const satisfies Record<string, Record<CoverageCapability, ProducerDefinition>>);

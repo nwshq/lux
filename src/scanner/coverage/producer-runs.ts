@@ -57,6 +57,24 @@ export function persistCoverageProducerRuns(db: LuxDatabase, scan: GeneralScanRe
   };
 
   const vueCandidates = candidateCounts.get('vue') ?? 0;
+  const vueFacts = scan.overlay?.programAnalysis?.vueFacts ?? [];
+  const vueCompilerFailures =
+    scan.overlay?.programAnalysis?.diagnostics.filter((diagnostic) =>
+      ['timeout', 'limit', 'parse-error', 'path-escape', 'worker-error'].includes(diagnostic.code)
+    ).length ?? 0;
+  runs['vue-compiler-sfc'] = {
+    status:
+      vueCandidates === 0
+        ? 'not-applicable'
+        : !scan.overlay || vueFacts.length === 0
+          ? 'failed'
+          : vueCompilerFailures > 0 || vueFacts.length < vueCandidates
+            ? 'partial'
+            : 'success',
+    failures: vueCompilerFailures || (!scan.overlay ? vueCandidates : 0),
+    completedCandidates: vueFacts.length,
+  };
+
   const vueCompleted = [...scan.enrichments.values()].filter(
     (result) => result.languageId === 'vue'
   ).length;
@@ -119,6 +137,19 @@ export function persistScopedCoverageProducerRuns(
 
   const vueCount = touched.get('vue') ?? 0;
   if (vueCount > 0) {
+    if (result.tiers.ast === 'failed') {
+      next['vue-compiler-sfc'] = {
+        status: 'partial',
+        failures: vueCount,
+        completedCandidates: previous['vue-compiler-sfc']?.completedCandidates ?? 0,
+      };
+    } else {
+      next['vue-compiler-sfc'] = {
+        status: 'success',
+        failures: 0,
+        completedCandidates: previous['vue-compiler-sfc']?.completedCandidates ?? vueCount,
+      };
+    }
     if (result.tiers.lsp !== 'ran') {
       next['vue-language-server'] = {
         status: 'partial',
