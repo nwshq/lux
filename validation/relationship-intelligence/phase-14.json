@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "phase": 14,
+  "implementationSha": "5d0f198f608b9ec8fe11852326ae1532f52e3433",
+  "mergeSha": "37783ac8270e447523db0bd3b84b03cef5686502",
+  "baselineSha": "13c57bde684e774cb914f0b29b2f9c1c675a9e32",
+  "criteria": [
+    {
+      "id": "P14-C1",
+      "class": "static-nova-graph",
+      "green": {
+        "command": "vitest run Phase 14 production, acceptance, Nova overlay, and prior-regression focused suites; fixed-denominator cohort scoring; watched-red controls; repeated stable-digest checks",
+        "exitCode": 0,
+        "observable": "All 44 production tests passed; all 10 Phase 14 acceptance tests plus the Nova overlay and prior regressions passed in the 66-test focused run; the battery passed 22 positive and 12 forbidden cases at precision 1 and recall 1, registration recall 1, and all eight exact-pin acme source families at precision 1 and recall 1; vendor and dynamic false edges, duplicate edge IDs, and dangling targets were all 0; all 9 watched mutations were detected; repeated observations produced equal stable digest 75501f907bcbd78dce385163fad2fad682c8c06d5d432502f3744d68fae21943"
+      },
+      "red": {
+        "mutation": "nine-watched-vendor-dynamic-direction-basename-duplicate-auctic-required-and-forbidden-edge-regressions",
+        "command": "vitest run src/integration/__tests__/phase-14-acceptance.test.ts with each watched mutation",
+        "exitCode": 1,
+        "observable": "Each of the 9 watched vendor inclusion, dynamic registration, registration direction, model direction, basename binding, duplicate-edge, acme model, required-edge removal, and forbidden-edge injection mutations produced a nonzero checker exit"
+      },
+      "verifiedBy": "independent-production-cohort-overlay-regression-watched-mutation-and-stable-digest-validation"
+    },
+    {
+      "id": "P14-C2",
+      "class": "performance-and-compatibility",
+      "green": {
+        "command": "three warmups plus five measured Phase 14 semantic runs; npm run check; architecture, dead-code, documentation, and native-free gates",
+        "exitCode": 0,
+        "observable": "After 3 warmups, median wall was 205.604959 ms across 5 measured runs with observed process RSS 103120896 bytes and equal stable digest 75501f907bcbd78dce385163fad2fad682c8c06d5d432502f3744d68fae21943; the final npm run check exited 0 with 2044 passed, 13 skipped, and 0 failed; all 9 gates passed; architecture lint checked 209 files with 0 violations, architecture tests passed 5, dead-code validation checked 1107 exports across 202 files, and native-free and documentation verification passed"
+      },
+      "red": {
+        "mutation": "watched-static-nova-semantics-regressions",
+        "command": "vitest run src/integration/__tests__/phase-14-acceptance.test.ts with watched mutations",
+        "exitCode": 1,
+        "observable": "The compatibility battery rejects all 9 watched Nova registration, model, component, safety, and integrity regressions with nonzero checker exits"
+      },
+      "verifiedBy": "independent-performance-full-suite-architecture-dead-code-documentation-and-native-free-validation"
+    },
+    {
+      "id": "P14-C3",
+      "class": "review-and-release",
+      "green": {
+        "command": "GitHub PR #110 merge and release record; installed CLI/package, MCP, tool, and Goose plugin verification",
+        "exitCode": 0,
+        "observable": "PR #110 merged as 37783ac8270e447523db0bd3b84b03cef5686502; v2.30.0 release and lux-v2.30.0-linux-x64.tar.gz published with sha256:5aa61a3546ef18fb51b487b379c77ab5c59618d4b4d14d866cc4478b5868a076; installed CLI/package and MCP report 2.30.0 with 12 tools; the Goose plugin is at 37783ac and preserves the namespaced Skill; Phase 13 release at baseline 13c57bde684e774cb914f0b29b2f9c1c675a9e32 was the released dependency"
+      },
+      "red": {
+        "mutation": "expect-prior-version",
+        "command": "installed CLI/package and MCP version check",
+        "exitCode": 1,
+        "observable": "installed 2.30.0 differs from the prior Phase 13 released dependency sentinel"
+      },
+      "verifiedBy": "github-ci-release-installed-cli-package-mcp-tools-and-goose-plugin-verification"
+    }
+  ],
+  "knownBaselineFailures": [],
+  "review": {
+    "codeReview": "APPROVED",
+    "independentValidation": "Review APPROVE and implementation acceptance APPROVED; 44 production tests passed, and 10 acceptance tests plus the Nova overlay and prior regressions passed in the 66-test focused run; the battery passed 22 positive and 12 forbidden cases at precision/recall 1, registration recall 1, and all eight exact-pin acme source families at precision/recall 1, with vendor/dynamic false edges, duplicate edge IDs, and dangling targets all 0; all 9 watched mutations were detected; the final npm run check exited 0 with 2044 passed/13 skipped/0 failed and all 9 gates, architecture lint 209 files/0 violations, architecture tests 5, dead-code validation 1107 exports/202 files, and native-free/documentation verification passed; repeated observations produced equal stable digest 75501f907bcbd78dce385163fad2fad682c8c06d5d432502f3744d68fae21943; 3+5 performance median was 205.604959 ms with RSS 103120896 bytes; installed CLI/package and MCP 2.30.0 with 12 tools and Goose plugin 37783ac namespaced Skill verification passed. Cumulative Tranche 2 criterion 12 is now closed: Phases 6-13 were accepted and released with evidence; Phase 13 evidence is being independently authored concurrently and will land before this branch is rebased.",
+    "acceptanceReview": "APPROVED"
+  },
+  "exemptions": []
+}
