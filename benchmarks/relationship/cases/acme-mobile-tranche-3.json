@@ -1,0 +1,1913 @@
+[
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/modal.tsx",
+    "id": "t3-auctic-mobile-positive-01",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "push",
+        "path": "app/(authenticated)/modal.tsx",
+        "exported": "ModalScreen",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push('/settings/about');",
+        "routeFiles": ["app/(authenticated)/settings/about.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F(authenticated)%2Fmodal.tsx#ModalScreen",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fsettings%2Fabout",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "performanceProtocol": {
+      "warmups": 3,
+      "measurements": 5,
+      "maxRegressionRatio": 1.2,
+      "baselineWallMs": 250,
+      "baselineRssBytes": 134217728
+    },
+    "watchedMutations": [
+      {
+        "id": "preserve-route-groups",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p16-positive-group"
+      },
+      {
+        "id": "retain-query-string",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p16-positive-query"
+      },
+      {
+        "id": "reverse-navigation-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p16-positive-push"
+      },
+      {
+        "id": "accept-external-url",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p16-forbidden-external-url"
+      },
+      {
+        "id": "resolve-dynamic-variable",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p16-forbidden-dynamic-variable"
+      }
+    ],
+    "sourceTruthId": "component:react:app%2F(authenticated)%2Fmodal.tsx#ModalScreen|navigates_to|surface:route:expo:%2Fsettings%2Fabout"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/auth/verify.tsx",
+    "id": "t3-auctic-mobile-positive-02",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "replace",
+        "path": "app/auth/verify.tsx",
+        "exported": "VerifyScreen",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.replace('/auth');",
+        "routeFiles": ["app/auth/index.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2Fauth%2Fverify.tsx#VerifyScreen",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fauth",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:app%2Fauth%2Fverify.tsx#VerifyScreen|navigates_to|surface:route:expo:%2Fauth"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/+not-found.tsx",
+    "id": "t3-auctic-mobile-positive-03",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "link",
+        "path": "app/+not-found.tsx",
+        "exported": "NotFoundScreen",
+        "sourceText": "import { Link } from 'expo-router'; const view = <Link href=\"/\">Home</Link>;",
+        "routeFiles": ["app/(authenticated)/index.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F%2Bnot-found.tsx#NotFoundScreen",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2F",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:app%2F%2Bnot-found.tsx#NotFoundScreen|navigates_to|surface:route:expo:%2F"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/_layout.tsx",
+    "id": "t3-auctic-mobile-positive-04",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "redirect",
+        "path": "app/(authenticated)/_layout.tsx",
+        "exported": "AuthenticatedLayout",
+        "sourceText": "import { Redirect } from 'expo-router'; const view = <Redirect href=\"/auth\" />;",
+        "routeFiles": ["app/auth/index.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F(authenticated)%2F_layout.tsx#AuthenticatedLayout",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fauth",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:app%2F(authenticated)%2F_layout.tsx#AuthenticatedLayout|navigates_to|surface:route:expo:%2Fauth"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/SettingsIcon.tsx",
+    "id": "t3-auctic-mobile-positive-05",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "group",
+        "path": "components/SettingsIcon.tsx",
+        "exported": "SettingsIcon",
+        "sourceText": "import { Link } from 'expo-router'; const view = <Link href=\"/(authenticated)/modal\" />;",
+        "routeFiles": ["app/(authenticated)/modal.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2FSettingsIcon.tsx#SettingsIcon",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fmodal",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:components%2FSettingsIcon.tsx#SettingsIcon|navigates_to|surface:route:expo:%2Fmodal"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/catalog/index.tsx",
+    "id": "t3-auctic-mobile-positive-06",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "index",
+        "path": "app/(authenticated)/catalog/index.tsx",
+        "exported": "CatalogRedirectScreen",
+        "sourceText": "import { Redirect } from 'expo-router'; const view = <Redirect href=\"/\" />;",
+        "routeFiles": ["app/(authenticated)/index.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F(authenticated)%2Fcatalog%2Findex.tsx#CatalogRedirectScreen",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2F",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:app%2F(authenticated)%2Fcatalog%2Findex.tsx#CatalogRedirectScreen|navigates_to|surface:route:expo:%2F"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/auth/login-qr-scanner.tsx",
+    "id": "t3-auctic-mobile-positive-07",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "query",
+        "path": "app/auth/login-qr-scanner.tsx",
+        "exported": "LoginQrScannerScreen",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push(`/auth/verify?${urlArray[1]}`);",
+        "routeFiles": ["app/auth/verify.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2Fauth%2Flogin-qr-scanner.tsx#LoginQrScannerScreen",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fauth%2Fverify",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:app%2Fauth%2Flogin-qr-scanner.tsx#LoginQrScannerScreen|navigates_to|surface:route:expo:%2Fauth%2Fverify"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/components/ListingCard.tsx",
+    "id": "t3-auctic-mobile-positive-08",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "dynamic-segment",
+        "path": "app/components/ListingCard.tsx",
+        "exported": "default",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push(`/catalog/listing/${listing.id}`);",
+        "routeFiles": ["app/(authenticated)/catalog/listing/[id]/index.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2Fcomponents%2FListingCard.tsx#default",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fcatalog%2Flisting%2F%5Bid%5D",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:app%2Fcomponents%2FListingCard.tsx#default|navigates_to|surface:route:expo:%2Fcatalog%2Flisting%2F%5Bid%5D"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/catalog/qr-scanner.tsx",
+    "id": "t3-auctic-mobile-positive-09",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "object",
+        "path": "app/(authenticated)/catalog/qr-scanner.tsx",
+        "exported": "QRScannerScreen",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.replace({ pathname: '/(authenticated)/catalog/listing/[id]/edit', params: { id } });",
+        "routeFiles": ["app/(authenticated)/catalog/listing/[id]/edit.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F(authenticated)%2Fcatalog%2Fqr-scanner.tsx#QRScannerScreen",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fcatalog%2Flisting%2F%5Bid%5D%2Fedit",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:app%2F(authenticated)%2Fcatalog%2Fqr-scanner.tsx#QRScannerScreen|navigates_to|surface:route:expo:%2Fcatalog%2Flisting%2F%5Bid%5D%2Fedit"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/catalog/listing/[id]/index.tsx",
+    "id": "t3-auctic-mobile-positive-10",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "query",
+        "path": "app/(authenticated)/catalog/listing/[id]/index.tsx",
+        "exported": "ListingDetailScreen",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push(`/catalog/listing/video-recorder?listingId=${id}`);",
+        "routeFiles": ["app/(authenticated)/catalog/listing/video-recorder.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F(authenticated)%2Fcatalog%2Flisting%2F%5Bid%5D%2Findex.tsx#ListingDetailScreen",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fcatalog%2Flisting%2Fvideo-recorder",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:app%2F(authenticated)%2Fcatalog%2Flisting%2F%5Bid%5D%2Findex.tsx#ListingDetailScreen|navigates_to|surface:route:expo:%2Fcatalog%2Flisting%2Fvideo-recorder"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/catalog/qr-scanner.tsx",
+    "id": "t3-auctic-mobile-positive-11",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "dynamic-segment",
+        "path": "app/(authenticated)/catalog/qr-scanner.tsx",
+        "exported": "QRScannerScreen",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.replace(`/catalog/listing/${existingListing.id}`);",
+        "routeFiles": ["app/(authenticated)/catalog/listing/[id]/index.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F(authenticated)%2Fcatalog%2Fqr-scanner.tsx#QRScannerScreen",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fcatalog%2Flisting%2F%5Bid%5D",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:app%2F(authenticated)%2Fcatalog%2Fqr-scanner.tsx#QRScannerScreen|navigates_to|surface:route:expo:%2Fcatalog%2Flisting%2F%5Bid%5D"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/catalog/qr-scanner.tsx",
+    "id": "t3-auctic-mobile-positive-12",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "dynamic-segment",
+        "path": "app/(authenticated)/catalog/qr-scanner.tsx",
+        "exported": "QRScannerScreen",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.replace(`/catalog/${listing.eventId}`);",
+        "routeFiles": ["app/(authenticated)/catalog/[id].tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F(authenticated)%2Fcatalog%2Fqr-scanner.tsx#QRScannerScreen",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fcatalog%2F%5Bid%5D",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:app%2F(authenticated)%2Fcatalog%2Fqr-scanner.tsx#QRScannerScreen|navigates_to|surface:route:expo:%2Fcatalog%2F%5Bid%5D"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/oauth.tsx",
+    "id": "t3-auctic-mobile-positive-13",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "replace",
+        "path": "app/oauth.tsx",
+        "exported": "OAuthRedirect",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.replace('/auth');",
+        "routeFiles": ["app/auth/index.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2Foauth.tsx#OAuthRedirect",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fauth",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:app%2Foauth.tsx#OAuthRedirect|navigates_to|surface:route:expo:%2Fauth"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/EditLink.tsx",
+    "id": "t3-auctic-mobile-positive-14",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "link",
+        "path": "components/EditLink.tsx",
+        "exported": "EditLink",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push(`/catalog/listing/${id}/edit`);",
+        "routeFiles": ["app/(authenticated)/catalog/listing/[id]/edit.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2FEditLink.tsx#EditLink",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fcatalog%2Flisting%2F%5Bid%5D%2Fedit",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:components%2FEditLink.tsx#EditLink|navigates_to|surface:route:expo:%2Fcatalog%2Flisting%2F%5Bid%5D%2Fedit"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/EventCard.tsx",
+    "id": "t3-auctic-mobile-positive-15",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "dynamic-segment",
+        "path": "components/EventCard.tsx",
+        "exported": "EventCard",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push(`/catalog/${event.id}`);",
+        "routeFiles": ["app/(authenticated)/catalog/[id].tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2FEventCard.tsx#EventCard",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fcatalog%2F%5Bid%5D",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:components%2FEventCard.tsx#EventCard|navigates_to|surface:route:expo:%2Fcatalog%2F%5Bid%5D"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/ImageWithFallback.tsx",
+    "id": "t3-auctic-mobile-positive-16",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "query",
+        "path": "components/ImageWithFallback.tsx",
+        "exported": "ImageWithFallback",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push(`/(authenticated)/catalog/gallery?mediaId=${mediaId}&listingId=${listingIdParam}&mediaType=video`);",
+        "routeFiles": ["app/(authenticated)/catalog/gallery.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2FImageWithFallback.tsx#ImageWithFallback",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fcatalog%2Fgallery",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:components%2FImageWithFallback.tsx#ImageWithFallback|navigates_to|surface:route:expo:%2Fcatalog%2Fgallery"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/auth/index.tsx",
+    "id": "t3-auctic-mobile-positive-17",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "push",
+        "path": "app/auth/index.tsx",
+        "exported": "AuthScreen",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push(`/auth/login-qr-scanner`);",
+        "routeFiles": ["app/auth/login-qr-scanner.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2Fauth%2Findex.tsx#AuthScreen",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fauth%2Flogin-qr-scanner",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:app%2Fauth%2Findex.tsx#AuthScreen|navigates_to|surface:route:expo:%2Fauth%2Flogin-qr-scanner"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "t3-auctic-mobile-positive-18",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "navigate",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen1",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen1"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen1",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "performanceProtocol": {
+      "warmups": 3,
+      "measurements": 5,
+      "maxRegressionRatio": 1.2,
+      "baselineWallMs": 139.555333,
+      "baselineRssBytes": 101875712
+    },
+    "watchedMutations": [
+      {
+        "id": "compute-screen-name",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p17-positive-01-navigate"
+      },
+      {
+        "id": "erase-navigator-scope",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p17-positive-02-push"
+      },
+      {
+        "id": "remove-nested-registration",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p17-positive-03-replace"
+      },
+      {
+        "id": "unresolve-component",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p17-positive-04-nested"
+      },
+      {
+        "id": "duplicate-expo-screen",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p17-forbidden-03-expo"
+      }
+    ],
+    "sourceTruthId": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack|navigates_to|surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen1"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "t3-auctic-mobile-positive-19",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "push",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen2",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen2"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen2",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack|navigates_to|surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen2"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "t3-auctic-mobile-positive-20",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "replace",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen3",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen3"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen3",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack|navigates_to|surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen3"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "t3-auctic-mobile-positive-21",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "nested",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen4",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen4"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen4",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack|navigates_to|surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen4"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "t3-auctic-mobile-positive-22",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "screen",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen5",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen5"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen5",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack|navigates_to|surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen5"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "t3-auctic-mobile-positive-23",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "navigate",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen6",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen6"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen6",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack|navigates_to|surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen6"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "t3-auctic-mobile-positive-24",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "push",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen7",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen7"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen7",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack|navigates_to|surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen7"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "t3-auctic-mobile-positive-25",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "replace",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen8",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen8"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen8",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack|navigates_to|surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen8"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "t3-auctic-mobile-positive-26",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "nested",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen9",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen9"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen9",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack|navigates_to|surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen9"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "t3-auctic-mobile-positive-27",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "screen",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen10",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen10"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen10",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack|navigates_to|surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen10"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "t3-auctic-mobile-positive-28",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "navigate",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen11",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen11"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen11",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack|navigates_to|surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen11"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "t3-auctic-mobile-positive-29",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "push",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen12",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen12"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen12",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack|navigates_to|surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen12"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "t3-auctic-mobile-positive-30",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "replace",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen13",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen13"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen13",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack|navigates_to|surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen13"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/settings/about.tsx",
+    "id": "t3-auctic-mobile-forbidden-01",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "external",
+        "path": "app/(authenticated)/settings/about.tsx",
+        "exported": "AboutScreen",
+        "sourceText": "import { openURL } from 'expo-linking'; openURL('https://acme.com/privacy');",
+        "routeFiles": ["app/privacy.tsx"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "non-static-or-unresolved-destination",
+    "sourceTruthId": "app/(authenticated)/settings/about.tsx|[{\"type\": \"navigates_to\"}]|0"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "t3-auctic-mobile-forbidden-02",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "ambiguous",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen1",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen1"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "components/authenticated/AuthenticatedStack.tsx|[{\"type\": \"navigates_to\"}]|1"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "t3-auctic-mobile-forbidden-03",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "unresolved",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen2",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen2"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "components/authenticated/AuthenticatedStack.tsx|[{\"type\": \"navigates_to\"}]|2"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "t3-auctic-mobile-forbidden-04",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "expo",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen3",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen3"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "components/authenticated/AuthenticatedStack.tsx|[{\"type\": \"navigates_to\"}]|3"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "t3-auctic-mobile-forbidden-05",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "missing-nested",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen4",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen4"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "components/authenticated/AuthenticatedStack.tsx|[{\"type\": \"navigates_to\"}]|4"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["REACT_NAVIGATION_DYNAMIC_ACTION"],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "t3-auctic-mobile-forbidden-06",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "computed",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen5",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen5"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "components/authenticated/AuthenticatedStack.tsx|[{\"type\": \"navigates_to\"}]|5"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "t3-auctic-mobile-forbidden-07",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "ambiguous",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen6",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen6"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "components/authenticated/AuthenticatedStack.tsx|[{\"type\": \"navigates_to\"}]|6"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "t3-auctic-mobile-forbidden-08",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "unresolved",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen7",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen7"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "components/authenticated/AuthenticatedStack.tsx|[{\"type\": \"navigates_to\"}]|7"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "t3-auctic-mobile-forbidden-09",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "expo",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen8",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen8"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered",
+    "sourceTruthId": "components/authenticated/AuthenticatedStack.tsx|[{\"type\": \"navigates_to\"}]|8"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/auth/infrastructure/repositories/RealmAuthRepository.ts",
+    "id": "t3-auctic-mobile-forbidden-10",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "suffix-only",
+        "path": "modules/auth/infrastructure/repositories/RealmAuthRepository.ts",
+        "symbol": "RealmAuthRepository",
+        "targetPath": "modules/auth/domain/repositories/IAuthRepository.ts",
+        "targetSymbol": "IAuthRepository",
+        "sourceText": "export class RealmAuthRepository { label = 'IAuthRepository'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:modules/auth/infrastructure/repositories/RealmAuthRepository.ts#RealmAuthRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/auth/domain/repositories/IAuthRepository.ts#IAuthRepository"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-implements-evidence-required",
+    "sourceTruthId": "modules/auth/infrastructure/repositories/RealmAuthRepository.ts|[{\"source\": \"symbol:ts:modules/auth/infrastructure/repositories/RealmAuthRepository.ts#RealmAuthRepository\", \"target\": \"symbol:ts:modules/auth/domain/repositories/IAuthRepository.ts#IAuthRepository\", \"type\": \"declares_resource\"}]|9"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/bootstrap/infrastructure/repositories/RealmConfigurationRepository.ts",
+    "id": "t3-auctic-mobile-forbidden-11",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "type-reference-only",
+        "path": "modules/bootstrap/infrastructure/repositories/RealmConfigurationRepository.ts",
+        "symbol": "RealmConfigurationRepository",
+        "targetPath": "modules/bootstrap/domain/repositories/IConfigurationRepository.ts",
+        "targetSymbol": "IConfigurationRepository",
+        "sourceText": "export class RealmConfigurationRepository { label = 'IConfigurationRepository'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:modules/bootstrap/infrastructure/repositories/RealmConfigurationRepository.ts#RealmConfigurationRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/bootstrap/domain/repositories/IConfigurationRepository.ts#IConfigurationRepository"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-implements-evidence-required",
+    "sourceTruthId": "modules/bootstrap/infrastructure/repositories/RealmConfigurationRepository.ts|[{\"source\": \"symbol:ts:modules/bootstrap/infrastructure/repositories/RealmConfigurationRepository.ts#RealmConfigurationRepository\", \"target\": \"symbol:ts:modules/bootstrap/domain/repositories/IConfigurationRepository.ts#IConfigurationRepository\", \"type\": \"declares_resource\"}]|10"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmBatchChangesRepository.ts",
+    "id": "t3-auctic-mobile-forbidden-12",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "import-only",
+        "path": "modules/catalog/infrastructure/repositories/RealmBatchChangesRepository.ts",
+        "symbol": "RealmBatchChangesRepository",
+        "targetPath": "modules/catalog/domain/repositories/IBatchChangesRepository.ts",
+        "targetSymbol": "IBatchChangesRepository",
+        "sourceText": "export class RealmBatchChangesRepository { label = 'IBatchChangesRepository'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmBatchChangesRepository.ts#RealmBatchChangesRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/IBatchChangesRepository.ts#IBatchChangesRepository"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-implements-evidence-required",
+    "sourceTruthId": "modules/catalog/infrastructure/repositories/RealmBatchChangesRepository.ts|[{\"source\": \"symbol:ts:modules/catalog/infrastructure/repositories/RealmBatchChangesRepository.ts#RealmBatchChangesRepository\", \"target\": \"symbol:ts:modules/catalog/domain/repositories/IBatchChangesRepository.ts#IBatchChangesRepository\", \"type\": \"declares_resource\"}]|11"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmCategoryRepository.ts",
+    "id": "t3-auctic-mobile-forbidden-13",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "unresolved-interface",
+        "path": "modules/catalog/infrastructure/repositories/RealmCategoryRepository.ts",
+        "symbol": "RealmCategoryRepository",
+        "targetPath": "modules/catalog/domain/repositories/ICategoryRepository.ts",
+        "targetSymbol": "ICategoryRepository",
+        "sourceText": "export class RealmCategoryRepository { label = 'ICategoryRepository'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmCategoryRepository.ts#RealmCategoryRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/ICategoryRepository.ts#ICategoryRepository"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-implements-evidence-required",
+    "sourceTruthId": "modules/catalog/infrastructure/repositories/RealmCategoryRepository.ts|[{\"source\": \"symbol:ts:modules/catalog/infrastructure/repositories/RealmCategoryRepository.ts#RealmCategoryRepository\", \"target\": \"symbol:ts:modules/catalog/domain/repositories/ICategoryRepository.ts#ICategoryRepository\", \"type\": \"declares_resource\"}]|12"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmChangeRepository.ts",
+    "id": "t3-auctic-mobile-forbidden-14",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "external-interface",
+        "path": "modules/catalog/infrastructure/repositories/RealmChangeRepository.ts",
+        "symbol": "RealmChangeRepository",
+        "targetPath": "modules/catalog/domain/repositories/IChangeRepository.ts",
+        "targetSymbol": "IChangeRepository",
+        "sourceText": "export class RealmChangeRepository { label = 'IChangeRepository'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmChangeRepository.ts#RealmChangeRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/IChangeRepository.ts#IChangeRepository"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-implements-evidence-required",
+    "sourceTruthId": "modules/catalog/infrastructure/repositories/RealmChangeRepository.ts|[{\"source\": \"symbol:ts:modules/catalog/infrastructure/repositories/RealmChangeRepository.ts#RealmChangeRepository\", \"target\": \"symbol:ts:modules/catalog/domain/repositories/IChangeRepository.ts#IChangeRepository\", \"type\": \"declares_resource\"}]|13"
+  },
+  {
+    "capability": "tranche-3-promotion",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmEventDomainRepository.ts",
+    "id": "t3-auctic-mobile-forbidden-15",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "object-literal",
+        "path": "modules/catalog/infrastructure/repositories/RealmEventDomainRepository.ts",
+        "symbol": "RealmEventDomainRepository",
+        "targetPath": "modules/catalog/domain/repositories/IEventDomainRepository.ts",
+        "targetSymbol": "IEventDomainRepository",
+        "sourceText": "export class RealmEventDomainRepository { label = 'IEventDomainRepository'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmEventDomainRepository.ts#RealmEventDomainRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/IEventDomainRepository.ts#IEventDomainRepository"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-implements-evidence-required",
+    "sourceTruthId": "modules/catalog/infrastructure/repositories/RealmEventDomainRepository.ts|[{\"source\": \"symbol:ts:modules/catalog/infrastructure/repositories/RealmEventDomainRepository.ts#RealmEventDomainRepository\", \"target\": \"symbol:ts:modules/catalog/domain/repositories/IEventDomainRepository.ts#IEventDomainRepository\", \"type\": \"declares_resource\"}]|14"
+  }
+]

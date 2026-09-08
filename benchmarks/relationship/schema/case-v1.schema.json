@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RelationshipBenchmarkCaseV1",
+  "type": "object",
+  "required": ["id", "corpus", "capability", "expectedEdges", "forbiddenEdges", "expectedOutcome"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "corpus": { "type": "string", "minLength": 1 },
+    "capability": { "type": "string", "minLength": 1 },
+    "expectedEdges": { "type": "array" },
+    "forbiddenEdges": { "type": "array" },
+    "expectedOutcome": { "enum": ["answered", "refused", "unsupported"] }
+  },
+  "additionalProperties": true
+}
