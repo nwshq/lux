@@ -28,6 +28,8 @@ import { materializeAstSymbols } from '../ast/materialize.js';
 import { buildVueComponentNodes } from '../vue/materialize.js';
 import { VueEventResolver } from '../vue/event-resolver.js';
 import { buildVueEventNodes } from '../vue/event-materialize.js';
+import { analyzeReactContext, isReactSourcePath } from '../react/association-wrapper.js';
+import { toStructuralNode } from '../react/types.js';
 import { resolveLivewire } from './framework/laravel/livewire-resolver.js';
 import { NovaAssociationResolver, resolveNova } from './framework/laravel/nova-resolver.js';
 import { AstStructuralResolver } from '../ast/resolver.js';
@@ -169,10 +171,22 @@ export async function refreshOverlayScoped(
     .getLocalStructuralNodesByType('file')
     .map((node) => node.file_path)
     .filter((path): path is string => Boolean(path));
-  // Nova joins registrations/resources in PHP to JS/TS entrypoints and Vue SFCs. Its scoped
-  // invalidation unit is therefore the complete PHP/JS/Vue program whenever any member changes.
-  // This also subsumes the existing whole-Vue component and whole-PHP Livewire requirements.
-  if (config.frameworks?.nova.enabled && changedPaths.some((path) => isNovaProgramPath(path))) {
+  // React binding/export resolution joins declarations and uses across files. Expand to the full
+  // JS/TS universe only for an applicable React change. A blanket expansion for every .ts change
+  // would erase the scoped refresh contract's stale-inbound signal for ordinary AST-only files.
+  const persistedReactPaths = new Set(
+    db
+      .getLocalStructuralNodesByType('symbol')
+      .filter((node) => /^(?:component|hook|context):react:/u.test(node.id))
+      .map((node) => node.file_path)
+      .filter((path): path is string => Boolean(path))
+  );
+  if (changedPaths.some((path) => isReactCandidateChange(rootPath, path, persistedReactPaths))) {
+    R = [...new Set([...R, ...persistedSourcePaths.filter(isReactSourcePath)])];
+  } else if (
+    config.frameworks?.nova.enabled &&
+    changedPaths.some((path) => isNovaProgramPath(path))
+  ) {
     R = [...new Set([...R, ...persistedSourcePaths.filter(isNovaProgramPath)])];
   } else {
     // Component resolution needs the complete materialized Vue universe.
@@ -288,6 +302,13 @@ export async function refreshOverlayScoped(
     sharedExtractions,
     programAnalysis,
   };
+  const react = await analyzeReactContext(context);
+  if (react?.nodes.length) {
+    db.transaction(() => {
+      for (const node of react.nodes) db.upsertStructuralNode(toStructuralNode(node, now));
+    });
+    context.nodes = db.getStructuralNodesForFilePaths(rematPaths);
+  }
   const livewire = resolveLivewire(context, {
     config: config.frameworks?.livewire,
     now: () => now,
@@ -386,6 +407,25 @@ export async function refreshOverlayScoped(
 
 function isNovaProgramPath(filePath: string): boolean {
   return /(?:\.php|\.vue|\.[cm]?[jt]sx?)$/iu.test(filePath);
+}
+
+function isReactCandidateChange(
+  rootPath: string,
+  filePath: string,
+  persistedReactPaths: ReadonlySet<string>
+): boolean {
+  if (!isReactSourcePath(filePath)) return false;
+  if (persistedReactPaths.has(filePath)) return true;
+  const entry = buildEntry(rootPath, filePath);
+  const source = entry?.content ?? '';
+  return (
+    /(?:<[A-Z]|React\.createElement\s*\(|\bcreateContext\s*\(|React\.createContext\s*\(|\buse[A-Z0-9][\w$]*\s*\()/u.test(
+      source
+    ) ||
+    /\bfrom\s+['"]react['"]|\bfrom\s+['"]react-native['"]|\bfrom\s+['"]expo-router['"]/u.test(
+      source
+    )
+  );
 }
 
 function safeHead(rootPath: string): string | undefined {

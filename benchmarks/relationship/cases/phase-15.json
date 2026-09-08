@@ -1,0 +1,3191 @@
+[
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-render-01",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "src/components/Owner1.tsx",
+        "source": "component:react:src%2Fcomponents%2FOwner1.tsx#Owner1",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild1.tsx#Child1"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fcomponents%2FOwner1.tsx#Owner1",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild1.tsx#Child1",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "performanceProtocol": {
+      "warmups": 3,
+      "measurements": 5,
+      "maxRegressionRatio": 1.2,
+      "baselineWallMs": 205.604959,
+      "baselineRssBytes": 103120896
+    },
+    "watchedMutations": [
+      {
+        "id": "remove-rendered-jsx",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p15-synth-positive-render-01"
+      },
+      {
+        "id": "custom-hook-to-unused-import",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p15-synth-positive-hook-01"
+      },
+      {
+        "id": "literal-lazy-to-template",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p15-synth-positive-lazy-01"
+      },
+      {
+        "id": "context-to-unresolved",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p15-synth-positive-consumer-01"
+      },
+      {
+        "id": "emit-callback-artifact",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p15-synth-forbidden-01-callback"
+      },
+      {
+        "id": "collapse-component-identity",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p15-synth-forbidden-15-same-name"
+      }
+    ]
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-render-02",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "src/components/Owner2.tsx",
+        "source": "component:react:src%2Fcomponents%2FOwner2.tsx#Owner2",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild2.tsx#Child2"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fcomponents%2FOwner2.tsx#Owner2",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild2.tsx#Child2",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-render-03",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "src/components/Owner3.tsx",
+        "source": "component:react:src%2Fcomponents%2FOwner3.tsx#Owner3",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild3.tsx#Child3"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fcomponents%2FOwner3.tsx#Owner3",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild3.tsx#Child3",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-render-04",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "src/components/Owner4.tsx",
+        "source": "component:react:src%2Fcomponents%2FOwner4.tsx#Owner4",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild4.tsx#Child4"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fcomponents%2FOwner4.tsx#Owner4",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild4.tsx#Child4",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-render-05",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "src/components/Owner5.tsx",
+        "source": "component:react:src%2Fcomponents%2FOwner5.tsx#Owner5",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild5.tsx#Child5"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fcomponents%2FOwner5.tsx#Owner5",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild5.tsx#Child5",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-render-06",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "src/components/Owner6.tsx",
+        "source": "component:react:src%2Fcomponents%2FOwner6.tsx#Owner6",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild6.tsx#Child6"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fcomponents%2FOwner6.tsx#Owner6",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild6.tsx#Child6",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-render-07",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "src/components/Owner7.tsx",
+        "source": "component:react:src%2Fcomponents%2FOwner7.tsx#Owner7",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild7.tsx#Child7"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fcomponents%2FOwner7.tsx#Owner7",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild7.tsx#Child7",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-render-08",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "src/components/Owner8.tsx",
+        "source": "component:react:src%2Fcomponents%2FOwner8.tsx#Owner8",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild8.tsx#Child8"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fcomponents%2FOwner8.tsx#Owner8",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild8.tsx#Child8",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-render-09",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "src/components/Owner9.tsx",
+        "source": "component:react:src%2Fcomponents%2FOwner9.tsx#Owner9",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild9.tsx#Child9"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fcomponents%2FOwner9.tsx#Owner9",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild9.tsx#Child9",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-render-10",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "src/components/Owner10.tsx",
+        "source": "component:react:src%2Fcomponents%2FOwner10.tsx#Owner10",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild10.tsx#Child10"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fcomponents%2FOwner10.tsx#Owner10",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild10.tsx#Child10",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-render-11",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "src/components/Owner11.tsx",
+        "source": "component:react:src%2Fcomponents%2FOwner11.tsx#Owner11",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild11.tsx#Child11"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fcomponents%2FOwner11.tsx#Owner11",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild11.tsx#Child11",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-render-12",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "src/components/Owner12.tsx",
+        "source": "component:react:src%2Fcomponents%2FOwner12.tsx#Owner12",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild12.tsx#Child12"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fcomponents%2FOwner12.tsx#Owner12",
+        "type": "renders_component",
+        "target": "component:react:src%2Fcomponents%2FChild12.tsx#Child12",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-hook-01",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "hook",
+        "path": "src/hooks/Consumer1.tsx",
+        "source": "component:react:src%2Fhooks%2FConsumer1.tsx#Consumer1",
+        "type": "uses_hook",
+        "target": "hook:react:src%2Fhooks%2FuseFeature1.ts#useFeature1"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fhooks%2FConsumer1.tsx#Consumer1",
+        "type": "uses_hook",
+        "target": "hook:react:src%2Fhooks%2FuseFeature1.ts#useFeature1",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-hook-02",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "hook",
+        "path": "src/hooks/Consumer2.tsx",
+        "source": "component:react:src%2Fhooks%2FConsumer2.tsx#Consumer2",
+        "type": "uses_hook",
+        "target": "hook:react:src%2Fhooks%2FuseFeature2.ts#useFeature2"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fhooks%2FConsumer2.tsx#Consumer2",
+        "type": "uses_hook",
+        "target": "hook:react:src%2Fhooks%2FuseFeature2.ts#useFeature2",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-hook-03",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "hook",
+        "path": "src/hooks/Consumer3.tsx",
+        "source": "component:react:src%2Fhooks%2FConsumer3.tsx#Consumer3",
+        "type": "uses_hook",
+        "target": "hook:react:src%2Fhooks%2FuseFeature3.ts#useFeature3"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fhooks%2FConsumer3.tsx#Consumer3",
+        "type": "uses_hook",
+        "target": "hook:react:src%2Fhooks%2FuseFeature3.ts#useFeature3",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-hook-04",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "hook",
+        "path": "src/hooks/Consumer4.tsx",
+        "source": "component:react:src%2Fhooks%2FConsumer4.tsx#Consumer4",
+        "type": "uses_hook",
+        "target": "hook:react:src%2Fhooks%2FuseFeature4.ts#useFeature4"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fhooks%2FConsumer4.tsx#Consumer4",
+        "type": "uses_hook",
+        "target": "hook:react:src%2Fhooks%2FuseFeature4.ts#useFeature4",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-hook-05",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "hook",
+        "path": "src/hooks/Consumer5.tsx",
+        "source": "component:react:src%2Fhooks%2FConsumer5.tsx#Consumer5",
+        "type": "uses_hook",
+        "target": "hook:react:src%2Fhooks%2FuseFeature5.ts#useFeature5"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fhooks%2FConsumer5.tsx#Consumer5",
+        "type": "uses_hook",
+        "target": "hook:react:src%2Fhooks%2FuseFeature5.ts#useFeature5",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-hook-06",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "hook",
+        "path": "src/hooks/Consumer6.tsx",
+        "source": "component:react:src%2Fhooks%2FConsumer6.tsx#Consumer6",
+        "type": "uses_hook",
+        "target": "hook:react:src%2Fhooks%2FuseFeature6.ts#useFeature6"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fhooks%2FConsumer6.tsx#Consumer6",
+        "type": "uses_hook",
+        "target": "hook:react:src%2Fhooks%2FuseFeature6.ts#useFeature6",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-hook-07",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "hook",
+        "path": "src/hooks/Consumer7.tsx",
+        "source": "component:react:src%2Fhooks%2FConsumer7.tsx#Consumer7",
+        "type": "uses_hook",
+        "target": "hook:react:src%2Fhooks%2FuseFeature7.ts#useFeature7"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fhooks%2FConsumer7.tsx#Consumer7",
+        "type": "uses_hook",
+        "target": "hook:react:src%2Fhooks%2FuseFeature7.ts#useFeature7",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-provider-01",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "provider",
+        "path": "src/context/Provider1.tsx",
+        "source": "component:react:src%2Fcontext%2FProvider1.tsx#Provider1",
+        "type": "provides_context",
+        "target": "context:react:src%2Fcontext%2FContext1.tsx#Context1"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fcontext%2FProvider1.tsx#Provider1",
+        "type": "provides_context",
+        "target": "context:react:src%2Fcontext%2FContext1.tsx#Context1",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-provider-02",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "provider",
+        "path": "src/context/Provider2.tsx",
+        "source": "component:react:src%2Fcontext%2FProvider2.tsx#Provider2",
+        "type": "provides_context",
+        "target": "context:react:src%2Fcontext%2FContext2.tsx#Context2"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fcontext%2FProvider2.tsx#Provider2",
+        "type": "provides_context",
+        "target": "context:react:src%2Fcontext%2FContext2.tsx#Context2",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-provider-03",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "provider",
+        "path": "src/context/Provider3.tsx",
+        "source": "component:react:src%2Fcontext%2FProvider3.tsx#Provider3",
+        "type": "provides_context",
+        "target": "context:react:src%2Fcontext%2FContext3.tsx#Context3"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fcontext%2FProvider3.tsx#Provider3",
+        "type": "provides_context",
+        "target": "context:react:src%2Fcontext%2FContext3.tsx#Context3",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-provider-04",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "provider",
+        "path": "src/context/Provider4.tsx",
+        "source": "component:react:src%2Fcontext%2FProvider4.tsx#Provider4",
+        "type": "provides_context",
+        "target": "context:react:src%2Fcontext%2FContext4.tsx#Context4"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fcontext%2FProvider4.tsx#Provider4",
+        "type": "provides_context",
+        "target": "context:react:src%2Fcontext%2FContext4.tsx#Context4",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-provider-05",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "provider",
+        "path": "src/context/Provider5.tsx",
+        "source": "component:react:src%2Fcontext%2FProvider5.tsx#Provider5",
+        "type": "provides_context",
+        "target": "context:react:src%2Fcontext%2FContext5.tsx#Context5"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fcontext%2FProvider5.tsx#Provider5",
+        "type": "provides_context",
+        "target": "context:react:src%2Fcontext%2FContext5.tsx#Context5",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-consumer-01",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "consumer",
+        "path": "src/context/Consumer1.tsx",
+        "source": "component:react:src%2Fcontext%2FConsumer1.tsx#Consumer1",
+        "type": "consumes_context",
+        "target": "context:react:src%2Fcontext%2FContext1.tsx#Context1"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fcontext%2FConsumer1.tsx#Consumer1",
+        "type": "consumes_context",
+        "target": "context:react:src%2Fcontext%2FContext1.tsx#Context1",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-consumer-02",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "consumer",
+        "path": "src/context/Consumer2.tsx",
+        "source": "component:react:src%2Fcontext%2FConsumer2.tsx#Consumer2",
+        "type": "consumes_context",
+        "target": "context:react:src%2Fcontext%2FContext2.tsx#Context2"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fcontext%2FConsumer2.tsx#Consumer2",
+        "type": "consumes_context",
+        "target": "context:react:src%2Fcontext%2FContext2.tsx#Context2",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-consumer-03",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "consumer",
+        "path": "src/context/Consumer3.tsx",
+        "source": "component:react:src%2Fcontext%2FConsumer3.tsx#Consumer3",
+        "type": "consumes_context",
+        "target": "context:react:src%2Fcontext%2FContext3.tsx#Context3"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fcontext%2FConsumer3.tsx#Consumer3",
+        "type": "consumes_context",
+        "target": "context:react:src%2Fcontext%2FContext3.tsx#Context3",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-consumer-04",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "consumer",
+        "path": "src/context/Consumer4.tsx",
+        "source": "component:react:src%2Fcontext%2FConsumer4.tsx#Consumer4",
+        "type": "consumes_context",
+        "target": "context:react:src%2Fcontext%2FContext4.tsx#Context4"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fcontext%2FConsumer4.tsx#Consumer4",
+        "type": "consumes_context",
+        "target": "context:react:src%2Fcontext%2FContext4.tsx#Context4",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-consumer-05",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "consumer",
+        "path": "src/context/Consumer5.tsx",
+        "source": "component:react:src%2Fcontext%2FConsumer5.tsx#Consumer5",
+        "type": "consumes_context",
+        "target": "context:react:src%2Fcontext%2FContext5.tsx#Context5"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2Fcontext%2FConsumer5.tsx#Consumer5",
+        "type": "consumes_context",
+        "target": "context:react:src%2Fcontext%2FContext5.tsx#Context5",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-positive-lazy-01",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "lazy",
+        "path": "src/LazyOwner.tsx",
+        "source": "component:react:src%2FLazyOwner.tsx#LazyOwner",
+        "type": "renders_component",
+        "target": "component:react:src%2FLazyChild.tsx#default"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2FLazyOwner.tsx#LazyOwner",
+        "type": "renders_component",
+        "target": "component:react:src%2FLazyChild.tsx#default",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-forbidden-01-callback",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "callback",
+        "path": "src/p15-synth-forbidden-01-callback.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "emits_component_event"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-forbidden-02-import-unused",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "import-unused",
+        "path": "src/p15-synth-forbidden-02-import-unused.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "renders_component"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-forbidden-03-external-hook",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "external-hook",
+        "path": "src/p15-synth-forbidden-03-external-hook.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "uses_hook"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-forbidden-04-intrinsic",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "intrinsic",
+        "path": "src/p15-synth-forbidden-04-intrinsic.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "renders_component"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["REACT_DYNAMIC_IMPORT_UNSUPPORTED"],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-forbidden-05-dynamic-lazy",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "dynamic-lazy",
+        "path": "src/p15-synth-forbidden-05-dynamic-lazy.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "renders_component"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["REACT_UNRESOLVED_BINDING"],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-forbidden-06-unresolved-context",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "unresolved-context",
+        "path": "src/p15-synth-forbidden-06-unresolved-context.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "consumes_context"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-forbidden-07-type-only",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "type-only",
+        "path": "src/p15-synth-forbidden-07-type-only.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "renders_component"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-forbidden-08-lowercase",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "lowercase",
+        "path": "src/p15-synth-forbidden-08-lowercase.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "renders_component"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-forbidden-09-fragment",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "fragment",
+        "path": "src/p15-synth-forbidden-09-fragment.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "renders_component"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-forbidden-10-string-tag",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "string-tag",
+        "path": "src/p15-synth-forbidden-10-string-tag.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "renders_component"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["REACT_UNRESOLVED_BINDING"],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-forbidden-11-unresolved-import",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "unresolved-import",
+        "path": "src/p15-synth-forbidden-11-unresolved-import.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "renders_component"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-forbidden-12-provider-suffix",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "provider-suffix",
+        "path": "src/p15-synth-forbidden-12-provider-suffix.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "consumes_context"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-forbidden-13-computed-component",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "computed-component",
+        "path": "src/p15-synth-forbidden-13-computed-component.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "renders_component"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-forbidden-14-render-prop",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render-prop",
+        "path": "src/p15-synth-forbidden-14-render-prop.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "renders_component"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-15-react-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a"
+    },
+    "id": "p15-synth-forbidden-15-same-name",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "same-name",
+        "path": "src/p15-synth-forbidden-15-same-name.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "renders_component"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-workspace",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "id": "p15-pulse-positive-01",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "apps/desktop/src/pages/Inbox.tsx",
+        "source": "component:react:apps%2Fdesktop%2Fsrc%2Fpages%2FInbox.tsx#Inbox",
+        "type": "renders_component",
+        "target": "component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FPeopleList.tsx#PeopleList"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:apps%2Fdesktop%2Fsrc%2Fpages%2FInbox.tsx#Inbox",
+        "type": "renders_component",
+        "target": "component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FPeopleList.tsx#PeopleList",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-workspace",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "id": "p15-pulse-positive-02",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "apps/desktop/src/pages/Inbox.tsx",
+        "source": "component:react:apps%2Fdesktop%2Fsrc%2Fpages%2FInbox.tsx#Inbox",
+        "type": "renders_component",
+        "target": "component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FCompanyDetail.tsx#CompanyDetail"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:apps%2Fdesktop%2Fsrc%2Fpages%2FInbox.tsx#Inbox",
+        "type": "renders_component",
+        "target": "component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FCompanyDetail.tsx#CompanyDetail",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-workspace",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "id": "p15-pulse-positive-03",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "apps/desktop/src/pages/Inbox.tsx",
+        "source": "component:react:apps%2Fdesktop%2Fsrc%2Fpages%2FInbox.tsx#Inbox",
+        "type": "renders_component",
+        "target": "component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FSenderContextPanel.tsx#SenderContextPanel"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:apps%2Fdesktop%2Fsrc%2Fpages%2FInbox.tsx#Inbox",
+        "type": "renders_component",
+        "target": "component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FSenderContextPanel.tsx#SenderContextPanel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-workspace",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "id": "p15-pulse-positive-04",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "apps/desktop/src/pages/Inbox.tsx",
+        "source": "component:react:apps%2Fdesktop%2Fsrc%2Fpages%2FInbox.tsx#Inbox",
+        "type": "renders_component",
+        "target": "component:react:apps%2Fdesktop%2Fsrc%2Fpages%2FSettings.tsx#Settings"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:apps%2Fdesktop%2Fsrc%2Fpages%2FInbox.tsx#Inbox",
+        "type": "renders_component",
+        "target": "component:react:apps%2Fdesktop%2Fsrc%2Fpages%2FSettings.tsx#Settings",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-workspace",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "id": "p15-pulse-positive-05",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "provider",
+        "path": "packages/ui/src/primitives/Dialog.tsx",
+        "source": "component:react:packages%2Fui%2Fsrc%2Fprimitives%2FDialog.tsx#Dialog",
+        "type": "provides_context",
+        "target": "context:react:packages%2Fui%2Fsrc%2Fprimitives%2FDialog.tsx#DialogDepthContext"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:packages%2Fui%2Fsrc%2Fprimitives%2FDialog.tsx#Dialog",
+        "type": "provides_context",
+        "target": "context:react:packages%2Fui%2Fsrc%2Fprimitives%2FDialog.tsx#DialogDepthContext",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-workspace",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "id": "p15-pulse-positive-06",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "consumer",
+        "path": "packages/ui/src/primitives/Dialog.tsx",
+        "source": "component:react:packages%2Fui%2Fsrc%2Fprimitives%2FDialog.tsx#Dialog",
+        "type": "consumes_context",
+        "target": "context:react:packages%2Fui%2Fsrc%2Fprimitives%2FDialog.tsx#DialogDepthContext"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:packages%2Fui%2Fsrc%2Fprimitives%2FDialog.tsx#Dialog",
+        "type": "consumes_context",
+        "target": "context:react:packages%2Fui%2Fsrc%2Fprimitives%2FDialog.tsx#DialogDepthContext",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-workspace",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "id": "p15-pulse-positive-07",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "apps/desktop/src/pages/Inbox.tsx",
+        "source": "component:react:apps%2Fdesktop%2Fsrc%2Fpages%2FInbox.tsx#Inbox",
+        "type": "renders_component",
+        "target": "component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FPersonDetail.tsx#PersonDetail"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:apps%2Fdesktop%2Fsrc%2Fpages%2FInbox.tsx#Inbox",
+        "type": "renders_component",
+        "target": "component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FPersonDetail.tsx#PersonDetail",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-workspace",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "id": "p15-pulse-positive-08",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "apps/desktop/src/pages/Inbox.tsx",
+        "source": "component:react:apps%2Fdesktop%2Fsrc%2Fpages%2FInbox.tsx#Inbox",
+        "type": "renders_component",
+        "target": "component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FCompanyList.tsx#CompanyList"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:apps%2Fdesktop%2Fsrc%2Fpages%2FInbox.tsx#Inbox",
+        "type": "renders_component",
+        "target": "component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FCompanyList.tsx#CompanyList",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-workspace",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "id": "p15-pulse-positive-09",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "hook",
+        "path": "apps/desktop/src/pages/Inbox.tsx",
+        "source": "component:react:apps%2Fdesktop%2Fsrc%2Fpages%2FInbox.tsx#Inbox",
+        "type": "uses_hook",
+        "target": "hook:react:apps%2Fdesktop%2Fsrc%2Fhooks%2FuseKeyboardNavigation.ts#useKeyboardNavigation"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:apps%2Fdesktop%2Fsrc%2Fpages%2FInbox.tsx#Inbox",
+        "type": "uses_hook",
+        "target": "hook:react:apps%2Fdesktop%2Fsrc%2Fhooks%2FuseKeyboardNavigation.ts#useKeyboardNavigation",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-workspace",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "id": "p15-pulse-positive-10",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "packages/ui/src/primitives/Dialog.tsx",
+        "source": "component:react:apps%2Fdesktop%2Fsrc%2Fpages%2FInbox.tsx#Inbox",
+        "type": "renders_component",
+        "target": "component:react:packages%2Fui%2Fsrc%2Fprimitives%2FDialog.tsx#Dialog"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:apps%2Fdesktop%2Fsrc%2Fpages%2FInbox.tsx#Inbox",
+        "type": "renders_component",
+        "target": "component:react:packages%2Fui%2Fsrc%2Fprimitives%2FDialog.tsx#Dialog",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-dashboard",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-dashboard.git",
+      "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
+    },
+    "id": "p15-recon-positive-01",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "provider",
+        "path": "admin-dashboard/components/ui/sidebar.tsx",
+        "source": "component:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#SidebarProvider",
+        "type": "provides_context",
+        "target": "context:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#SidebarContext"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#SidebarProvider",
+        "type": "provides_context",
+        "target": "context:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#SidebarContext",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-dashboard",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-dashboard.git",
+      "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
+    },
+    "id": "p15-recon-positive-02",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "consumer",
+        "path": "admin-dashboard/components/ui/sidebar.tsx",
+        "source": "hook:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#useSidebar",
+        "type": "consumes_context",
+        "target": "context:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#SidebarContext"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "hook:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#useSidebar",
+        "type": "consumes_context",
+        "target": "context:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#SidebarContext",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-dashboard",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-dashboard.git",
+      "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
+    },
+    "id": "p15-recon-positive-03",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "hook",
+        "path": "admin-dashboard/components/ui/sidebar.tsx",
+        "source": "component:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#SidebarProvider",
+        "type": "uses_hook",
+        "target": "hook:react:admin-dashboard%2Fhooks%2Fuse-mobile.ts#useIsMobile"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#SidebarProvider",
+        "type": "uses_hook",
+        "target": "hook:react:admin-dashboard%2Fhooks%2Fuse-mobile.ts#useIsMobile",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-dashboard",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-dashboard.git",
+      "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
+    },
+    "id": "p15-recon-positive-04",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "admin-dashboard/app/layout.tsx",
+        "source": "component:react:admin-dashboard%2Fapp%2Flayout.tsx#default",
+        "type": "renders_component",
+        "target": "component:react:admin-dashboard%2Fcomponents%2Fui%2Ftooltip.tsx#TooltipProvider"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:admin-dashboard%2Fapp%2Flayout.tsx#default",
+        "type": "renders_component",
+        "target": "component:react:admin-dashboard%2Fcomponents%2Fui%2Ftooltip.tsx#TooltipProvider",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-dashboard",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-dashboard.git",
+      "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
+    },
+    "id": "p15-recon-positive-05",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "hook",
+        "path": "admin-dashboard/components/ui/sidebar.tsx",
+        "source": "component:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#Sidebar",
+        "type": "uses_hook",
+        "target": "hook:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#useSidebar"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#Sidebar",
+        "type": "uses_hook",
+        "target": "hook:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#useSidebar",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-dashboard",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-dashboard.git",
+      "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
+    },
+    "id": "p15-recon-positive-06",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "hook",
+        "path": "admin-dashboard/components/ui/sidebar.tsx",
+        "source": "component:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#SidebarTrigger",
+        "type": "uses_hook",
+        "target": "hook:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#useSidebar"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#SidebarTrigger",
+        "type": "uses_hook",
+        "target": "hook:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#useSidebar",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-dashboard",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-dashboard.git",
+      "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
+    },
+    "id": "p15-recon-positive-07",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "admin-dashboard/components/ui/sidebar.tsx",
+        "source": "component:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#SidebarTrigger",
+        "type": "renders_component",
+        "target": "component:react:admin-dashboard%2Fcomponents%2Fui%2Fbutton.tsx#Button"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#SidebarTrigger",
+        "type": "renders_component",
+        "target": "component:react:admin-dashboard%2Fcomponents%2Fui%2Fbutton.tsx#Button",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-dashboard",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-dashboard.git",
+      "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
+    },
+    "id": "p15-recon-positive-08",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "admin-dashboard/components/ui/sidebar.tsx",
+        "source": "component:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#SidebarInput",
+        "type": "renders_component",
+        "target": "component:react:admin-dashboard%2Fcomponents%2Fui%2Finput.tsx#Input"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#SidebarInput",
+        "type": "renders_component",
+        "target": "component:react:admin-dashboard%2Fcomponents%2Fui%2Finput.tsx#Input",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-dashboard",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-dashboard.git",
+      "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
+    },
+    "id": "p15-recon-positive-09",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "admin-dashboard/components/ui/sidebar.tsx",
+        "source": "component:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#SidebarSeparator",
+        "type": "renders_component",
+        "target": "component:react:admin-dashboard%2Fcomponents%2Fui%2Fseparator.tsx#Separator"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#SidebarSeparator",
+        "type": "renders_component",
+        "target": "component:react:admin-dashboard%2Fcomponents%2Fui%2Fseparator.tsx#Separator",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-dashboard",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-dashboard.git",
+      "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
+    },
+    "id": "p15-recon-positive-10",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "render",
+        "path": "admin-dashboard/components/ui/sidebar.tsx",
+        "source": "component:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#SidebarMenuSkeleton",
+        "type": "renders_component",
+        "target": "component:react:admin-dashboard%2Fcomponents%2Fui%2Fskeleton.tsx#Skeleton"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:admin-dashboard%2Fcomponents%2Fui%2Fsidebar.tsx#SidebarMenuSkeleton",
+        "type": "renders_component",
+        "target": "component:react:admin-dashboard%2Fcomponents%2Fui%2Fskeleton.tsx#Skeleton",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-workspace",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "id": "p15-pulse-forbidden-01-external-hook",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "external-hook",
+        "path": "apps/desktop/src/pages/Inbox.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "uses_hook"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-workspace",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "id": "p15-pulse-forbidden-02-callback",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "callback",
+        "path": "apps/desktop/src/pages/Inbox.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "emits_component_event"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-workspace",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "id": "p15-pulse-forbidden-03-intrinsic",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "intrinsic",
+        "path": "apps/desktop/src/pages/Inbox.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "renders_component"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-workspace",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "id": "p15-pulse-forbidden-04-import-unused",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "import-unused",
+        "path": "apps/desktop/src/pages/Inbox.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "renders_component"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["REACT_UNRESOLVED_BINDING"],
+    "corpus": "example-workspace",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-workspace.git",
+      "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
+    },
+    "id": "p15-pulse-forbidden-05-unresolved-import",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "unresolved-import",
+        "path": "apps/desktop/src/pages/Inbox.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "renders_component"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-dashboard",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-dashboard.git",
+      "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
+    },
+    "id": "p15-recon-forbidden-01-external-hook",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "external-hook",
+        "path": "admin-dashboard/components/ui/sidebar.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "uses_hook"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-dashboard",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-dashboard.git",
+      "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
+    },
+    "id": "p15-recon-forbidden-02-callback",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "callback",
+        "path": "admin-dashboard/components/ui/sidebar.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "emits_component_event"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-dashboard",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-dashboard.git",
+      "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
+    },
+    "id": "p15-recon-forbidden-03-intrinsic",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "intrinsic",
+        "path": "admin-dashboard/components/ui/sidebar.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "renders_component"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "example-dashboard",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-dashboard.git",
+      "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
+    },
+    "id": "p15-recon-forbidden-04-import-unused",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "import-unused",
+        "path": "admin-dashboard/components/ui/sidebar.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "renders_component"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-component-hook-context",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "syntheticMinPositive": 30,
+      "syntheticMinForbidden": 15,
+      "realMinPositive": 20,
+      "realMinForbidden": 10,
+      "syntheticPrecision": 1,
+      "syntheticRecall": 1,
+      "realMinPrecision": 0.95,
+      "realMinRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["REACT_UNRESOLVED_BINDING"],
+    "corpus": "example-dashboard",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/example-dashboard.git",
+      "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
+    },
+    "id": "p15-recon-forbidden-05-unresolved-import",
+    "query": {
+      "tool": "phase15ReactReferenceSeam",
+      "args": {
+        "scenario": "unresolved-import",
+        "path": "admin-dashboard/components/ui/sidebar.tsx"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "renders_component"
+      }
+    ],
+    "expectedOutcome": "answered"
+  }
+]

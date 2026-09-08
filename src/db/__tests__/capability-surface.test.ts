@@ -211,6 +211,9 @@ describe('capability-surface node persistence', () => {
       'derived_from',
       'calls',
       'references',
+      'uses_hook',
+      'provides_context',
+      'consumes_context',
     ];
 
     for (const edgeType of newEdgeTypes) {

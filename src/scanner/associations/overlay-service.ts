@@ -24,6 +24,8 @@ import { AstStructuralResolver } from '../ast/resolver.js';
 import { buildVueComponentNodes } from '../vue/materialize.js';
 import { VueEventResolver } from '../vue/event-resolver.js';
 import { buildVueEventNodes } from '../vue/event-materialize.js';
+import { analyzeReactContext } from '../react/association-wrapper.js';
+import { toStructuralNode } from '../react/types.js';
 import { resolveLivewire } from './framework/laravel/livewire-resolver.js';
 import { NovaAssociationResolver, resolveNova } from './framework/laravel/nova-resolver.js';
 import { AssociationEngine } from './engine.js';
@@ -219,6 +221,23 @@ export async function rebuildStructuralOverlay(
     sharedExtractions,
     programAnalysis,
   };
+
+  // React relationships target deterministic framework nodes (components, custom hooks, contexts).
+  // Materialize the complete node set before the association resolver filters exact endpoints.
+  const react = await analyzeReactContext(context);
+  if (react?.nodes.length) {
+    const updatedAt = Math.floor(Date.now() / 1000);
+    db.transaction(() => {
+      for (const node of react.nodes) db.upsertStructuralNode(toStructuralNode(node, updatedAt));
+    });
+    context.nodes = db.getStructuralNodesForFilePaths(
+      scan.knowledge.map((entry) =>
+        entry.filePath.startsWith(rootPath + '/')
+          ? entry.filePath.slice(rootPath.length + 1)
+          : entry.filePath
+      )
+    );
+  }
 
   // Livewire edges target canonical Blade template nodes. Materialize those nodes before the
   // framework resolver pack runs, then refresh the context from the database so endpoint checks

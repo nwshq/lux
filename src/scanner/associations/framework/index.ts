@@ -15,6 +15,7 @@ import {
 import { InertiaAssociationResolver } from './laravel/inertia-resolver.js';
 import { LivewireAssociationResolver } from './laravel/livewire-resolver.js';
 import { NovaAssociationResolver } from './laravel/nova-resolver.js';
+import { ReactAssociationResolver } from '../../react/association-wrapper.js';
 import type { FrontendFrameworkConfigV1 } from '../../config.js';
 import type { AssociationResolver } from '../types.js';
 
@@ -32,6 +33,7 @@ export function createDefaultResolvers(
     new VueComposableAssociationResolver(),
     new VueStoreAssociationResolver(),
     new VueEventAssociationResolver(),
+    new ReactAssociationResolver(),
     new InertiaAssociationResolver({
       config: frameworks
         ? {

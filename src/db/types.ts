@@ -196,6 +196,10 @@ export type EdgeType =
   | 'uses_store'
   | 'emits_component_event'
   | 'handles_component_event'
+  // React component, hook, and context semantics (Tranche 3, Phase 15)
+  | 'uses_hook'
+  | 'provides_context'
+  | 'consumes_context'
   // Module-boundary evidence expansion edges
   | 'dispatches_job'
   | 'handles_job'

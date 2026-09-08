@@ -21,6 +21,19 @@ export const vueComponentEventId = (componentId: string, event: string): string 
 export const bladeTemplateId = (path: string): string => pathIdentity('template:blade', path);
 export const novaArtifactId = (path: string, name: string): string =>
   `${pathIdentity('artifact:nova', path)}#${encodeSegment(name)}`;
+export const reactComponentId = (path: string, exported: string): string =>
+  `${pathIdentity('component:react', path)}#${encodeSegment(exported)}`;
+export const busEventId = (bus: string, event: string): string =>
+  `artifact:event-bus:${encodeSegment(bus)}#${encodeSegment(event)}`;
+export const expoRouteId = (route: string): string => `surface:route:expo:${encodeSegment(route)}`;
+export const reactContextId = (path: string, exported: string): string =>
+  `${pathIdentity('context:react', path)}#${encodeSegment(exported)}`;
+export const reactHookId = (path: string, exported: string): string =>
+  `${pathIdentity('hook:react', path)}#${encodeSegment(exported)}`;
+export const reactNavigatorId = (path: string, localName: string): string =>
+  `${pathIdentity('navigator:react-navigation', path)}#${encodeSegment(localName)}`;
+export const reactNavigationScreenId = (navigatorId: string, name: string): string =>
+  `surface:route:react-navigation:${encodeSegment(navigatorId)}#${encodeSegment(name)}`;
 
 export function programEdgeId(
   edgeType: EdgeType,

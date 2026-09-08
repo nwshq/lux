@@ -28,6 +28,12 @@ export { summarizeEdgeEvidence, formatEdgeBlock, annotateFreshness } from './evi
 export type { EdgeWithEvidence } from './evidence.js';
 
 export { createDefaultResolvers, LaravelBoundaryEvidenceResolver } from './framework/index.js';
+export {
+  ReactAssociationResolver,
+  ReactFactExtractor,
+  ReactFrameworkAnalyzer,
+  ReactRelationshipResolver,
+} from '../react/index.js';
 
 export {
   createDefaultOperationalExtractors,
