@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "phase": 17,
+  "implementationSha": "5129dff",
+  "mergeSha": "7bd7903192af7e11d368b01c44551d28b70df1db",
+  "baselineSha": "83f1e6a",
+  "criteria": [
+    {
+      "id": "P17-C1",
+      "class": "react-navigation-graph",
+      "green": {
+        "command": "vitest run Phase 17 React Navigation production and acceptance focused suites; fixed-denominator synthetic scoring; watched-red controls; repeated stable-resolver checks",
+        "exitCode": 0,
+        "observable": "All 10 focused tests passed; the Phase 17 battery passed 25 positive and 15 forbidden cases at precision 1 and recall 1; all 5 watched screen computation, navigator scope, nested registration, unresolved component, and Expo duplicate mutations were detected; repeated resolution produced an equal stable digest beginning a28a5142"
+      },
+      "red": {
+        "mutation": "five-watched-route-normalization-and-destination-regressions",
+        "command": "vitest run src/integration/__tests__/phase-17-acceptance.test.ts with each watched mutation",
+        "exitCode": 1,
+        "observable": "Each of the 5 watched compute-screen-name, erase-navigator-scope, remove-nested-registration, unresolve-component, and duplicate-expo-screen mutations produced the expected nonzero checker exit"
+      },
+      "verifiedBy": "independent-fixed-denominator-focused-watched-mutation-and-stable-resolver-validation"
+    },
+    {
+      "id": "P17-C2",
+      "class": "performance-and-compatibility",
+      "green": {
+        "command": "three warmups plus five measured Phase 17 resolver runs; GitHub PR #117 CI; focused propagation rerun; architecture, dead-code, documentation, and native-free gates",
+        "exitCode": 0,
+        "observable": "After 3 warmups, median wall was 189.767 ms across 5 measured runs with observed process RSS 101826560 bytes and equal stable resolver digest beginning a28a5142, within the Phase 15 acceptance envelope; PR #117 full CI passed; a local full normal run encountered shared-fixture concurrency I/O, while the focused rerun passed all 75 propagation tests; architecture lint checked 226 files with 0 violations, architecture tests passed 5, dead-code validation checked 1181 exports across 219 files, and native-free and documentation verification passed"
+      },
+      "red": {
+        "mutation": "watched-react-navigation-semantics-regressions",
+        "command": "vitest run src/integration/__tests__/phase-17-acceptance.test.ts with watched mutations",
+        "exitCode": 1,
+        "observable": "The compatibility battery rejects all 5 watched React Navigation normalization and destination regressions with nonzero checker exits"
+      },
+      "verifiedBy": "github-ci-independent-performance-focused-propagation-architecture-dead-code-documentation-and-native-free-validation"
+    },
+    {
+      "id": "P17-C3",
+      "class": "review-and-release",
+      "green": {
+        "command": "GitHub PR #117 merge and release record; installed CLI/package and Goose plugin verification",
+        "exitCode": 0,
+        "observable": "PR #117 had final head 311b57f1465d5ed7438b45d52be1ad4ff30bac2c and merged as 7bd7903192af7e11d368b01c44551d28b70df1db; v2.33.0 release and lux-v2.33.0-linux-x64.tar.gz published with sha256:82624cb70efc6c9e8e7431fe01095433771450017480394aebc8a8839edcbc52; installed CLI/package and MCP report 2.33.0 with 12 tools; the Goose plugin is at 7bd7903; Phase 15 acceptance at baseline 241685c091e71f744c38e89d87635708f04a565a was the accepted dependency"
+      },
+      "red": {
+        "mutation": "expect-prior-version",
+        "command": "installed CLI/package version check",
+        "exitCode": 1,
+        "observable": "installed 2.33.0 differs from the prior Phase 15 release sentinel"
+      },
+      "verifiedBy": "github-ci-release-installed-cli-package-and-goose-plugin-verification"
+    }
+  ],
+  "knownBaselineFailures": [],
+  "review": {
+    "codeReview": "APPROVED",
+    "independentValidation": "Review and implementation acceptance APPROVED; all 10 focused tests passed; the Phase 17 battery passed 25 positive and 15 forbidden cases at precision/recall 1; all 5 watched mutations were detected; PR #117 full CI passed; the local full normal run encountered shared-fixture concurrency I/O, while the focused rerun passed all 75 propagation tests; architecture lint checked 226 files/0 violations, architecture tests passed 5, dead-code validation checked 1181 exports/219 files, and native-free/documentation verification passed; repeated resolution produced an equal stable digest beginning a28a5142; 3+5 performance median was 189.767 ms with RSS 101826560 bytes, within the Phase 15 acceptance envelope; installed CLI/package and MCP 2.33.0 with 12 tools and Goose plugin 7bd7903 verification passed.",
+    "acceptanceReview": "APPROVED"
+  },
+  "exemptions": []
+}
