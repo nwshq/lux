@@ -1,0 +1,1671 @@
+[
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-positive-01-navigate",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "navigate",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen1",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen1"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen1",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "performanceProtocol": {
+      "warmups": 3,
+      "measurements": 5,
+      "maxRegressionRatio": 1.2,
+      "baselineWallMs": 139.555333,
+      "baselineRssBytes": 101875712
+    },
+    "watchedMutations": [
+      {
+        "id": "compute-screen-name",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p17-positive-01-navigate"
+      },
+      {
+        "id": "erase-navigator-scope",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p17-positive-02-push"
+      },
+      {
+        "id": "remove-nested-registration",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p17-positive-03-replace"
+      },
+      {
+        "id": "unresolve-component",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p17-positive-04-nested"
+      },
+      {
+        "id": "duplicate-expo-screen",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p17-forbidden-03-expo"
+      }
+    ]
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-positive-02-push",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "push",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen2",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen2"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen2",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-positive-03-replace",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "replace",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen3",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen3"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen3",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-positive-04-nested",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "nested",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen4",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen4"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen4",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-positive-05-screen",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "screen",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen5",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen5"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen5",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-positive-06-navigate",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "navigate",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen6",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen6"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen6",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-positive-07-push",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "push",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen7",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen7"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen7",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-positive-08-replace",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "replace",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen8",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen8"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen8",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-positive-09-nested",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "nested",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen9",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen9"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen9",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-positive-10-screen",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "screen",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen10",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen10"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen10",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-positive-11-navigate",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "navigate",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen11",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen11"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen11",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-positive-12-push",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "push",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen12",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen12"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen12",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-positive-13-replace",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "replace",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen13",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen13"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen13",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-positive-14-nested",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "nested",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen14",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen14"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen14",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-positive-15-screen",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "screen",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen15",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen15"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen15",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-17-navigation-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "83f1e6a413f309dc225a8dd6565baceb9d73717d"
+    },
+    "sourceFamily": "src/Nav16.tsx",
+    "id": "p17-positive-16-navigate",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "navigate",
+        "filePath": "src/Nav16.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen16",
+        "owner": "component:react:src%2FNav16.tsx#Owner16",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav16.tsx%23RootStack#Screen16"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2FNav16.tsx#Owner16",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav16.tsx%23RootStack#Screen16",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-17-navigation-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "83f1e6a413f309dc225a8dd6565baceb9d73717d"
+    },
+    "sourceFamily": "src/Nav17.tsx",
+    "id": "p17-positive-17-push",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "push",
+        "filePath": "src/Nav17.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen17",
+        "owner": "component:react:src%2FNav17.tsx#Owner17",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav17.tsx%23RootStack#Screen17"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2FNav17.tsx#Owner17",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav17.tsx%23RootStack#Screen17",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-17-navigation-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "83f1e6a413f309dc225a8dd6565baceb9d73717d"
+    },
+    "sourceFamily": "src/Nav18.tsx",
+    "id": "p17-positive-18-replace",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "replace",
+        "filePath": "src/Nav18.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen18",
+        "owner": "component:react:src%2FNav18.tsx#Owner18",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav18.tsx%23RootStack#Screen18"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2FNav18.tsx#Owner18",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav18.tsx%23RootStack#Screen18",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-17-navigation-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "83f1e6a413f309dc225a8dd6565baceb9d73717d"
+    },
+    "sourceFamily": "src/Nav19.tsx",
+    "id": "p17-positive-19-nested",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "nested",
+        "filePath": "src/Nav19.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen19",
+        "owner": "component:react:src%2FNav19.tsx#Owner19",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav19.tsx%23RootStack#Screen19"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2FNav19.tsx#Owner19",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav19.tsx%23RootStack#Screen19",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-17-navigation-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "83f1e6a413f309dc225a8dd6565baceb9d73717d"
+    },
+    "sourceFamily": "src/Nav20.tsx",
+    "id": "p17-positive-20-screen",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "screen",
+        "filePath": "src/Nav20.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen20",
+        "owner": "component:react:src%2FNav20.tsx#Owner20",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav20.tsx%23RootStack#Screen20"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2FNav20.tsx#Owner20",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav20.tsx%23RootStack#Screen20",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-17-navigation-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "83f1e6a413f309dc225a8dd6565baceb9d73717d"
+    },
+    "sourceFamily": "src/Nav21.tsx",
+    "id": "p17-positive-21-navigate",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "navigate",
+        "filePath": "src/Nav21.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen21",
+        "owner": "component:react:src%2FNav21.tsx#Owner21",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav21.tsx%23RootStack#Screen21"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2FNav21.tsx#Owner21",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav21.tsx%23RootStack#Screen21",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-17-navigation-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "83f1e6a413f309dc225a8dd6565baceb9d73717d"
+    },
+    "sourceFamily": "src/Nav22.tsx",
+    "id": "p17-positive-22-push",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "push",
+        "filePath": "src/Nav22.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen22",
+        "owner": "component:react:src%2FNav22.tsx#Owner22",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav22.tsx%23RootStack#Screen22"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2FNav22.tsx#Owner22",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav22.tsx%23RootStack#Screen22",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-17-navigation-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "83f1e6a413f309dc225a8dd6565baceb9d73717d"
+    },
+    "sourceFamily": "src/Nav23.tsx",
+    "id": "p17-positive-23-replace",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "replace",
+        "filePath": "src/Nav23.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen23",
+        "owner": "component:react:src%2FNav23.tsx#Owner23",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav23.tsx%23RootStack#Screen23"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2FNav23.tsx#Owner23",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav23.tsx%23RootStack#Screen23",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-17-navigation-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "83f1e6a413f309dc225a8dd6565baceb9d73717d"
+    },
+    "sourceFamily": "src/Nav24.tsx",
+    "id": "p17-positive-24-nested",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "nested",
+        "filePath": "src/Nav24.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen24",
+        "owner": "component:react:src%2FNav24.tsx#Owner24",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav24.tsx%23RootStack#Screen24"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2FNav24.tsx#Owner24",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav24.tsx%23RootStack#Screen24",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-17-navigation-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "83f1e6a413f309dc225a8dd6565baceb9d73717d"
+    },
+    "sourceFamily": "src/Nav25.tsx",
+    "id": "p17-positive-25-screen",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "screen",
+        "filePath": "src/Nav25.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen25",
+        "owner": "component:react:src%2FNav25.tsx#Owner25",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav25.tsx%23RootStack#Screen25"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:src%2FNav25.tsx#Owner25",
+        "type": "navigates_to",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav25.tsx%23RootStack#Screen25",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-forbidden-01-ambiguous",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "ambiguous",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen1",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen1"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-forbidden-02-unresolved",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "unresolved",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen2",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen2"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-forbidden-03-expo",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "expo",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen3",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen3"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-forbidden-04-missing-nested",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "missing-nested",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen4",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen4"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["REACT_NAVIGATION_DYNAMIC_ACTION"],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-forbidden-05-computed",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "computed",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen5",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen5"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-forbidden-06-ambiguous",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "ambiguous",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen6",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen6"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-forbidden-07-unresolved",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "unresolved",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen7",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen7"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/authenticated/AuthenticatedStack.tsx",
+    "id": "p17-forbidden-08-expo",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "expo",
+        "filePath": "components/authenticated/AuthenticatedStack.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen8",
+        "owner": "component:react:components%2Fauthenticated%2FAuthenticatedStack.tsx#AuthenticatedStack",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Acomponents%252Fauthenticated%252FAuthenticatedStack.tsx%23RootStack#Screen8"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-17-navigation-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "83f1e6a413f309dc225a8dd6565baceb9d73717d"
+    },
+    "sourceFamily": "src/Nav9.tsx",
+    "id": "p17-forbidden-09-missing-nested",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "missing-nested",
+        "filePath": "src/Nav9.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen9",
+        "owner": "component:react:src%2FNav9.tsx#Owner9",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav9.tsx%23RootStack#Screen9"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["REACT_NAVIGATION_DYNAMIC_ACTION"],
+    "corpus": "phase-17-navigation-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "83f1e6a413f309dc225a8dd6565baceb9d73717d"
+    },
+    "sourceFamily": "src/Nav10.tsx",
+    "id": "p17-forbidden-10-computed",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "computed",
+        "filePath": "src/Nav10.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen10",
+        "owner": "component:react:src%2FNav10.tsx#Owner10",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav10.tsx%23RootStack#Screen10"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-17-navigation-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "83f1e6a413f309dc225a8dd6565baceb9d73717d"
+    },
+    "sourceFamily": "src/Nav11.tsx",
+    "id": "p17-forbidden-11-ambiguous",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "ambiguous",
+        "filePath": "src/Nav11.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen11",
+        "owner": "component:react:src%2FNav11.tsx#Owner11",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav11.tsx%23RootStack#Screen11"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-17-navigation-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "83f1e6a413f309dc225a8dd6565baceb9d73717d"
+    },
+    "sourceFamily": "src/Nav12.tsx",
+    "id": "p17-forbidden-12-unresolved",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "unresolved",
+        "filePath": "src/Nav12.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen12",
+        "owner": "component:react:src%2FNav12.tsx#Owner12",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav12.tsx%23RootStack#Screen12"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-17-navigation-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "83f1e6a413f309dc225a8dd6565baceb9d73717d"
+    },
+    "sourceFamily": "src/Nav13.tsx",
+    "id": "p17-forbidden-13-expo",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "expo",
+        "filePath": "src/Nav13.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen13",
+        "owner": "component:react:src%2FNav13.tsx#Owner13",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav13.tsx%23RootStack#Screen13"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "phase-17-navigation-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "83f1e6a413f309dc225a8dd6565baceb9d73717d"
+    },
+    "sourceFamily": "src/Nav14.tsx",
+    "id": "p17-forbidden-14-missing-nested",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "missing-nested",
+        "filePath": "src/Nav14.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen14",
+        "owner": "component:react:src%2FNav14.tsx#Owner14",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav14.tsx%23RootStack#Screen14"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "react-navigation-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 0.95,
+      "minRecall": 0.9,
+      "minPositive": 25,
+      "minForbidden": 15
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["REACT_NAVIGATION_DYNAMIC_ACTION"],
+    "corpus": "phase-17-navigation-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "83f1e6a413f309dc225a8dd6565baceb9d73717d"
+    },
+    "sourceFamily": "src/Nav15.tsx",
+    "id": "p17-forbidden-15-computed",
+    "query": {
+      "tool": "phase17NavigationReferenceSeam",
+      "args": {
+        "scenario": "computed",
+        "filePath": "src/Nav15.tsx",
+        "navigator": "RootStack",
+        "screen": "Screen15",
+        "owner": "component:react:src%2FNav15.tsx#Owner15",
+        "target": "surface:route:react-navigation:navigator%3Areact-navigation%3Asrc%252FNav15.tsx%23RootStack#Screen15"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "answered"
+  }
+]

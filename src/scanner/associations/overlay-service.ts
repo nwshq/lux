@@ -27,6 +27,7 @@ import { buildVueEventNodes } from '../vue/event-materialize.js';
 import { analyzeReactContext } from '../react/association-wrapper.js';
 import { toStructuralNode } from '../react/types.js';
 import { analyzeExpoContext } from '../react-native/expo/association-wrapper.js';
+import { analyzeNavigationContext } from '../react-native/navigation/association-wrapper.js';
 import { resolveLivewire } from './framework/laravel/livewire-resolver.js';
 import { NovaAssociationResolver, resolveNova } from './framework/laravel/nova-resolver.js';
 import { AssociationEngine } from './engine.js';
@@ -245,6 +246,22 @@ export async function rebuildStructuralOverlay(
     const updatedAt = Math.floor(Date.now() / 1000);
     db.transaction(() => {
       for (const node of expo.nodes) db.upsertStructuralNode(toStructuralNode(node, updatedAt));
+    });
+    context.nodes = db.getStructuralNodesForFilePaths(
+      scan.knowledge.map((entry) =>
+        entry.filePath.startsWith(rootPath + '/')
+          ? entry.filePath.slice(rootPath.length + 1)
+          : entry.filePath
+      )
+    );
+  }
+
+  const navigation = await analyzeNavigationContext(context);
+  if (navigation?.nodes.length) {
+    const updatedAt = Math.floor(Date.now() / 1000);
+    db.transaction(() => {
+      for (const node of navigation.nodes)
+        db.upsertStructuralNode(toStructuralNode(node, updatedAt));
     });
     context.nodes = db.getStructuralNodesForFilePaths(
       scan.knowledge.map((entry) =>
