@@ -203,6 +203,8 @@ export type EdgeType =
   | 'navigates_to'
   | 'declares_resource'
   | 'uses_view_model'
+  | 'publishes_bus_event'
+  | 'subscribes_bus_event'
   // Module-boundary evidence expansion edges
   | 'dispatches_job'
   | 'handles_job'

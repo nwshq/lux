@@ -19,6 +19,7 @@ import { ReactAssociationResolver } from '../../react/association-wrapper.js';
 import { ExpoRouterAssociationResolver } from '../../react-native/expo/association-wrapper.js';
 import { ReactNavigationAssociationResolver } from '../../react-native/navigation/association-wrapper.js';
 import { MobileArchitectureAssociationResolver } from '../../framework/mobile/association-wrapper.js';
+import { EventBusAssociationResolver } from '../../framework/event-bus/association-wrapper.js';
 import type { FrontendFrameworkConfigV1 } from '../../config.js';
 import type { AssociationResolver } from '../types.js';
 
@@ -40,6 +41,7 @@ export function createDefaultResolvers(
     new ExpoRouterAssociationResolver(),
     new ReactNavigationAssociationResolver(),
     new MobileArchitectureAssociationResolver(),
+    new EventBusAssociationResolver(),
     new InertiaAssociationResolver({
       config: frameworks
         ? {

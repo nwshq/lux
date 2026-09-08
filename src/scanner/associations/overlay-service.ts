@@ -29,6 +29,7 @@ import { toStructuralNode } from '../react/types.js';
 import { analyzeExpoContext } from '../react-native/expo/association-wrapper.js';
 import { analyzeNavigationContext } from '../react-native/navigation/association-wrapper.js';
 import { analyzeMobileContext } from '../framework/mobile/association-wrapper.js';
+import { analyzeEventBusContext } from '../framework/event-bus/association-wrapper.js';
 import { resolveLivewire } from './framework/laravel/livewire-resolver.js';
 import { NovaAssociationResolver, resolveNova } from './framework/laravel/nova-resolver.js';
 import { AssociationEngine } from './engine.js';
@@ -278,6 +279,21 @@ export async function rebuildStructuralOverlay(
     const updatedAt = Math.floor(Date.now() / 1000);
     db.transaction(() => {
       for (const node of mobile.nodes) db.upsertStructuralNode({ ...node, updated_at: updatedAt });
+    });
+    context.nodes = db.getStructuralNodesForFilePaths(
+      scan.knowledge.map((entry) =>
+        entry.filePath.startsWith(rootPath + '/')
+          ? entry.filePath.slice(rootPath.length + 1)
+          : entry.filePath
+      )
+    );
+  }
+
+  const eventBus = await analyzeEventBusContext(context);
+  if (eventBus?.nodes.length) {
+    const updatedAt = Math.floor(Date.now() / 1000);
+    db.transaction(() => {
+      for (const node of eventBus.nodes) db.upsertStructuralNode(toStructuralNode(node, updatedAt));
     });
     context.nodes = db.getStructuralNodesForFilePaths(
       scan.knowledge.map((entry) =>

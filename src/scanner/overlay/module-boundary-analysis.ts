@@ -207,6 +207,22 @@ const BOUNDARY_EVIDENCE_RUBRIC: Record<EdgeType, Omit<BoundaryEvidenceRubricEntr
     canStandAlone: true,
     preferredConfidenceClasses: GRAPH_FORMING_CONFIDENCE_CLASSES,
   },
+  publishes_bus_event: {
+    family: 'async-workflow',
+    role: 'graph-forming',
+    defaultTier: 'overlay-backed',
+    startingWeight: 1,
+    canStandAlone: true,
+    preferredConfidenceClasses: GRAPH_FORMING_CONFIDENCE_CLASSES,
+  },
+  subscribes_bus_event: {
+    family: 'async-workflow',
+    role: 'graph-forming',
+    defaultTier: 'overlay-backed',
+    startingWeight: 1,
+    canStandAlone: true,
+    preferredConfidenceClasses: GRAPH_FORMING_CONFIDENCE_CLASSES,
+  },
   emits_component_event: {
     family: 'async-workflow',
     role: 'graph-forming',

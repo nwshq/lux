@@ -1,0 +1,1546 @@
+[
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/context/EventContext.tsx",
+    "id": "p19-positive-01-subscribe",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "subscribe",
+        "path": "modules/shared/context/EventContext.tsx",
+        "busId": "app-event-emitter",
+        "eventKey": "media:reordered",
+        "source": "component:react:modules%2Fshared%2Fcontext%2FEventContext.tsx#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#media%3Areordered"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:modules%2Fshared%2Fcontext%2FEventContext.tsx#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#media%3Areordered",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "performanceProtocol": {
+      "warmups": 3,
+      "measurements": 5,
+      "maxRegressionRatio": 1.2,
+      "baselineWallMs": 189.767,
+      "baselineRssBytes": 101826560
+    },
+    "watchedMutations": [
+      {
+        "id": "literal-to-variable",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p19-positive-01-subscribe"
+      },
+      {
+        "id": "collapse-bus-identity",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p19-positive-02-wrapper"
+      },
+      {
+        "id": "accept-rxjs",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p19-forbidden-02-rxjs"
+      },
+      {
+        "id": "remove-wrapper-delegation",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p19-positive-03-second-bus"
+      },
+      {
+        "id": "emit-callback-artifact",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p19-forbidden-03-callback"
+      },
+      {
+        "id": "remove-typed-key",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p19-positive-04-publish"
+      }
+    ]
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/hooks/useEvents.ts",
+    "id": "p19-positive-02-wrapper",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "wrapper",
+        "path": "modules/shared/hooks/useEvents.ts",
+        "busId": "app-event-emitter",
+        "eventKey": "network:status-changed",
+        "source": "component:react:modules%2Fshared%2Fhooks%2FuseEvents.ts#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#network%3Astatus-changed"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:modules%2Fshared%2Fhooks%2FuseEvents.ts#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#network%3Astatus-changed",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/hooks/useEvent.ts",
+    "id": "p19-positive-03-second-bus",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "second-bus",
+        "path": "modules/shared/hooks/useEvent.ts",
+        "busId": "secondary-bus",
+        "eventKey": "network:reconnected",
+        "source": "component:react:modules%2Fshared%2Fhooks%2FuseEvent.ts#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:secondary-bus#network%3Areconnected"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:modules%2Fshared%2Fhooks%2FuseEvent.ts#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:secondary-bus#network%3Areconnected",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/domain/events/IAppEventEmitter.ts",
+    "id": "p19-positive-04-publish",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "publish",
+        "path": "modules/shared/domain/events/IAppEventEmitter.ts",
+        "busId": "app-event-emitter",
+        "eventKey": "listing:updated",
+        "source": "component:react:modules%2Fshared%2Fdomain%2Fevents%2FIAppEventEmitter.ts#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#listing%3Aupdated"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:modules%2Fshared%2Fdomain%2Fevents%2FIAppEventEmitter.ts#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#listing%3Aupdated",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/infrastructure/events/AppEventEmitter.ts",
+    "id": "p19-positive-05-subscribe",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "subscribe",
+        "path": "modules/shared/infrastructure/events/AppEventEmitter.ts",
+        "busId": "app-event-emitter",
+        "eventKey": "listing:created",
+        "source": "component:react:modules%2Fshared%2Finfrastructure%2Fevents%2FAppEventEmitter.ts#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#listing%3Acreated"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:modules%2Fshared%2Finfrastructure%2Fevents%2FAppEventEmitter.ts#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#listing%3Acreated",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/_layout.tsx",
+    "id": "p19-positive-06-wrapper",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "wrapper",
+        "path": "app/_layout.tsx",
+        "busId": "app-event-emitter",
+        "eventKey": "sync:started",
+        "source": "component:react:app%2F_layout.tsx#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#sync%3Astarted"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F_layout.tsx#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#sync%3Astarted",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/components/ListingCard.tsx",
+    "id": "p19-positive-07-second-bus",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "second-bus",
+        "path": "app/components/ListingCard.tsx",
+        "busId": "secondary-bus",
+        "eventKey": "sync:completed",
+        "source": "component:react:app%2Fcomponents%2FListingCard.tsx#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:secondary-bus#sync%3Acompleted"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2Fcomponents%2FListingCard.tsx#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:secondary-bus#sync%3Acompleted",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/index.tsx",
+    "id": "p19-positive-08-publish",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "publish",
+        "path": "app/(authenticated)/index.tsx",
+        "busId": "app-event-emitter",
+        "eventKey": "media:reordered",
+        "source": "component:react:app%2F%28authenticated%29%2Findex.tsx#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#media%3Areordered"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F%28authenticated%29%2Findex.tsx#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#media%3Areordered",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/catalog/[id].tsx",
+    "id": "p19-positive-09-subscribe",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "subscribe",
+        "path": "app/(authenticated)/catalog/[id].tsx",
+        "busId": "app-event-emitter",
+        "eventKey": "network:status-changed",
+        "source": "component:react:app%2F%28authenticated%29%2Fcatalog%2F%5Bid%5D.tsx#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#network%3Astatus-changed"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F%28authenticated%29%2Fcatalog%2F%5Bid%5D.tsx#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#network%3Astatus-changed",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/infrastructure/services/NetworkStatusService.ts",
+    "id": "p19-positive-10-wrapper",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "wrapper",
+        "path": "modules/shared/infrastructure/services/NetworkStatusService.ts",
+        "busId": "app-event-emitter",
+        "eventKey": "network:reconnected",
+        "source": "component:react:modules%2Fshared%2Finfrastructure%2Fservices%2FNetworkStatusService.ts#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#network%3Areconnected"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:modules%2Fshared%2Finfrastructure%2Fservices%2FNetworkStatusService.ts#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#network%3Areconnected",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/context/EventContext.tsx",
+    "id": "p19-positive-11-second-bus",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "second-bus",
+        "path": "modules/shared/context/EventContext.tsx",
+        "busId": "secondary-bus",
+        "eventKey": "listing:updated",
+        "source": "component:react:modules%2Fshared%2Fcontext%2FEventContext.tsx#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:secondary-bus#listing%3Aupdated"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:modules%2Fshared%2Fcontext%2FEventContext.tsx#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:secondary-bus#listing%3Aupdated",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/hooks/useEvents.ts",
+    "id": "p19-positive-12-publish",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "publish",
+        "path": "modules/shared/hooks/useEvents.ts",
+        "busId": "app-event-emitter",
+        "eventKey": "listing:created",
+        "source": "component:react:modules%2Fshared%2Fhooks%2FuseEvents.ts#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#listing%3Acreated"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:modules%2Fshared%2Fhooks%2FuseEvents.ts#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#listing%3Acreated",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/hooks/useEvent.ts",
+    "id": "p19-positive-13-subscribe",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "subscribe",
+        "path": "modules/shared/hooks/useEvent.ts",
+        "busId": "app-event-emitter",
+        "eventKey": "sync:started",
+        "source": "component:react:modules%2Fshared%2Fhooks%2FuseEvent.ts#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#sync%3Astarted"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:modules%2Fshared%2Fhooks%2FuseEvent.ts#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#sync%3Astarted",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/domain/events/IAppEventEmitter.ts",
+    "id": "p19-positive-14-wrapper",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "wrapper",
+        "path": "modules/shared/domain/events/IAppEventEmitter.ts",
+        "busId": "app-event-emitter",
+        "eventKey": "sync:completed",
+        "source": "component:react:modules%2Fshared%2Fdomain%2Fevents%2FIAppEventEmitter.ts#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#sync%3Acompleted"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:modules%2Fshared%2Fdomain%2Fevents%2FIAppEventEmitter.ts#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#sync%3Acompleted",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/infrastructure/events/AppEventEmitter.ts",
+    "id": "p19-positive-15-second-bus",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "second-bus",
+        "path": "modules/shared/infrastructure/events/AppEventEmitter.ts",
+        "busId": "secondary-bus",
+        "eventKey": "media:reordered",
+        "source": "component:react:modules%2Fshared%2Finfrastructure%2Fevents%2FAppEventEmitter.ts#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:secondary-bus#media%3Areordered"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:modules%2Fshared%2Finfrastructure%2Fevents%2FAppEventEmitter.ts#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:secondary-bus#media%3Areordered",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/_layout.tsx",
+    "id": "p19-positive-16-publish",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "publish",
+        "path": "app/_layout.tsx",
+        "busId": "app-event-emitter",
+        "eventKey": "network:status-changed",
+        "source": "component:react:app%2F_layout.tsx#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#network%3Astatus-changed"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F_layout.tsx#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#network%3Astatus-changed",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/components/ListingCard.tsx",
+    "id": "p19-positive-17-subscribe",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "subscribe",
+        "path": "app/components/ListingCard.tsx",
+        "busId": "app-event-emitter",
+        "eventKey": "network:reconnected",
+        "source": "component:react:app%2Fcomponents%2FListingCard.tsx#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#network%3Areconnected"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2Fcomponents%2FListingCard.tsx#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#network%3Areconnected",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/index.tsx",
+    "id": "p19-positive-18-wrapper",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "wrapper",
+        "path": "app/(authenticated)/index.tsx",
+        "busId": "app-event-emitter",
+        "eventKey": "listing:updated",
+        "source": "component:react:app%2F%28authenticated%29%2Findex.tsx#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#listing%3Aupdated"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F%28authenticated%29%2Findex.tsx#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#listing%3Aupdated",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/catalog/[id].tsx",
+    "id": "p19-positive-19-second-bus",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "second-bus",
+        "path": "app/(authenticated)/catalog/[id].tsx",
+        "busId": "secondary-bus",
+        "eventKey": "listing:created",
+        "source": "component:react:app%2F%28authenticated%29%2Fcatalog%2F%5Bid%5D.tsx#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:secondary-bus#listing%3Acreated"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F%28authenticated%29%2Fcatalog%2F%5Bid%5D.tsx#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:secondary-bus#listing%3Acreated",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/infrastructure/services/NetworkStatusService.ts",
+    "id": "p19-positive-20-publish",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "publish",
+        "path": "modules/shared/infrastructure/services/NetworkStatusService.ts",
+        "busId": "app-event-emitter",
+        "eventKey": "sync:started",
+        "source": "component:react:modules%2Fshared%2Finfrastructure%2Fservices%2FNetworkStatusService.ts#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#sync%3Astarted"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:modules%2Fshared%2Finfrastructure%2Fservices%2FNetworkStatusService.ts#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#sync%3Astarted",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/context/EventContext.tsx",
+    "id": "p19-forbidden-01-unknown-bus",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "unknown-bus",
+        "path": "modules/shared/context/EventContext.tsx",
+        "busId": "app-event-emitter",
+        "eventKey": "media:reordered",
+        "source": "component:react:modules%2Fshared%2Fcontext%2FEventContext.tsx#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#media%3Areordered"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "publishes_bus_event"
+      },
+      {
+        "type": "subscribes_bus_event"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/hooks/useEvents.ts",
+    "id": "p19-forbidden-02-rxjs",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "rxjs",
+        "path": "modules/shared/hooks/useEvents.ts",
+        "busId": "app-event-emitter",
+        "eventKey": "network:status-changed",
+        "source": "component:react:modules%2Fshared%2Fhooks%2FuseEvents.ts#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#network%3Astatus-changed"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "publishes_bus_event"
+      },
+      {
+        "type": "subscribes_bus_event"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/hooks/useEvent.ts",
+    "id": "p19-forbidden-03-callback",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "callback",
+        "path": "modules/shared/hooks/useEvent.ts",
+        "busId": "app-event-emitter",
+        "eventKey": "network:reconnected",
+        "source": "component:react:modules%2Fshared%2Fhooks%2FuseEvent.ts#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#network%3Areconnected"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "publishes_bus_event"
+      },
+      {
+        "type": "subscribes_bus_event"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/domain/events/IAppEventEmitter.ts",
+    "id": "p19-forbidden-04-missing-key",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "missing-key",
+        "path": "modules/shared/domain/events/IAppEventEmitter.ts",
+        "busId": "app-event-emitter",
+        "eventKey": "listing:updated",
+        "source": "component:react:modules%2Fshared%2Fdomain%2Fevents%2FIAppEventEmitter.ts#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#listing%3Aupdated"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "publishes_bus_event"
+      },
+      {
+        "type": "subscribes_bus_event"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["EVENT_BUS_DYNAMIC_KEY"],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/infrastructure/events/AppEventEmitter.ts",
+    "id": "p19-forbidden-05-computed",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "computed",
+        "path": "modules/shared/infrastructure/events/AppEventEmitter.ts",
+        "busId": "app-event-emitter",
+        "eventKey": "listing:created",
+        "source": "component:react:modules%2Fshared%2Finfrastructure%2Fevents%2FAppEventEmitter.ts#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#listing%3Acreated"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "publishes_bus_event"
+      },
+      {
+        "type": "subscribes_bus_event"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/_layout.tsx",
+    "id": "p19-forbidden-06-unknown-bus",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "unknown-bus",
+        "path": "app/_layout.tsx",
+        "busId": "app-event-emitter",
+        "eventKey": "sync:started",
+        "source": "component:react:app%2F_layout.tsx#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#sync%3Astarted"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "publishes_bus_event"
+      },
+      {
+        "type": "subscribes_bus_event"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/components/ListingCard.tsx",
+    "id": "p19-forbidden-07-rxjs",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "rxjs",
+        "path": "app/components/ListingCard.tsx",
+        "busId": "app-event-emitter",
+        "eventKey": "sync:completed",
+        "source": "component:react:app%2Fcomponents%2FListingCard.tsx#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#sync%3Acompleted"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "publishes_bus_event"
+      },
+      {
+        "type": "subscribes_bus_event"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/index.tsx",
+    "id": "p19-forbidden-08-callback",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "callback",
+        "path": "app/(authenticated)/index.tsx",
+        "busId": "app-event-emitter",
+        "eventKey": "media:reordered",
+        "source": "component:react:app%2F%28authenticated%29%2Findex.tsx#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#media%3Areordered"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "publishes_bus_event"
+      },
+      {
+        "type": "subscribes_bus_event"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/catalog/[id].tsx",
+    "id": "p19-forbidden-09-missing-key",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "missing-key",
+        "path": "app/(authenticated)/catalog/[id].tsx",
+        "busId": "app-event-emitter",
+        "eventKey": "network:status-changed",
+        "source": "component:react:app%2F%28authenticated%29%2Fcatalog%2F%5Bid%5D.tsx#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#network%3Astatus-changed"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "publishes_bus_event"
+      },
+      {
+        "type": "subscribes_bus_event"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["EVENT_BUS_DYNAMIC_KEY"],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/infrastructure/services/NetworkStatusService.ts",
+    "id": "p19-forbidden-10-computed",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "computed",
+        "path": "modules/shared/infrastructure/services/NetworkStatusService.ts",
+        "busId": "app-event-emitter",
+        "eventKey": "network:reconnected",
+        "source": "component:react:modules%2Fshared%2Finfrastructure%2Fservices%2FNetworkStatusService.ts#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#network%3Areconnected"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "publishes_bus_event"
+      },
+      {
+        "type": "subscribes_bus_event"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/context/EventContext.tsx",
+    "id": "p19-forbidden-11-unknown-bus",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "unknown-bus",
+        "path": "modules/shared/context/EventContext.tsx",
+        "busId": "app-event-emitter",
+        "eventKey": "listing:updated",
+        "source": "component:react:modules%2Fshared%2Fcontext%2FEventContext.tsx#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#listing%3Aupdated"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "publishes_bus_event"
+      },
+      {
+        "type": "subscribes_bus_event"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/hooks/useEvents.ts",
+    "id": "p19-forbidden-12-rxjs",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "rxjs",
+        "path": "modules/shared/hooks/useEvents.ts",
+        "busId": "app-event-emitter",
+        "eventKey": "listing:created",
+        "source": "component:react:modules%2Fshared%2Fhooks%2FuseEvents.ts#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#listing%3Acreated"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "publishes_bus_event"
+      },
+      {
+        "type": "subscribes_bus_event"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/hooks/useEvent.ts",
+    "id": "p19-forbidden-13-callback",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "callback",
+        "path": "modules/shared/hooks/useEvent.ts",
+        "busId": "app-event-emitter",
+        "eventKey": "sync:started",
+        "source": "component:react:modules%2Fshared%2Fhooks%2FuseEvent.ts#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#sync%3Astarted"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "publishes_bus_event"
+      },
+      {
+        "type": "subscribes_bus_event"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/domain/events/IAppEventEmitter.ts",
+    "id": "p19-forbidden-14-missing-key",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "missing-key",
+        "path": "modules/shared/domain/events/IAppEventEmitter.ts",
+        "busId": "app-event-emitter",
+        "eventKey": "sync:completed",
+        "source": "component:react:modules%2Fshared%2Fdomain%2Fevents%2FIAppEventEmitter.ts#Owner",
+        "type": "subscribes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#sync%3Acompleted"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "publishes_bus_event"
+      },
+      {
+        "type": "subscribes_bus_event"
+      }
+    ],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "event-bus-relationships",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositive": 20,
+      "minForbidden": 15,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": ["EVENT_BUS_DYNAMIC_KEY"],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/infrastructure/events/AppEventEmitter.ts",
+    "id": "p19-forbidden-15-computed",
+    "query": {
+      "tool": "phase19EventBusReferenceSeam",
+      "args": {
+        "scenario": "computed",
+        "path": "modules/shared/infrastructure/events/AppEventEmitter.ts",
+        "busId": "app-event-emitter",
+        "eventKey": "media:reordered",
+        "source": "component:react:modules%2Fshared%2Finfrastructure%2Fevents%2FAppEventEmitter.ts#Owner",
+        "type": "publishes_bus_event",
+        "target": "artifact:event-bus:app-event-emitter#media%3Areordered"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "publishes_bus_event"
+      },
+      {
+        "type": "subscribes_bus_event"
+      }
+    ],
+    "expectedOutcome": "answered"
+  }
+]
