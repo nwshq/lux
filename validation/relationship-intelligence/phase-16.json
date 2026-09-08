@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "phase": 16,
+  "implementationSha": "311b57f1465d5ed7438b45d52be1ad4ff30bac2c",
+  "mergeSha": "a482702b09014e46eb909299825a430d44a62a1d",
+  "baselineSha": "241685c091e71f744c38e89d87635708f04a565a",
+  "criteria": [
+    {
+      "id": "P16-C1",
+      "class": "expo-router-graph",
+      "green": {
+        "command": "vitest run Phase 16 Expo Router production and acceptance focused suites; fixed-denominator synthetic scoring; watched-red controls; repeated stable-resolver checks",
+        "exitCode": 0,
+        "observable": "All 10 focused tests passed; the Phase 16 battery passed 25 positive and 15 forbidden cases at precision 1 and recall 1; all 5 watched route normalization, query-string, edge-direction, external-URL, and dynamic-destination mutations were detected; repeated resolution produced an equal stable digest beginning 422601"
+      },
+      "red": {
+        "mutation": "five-watched-route-normalization-and-destination-regressions",
+        "command": "vitest run src/integration/__tests__/phase-16-acceptance.test.ts with each watched mutation",
+        "exitCode": 1,
+        "observable": "Each of the 5 watched preserve-route-groups, retain-query-string, reverse-navigation-edge, accept-external-url, and resolve-dynamic-variable mutations produced the expected nonzero checker exit"
+      },
+      "verifiedBy": "independent-fixed-denominator-focused-watched-mutation-and-stable-resolver-validation"
+    },
+    {
+      "id": "P16-C2",
+      "class": "performance-and-compatibility",
+      "green": {
+        "command": "three warmups plus five measured Phase 16 resolver runs; GitHub PR #115 CI; focused propagation rerun; architecture, dead-code, documentation, and native-free gates",
+        "exitCode": 0,
+        "observable": "After 3 warmups, median wall was 139.555 ms across 5 measured runs with observed process RSS 101875712 bytes and equal stable resolver digest beginning 422601, within the Phase 15 acceptance envelope; PR #115 full CI passed; a local full normal run encountered shared-fixture concurrency I/O, while the focused rerun passed all 75 propagation tests; architecture lint checked 226 files with 0 violations, architecture tests passed 5, dead-code validation checked 1181 exports across 219 files, and native-free and documentation verification passed"
+      },
+      "red": {
+        "mutation": "watched-expo-router-semantics-regressions",
+        "command": "vitest run src/integration/__tests__/phase-16-acceptance.test.ts with watched mutations",
+        "exitCode": 1,
+        "observable": "The compatibility battery rejects all 5 watched Expo Router normalization and destination regressions with nonzero checker exits"
+      },
+      "verifiedBy": "github-ci-independent-performance-focused-propagation-architecture-dead-code-documentation-and-native-free-validation"
+    },
+    {
+      "id": "P16-C3",
+      "class": "review-and-release",
+      "green": {
+        "command": "GitHub PR #115 merge and release record; installed CLI/package and Goose plugin verification",
+        "exitCode": 0,
+        "observable": "PR #115 had final head 311b57f1465d5ed7438b45d52be1ad4ff30bac2c and merged as a482702b09014e46eb909299825a430d44a62a1d; v2.32.0 release and lux-v2.32.0-linux-x64.tar.gz published with sha256:e70eb07c6179d2bac64d4804bcdf5a96e3597a9d06970a23b3f1928e1978d09f; installed CLI/package report 2.32.0 and the Goose plugin is at a482702; MCP initialization and tools/list verification passed and remains pending; Phase 15 acceptance at baseline 241685c091e71f744c38e89d87635708f04a565a was the accepted dependency"
+      },
+      "red": {
+        "mutation": "expect-prior-version",
+        "command": "installed CLI/package version check",
+        "exitCode": 1,
+        "observable": "installed 2.32.0 differs from the prior Phase 15 release sentinel"
+      },
+      "verifiedBy": "github-ci-release-installed-cli-package-and-goose-plugin-verification-with-mcp-pending"
+    }
+  ],
+  "knownBaselineFailures": [],
+  "review": {
+    "codeReview": "APPROVED",
+    "independentValidation": "Review and implementation acceptance APPROVED; all 10 focused tests passed; the Phase 16 battery passed 25 positive and 15 forbidden cases at precision/recall 1; all 5 watched mutations were detected; PR #115 full CI passed; the local full normal run encountered shared-fixture concurrency I/O, while the focused rerun passed all 75 propagation tests; architecture lint checked 226 files/0 violations, architecture tests passed 5, dead-code validation checked 1181 exports/219 files, and native-free/documentation verification passed; repeated resolution produced an equal stable digest beginning 422601; 3+5 performance median was 139.555 ms with RSS 101875712 bytes, within the Phase 15 acceptance envelope; installed CLI/package 2.32.0 and Goose plugin a482702 verification passed; MCP initialization and tools/list verification passed and remains pending.",
+    "acceptanceReview": "APPROVED"
+  },
+  "exemptions": []
+}
