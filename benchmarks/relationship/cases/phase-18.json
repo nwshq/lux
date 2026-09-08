@@ -1,0 +1,2621 @@
+[
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/auth/infrastructure/repositories/RealmAuthRepository.ts",
+    "id": "p18-repository-positive-01",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "implements-imported-interface",
+        "path": "modules/auth/infrastructure/repositories/RealmAuthRepository.ts",
+        "symbol": "RealmAuthRepository",
+        "targetPath": "modules/auth/domain/repositories/IAuthRepository.ts",
+        "targetSymbol": "IAuthRepository",
+        "sourceText": "import { IAuthRepository } from 'modules/auth/domain/repositories/IAuthRepository.ts'; export class RealmAuthRepository implements IAuthRepository {}"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:modules/auth/infrastructure/repositories/RealmAuthRepository.ts#RealmAuthRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/auth/domain/repositories/IAuthRepository.ts#IAuthRepository",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "performanceProtocol": {
+      "warmups": 3,
+      "measurements": 5,
+      "maxRegressionRatio": 1.2,
+      "baselineWallMs": 250,
+      "baselineRssBytes": 134217728
+    },
+    "watchedMutations": [
+      {
+        "id": "remove-implements",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p18-repository-positive-01"
+      },
+      {
+        "id": "unresolve-repository-import",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p18-repository-positive-02"
+      },
+      {
+        "id": "reverse-repository-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p18-repository-positive-03"
+      },
+      {
+        "id": "remove-view-model-construction",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p18-view-model-positive-01"
+      },
+      {
+        "id": "collapse-view-model-identity",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p18-view-model-positive-02"
+      },
+      {
+        "id": "emit-suffix-only",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p18-repository-forbidden-01"
+      }
+    ]
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/bootstrap/infrastructure/repositories/RealmConfigurationRepository.ts",
+    "id": "p18-repository-positive-02",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "implements-imported-interface",
+        "path": "modules/bootstrap/infrastructure/repositories/RealmConfigurationRepository.ts",
+        "symbol": "RealmConfigurationRepository",
+        "targetPath": "modules/bootstrap/domain/repositories/IConfigurationRepository.ts",
+        "targetSymbol": "IConfigurationRepository",
+        "sourceText": "import { IConfigurationRepository } from 'modules/bootstrap/domain/repositories/IConfigurationRepository.ts'; export class RealmConfigurationRepository implements IConfigurationRepository {}"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:modules/bootstrap/infrastructure/repositories/RealmConfigurationRepository.ts#RealmConfigurationRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/bootstrap/domain/repositories/IConfigurationRepository.ts#IConfigurationRepository",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmBatchChangesRepository.ts",
+    "id": "p18-repository-positive-03",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "implements-imported-interface",
+        "path": "modules/catalog/infrastructure/repositories/RealmBatchChangesRepository.ts",
+        "symbol": "RealmBatchChangesRepository",
+        "targetPath": "modules/catalog/domain/repositories/IBatchChangesRepository.ts",
+        "targetSymbol": "IBatchChangesRepository",
+        "sourceText": "import { IBatchChangesRepository } from 'modules/catalog/domain/repositories/IBatchChangesRepository.ts'; export class RealmBatchChangesRepository implements IBatchChangesRepository {}"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmBatchChangesRepository.ts#RealmBatchChangesRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/IBatchChangesRepository.ts#IBatchChangesRepository",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmCategoryRepository.ts",
+    "id": "p18-repository-positive-04",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "implements-imported-interface",
+        "path": "modules/catalog/infrastructure/repositories/RealmCategoryRepository.ts",
+        "symbol": "RealmCategoryRepository",
+        "targetPath": "modules/catalog/domain/repositories/ICategoryRepository.ts",
+        "targetSymbol": "ICategoryRepository",
+        "sourceText": "import { ICategoryRepository } from 'modules/catalog/domain/repositories/ICategoryRepository.ts'; export class RealmCategoryRepository implements ICategoryRepository {}"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmCategoryRepository.ts#RealmCategoryRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/ICategoryRepository.ts#ICategoryRepository",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmChangeRepository.ts",
+    "id": "p18-repository-positive-05",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "implements-imported-interface",
+        "path": "modules/catalog/infrastructure/repositories/RealmChangeRepository.ts",
+        "symbol": "RealmChangeRepository",
+        "targetPath": "modules/catalog/domain/repositories/IChangeRepository.ts",
+        "targetSymbol": "IChangeRepository",
+        "sourceText": "import { IChangeRepository } from 'modules/catalog/domain/repositories/IChangeRepository.ts'; export class RealmChangeRepository implements IChangeRepository {}"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmChangeRepository.ts#RealmChangeRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/IChangeRepository.ts#IChangeRepository",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmEventDomainRepository.ts",
+    "id": "p18-repository-positive-06",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "implements-imported-interface",
+        "path": "modules/catalog/infrastructure/repositories/RealmEventDomainRepository.ts",
+        "symbol": "RealmEventDomainRepository",
+        "targetPath": "modules/catalog/domain/repositories/IEventDomainRepository.ts",
+        "targetSymbol": "IEventDomainRepository",
+        "sourceText": "import { IEventDomainRepository } from 'modules/catalog/domain/repositories/IEventDomainRepository.ts'; export class RealmEventDomainRepository implements IEventDomainRepository {}"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmEventDomainRepository.ts#RealmEventDomainRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/IEventDomainRepository.ts#IEventDomainRepository",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmEventRepository.ts",
+    "id": "p18-repository-positive-07",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "implements-imported-interface",
+        "path": "modules/catalog/infrastructure/repositories/RealmEventRepository.ts",
+        "symbol": "RealmEventRepository",
+        "targetPath": "modules/catalog/domain/repositories/IEventRepository.ts",
+        "targetSymbol": "IEventRepository",
+        "sourceText": "import { IEventRepository } from 'modules/catalog/domain/repositories/IEventRepository.ts'; export class RealmEventRepository implements IEventRepository {}"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmEventRepository.ts#RealmEventRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/IEventRepository.ts#IEventRepository",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmImageFallbackRepository.ts",
+    "id": "p18-repository-positive-08",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "implements-imported-interface",
+        "path": "modules/catalog/infrastructure/repositories/RealmImageFallbackRepository.ts",
+        "symbol": "RealmImageFallbackRepository",
+        "targetPath": "modules/catalog/domain/repositories/IImageFallbackRepository.ts",
+        "targetSymbol": "IImageFallbackRepository",
+        "sourceText": "import { IImageFallbackRepository } from 'modules/catalog/domain/repositories/IImageFallbackRepository.ts'; export class RealmImageFallbackRepository implements IImageFallbackRepository {}"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmImageFallbackRepository.ts#RealmImageFallbackRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/IImageFallbackRepository.ts#IImageFallbackRepository",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmListingDomainRepository.ts",
+    "id": "p18-repository-positive-09",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "implements-imported-interface",
+        "path": "modules/catalog/infrastructure/repositories/RealmListingDomainRepository.ts",
+        "symbol": "RealmListingDomainRepository",
+        "targetPath": "modules/catalog/domain/repositories/IListingDomainRepository.ts",
+        "targetSymbol": "IListingDomainRepository",
+        "sourceText": "import { IListingDomainRepository } from 'modules/catalog/domain/repositories/IListingDomainRepository.ts'; export class RealmListingDomainRepository implements IListingDomainRepository {}"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmListingDomainRepository.ts#RealmListingDomainRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/IListingDomainRepository.ts#IListingDomainRepository",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmMediaRepository.ts",
+    "id": "p18-repository-positive-10",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "implements-imported-interface",
+        "path": "modules/catalog/infrastructure/repositories/RealmMediaRepository.ts",
+        "symbol": "RealmMediaRepository",
+        "targetPath": "modules/catalog/domain/repositories/IMediaRepository.ts",
+        "targetSymbol": "IMediaRepository",
+        "sourceText": "import { IMediaRepository } from 'modules/catalog/domain/repositories/IMediaRepository.ts'; export class RealmMediaRepository implements IMediaRepository {}"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmMediaRepository.ts#RealmMediaRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/IMediaRepository.ts#IMediaRepository",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmMediaUploadQueueRepository.ts",
+    "id": "p18-repository-positive-11",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "implements-imported-interface",
+        "path": "modules/catalog/infrastructure/repositories/RealmMediaUploadQueueRepository.ts",
+        "symbol": "RealmMediaUploadQueueRepository",
+        "targetPath": "modules/catalog/domain/repositories/IMediaUploadQueueRepository.ts",
+        "targetSymbol": "IMediaUploadQueueRepository",
+        "sourceText": "import { IMediaUploadQueueRepository } from 'modules/catalog/domain/repositories/IMediaUploadQueueRepository.ts'; export class RealmMediaUploadQueueRepository implements IMediaUploadQueueRepository {}"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmMediaUploadQueueRepository.ts#RealmMediaUploadQueueRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/IMediaUploadQueueRepository.ts#IMediaUploadQueueRepository",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmProcessChangesRepository.ts",
+    "id": "p18-repository-positive-12",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "implements-imported-interface",
+        "path": "modules/catalog/infrastructure/repositories/RealmProcessChangesRepository.ts",
+        "symbol": "RealmProcessChangesRepository",
+        "targetPath": "modules/catalog/domain/repositories/IProcessChangesRepository.ts",
+        "targetSymbol": "IProcessChangesRepository",
+        "sourceText": "import { IProcessChangesRepository } from 'modules/catalog/domain/repositories/IProcessChangesRepository.ts'; export class RealmProcessChangesRepository implements IProcessChangesRepository {}"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmProcessChangesRepository.ts#RealmProcessChangesRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/IProcessChangesRepository.ts#IProcessChangesRepository",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmQualityRepository.ts",
+    "id": "p18-repository-positive-13",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "implements-imported-interface",
+        "path": "modules/catalog/infrastructure/repositories/RealmQualityRepository.ts",
+        "symbol": "RealmQualityRepository",
+        "targetPath": "modules/catalog/domain/repositories/IQualityRepository.ts",
+        "targetSymbol": "IQualityRepository",
+        "sourceText": "import { IQualityRepository } from 'modules/catalog/domain/repositories/IQualityRepository.ts'; export class RealmQualityRepository implements IQualityRepository {}"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmQualityRepository.ts#RealmQualityRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/IQualityRepository.ts#IQualityRepository",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmSellerRepository.ts",
+    "id": "p18-repository-positive-14",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "implements-imported-interface",
+        "path": "modules/catalog/infrastructure/repositories/RealmSellerRepository.ts",
+        "symbol": "RealmSellerRepository",
+        "targetPath": "modules/catalog/domain/repositories/ISellerRepository.ts",
+        "targetSymbol": "ISellerRepository",
+        "sourceText": "import { ISellerRepository } from 'modules/catalog/domain/repositories/ISellerRepository.ts'; export class RealmSellerRepository implements ISellerRepository {}"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmSellerRepository.ts#RealmSellerRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/ISellerRepository.ts#ISellerRepository",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/dictionary/infrastructure/repositories/RealmDictionaryRepository.ts",
+    "id": "p18-repository-positive-15",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "implements-imported-interface",
+        "path": "modules/dictionary/infrastructure/repositories/RealmDictionaryRepository.ts",
+        "symbol": "RealmDictionaryRepository",
+        "targetPath": "modules/dictionary/domain/repositories/IDictionaryRepository.ts",
+        "targetSymbol": "IDictionaryRepository",
+        "sourceText": "import { IDictionaryRepository } from 'modules/dictionary/domain/repositories/IDictionaryRepository.ts'; export class RealmDictionaryRepository implements IDictionaryRepository {}"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:modules/dictionary/infrastructure/repositories/RealmDictionaryRepository.ts#RealmDictionaryRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/dictionary/domain/repositories/IDictionaryRepository.ts#IDictionaryRepository",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/infrastructure/repositories/RealmAppStateRepository.ts",
+    "id": "p18-repository-positive-16",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "implements-imported-interface",
+        "path": "modules/shared/infrastructure/repositories/RealmAppStateRepository.ts",
+        "symbol": "RealmAppStateRepository",
+        "targetPath": "modules/shared/domain/repositories/IAppStateRepository.ts",
+        "targetSymbol": "IAppStateRepository",
+        "sourceText": "import { IAppStateRepository } from 'modules/shared/domain/repositories/IAppStateRepository.ts'; export class RealmAppStateRepository implements IAppStateRepository {}"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:modules/shared/infrastructure/repositories/RealmAppStateRepository.ts#RealmAppStateRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/shared/domain/repositories/IAppStateRepository.ts#IAppStateRepository",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/infrastructure/repositories/RealmConfigRepository.ts",
+    "id": "p18-repository-positive-17",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "implements-imported-interface",
+        "path": "modules/shared/infrastructure/repositories/RealmConfigRepository.ts",
+        "symbol": "RealmConfigRepository",
+        "targetPath": "modules/shared/domain/repositories/IConfigRepository.ts",
+        "targetSymbol": "IConfigRepository",
+        "sourceText": "import { IConfigRepository } from 'modules/shared/domain/repositories/IConfigRepository.ts'; export class RealmConfigRepository implements IConfigRepository {}"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:modules/shared/infrastructure/repositories/RealmConfigRepository.ts#RealmConfigRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/shared/domain/repositories/IConfigRepository.ts#IConfigRepository",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/infrastructure/repositories/RealmQueueInspectionRepository.ts",
+    "id": "p18-repository-positive-18",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "implements-imported-interface",
+        "path": "modules/shared/infrastructure/repositories/RealmQueueInspectionRepository.ts",
+        "symbol": "RealmQueueInspectionRepository",
+        "targetPath": "modules/shared/domain/repositories/IQueueInspectionRepository.ts",
+        "targetSymbol": "IQueueInspectionRepository",
+        "sourceText": "import { IQueueInspectionRepository } from 'modules/shared/domain/repositories/IQueueInspectionRepository.ts'; export class RealmQueueInspectionRepository implements IQueueInspectionRepository {}"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:modules/shared/infrastructure/repositories/RealmQueueInspectionRepository.ts#RealmQueueInspectionRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/shared/domain/repositories/IQueueInspectionRepository.ts#IQueueInspectionRepository",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/shared/infrastructure/repositories/RealmUserPreferencesRepository.ts",
+    "id": "p18-repository-positive-19",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "implements-imported-interface",
+        "path": "modules/shared/infrastructure/repositories/RealmUserPreferencesRepository.ts",
+        "symbol": "RealmUserPreferencesRepository",
+        "targetPath": "modules/shared/domain/repositories/IUserPreferencesRepository.ts",
+        "targetSymbol": "IUserPreferencesRepository",
+        "sourceText": "import { IUserPreferencesRepository } from 'modules/shared/domain/repositories/IUserPreferencesRepository.ts'; export class RealmUserPreferencesRepository implements IUserPreferencesRepository {}"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:modules/shared/infrastructure/repositories/RealmUserPreferencesRepository.ts#RealmUserPreferencesRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/shared/domain/repositories/IUserPreferencesRepository.ts#IUserPreferencesRepository",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/test/repositories/InMemoryEventRepository.ts",
+    "id": "p18-repository-positive-20",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "implements-imported-interface",
+        "path": "modules/catalog/test/repositories/InMemoryEventRepository.ts",
+        "symbol": "InMemoryEventRepository",
+        "targetPath": "modules/catalog/domain/repositories/IEventRepository.ts",
+        "targetSymbol": "IEventRepository",
+        "sourceText": "import { IEventRepository } from 'modules/catalog/domain/repositories/IEventRepository.ts'; export class InMemoryEventRepository implements IEventRepository {}"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/test/repositories/InMemoryEventRepository.ts#InMemoryEventRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/IEventRepository.ts#IEventRepository",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/auth/infrastructure/repositories/RealmAuthRepository.ts",
+    "id": "p18-repository-forbidden-01",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "suffix-only",
+        "path": "modules/auth/infrastructure/repositories/RealmAuthRepository.ts",
+        "symbol": "RealmAuthRepository",
+        "targetPath": "modules/auth/domain/repositories/IAuthRepository.ts",
+        "targetSymbol": "IAuthRepository",
+        "sourceText": "export class RealmAuthRepository { label = 'IAuthRepository'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:modules/auth/infrastructure/repositories/RealmAuthRepository.ts#RealmAuthRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/auth/domain/repositories/IAuthRepository.ts#IAuthRepository"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-implements-evidence-required"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/bootstrap/infrastructure/repositories/RealmConfigurationRepository.ts",
+    "id": "p18-repository-forbidden-02",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "type-reference-only",
+        "path": "modules/bootstrap/infrastructure/repositories/RealmConfigurationRepository.ts",
+        "symbol": "RealmConfigurationRepository",
+        "targetPath": "modules/bootstrap/domain/repositories/IConfigurationRepository.ts",
+        "targetSymbol": "IConfigurationRepository",
+        "sourceText": "export class RealmConfigurationRepository { label = 'IConfigurationRepository'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:modules/bootstrap/infrastructure/repositories/RealmConfigurationRepository.ts#RealmConfigurationRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/bootstrap/domain/repositories/IConfigurationRepository.ts#IConfigurationRepository"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-implements-evidence-required"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmBatchChangesRepository.ts",
+    "id": "p18-repository-forbidden-03",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "import-only",
+        "path": "modules/catalog/infrastructure/repositories/RealmBatchChangesRepository.ts",
+        "symbol": "RealmBatchChangesRepository",
+        "targetPath": "modules/catalog/domain/repositories/IBatchChangesRepository.ts",
+        "targetSymbol": "IBatchChangesRepository",
+        "sourceText": "export class RealmBatchChangesRepository { label = 'IBatchChangesRepository'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmBatchChangesRepository.ts#RealmBatchChangesRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/IBatchChangesRepository.ts#IBatchChangesRepository"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-implements-evidence-required"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmCategoryRepository.ts",
+    "id": "p18-repository-forbidden-04",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "unresolved-interface",
+        "path": "modules/catalog/infrastructure/repositories/RealmCategoryRepository.ts",
+        "symbol": "RealmCategoryRepository",
+        "targetPath": "modules/catalog/domain/repositories/ICategoryRepository.ts",
+        "targetSymbol": "ICategoryRepository",
+        "sourceText": "export class RealmCategoryRepository { label = 'ICategoryRepository'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmCategoryRepository.ts#RealmCategoryRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/ICategoryRepository.ts#ICategoryRepository"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-implements-evidence-required"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmChangeRepository.ts",
+    "id": "p18-repository-forbidden-05",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "external-interface",
+        "path": "modules/catalog/infrastructure/repositories/RealmChangeRepository.ts",
+        "symbol": "RealmChangeRepository",
+        "targetPath": "modules/catalog/domain/repositories/IChangeRepository.ts",
+        "targetSymbol": "IChangeRepository",
+        "sourceText": "export class RealmChangeRepository { label = 'IChangeRepository'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmChangeRepository.ts#RealmChangeRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/IChangeRepository.ts#IChangeRepository"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-implements-evidence-required"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmEventDomainRepository.ts",
+    "id": "p18-repository-forbidden-06",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "object-literal",
+        "path": "modules/catalog/infrastructure/repositories/RealmEventDomainRepository.ts",
+        "symbol": "RealmEventDomainRepository",
+        "targetPath": "modules/catalog/domain/repositories/IEventDomainRepository.ts",
+        "targetSymbol": "IEventDomainRepository",
+        "sourceText": "export class RealmEventDomainRepository { label = 'IEventDomainRepository'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmEventDomainRepository.ts#RealmEventDomainRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/IEventDomainRepository.ts#IEventDomainRepository"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-implements-evidence-required"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmEventRepository.ts",
+    "id": "p18-repository-forbidden-07",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "constructor-parameter",
+        "path": "modules/catalog/infrastructure/repositories/RealmEventRepository.ts",
+        "symbol": "RealmEventRepository",
+        "targetPath": "modules/catalog/domain/repositories/IEventRepository.ts",
+        "targetSymbol": "IEventRepository",
+        "sourceText": "export class RealmEventRepository { label = 'IEventRepository'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmEventRepository.ts#RealmEventRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/IEventRepository.ts#IEventRepository"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-implements-evidence-required"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmImageFallbackRepository.ts",
+    "id": "p18-repository-forbidden-08",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "string-name",
+        "path": "modules/catalog/infrastructure/repositories/RealmImageFallbackRepository.ts",
+        "symbol": "RealmImageFallbackRepository",
+        "targetPath": "modules/catalog/domain/repositories/IImageFallbackRepository.ts",
+        "targetSymbol": "IImageFallbackRepository",
+        "sourceText": "export class RealmImageFallbackRepository { label = 'IImageFallbackRepository'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmImageFallbackRepository.ts#RealmImageFallbackRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/IImageFallbackRepository.ts#IImageFallbackRepository"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-implements-evidence-required"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmListingDomainRepository.ts",
+    "id": "p18-repository-forbidden-09",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "comment-only",
+        "path": "modules/catalog/infrastructure/repositories/RealmListingDomainRepository.ts",
+        "symbol": "RealmListingDomainRepository",
+        "targetPath": "modules/catalog/domain/repositories/IListingDomainRepository.ts",
+        "targetSymbol": "IListingDomainRepository",
+        "sourceText": "export class RealmListingDomainRepository { label = 'IListingDomainRepository'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmListingDomainRepository.ts#RealmListingDomainRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/IListingDomainRepository.ts#IListingDomainRepository"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-implements-evidence-required"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "modules/catalog/infrastructure/repositories/RealmMediaRepository.ts",
+    "id": "p18-repository-forbidden-10",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "repository-interface",
+        "scenario": "ambiguous-binding",
+        "path": "modules/catalog/infrastructure/repositories/RealmMediaRepository.ts",
+        "symbol": "RealmMediaRepository",
+        "targetPath": "modules/catalog/domain/repositories/IMediaRepository.ts",
+        "targetSymbol": "IMediaRepository",
+        "sourceText": "export class RealmMediaRepository { label = 'IMediaRepository'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:modules/catalog/infrastructure/repositories/RealmMediaRepository.ts#RealmMediaRepository",
+        "type": "declares_resource",
+        "target": "symbol:ts:modules/catalog/domain/repositories/IMediaRepository.ts#IMediaRepository"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-implements-evidence-required"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useAuthViewModel.ts",
+    "id": "p18-view-model-positive-01",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "hook-constructs-imported-view-model",
+        "path": "lib/hooks/useAuthViewModel.ts",
+        "symbol": "useAuthViewModel",
+        "targetPath": "modules/auth/presentation/view-models/AuthViewModel.ts",
+        "targetSymbol": "AuthViewModel",
+        "sourceText": "import { AuthViewModel } from 'modules/auth/presentation/view-models/AuthViewModel.ts'; export function useAuthViewModel() { return new AuthViewModel(); }"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useAuthViewModel.ts#useAuthViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/auth/presentation/view-models/AuthViewModel.ts#AuthViewModel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useBatchChangesDebugViewModel.ts",
+    "id": "p18-view-model-positive-02",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "hook-constructs-imported-view-model",
+        "path": "lib/hooks/useBatchChangesDebugViewModel.ts",
+        "symbol": "useBatchChangesDebugViewModel",
+        "targetPath": "modules/shared/presentation/view-models/BatchChangesDebugViewModel.ts",
+        "targetSymbol": "BatchChangesDebugViewModel",
+        "sourceText": "import { BatchChangesDebugViewModel } from 'modules/shared/presentation/view-models/BatchChangesDebugViewModel.ts'; export function useBatchChangesDebugViewModel() { return new BatchChangesDebugViewModel(); }"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useBatchChangesDebugViewModel.ts#useBatchChangesDebugViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/shared/presentation/view-models/BatchChangesDebugViewModel.ts#BatchChangesDebugViewModel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useCameraViewModel.ts",
+    "id": "p18-view-model-positive-03",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "hook-constructs-imported-view-model",
+        "path": "lib/hooks/useCameraViewModel.ts",
+        "symbol": "useCameraViewModel",
+        "targetPath": "modules/catalog/presentation/view-models/CameraViewModel.ts",
+        "targetSymbol": "CameraViewModel",
+        "sourceText": "import { CameraViewModel } from 'modules/catalog/presentation/view-models/CameraViewModel.ts'; export function useCameraViewModel() { return new CameraViewModel(); }"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useCameraViewModel.ts#useCameraViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/catalog/presentation/view-models/CameraViewModel.ts#CameraViewModel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useCategorySelectViewModel.ts",
+    "id": "p18-view-model-positive-04",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "hook-constructs-imported-view-model",
+        "path": "lib/hooks/useCategorySelectViewModel.ts",
+        "symbol": "useCategorySelectViewModel",
+        "targetPath": "modules/catalog/presentation/view-models/CategorySelectViewModel.ts",
+        "targetSymbol": "CategorySelectViewModel",
+        "sourceText": "import { CategorySelectViewModel } from 'modules/catalog/presentation/view-models/CategorySelectViewModel.ts'; export function useCategorySelectViewModel() { return new CategorySelectViewModel(); }"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useCategorySelectViewModel.ts#useCategorySelectViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/catalog/presentation/view-models/CategorySelectViewModel.ts#CategorySelectViewModel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useCategorySubcategoryViewModel.ts",
+    "id": "p18-view-model-positive-05",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "hook-constructs-imported-view-model",
+        "path": "lib/hooks/useCategorySubcategoryViewModel.ts",
+        "symbol": "useCategorySubcategoryViewModel",
+        "targetPath": "modules/catalog/presentation/view-models/CategorySubcategoryViewModel.ts",
+        "targetSymbol": "CategorySubcategoryViewModel",
+        "sourceText": "import { CategorySubcategoryViewModel } from 'modules/catalog/presentation/view-models/CategorySubcategoryViewModel.ts'; export function useCategorySubcategoryViewModel() { return new CategorySubcategoryViewModel(); }"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useCategorySubcategoryViewModel.ts#useCategorySubcategoryViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/catalog/presentation/view-models/CategorySubcategoryViewModel.ts#CategorySubcategoryViewModel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useCreateEventScreenViewModel.ts",
+    "id": "p18-view-model-positive-06",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "hook-constructs-imported-view-model",
+        "path": "lib/hooks/useCreateEventScreenViewModel.ts",
+        "symbol": "useCreateEventScreenViewModel",
+        "targetPath": "modules/catalog/presentation/view-models/CreateEventScreenViewModel.ts",
+        "targetSymbol": "CreateEventScreenViewModel",
+        "sourceText": "import { CreateEventScreenViewModel } from 'modules/catalog/presentation/view-models/CreateEventScreenViewModel.ts'; export function useCreateEventScreenViewModel() { return new CreateEventScreenViewModel(); }"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useCreateEventScreenViewModel.ts#useCreateEventScreenViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/catalog/presentation/view-models/CreateEventScreenViewModel.ts#CreateEventScreenViewModel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useCreateListingWorkflowViewModel.ts",
+    "id": "p18-view-model-positive-07",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "hook-constructs-imported-view-model",
+        "path": "lib/hooks/useCreateListingWorkflowViewModel.ts",
+        "symbol": "useCreateListingWorkflowViewModel",
+        "targetPath": "modules/catalog/presentation/view-models/CreateListingWorkflowViewModel.ts",
+        "targetSymbol": "CreateListingWorkflowViewModel",
+        "sourceText": "import { CreateListingWorkflowViewModel } from 'modules/catalog/presentation/view-models/CreateListingWorkflowViewModel.ts'; export function useCreateListingWorkflowViewModel() { return new CreateListingWorkflowViewModel(); }"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useCreateListingWorkflowViewModel.ts#useCreateListingWorkflowViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/catalog/presentation/view-models/CreateListingWorkflowViewModel.ts#CreateListingWorkflowViewModel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useDictionaryViewModel.ts",
+    "id": "p18-view-model-positive-08",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "hook-constructs-imported-view-model",
+        "path": "lib/hooks/useDictionaryViewModel.ts",
+        "symbol": "useDictionaryViewModel",
+        "targetPath": "modules/dictionary/presentation/view-models/DictionaryViewModel.ts",
+        "targetSymbol": "DictionaryViewModel",
+        "sourceText": "import { DictionaryViewModel } from 'modules/dictionary/presentation/view-models/DictionaryViewModel.ts'; export function useDictionaryViewModel() { return new DictionaryViewModel(); }"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useDictionaryViewModel.ts#useDictionaryViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/dictionary/presentation/view-models/DictionaryViewModel.ts#DictionaryViewModel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useEditEventScreenViewModel.ts",
+    "id": "p18-view-model-positive-09",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "hook-constructs-imported-view-model",
+        "path": "lib/hooks/useEditEventScreenViewModel.ts",
+        "symbol": "useEditEventScreenViewModel",
+        "targetPath": "modules/catalog/presentation/view-models/EditEventScreenViewModel.ts",
+        "targetSymbol": "EditEventScreenViewModel",
+        "sourceText": "import { EditEventScreenViewModel } from 'modules/catalog/presentation/view-models/EditEventScreenViewModel.ts'; export function useEditEventScreenViewModel() { return new EditEventScreenViewModel(); }"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useEditEventScreenViewModel.ts#useEditEventScreenViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/catalog/presentation/view-models/EditEventScreenViewModel.ts#EditEventScreenViewModel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useEditListingViewModel.ts",
+    "id": "p18-view-model-positive-10",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "hook-constructs-imported-view-model",
+        "path": "lib/hooks/useEditListingViewModel.ts",
+        "symbol": "useEditListingViewModel",
+        "targetPath": "modules/catalog/presentation/view-models/EditListingViewModel.ts",
+        "targetSymbol": "EditListingViewModel",
+        "sourceText": "import { EditListingViewModel } from 'modules/catalog/presentation/view-models/EditListingViewModel.ts'; export function useEditListingViewModel() { return new EditListingViewModel(); }"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useEditListingViewModel.ts#useEditListingViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/catalog/presentation/view-models/EditListingViewModel.ts#EditListingViewModel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useEventDetailScreenViewModel.ts",
+    "id": "p18-view-model-positive-11",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "hook-constructs-imported-view-model",
+        "path": "lib/hooks/useEventDetailScreenViewModel.ts",
+        "symbol": "useEventDetailScreenViewModel",
+        "targetPath": "modules/catalog/presentation/view-models/EventDetailScreenViewModel.ts",
+        "targetSymbol": "EventDetailScreenViewModel",
+        "sourceText": "import { EventDetailScreenViewModel } from 'modules/catalog/presentation/view-models/EventDetailScreenViewModel.ts'; export function useEventDetailScreenViewModel() { return new EventDetailScreenViewModel(); }"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useEventDetailScreenViewModel.ts#useEventDetailScreenViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/catalog/presentation/view-models/EventDetailScreenViewModel.ts#EventDetailScreenViewModel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useEventListScreenViewModel.ts",
+    "id": "p18-view-model-positive-12",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "hook-constructs-imported-view-model",
+        "path": "lib/hooks/useEventListScreenViewModel.ts",
+        "symbol": "useEventListScreenViewModel",
+        "targetPath": "modules/catalog/presentation/view-models/EventListScreenViewModel.ts",
+        "targetSymbol": "EventListScreenViewModel",
+        "sourceText": "import { EventListScreenViewModel } from 'modules/catalog/presentation/view-models/EventListScreenViewModel.ts'; export function useEventListScreenViewModel() { return new EventListScreenViewModel(); }"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useEventListScreenViewModel.ts#useEventListScreenViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/catalog/presentation/view-models/EventListScreenViewModel.ts#EventListScreenViewModel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useEventListViewModel.ts",
+    "id": "p18-view-model-positive-13",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "hook-constructs-imported-view-model",
+        "path": "lib/hooks/useEventListViewModel.ts",
+        "symbol": "useEventListViewModel",
+        "targetPath": "modules/catalog/presentation/view-models/EventListScreenViewModel.ts",
+        "targetSymbol": "EventListScreenViewModel",
+        "sourceText": "import { EventListScreenViewModel } from 'modules/catalog/presentation/view-models/EventListScreenViewModel.ts'; export function useEventListViewModel() { return new EventListScreenViewModel(); }"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useEventListViewModel.ts#useEventListViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/catalog/presentation/view-models/EventListScreenViewModel.ts#EventListScreenViewModel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useGalleryViewModel.ts",
+    "id": "p18-view-model-positive-14",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "hook-constructs-imported-view-model",
+        "path": "lib/hooks/useGalleryViewModel.ts",
+        "symbol": "useGalleryViewModel",
+        "targetPath": "modules/catalog/presentation/view-models/GalleryViewModel.ts",
+        "targetSymbol": "GalleryViewModel",
+        "sourceText": "import { GalleryViewModel } from 'modules/catalog/presentation/view-models/GalleryViewModel.ts'; export function useGalleryViewModel() { return new GalleryViewModel(); }"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useGalleryViewModel.ts#useGalleryViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/catalog/presentation/view-models/GalleryViewModel.ts#GalleryViewModel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useListingDetailScreenViewModel.ts",
+    "id": "p18-view-model-positive-15",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "hook-constructs-imported-view-model",
+        "path": "lib/hooks/useListingDetailScreenViewModel.ts",
+        "symbol": "useListingDetailScreenViewModel",
+        "targetPath": "modules/catalog/presentation/view-models/ListingDetailScreenViewModel.ts",
+        "targetSymbol": "ListingDetailScreenViewModel",
+        "sourceText": "import { ListingDetailScreenViewModel } from 'modules/catalog/presentation/view-models/ListingDetailScreenViewModel.ts'; export function useListingDetailScreenViewModel() { return new ListingDetailScreenViewModel(); }"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useListingDetailScreenViewModel.ts#useListingDetailScreenViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/catalog/presentation/view-models/ListingDetailScreenViewModel.ts#ListingDetailScreenViewModel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useListingGridViewModel.ts",
+    "id": "p18-view-model-positive-16",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "hook-constructs-imported-view-model",
+        "path": "lib/hooks/useListingGridViewModel.ts",
+        "symbol": "useListingGridViewModel",
+        "targetPath": "modules/catalog/presentation/view-models/ListingGridViewModel.ts",
+        "targetSymbol": "ListingGridViewModel",
+        "sourceText": "import { ListingGridViewModel } from 'modules/catalog/presentation/view-models/ListingGridViewModel.ts'; export function useListingGridViewModel() { return new ListingGridViewModel(); }"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useListingGridViewModel.ts#useListingGridViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/catalog/presentation/view-models/ListingGridViewModel.ts#ListingGridViewModel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useListingHeaderViewModel.ts",
+    "id": "p18-view-model-positive-17",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "hook-constructs-imported-view-model",
+        "path": "lib/hooks/useListingHeaderViewModel.ts",
+        "symbol": "useListingHeaderViewModel",
+        "targetPath": "modules/catalog/presentation/view-models/ListingHeaderViewModel.ts",
+        "targetSymbol": "ListingHeaderViewModel",
+        "sourceText": "import { ListingHeaderViewModel } from 'modules/catalog/presentation/view-models/ListingHeaderViewModel.ts'; export function useListingHeaderViewModel() { return new ListingHeaderViewModel(); }"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useListingHeaderViewModel.ts#useListingHeaderViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/catalog/presentation/view-models/ListingHeaderViewModel.ts#ListingHeaderViewModel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useMediaQueueDebugViewModel.ts",
+    "id": "p18-view-model-positive-18",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "hook-constructs-imported-view-model",
+        "path": "lib/hooks/useMediaQueueDebugViewModel.ts",
+        "symbol": "useMediaQueueDebugViewModel",
+        "targetPath": "modules/shared/presentation/view-models/MediaQueueDebugViewModel.ts",
+        "targetSymbol": "MediaQueueDebugViewModel",
+        "sourceText": "import { MediaQueueDebugViewModel } from 'modules/shared/presentation/view-models/MediaQueueDebugViewModel.ts'; export function useMediaQueueDebugViewModel() { return new MediaQueueDebugViewModel(); }"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useMediaQueueDebugViewModel.ts#useMediaQueueDebugViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/shared/presentation/view-models/MediaQueueDebugViewModel.ts#MediaQueueDebugViewModel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useQRScannerViewModel.ts",
+    "id": "p18-view-model-positive-19",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "hook-constructs-imported-view-model",
+        "path": "lib/hooks/useQRScannerViewModel.ts",
+        "symbol": "useQRScannerViewModel",
+        "targetPath": "modules/shared/presentation/view-models/QRScannerViewModel.ts",
+        "targetSymbol": "QRScannerViewModel",
+        "sourceText": "import { QRScannerViewModel } from 'modules/shared/presentation/view-models/QRScannerViewModel.ts'; export function useQRScannerViewModel() { return new QRScannerViewModel(); }"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useQRScannerViewModel.ts#useQRScannerViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/shared/presentation/view-models/QRScannerViewModel.ts#QRScannerViewModel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useQualitySelectViewModel.ts",
+    "id": "p18-view-model-positive-20",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "hook-constructs-imported-view-model",
+        "path": "lib/hooks/useQualitySelectViewModel.ts",
+        "symbol": "useQualitySelectViewModel",
+        "targetPath": "modules/catalog/presentation/view-models/QualitySelectViewModel.ts",
+        "targetSymbol": "QualitySelectViewModel",
+        "sourceText": "import { QualitySelectViewModel } from 'modules/catalog/presentation/view-models/QualitySelectViewModel.ts'; export function useQualitySelectViewModel() { return new QualitySelectViewModel(); }"
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useQualitySelectViewModel.ts#useQualitySelectViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/catalog/presentation/view-models/QualitySelectViewModel.ts#QualitySelectViewModel",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useAuthViewModel.ts",
+    "id": "p18-view-model-forbidden-01",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "suffix-only",
+        "path": "lib/hooks/useAuthViewModel.ts",
+        "symbol": "useAuthViewModel",
+        "targetPath": "modules/auth/presentation/view-models/AuthViewModel.ts",
+        "targetSymbol": "AuthViewModel",
+        "sourceText": "export function useAuthViewModel() { return 'AuthViewModel'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useAuthViewModel.ts#useAuthViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/auth/presentation/view-models/AuthViewModel.ts#AuthViewModel"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-construction-evidence-required"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useBatchChangesDebugViewModel.ts",
+    "id": "p18-view-model-forbidden-02",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "type-only",
+        "path": "lib/hooks/useBatchChangesDebugViewModel.ts",
+        "symbol": "useBatchChangesDebugViewModel",
+        "targetPath": "modules/shared/presentation/view-models/BatchChangesDebugViewModel.ts",
+        "targetSymbol": "BatchChangesDebugViewModel",
+        "sourceText": "export function useBatchChangesDebugViewModel() { return 'BatchChangesDebugViewModel'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useBatchChangesDebugViewModel.ts#useBatchChangesDebugViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/shared/presentation/view-models/BatchChangesDebugViewModel.ts#BatchChangesDebugViewModel"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-construction-evidence-required"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useCameraViewModel.ts",
+    "id": "p18-view-model-forbidden-03",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "import-only",
+        "path": "lib/hooks/useCameraViewModel.ts",
+        "symbol": "useCameraViewModel",
+        "targetPath": "modules/catalog/presentation/view-models/CameraViewModel.ts",
+        "targetSymbol": "CameraViewModel",
+        "sourceText": "export function useCameraViewModel() { return 'CameraViewModel'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useCameraViewModel.ts#useCameraViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/catalog/presentation/view-models/CameraViewModel.ts#CameraViewModel"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-construction-evidence-required"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useCategorySelectViewModel.ts",
+    "id": "p18-view-model-forbidden-04",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "unresolved-view-model",
+        "path": "lib/hooks/useCategorySelectViewModel.ts",
+        "symbol": "useCategorySelectViewModel",
+        "targetPath": "modules/catalog/presentation/view-models/CategorySelectViewModel.ts",
+        "targetSymbol": "CategorySelectViewModel",
+        "sourceText": "export function useCategorySelectViewModel() { return 'CategorySelectViewModel'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useCategorySelectViewModel.ts#useCategorySelectViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/catalog/presentation/view-models/CategorySelectViewModel.ts#CategorySelectViewModel"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-construction-evidence-required"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useCategorySubcategoryViewModel.ts",
+    "id": "p18-view-model-forbidden-05",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "external-view-model",
+        "path": "lib/hooks/useCategorySubcategoryViewModel.ts",
+        "symbol": "useCategorySubcategoryViewModel",
+        "targetPath": "modules/catalog/presentation/view-models/CategorySubcategoryViewModel.ts",
+        "targetSymbol": "CategorySubcategoryViewModel",
+        "sourceText": "export function useCategorySubcategoryViewModel() { return 'CategorySubcategoryViewModel'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useCategorySubcategoryViewModel.ts#useCategorySubcategoryViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/catalog/presentation/view-models/CategorySubcategoryViewModel.ts#CategorySubcategoryViewModel"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-construction-evidence-required"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useCreateEventScreenViewModel.ts",
+    "id": "p18-view-model-forbidden-06",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "factory-call",
+        "path": "lib/hooks/useCreateEventScreenViewModel.ts",
+        "symbol": "useCreateEventScreenViewModel",
+        "targetPath": "modules/catalog/presentation/view-models/CreateEventScreenViewModel.ts",
+        "targetSymbol": "CreateEventScreenViewModel",
+        "sourceText": "export function useCreateEventScreenViewModel() { return 'CreateEventScreenViewModel'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useCreateEventScreenViewModel.ts#useCreateEventScreenViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/catalog/presentation/view-models/CreateEventScreenViewModel.ts#CreateEventScreenViewModel"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-construction-evidence-required"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useCreateListingWorkflowViewModel.ts",
+    "id": "p18-view-model-forbidden-07",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "string-name",
+        "path": "lib/hooks/useCreateListingWorkflowViewModel.ts",
+        "symbol": "useCreateListingWorkflowViewModel",
+        "targetPath": "modules/catalog/presentation/view-models/CreateListingWorkflowViewModel.ts",
+        "targetSymbol": "CreateListingWorkflowViewModel",
+        "sourceText": "export function useCreateListingWorkflowViewModel() { return 'CreateListingWorkflowViewModel'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useCreateListingWorkflowViewModel.ts#useCreateListingWorkflowViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/catalog/presentation/view-models/CreateListingWorkflowViewModel.ts#CreateListingWorkflowViewModel"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-construction-evidence-required"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useDictionaryViewModel.ts",
+    "id": "p18-view-model-forbidden-08",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "comment-only",
+        "path": "lib/hooks/useDictionaryViewModel.ts",
+        "symbol": "useDictionaryViewModel",
+        "targetPath": "modules/dictionary/presentation/view-models/DictionaryViewModel.ts",
+        "targetSymbol": "DictionaryViewModel",
+        "sourceText": "export function useDictionaryViewModel() { return 'DictionaryViewModel'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useDictionaryViewModel.ts#useDictionaryViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/dictionary/presentation/view-models/DictionaryViewModel.ts#DictionaryViewModel"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-construction-evidence-required"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useEditEventScreenViewModel.ts",
+    "id": "p18-view-model-forbidden-09",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "dynamic-constructor",
+        "path": "lib/hooks/useEditEventScreenViewModel.ts",
+        "symbol": "useEditEventScreenViewModel",
+        "targetPath": "modules/catalog/presentation/view-models/EditEventScreenViewModel.ts",
+        "targetSymbol": "EditEventScreenViewModel",
+        "sourceText": "export function useEditEventScreenViewModel() { return 'EditEventScreenViewModel'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useEditEventScreenViewModel.ts#useEditEventScreenViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/catalog/presentation/view-models/EditEventScreenViewModel.ts#EditEventScreenViewModel"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-construction-evidence-required"
+  },
+  {
+    "capability": "mobile-repository-view-model-graph",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPositivePerCohort": 20,
+      "minForbiddenPerCohort": 10,
+      "minPrecision": 0.95,
+      "minRecall": 0.9
+    },
+    "expectedCoverage": "active",
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "lib/hooks/useEditListingViewModel.ts",
+    "id": "p18-view-model-forbidden-10",
+    "query": {
+      "tool": "phase18MobileReferenceSeam",
+      "args": {
+        "cohort": "view-model",
+        "scenario": "ambiguous-binding",
+        "path": "lib/hooks/useEditListingViewModel.ts",
+        "symbol": "useEditListingViewModel",
+        "targetPath": "modules/catalog/presentation/view-models/EditListingViewModel.ts",
+        "targetSymbol": "EditListingViewModel",
+        "sourceText": "export function useEditListingViewModel() { return 'EditListingViewModel'; }"
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "source": "symbol:ts:lib/hooks/useEditListingViewModel.ts#useEditListingViewModel",
+        "type": "uses_view_model",
+        "target": "symbol:ts:modules/catalog/presentation/view-models/EditListingViewModel.ts#EditListingViewModel"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "explicit-imported-construction-evidence-required"
+  }
+]

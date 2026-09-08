@@ -201,6 +201,8 @@ export type EdgeType =
   | 'provides_context'
   | 'consumes_context'
   | 'navigates_to'
+  | 'declares_resource'
+  | 'uses_view_model'
   // Module-boundary evidence expansion edges
   | 'dispatches_job'
   | 'handles_job'

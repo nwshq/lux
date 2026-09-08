@@ -191,6 +191,22 @@ const BOUNDARY_EVIDENCE_RUBRIC: Record<EdgeType, Omit<BoundaryEvidenceRubricEntr
     canStandAlone: true,
     preferredConfidenceClasses: GRAPH_FORMING_CONFIDENCE_CLASSES,
   },
+  declares_resource: {
+    family: 'contract-lineage',
+    role: 'graph-forming',
+    defaultTier: 'overlay-backed',
+    startingWeight: 1,
+    canStandAlone: true,
+    preferredConfidenceClasses: GRAPH_FORMING_CONFIDENCE_CLASSES,
+  },
+  uses_view_model: {
+    family: 'contract-lineage',
+    role: 'graph-forming',
+    defaultTier: 'overlay-backed',
+    startingWeight: 1,
+    canStandAlone: true,
+    preferredConfidenceClasses: GRAPH_FORMING_CONFIDENCE_CLASSES,
+  },
   emits_component_event: {
     family: 'async-workflow',
     role: 'graph-forming',

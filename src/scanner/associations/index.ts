@@ -36,6 +36,7 @@ export {
 } from '../react/index.js';
 export { ExpoRouterAssociationResolver } from '../react-native/expo/index.js';
 export { ReactNavigationAssociationResolver } from '../react-native/navigation/index.js';
+export { MobileArchitectureAssociationResolver } from '../framework/mobile/index.js';
 
 export {
   createDefaultOperationalExtractors,
