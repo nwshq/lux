@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "phase": 15,
+  "implementationSha": "eedf6a02d42df7c3ab744a895ad2609449122d9d",
+  "mergeSha": "571dfe02cc9eadd2bb13347f74ae26293cdaac5b",
+  "baselineSha": "c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a",
+  "criteria": [
+    {
+      "id": "P15-C1",
+      "class": "static-react-graph",
+      "green": {
+        "command": "vitest run Phase 15 production and acceptance focused suites; fixed-denominator synthetic and exact-pin example-workspace/example-dashboard cohort scoring; isolated exact-pin preflight; acme production probe; watched-red controls; repeated stable-resolver checks",
+        "exitCode": 0,
+        "observable": "All 14 focused tests passed; the synthetic battery passed 30 positive and 15 forbidden cases at precision 1 and recall 1; the pinned example-workspace and example-dashboard battery passed 20 positive and 10 forbidden cases, all 20 selected production edges matched, and each corpus met precision >= 0.95 and recall >= 0.90; isolated exact-pin preflight passed for all three corpora; the acme production probe returned 421 edges; all 6 watched mutations were detected; repeated resolution produced an equal stable digest beginning 206c69"
+      },
+      "red": {
+        "mutation": "six-watched-render-hook-lazy-context-callback-and-component-identity-regressions",
+        "command": "vitest run src/integration/__tests__/phase-15-acceptance.test.ts with each watched mutation",
+        "exitCode": 1,
+        "observable": "Each of the 6 watched rendered-JSX removal, custom-hook misuse, dynamic-lazy, unresolved-context, callback-artifact, and component-identity-collapse mutations produced a nonzero checker exit"
+      },
+      "verifiedBy": "independent-production-cohort-exact-pin-preflight-auctic-probe-watched-mutation-and-stable-resolver-validation"
+    },
+    {
+      "id": "P15-C2",
+      "class": "performance-and-compatibility",
+      "green": {
+        "command": "three warmups plus five measured Phase 15 resolver runs; npm run check; architecture, dead-code, documentation, and native-free gates",
+        "exitCode": 0,
+        "observable": "After 3 warmups, median wall was 29.126084 ms across 5 measured runs with observed process RSS 91013120 bytes and equal stable resolver digest beginning 206c69, below the Phase 14 baseline of 205.604959 ms and 103120896 bytes; the final npm run check exited 0 with 2058 passed, 13 skipped, and 0 failed across all gates; architecture lint checked 220 files with 0 violations, architecture tests passed 5, dead-code validation checked 1161 exports across 213 files, and native-free and documentation verification passed"
+      },
+      "red": {
+        "mutation": "watched-static-react-semantics-regressions",
+        "command": "vitest run src/integration/__tests__/phase-15-acceptance.test.ts with watched mutations",
+        "exitCode": 1,
+        "observable": "The compatibility battery rejects all 6 watched React render, hook, lazy, context, callback, and component-identity regressions with nonzero checker exits"
+      },
+      "verifiedBy": "independent-performance-full-suite-architecture-dead-code-documentation-and-native-free-validation"
+    },
+    {
+      "id": "P15-C3",
+      "class": "review-and-release",
+      "green": {
+        "command": "GitHub PR #113 merge and release record; installed CLI/package, MCP, tool, and Goose plugin verification",
+        "exitCode": 0,
+        "observable": "PR #113 had final head eedf6a02d42df7c3ab744a895ad2609449122d9d and merged as 571dfe02cc9eadd2bb13347f74ae26293cdaac5b; v2.31.0 release and lux-v2.31.0-linux-x64.tar.gz published with sha256:f4aca5ebf4e1ff22482ccb75bf575d6713ac6dca9e610adac433a606ed158ba5; installed CLI/package and MCP report 2.31.0 with 12 tools; the Goose plugin is at 571dfe0 and preserves the namespaced Skill; Phase 14 acceptance at baseline c2291d84cb4cb90e4a60282bbc5b6ffe77e0441a was the accepted dependency"
+      },
+      "red": {
+        "mutation": "expect-prior-version",
+        "command": "installed CLI/package and MCP version check",
+        "exitCode": 1,
+        "observable": "installed 2.31.0 differs from the prior Phase 14 release sentinel"
+      },
+      "verifiedBy": "github-ci-release-installed-cli-package-mcp-tools-and-goose-plugin-verification"
+    }
+  ],
+  "knownBaselineFailures": [],
+  "review": {
+    "codeReview": "APPROVED",
+    "independentValidation": "Review and implementation acceptance APPROVED after performance correction; all 14 focused tests passed; the synthetic battery passed 30 positive and 15 forbidden cases at precision/recall 1; the pinned example-workspace and example-dashboard battery passed 20 positive and 10 forbidden cases, all 20 selected production edges matched, and each corpus met precision >= 0.95 and recall >= 0.90; isolated exact-pin preflight passed for all three corpora; the acme production probe returned 421 edges; all 6 watched mutations were detected; the final npm run check exited 0 with 2058 passed/13 skipped/0 failed across all gates, architecture lint 220 files/0 violations, architecture tests 5, dead-code validation 1161 exports/213 files, and native-free/documentation verification passed; repeated resolution produced an equal stable digest beginning 206c69; 3+5 performance median was 29.126084 ms with RSS 91013120 bytes, below the Phase 14 baseline; installed CLI/package and MCP 2.31.0 with 12 tools and Goose plugin 571dfe0 namespaced Skill verification passed.",
+    "acceptanceReview": "APPROVED"
+  },
+  "exemptions": []
+}

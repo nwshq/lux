@@ -134,6 +134,16 @@
       "asset": "lux-v2.30.0-linux-x64.tar.gz",
       "digest": "sha256:5aa61a3546ef18fb51b487b379c77ab5c59618d4b4d14d866cc4478b5868a076",
       "status": "released-and-installed"
+    },
+    {
+      "phase": 15,
+      "pullRequest": 113,
+      "mergeSha": "571dfe02cc9eadd2bb13347f74ae26293cdaac5b",
+      "version": "2.31.0",
+      "releaseUrl": "https://github.com/nwshq/lux/releases/tag/v2.31.0",
+      "asset": "lux-v2.31.0-linux-x64.tar.gz",
+      "digest": "sha256:f4aca5ebf4e1ff22482ccb75bf575d6713ac6dca9e610adac433a606ed158ba5",
+      "status": "released-and-installed"
     }
   ]
 }
