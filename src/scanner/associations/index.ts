@@ -34,6 +34,7 @@ export {
   ReactFrameworkAnalyzer,
   ReactRelationshipResolver,
 } from '../react/index.js';
+export { ExpoRouterAssociationResolver } from '../react-native/expo/index.js';
 
 export {
   createDefaultOperationalExtractors,

@@ -200,6 +200,7 @@ export type EdgeType =
   | 'uses_hook'
   | 'provides_context'
   | 'consumes_context'
+  | 'navigates_to'
   // Module-boundary evidence expansion edges
   | 'dispatches_job'
   | 'handles_job'

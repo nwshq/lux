@@ -1,0 +1,1526 @@
+[
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/modal.tsx",
+    "id": "p16-positive-push",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "push",
+        "path": "app/(authenticated)/modal.tsx",
+        "exported": "ModalScreen",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push('/settings/about');",
+        "routeFiles": ["app/(authenticated)/settings/about.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F(authenticated)%2Fmodal.tsx#ModalScreen",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fsettings%2Fabout",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered",
+    "performanceProtocol": {
+      "warmups": 3,
+      "measurements": 5,
+      "maxRegressionRatio": 1.2,
+      "baselineWallMs": 250,
+      "baselineRssBytes": 134217728
+    },
+    "watchedMutations": [
+      {
+        "id": "preserve-route-groups",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p16-positive-group"
+      },
+      {
+        "id": "retain-query-string",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p16-positive-query"
+      },
+      {
+        "id": "reverse-navigation-edge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p16-positive-push"
+      },
+      {
+        "id": "accept-external-url",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p16-forbidden-external-url"
+      },
+      {
+        "id": "resolve-dynamic-variable",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p16-forbidden-dynamic-variable"
+      }
+    ]
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/auth/verify.tsx",
+    "id": "p16-positive-replace",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "replace",
+        "path": "app/auth/verify.tsx",
+        "exported": "VerifyScreen",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.replace('/auth');",
+        "routeFiles": ["app/auth/index.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2Fauth%2Fverify.tsx#VerifyScreen",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fauth",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/+not-found.tsx",
+    "id": "p16-positive-link",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "link",
+        "path": "app/+not-found.tsx",
+        "exported": "NotFoundScreen",
+        "sourceText": "import { Link } from 'expo-router'; const view = <Link href=\"/\">Home</Link>;",
+        "routeFiles": ["app/(authenticated)/index.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F%2Bnot-found.tsx#NotFoundScreen",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2F",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/_layout.tsx",
+    "id": "p16-positive-redirect",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "redirect",
+        "path": "app/(authenticated)/_layout.tsx",
+        "exported": "AuthenticatedLayout",
+        "sourceText": "import { Redirect } from 'expo-router'; const view = <Redirect href=\"/auth\" />;",
+        "routeFiles": ["app/auth/index.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F(authenticated)%2F_layout.tsx#AuthenticatedLayout",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fauth",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/SettingsIcon.tsx",
+    "id": "p16-positive-group",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "group",
+        "path": "components/SettingsIcon.tsx",
+        "exported": "SettingsIcon",
+        "sourceText": "import { Link } from 'expo-router'; const view = <Link href=\"/(authenticated)/modal\" />;",
+        "routeFiles": ["app/(authenticated)/modal.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2FSettingsIcon.tsx#SettingsIcon",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fmodal",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/catalog/index.tsx",
+    "id": "p16-positive-index",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "index",
+        "path": "app/(authenticated)/catalog/index.tsx",
+        "exported": "CatalogRedirectScreen",
+        "sourceText": "import { Redirect } from 'expo-router'; const view = <Redirect href=\"/\" />;",
+        "routeFiles": ["app/(authenticated)/index.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F(authenticated)%2Fcatalog%2Findex.tsx#CatalogRedirectScreen",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2F",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/auth/login-qr-scanner.tsx",
+    "id": "p16-positive-query",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "query",
+        "path": "app/auth/login-qr-scanner.tsx",
+        "exported": "LoginQrScannerScreen",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push(`/auth/verify?${urlArray[1]}`);",
+        "routeFiles": ["app/auth/verify.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2Fauth%2Flogin-qr-scanner.tsx#LoginQrScannerScreen",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fauth%2Fverify",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/components/ListingCard.tsx",
+    "id": "p16-positive-dynamic-segment",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "dynamic-segment",
+        "path": "app/components/ListingCard.tsx",
+        "exported": "default",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push(`/catalog/listing/${listing.id}`);",
+        "routeFiles": ["app/(authenticated)/catalog/listing/[id]/index.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2Fcomponents%2FListingCard.tsx#default",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fcatalog%2Flisting%2F%5Bid%5D",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/catalog/qr-scanner.tsx",
+    "id": "p16-positive-object",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "object",
+        "path": "app/(authenticated)/catalog/qr-scanner.tsx",
+        "exported": "QRScannerScreen",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.replace({ pathname: '/(authenticated)/catalog/listing/[id]/edit', params: { id } });",
+        "routeFiles": ["app/(authenticated)/catalog/listing/[id]/edit.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F(authenticated)%2Fcatalog%2Fqr-scanner.tsx#QRScannerScreen",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fcatalog%2Flisting%2F%5Bid%5D%2Fedit",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/catalog/listing/[id]/index.tsx",
+    "id": "p16-positive-video-query",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "query",
+        "path": "app/(authenticated)/catalog/listing/[id]/index.tsx",
+        "exported": "ListingDetailScreen",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push(`/catalog/listing/video-recorder?listingId=${id}`);",
+        "routeFiles": ["app/(authenticated)/catalog/listing/video-recorder.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F(authenticated)%2Fcatalog%2Flisting%2F%5Bid%5D%2Findex.tsx#ListingDetailScreen",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fcatalog%2Flisting%2Fvideo-recorder",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/catalog/qr-scanner.tsx",
+    "id": "p16-positive-qr-listing",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "dynamic-segment",
+        "path": "app/(authenticated)/catalog/qr-scanner.tsx",
+        "exported": "QRScannerScreen",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.replace(`/catalog/listing/${existingListing.id}`);",
+        "routeFiles": ["app/(authenticated)/catalog/listing/[id]/index.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F(authenticated)%2Fcatalog%2Fqr-scanner.tsx#QRScannerScreen",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fcatalog%2Flisting%2F%5Bid%5D",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/catalog/qr-scanner.tsx",
+    "id": "p16-positive-qr-event",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "dynamic-segment",
+        "path": "app/(authenticated)/catalog/qr-scanner.tsx",
+        "exported": "QRScannerScreen",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.replace(`/catalog/${listing.eventId}`);",
+        "routeFiles": ["app/(authenticated)/catalog/[id].tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F(authenticated)%2Fcatalog%2Fqr-scanner.tsx#QRScannerScreen",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fcatalog%2F%5Bid%5D",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/catalog/qr-scanner.tsx",
+    "id": "p16-positive-qr-edit",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "dynamic-segment",
+        "path": "app/(authenticated)/catalog/qr-scanner.tsx",
+        "exported": "QRScannerScreen",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push(`/catalog/listing/${createdListing.id}/edit`);",
+        "routeFiles": ["app/(authenticated)/catalog/listing/[id]/edit.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2F(authenticated)%2Fcatalog%2Fqr-scanner.tsx#QRScannerScreen",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fcatalog%2Flisting%2F%5Bid%5D%2Fedit",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/oauth.tsx",
+    "id": "p16-positive-oauth",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "replace",
+        "path": "app/oauth.tsx",
+        "exported": "OAuthRedirect",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.replace('/auth');",
+        "routeFiles": ["app/auth/index.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2Foauth.tsx#OAuthRedirect",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fauth",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/EditLink.tsx",
+    "id": "p16-positive-edit-link",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "link",
+        "path": "components/EditLink.tsx",
+        "exported": "EditLink",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push(`/catalog/listing/${id}/edit`);",
+        "routeFiles": ["app/(authenticated)/catalog/listing/[id]/edit.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2FEditLink.tsx#EditLink",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fcatalog%2Flisting%2F%5Bid%5D%2Fedit",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/EventCard.tsx",
+    "id": "p16-positive-event-card",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "dynamic-segment",
+        "path": "components/EventCard.tsx",
+        "exported": "EventCard",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push(`/catalog/${event.id}`);",
+        "routeFiles": ["app/(authenticated)/catalog/[id].tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2FEventCard.tsx#EventCard",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fcatalog%2F%5Bid%5D",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "components/ImageWithFallback.tsx",
+    "id": "p16-positive-image-gallery",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "query",
+        "path": "components/ImageWithFallback.tsx",
+        "exported": "ImageWithFallback",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push(`/(authenticated)/catalog/gallery?mediaId=${mediaId}&listingId=${listingIdParam}&mediaType=video`);",
+        "routeFiles": ["app/(authenticated)/catalog/gallery.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:components%2FImageWithFallback.tsx#ImageWithFallback",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fcatalog%2Fgallery",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/auth/index.tsx",
+    "id": "p16-positive-auth-login",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "push",
+        "path": "app/auth/index.tsx",
+        "exported": "AuthScreen",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push(`/auth/login-qr-scanner`);",
+        "routeFiles": ["app/auth/login-qr-scanner.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:app%2Fauth%2Findex.tsx#AuthScreen",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fauth%2Flogin-qr-scanner",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "phase-16-expo-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "241685c091e71f744c38e89d87635708f04a565a"
+    },
+    "sourceFamily": "fixtures/p16/Navigate.tsx",
+    "id": "p16-positive-navigate",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "navigate",
+        "path": "fixtures/p16/Navigate.tsx",
+        "exported": "Navigate",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.navigate('/orders');",
+        "routeFiles": ["app/orders.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:fixtures%2Fp16%2FNavigate.tsx#Navigate",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Forders",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "phase-16-expo-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "241685c091e71f744c38e89d87635708f04a565a"
+    },
+    "sourceFamily": "fixtures/p16/Slash.tsx",
+    "id": "p16-positive-trailing-slash",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "normalization",
+        "path": "fixtures/p16/Slash.tsx",
+        "exported": "Slash",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push('/orders/');",
+        "routeFiles": ["app/orders/index.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:fixtures%2Fp16%2FSlash.tsx#Slash",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Forders",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "phase-16-expo-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "241685c091e71f744c38e89d87635708f04a565a"
+    },
+    "sourceFamily": "fixtures/p16/Dot.tsx",
+    "id": "p16-positive-dot-segment",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "normalization",
+        "path": "fixtures/p16/Dot.tsx",
+        "exported": "Dot",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push('/catalog/../auth');",
+        "routeFiles": ["app/auth.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:fixtures%2Fp16%2FDot.tsx#Dot",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fauth",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "phase-16-expo-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "241685c091e71f744c38e89d87635708f04a565a"
+    },
+    "sourceFamily": "fixtures/p16/Twice.tsx",
+    "id": "p16-positive-deduplicate",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "deduplicate",
+        "path": "fixtures/p16/Twice.tsx",
+        "exported": "Twice",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push('/orders'); router.push('/orders');",
+        "routeFiles": ["app/orders.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:fixtures%2Fp16%2FTwice.tsx#Twice",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Forders",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "phase-16-expo-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "241685c091e71f744c38e89d87635708f04a565a"
+    },
+    "sourceFamily": "fixtures/p16/Docs.tsx",
+    "id": "p16-positive-catch-all",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "dynamic-segment",
+        "path": "fixtures/p16/Docs.tsx",
+        "exported": "Docs",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push('/docs/a/b');",
+        "routeFiles": ["app/docs/[...slug].tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:fixtures%2Fp16%2FDocs.tsx#Docs",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Fdocs%2F%5B...slug%5D",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "phase-16-expo-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "241685c091e71f744c38e89d87635708f04a565a"
+    },
+    "sourceFamily": "fixtures/p16/Object.tsx",
+    "id": "p16-positive-object-query",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "object",
+        "path": "fixtures/p16/Object.tsx",
+        "exported": "Object",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push({ pathname: '/orders/[id]', params: { id: '7' } });",
+        "routeFiles": ["app/orders/[id].tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:fixtures%2Fp16%2FObject.tsx#Object",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Forders%2F%5Bid%5D",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "phase-16-expo-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "241685c091e71f744c38e89d87635708f04a565a"
+    },
+    "sourceFamily": "fixtures/p16/Hash.tsx",
+    "id": "p16-positive-hash",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "query",
+        "path": "fixtures/p16/Hash.tsx",
+        "exported": "Hash",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.replace('/orders#latest');",
+        "routeFiles": ["app/orders.tsx"]
+      }
+    },
+    "expectedEdges": [
+      {
+        "source": "component:react:fixtures%2Fp16%2FHash.tsx#Hash",
+        "type": "navigates_to",
+        "target": "surface:route:expo:%2Forders",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": [],
+    "expectedOutcome": "answered"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "phase-16-expo-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "241685c091e71f744c38e89d87635708f04a565a"
+    },
+    "sourceFamily": "fixtures/p16/External.tsx",
+    "id": "p16-forbidden-external-url",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "external",
+        "path": "fixtures/p16/External.tsx",
+        "exported": "External",
+        "sourceText": "import { Link } from 'expo-router'; const view = <Link href=\"https://acme.com/privacy\" />;",
+        "routeFiles": ["app/privacy.tsx"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "non-static-or-unresolved-destination"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "phase-16-expo-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "241685c091e71f744c38e89d87635708f04a565a"
+    },
+    "sourceFamily": "fixtures/p16/Mail.tsx",
+    "id": "p16-forbidden-mailto",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "external",
+        "path": "fixtures/p16/Mail.tsx",
+        "exported": "Mail",
+        "sourceText": "import { Link } from 'expo-router'; const view = <Link href=\"mailto:support@acme.com\" />;",
+        "routeFiles": ["app/support.tsx"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "non-static-or-unresolved-destination"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "phase-16-expo-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "241685c091e71f744c38e89d87635708f04a565a"
+    },
+    "sourceFamily": "fixtures/p16/Relative.tsx",
+    "id": "p16-forbidden-relative",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "relative",
+        "path": "fixtures/p16/Relative.tsx",
+        "exported": "Relative",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push('orders');",
+        "routeFiles": ["app/orders.tsx"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "non-static-or-unresolved-destination"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "phase-16-expo-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "241685c091e71f744c38e89d87635708f04a565a"
+    },
+    "sourceFamily": "fixtures/p16/Dynamic.tsx",
+    "id": "p16-forbidden-dynamic-variable",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "dynamic",
+        "path": "fixtures/p16/Dynamic.tsx",
+        "exported": "Dynamic",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push(target);",
+        "routeFiles": ["app/__dynamic__.tsx"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "non-static-or-unresolved-destination"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "phase-16-expo-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "241685c091e71f744c38e89d87635708f04a565a"
+    },
+    "sourceFamily": "fixtures/p16/Unimported.tsx",
+    "id": "p16-forbidden-unimported",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "binding",
+        "path": "fixtures/p16/Unimported.tsx",
+        "exported": "Unimported",
+        "sourceText": "const router = useRouter(); router.push('/orders');",
+        "routeFiles": ["app/orders.tsx"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "non-static-or-unresolved-destination"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "phase-16-expo-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "241685c091e71f744c38e89d87635708f04a565a"
+    },
+    "sourceFamily": "fixtures/p16/WrongModule.tsx",
+    "id": "p16-forbidden-wrong-module",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "binding",
+        "path": "fixtures/p16/WrongModule.tsx",
+        "exported": "WrongModule",
+        "sourceText": "import { useRouter } from './fake-router'; const router = useRouter(); router.push('/orders');",
+        "routeFiles": ["app/orders.tsx"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "non-static-or-unresolved-destination"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "phase-16-expo-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "241685c091e71f744c38e89d87635708f04a565a"
+    },
+    "sourceFamily": "fixtures/p16/Unbound.tsx",
+    "id": "p16-forbidden-unbound-router",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "binding",
+        "path": "fixtures/p16/Unbound.tsx",
+        "exported": "Unbound",
+        "sourceText": "import { useRouter } from 'expo-router'; router.push('/orders');",
+        "routeFiles": ["app/orders.tsx"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "non-static-or-unresolved-destination"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "phase-16-expo-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "241685c091e71f744c38e89d87635708f04a565a"
+    },
+    "sourceFamily": "fixtures/p16/Computed.tsx",
+    "id": "p16-forbidden-computed-method",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "computed",
+        "path": "fixtures/p16/Computed.tsx",
+        "exported": "Computed",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router[method]('/orders');",
+        "routeFiles": ["app/orders.tsx"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "non-static-or-unresolved-destination"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "phase-16-expo-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "241685c091e71f744c38e89d87635708f04a565a"
+    },
+    "sourceFamily": "fixtures/p16/DynamicObject.tsx",
+    "id": "p16-forbidden-dynamic-object",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "dynamic",
+        "path": "fixtures/p16/DynamicObject.tsx",
+        "exported": "DynamicObject",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push({ pathname: target });",
+        "routeFiles": ["app/orders.tsx"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "non-static-or-unresolved-destination"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "phase-16-expo-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "241685c091e71f744c38e89d87635708f04a565a"
+    },
+    "sourceFamily": "fixtures/p16/Ambiguous.tsx",
+    "id": "p16-forbidden-ambiguous-route",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "ambiguous",
+        "path": "fixtures/p16/Ambiguous.tsx",
+        "exported": "Ambiguous",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push('/teams/7');",
+        "routeFiles": ["app/teams/[id].tsx", "app/teams/[slug].tsx"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "non-static-or-unresolved-destination"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "phase-16-expo-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "241685c091e71f744c38e89d87635708f04a565a"
+    },
+    "sourceFamily": "fixtures/p16/Missing.tsx",
+    "id": "p16-forbidden-missing-route",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "missing",
+        "path": "fixtures/p16/Missing.tsx",
+        "exported": "Missing",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push('/missing');",
+        "routeFiles": ["app/orders.tsx"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "non-static-or-unresolved-destination"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "phase-16-expo-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "241685c091e71f744c38e89d87635708f04a565a"
+    },
+    "sourceFamily": "fixtures/p16/Layout.tsx",
+    "id": "p16-forbidden-layout-target",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "non-route-file",
+        "path": "fixtures/p16/Layout.tsx",
+        "exported": "Layout",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push('/admin/_layout');",
+        "routeFiles": ["app/admin/_layout.tsx"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "non-static-or-unresolved-destination"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "phase-16-expo-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "241685c091e71f744c38e89d87635708f04a565a"
+    },
+    "sourceFamily": "fixtures/p16/Plus.tsx",
+    "id": "p16-forbidden-plus-target",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "non-route-file",
+        "path": "fixtures/p16/Plus.tsx",
+        "exported": "Plus",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.push('/+not-found');",
+        "routeFiles": ["app/+not-found.tsx"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "non-static-or-unresolved-destination"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "phase-16-expo-synthetic",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/lux.git",
+      "commit": "241685c091e71f744c38e89d87635708f04a565a"
+    },
+    "sourceFamily": "fixtures/p16/Back.tsx",
+    "id": "p16-forbidden-back",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "non-destination",
+        "path": "fixtures/p16/Back.tsx",
+        "exported": "Back",
+        "sourceText": "import { useRouter } from 'expo-router'; const router = useRouter(); router.back();",
+        "routeFiles": ["app/index.tsx"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "non-static-or-unresolved-destination"
+  },
+  {
+    "capability": "expo-router-static-navigation",
+    "owner": "Example Maintainer",
+    "goldSchemaVersion": 1,
+    "fixtureSchemaVersion": 1,
+    "thresholds": {
+      "minPrecision": 1,
+      "minRecall": 1
+    },
+    "expectedDiagnostics": [],
+    "corpus": "auctic-mobile",
+    "corpusPin": {
+      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
+    },
+    "sourceFamily": "app/(authenticated)/settings/about.tsx",
+    "id": "p16-forbidden-auctic-open-url",
+    "query": {
+      "tool": "phase16ExpoRouterReferenceSeam",
+      "args": {
+        "scenario": "external",
+        "path": "app/(authenticated)/settings/about.tsx",
+        "exported": "AboutScreen",
+        "sourceText": "import { openURL } from 'expo-linking'; openURL('https://acme.com/privacy');",
+        "routeFiles": ["app/privacy.tsx"]
+      }
+    },
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "navigates_to"
+      }
+    ],
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "non-static-or-unresolved-destination"
+  }
+]
