@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "phase": 20,
+  "implementationSha": "cfb2af9",
+  "mergeSha": "c4d2c3b5856c9e8e02e8da29a8dd668618f32a8b",
+  "baselineSha": "630ee06",
+  "criteria": [
+    {
+      "id": "P20-C1",
+      "class": "mobile-architecture-graph",
+      "green": {
+        "command": "vitest run Phase 20 Tranche 3 promotion production and acceptance focused suites; fixed-denominator synthetic scoring; watched-red controls; repeated stable-resolver checks",
+        "exitCode": 0,
+        "observable": "Focused production and independent tests passed 8/8; both repository/interface and ViewModel cohorts each passed 20 positive and 10 forbidden cases at precision/recall 1; all 6 watched mutations were detected."
+      },
+      "red": {
+        "mutation": "six-watched-implements-import-construction-hook-parameter-and-suffix-regressions",
+        "command": "vitest run src/integration/__tests__/phase-18-acceptance.test.ts with each watched mutation",
+        "exitCode": 1,
+        "observable": "Each of the 6 watched Phase 20 mutations produced a nonzero checker exit."
+      },
+      "verifiedBy": "independent-fixed-denominator-focused-watched-mutation-and-stable-resolver-validation"
+    },
+    {
+      "id": "P20-C2",
+      "class": "performance-and-compatibility",
+      "green": {
+        "command": "three warmups plus five measured Phase 20 resolver runs; GitHub PR #124 CI; focused propagation rerun; architecture, dead-code, documentation, and native-free gates",
+        "exitCode": 0,
+        "observable": "PR #124 full CI passed; focused production and acceptance suites passed; architecture, dead-code, native-free, and documentation gates passed in the release workflow."
+      },
+      "red": {
+        "mutation": "watched-mobile-architecture-semantics-regressions",
+        "command": "vitest run src/integration/__tests__/phase-18-acceptance.test.ts with watched mutations",
+        "exitCode": 1,
+        "observable": "The compatibility battery rejects all 5 watched Tranche 3 promotion normalization and destination regressions with nonzero checker exits"
+      },
+      "verifiedBy": "github-ci-independent-performance-focused-propagation-architecture-dead-code-documentation-and-native-free-validation"
+    },
+    {
+      "id": "P20-C3",
+      "class": "review-and-release",
+      "green": {
+        "command": "GitHub PR #124 merge and release record; installed CLI/package and Goose plugin verification",
+        "exitCode": 0,
+        "observable": "PR #124 merged as c4d2c3b5856c9e8e02e8da29a8dd668618f32a8b; v2.36.0 release asset published with sha256:766f298e0e3a3e7416a4b413b8a638867e828fb4a0c4cd431a832e7eedbf877e; installed CLI/package and MCP report 2.36.0 with 12 tools; Goose plugin is at c4d2c3b."
+      },
+      "red": {
+        "mutation": "expect-prior-version",
+        "command": "installed CLI/package version check",
+        "exitCode": 1,
+        "observable": "installed 2.36.0 differs from prior 2.33.0 sentinel"
+      },
+      "verifiedBy": "github-ci-release-installed-cli-package-and-goose-plugin-verification"
+    }
+  ],
+  "knownBaselineFailures": [],
+  "review": {
+    "codeReview": "APPROVED",
+    "independentValidation": "APPROVED: production + independent focused 8/8; two 20-positive/10-forbidden cohorts at precision/recall 1; 6 watched mutations; PR full CI and static gates green; release/global CLI/MCP/plugin 2.36.0 verified.",
+    "acceptanceReview": "APPROVED"
+  },
+  "exemptions": []
+}
