@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "phase": 26,
+  "implementationSha": "b4855fe",
+  "mergeSha": "a6a00198c3f1723ccfa42b2be88a996b14e58734",
+  "baselineSha": "fc958f9",
+  "criteria": [
+    {
+      "id": "P26-C1",
+      "class": "infrastructure-federation",
+      "green": {
+        "command": "focused Docker, Compose, and Phase 26 acceptance suites; exact-pin Dev Infrastructure scan",
+        "exitCode": 0,
+        "observable": "Production adapter tests and independent acceptance tests passed 5/5; synthetic battery contains 30 positive and 20 forbidden cases; exact-pin Dev Infrastructure three-template scan produced 44 facts, 22 nodes, and 28 edges; one rollout template with a structural placeholder was truthfully diagnosed unsupported."
+      },
+      "red": {
+        "mutation": "six-watched-container-execution-tag-stage-interpolation-env-and-confinement-regressions",
+        "command": "Phase 26 watched mutation battery",
+        "exitCode": 1,
+        "observable": "All 6 watched mutation contracts are present and independently reviewed."
+      },
+      "verifiedBy": "independent-focused-real-corpus-and-mutation-validation"
+    },
+    {
+      "id": "P26-C2",
+      "class": "performance-and-compatibility",
+      "green": {
+        "command": "GitHub PR #135 full CI plus focused and static gates",
+        "exitCode": 0,
+        "observable": "PR #135 full CI passed; lint, build, architecture, dead-code, native-free, and documentation gates passed."
+      },
+      "red": {
+        "mutation": "watched-mobile-architecture-semantics-regressions",
+        "command": "Phase 26 watched mutation battery",
+        "exitCode": 1,
+        "observable": "Container compatibility controls reject execution, mutable tag federation, unknown-stage similarity, interpolation, env reads, and skipped confinement."
+      },
+      "verifiedBy": "github-ci-independent-performance-focused-propagation-architecture-dead-code-documentation-and-native-free-validation"
+    },
+    {
+      "id": "P26-C3",
+      "class": "review-and-release",
+      "green": {
+        "command": "GitHub PR #135 merge and release record; installed CLI/package and Goose plugin verification",
+        "exitCode": 0,
+        "observable": "PR #135 merged as a6a00198c3f1723ccfa42b2be88a996b14e58734; v2.42.0 release asset published with sha256:61b7750bf4e650645679aabeb1f80c0ad9b487f1f4ed84ac36e9fb615fb46de0; installed CLI/package and MCP report 2.42.0 with 12 tools; Goose plugin is at a6a0019."
+      },
+      "red": {
+        "mutation": "expect-prior-version",
+        "command": "installed CLI/package version check",
+        "exitCode": 1,
+        "observable": "installed 2.42.0 differs from prior 2.33.0 sentinel"
+      },
+      "verifiedBy": "github-ci-release-installed-cli-package-and-goose-plugin-verification"
+    }
+  ],
+  "knownBaselineFailures": [],
+  "review": {
+    "codeReview": "APPROVED",
+    "independentValidation": "APPROVED: Docker/Compose production and acceptance focused tests 5/5; synthetic 30 positive/20 forbidden with six watched controls; exact-pin Dev Infrastructure yielded 44 facts/22 nodes/28 edges and truthfully refused the structurally templated rollout case; PR full CI and release/global install passed.",
+    "acceptanceReview": "APPROVED"
+  },
+  "exemptions": []
+}
