@@ -38,7 +38,8 @@
     "benchmark:retrieval": "npm run build && tsx benchmarks/retrieval/run.ts",
     "typecheck:benchmarks": "tsc -p benchmarks/corpora/tsconfig.json && tsc -p benchmarks/retrieval/tsconfig.json && tsc -p benchmarks/bootstrap/tsconfig.json",
     "benchmark:scoped-refresh": "npm run build && tsx benchmarks/retrieval/scoped-refresh-timing.ts",
-    "benchmark:bootstrap": "tsx benchmarks/bootstrap/run.ts"
+    "benchmark:bootstrap": "tsx benchmarks/bootstrap/run.ts",
+    "validate:tranche-3": "vitest run benchmarks/relationship/__tests__ src/scanner/__tests__/tranche-3-*.test.ts src/integration/__tests__/phase-{15,16,17,18,19}-acceptance.test.ts"
   },
   "keywords": [
     "mcp",
