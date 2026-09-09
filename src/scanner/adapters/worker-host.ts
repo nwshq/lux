@@ -238,6 +238,7 @@ async function executeWorker(
     const isTypeScriptEntry = url.pathname.endsWith('.ts');
     worker = createWorker(url, {
       workerData: wire,
+      resourceLimits: { maxOldGenerationSizeMb: 128, maxYoungGenerationSizeMb: 32, stackSizeMb: 8 },
       ...(isTypeScriptEntry ? { execArgv: ['--import', tsxLoaderUrl()] } : {}),
     });
   } catch {

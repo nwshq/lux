@@ -1,0 +1,569 @@
+[
+  {
+    "id": "p21-allowed-01",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "regular",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "watchedMutations": [
+      {
+        "id": "boundary-ge",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p21-allowed-25"
+      },
+      {
+        "id": "prefix-containment",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p21-hostile-03"
+      },
+      {
+        "id": "omit-realpath",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p21-hostile-06"
+      },
+      {
+        "id": "remove-timeout",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p21-hostile-09"
+      },
+      {
+        "id": "disable-alias-limitlimit",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p21-hostile-22"
+      },
+      {
+        "id": "allow-custom-tags",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p21-hostile-21"
+      },
+      {
+        "id": "skip-result-size",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p21-hostile-10"
+      }
+    ],
+    "performanceProtocol": {
+      "warmups": 3,
+      "measurements": 5,
+      "maxRegressionRatio": 1.2
+    }
+  },
+  {
+    "id": "p21-allowed-02",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "nested",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-03",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "space",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-04",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "unicode",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-05",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "boundary",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-06",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "regular",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-07",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "nested",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-08",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "space",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-09",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "unicode",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-10",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "boundary",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-11",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "regular",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-12",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "nested",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-13",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "space",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-14",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "unicode",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-15",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "boundary",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-16",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "regular",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-17",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "nested",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-18",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "space",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-19",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "unicode",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-20",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "boundary",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-21",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "regular",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-22",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "nested",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-23",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "space",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-24",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "unicode",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-allowed-25",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "boundary",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-01",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "traversal",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "path-escape",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-02",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "outside",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "path-escape",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-03",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "prefix",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "path-escape",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-04",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "control",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "path-escape",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-05",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "uri",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "path-escape",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-06",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "symlink",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "path-escape",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-07",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "directory",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "path-escape",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-08",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "bytes",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "path-escape",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-09",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "timeout",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "path-escape",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-10",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "result",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "path-escape",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-11",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "custom-tag",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "path-escape",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-12",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "alias",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "path-escape",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-13",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "cycle",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "path-escape",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-14",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "traversal",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "limit",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-15",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "outside",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "limit",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-16",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "prefix",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "limit",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-17",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "control",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "limit",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-18",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "uri",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "limit",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-19",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "symlink",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "limit",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-20",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "directory",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "limit",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-21",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "bytes",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "limit",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-22",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "timeout",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "limit",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-23",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "result",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "limit",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-24",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "custom-tag",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "limit",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p21-hostile-25",
+    "corpus": "synthetic",
+    "capability": "bounded-adapter",
+    "owner": "Example Maintainer",
+    "scenario": "alias",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "limit",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  }
+]

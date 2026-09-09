@@ -72,3 +72,6 @@ export type {
   OperationalUpstreamTrigger,
   OperationalUpstreamTriggersResult,
 } from './operational/index.js';
+export { confinedRead, AdapterRefusal } from '../adapters/path-policy.js';
+export { ParseBudgetV1 } from '../adapters/infrastructure-types.js';
+export { InfrastructureConfigSchema } from '../infrastructure/config.js';

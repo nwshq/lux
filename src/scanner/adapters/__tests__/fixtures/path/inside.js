@@ -1,1 +1,3 @@
-export function inside() { return true; }
+export function inside() {
+  return true;
+}
