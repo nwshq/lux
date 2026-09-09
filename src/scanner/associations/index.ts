@@ -80,3 +80,5 @@ export { HclArtifactAdapter } from '../adapters/hcl/index.js';
 export { ContainerAssociationResolver } from '../infrastructure/containers/association-wrapper.js';
 
 export { TerraformAssociationResolver } from '../infrastructure/terraform/index.js';
+
+export { ActionsAssociationResolver } from '../infrastructure/actions/association-wrapper.js';

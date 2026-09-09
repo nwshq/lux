@@ -44,6 +44,16 @@ export const terraformRemoteStateId = (backend: string, key: string): string =>
   `artifact:terraform-state:${encodeSegment(backend)}#${encodeSegment(key)}`;
 export const lambdaHandlerId = (runtime: string, handler: string): string =>
   `artifact:lambda-handler:${encodeSegment(runtime)}#${encodeSegment(handler)}`;
+export const workflowId = (path: string): string => pathIdentity('artifact:workflow', path);
+export const workflowJobId = (path: string, job: string): string =>
+  `${workflowId(path)}#job:${encodeSegment(job)}`;
+export const workflowStepId = (path: string, job: string, step: string): string =>
+  `${workflowJobId(path, job)}#step:${encodeSegment(step)}`;
+export const workflowArtifactId = (path: string, name: string): string =>
+  `${workflowId(path)}#artifact:${encodeSegment(name)}`;
+export const actionId = (uses: string): string => `artifact:action:${encodeSegment(uses)}`;
+export const repositoryPathArtifactId = (path: string): string =>
+  pathIdentity('artifact:repository-path', path);
 export const containerImageId = (reference: string): string =>
   `artifact:container-image:${encodeSegment(reference)}`;
 export const containerStageId = (dockerfile: string, stage: string): string =>
@@ -52,8 +62,6 @@ export const containerContextId = (context: string): string =>
   pathIdentity('artifact:container-context', context);
 export const composeServiceId = (composeFile: string, service: string): string =>
   `${pathIdentity('artifact:compose-service', composeFile)}#${encodeSegment(service)}`;
-export const repositoryPathArtifactId = (path: string): string =>
-  pathIdentity('artifact:repository-path', path);
 
 export function programEdgeId(
   edgeType: EdgeType,

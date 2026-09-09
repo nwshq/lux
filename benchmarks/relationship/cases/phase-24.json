@@ -1,0 +1,839 @@
+[
+  {
+    "id": "p24-positive-01",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "needs",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:0",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a0",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": [],
+    "watchedMutations": [
+      {
+        "id": "allow-custom-tag",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p24-forbidden-01"
+      },
+      {
+        "id": "allow-merge-key",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p24-forbidden-01"
+      },
+      {
+        "id": "matrix-static",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p24-forbidden-01"
+      },
+      {
+        "id": "permit-traversal",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p24-forbidden-01"
+      },
+      {
+        "id": "execute-run",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p24-forbidden-01"
+      }
+    ]
+  },
+  {
+    "id": "p24-positive-02",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "remote-action",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:1",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a1",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-03",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "local-action",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:2",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a2",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-04",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "reusable",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:3",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a3",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-05",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "run-script",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:4",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a4",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-06",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "upload",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:5",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a5",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-07",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "download",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:6",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a6",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-08",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "needs",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:7",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a7",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-09",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "remote-action",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:8",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a8",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-10",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "local-action",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:9",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a9",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-11",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "reusable",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:10",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a10",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-12",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "run-script",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:11",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a11",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-13",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "upload",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:12",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a12",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-14",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "download",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:13",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a13",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-15",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "needs",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:14",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a14",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-16",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "remote-action",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:15",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a15",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-17",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "local-action",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:16",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a16",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-18",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "reusable",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:17",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a17",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-19",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "run-script",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:18",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a18",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-20",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "upload",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:19",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a19",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-21",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "download",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:20",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a20",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-22",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "needs",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:21",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a21",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-23",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "remote-action",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:22",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a22",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-24",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "local-action",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:23",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a23",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-25",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "reusable",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:24",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a24",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-26",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "run-script",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:25",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a25",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-27",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "upload",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:26",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a26",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-28",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "download",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:27",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a27",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-29",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "needs",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:28",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a28",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-positive-30",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "remote-action",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:workflow:ci#step:29",
+        "type": "invokes_workflow",
+        "target": "artifact:action:a29",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p24-forbidden-01",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "custom-tag",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "invokes_workflow"
+      }
+    ]
+  },
+  {
+    "id": "p24-forbidden-02",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "alias",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "invokes_workflow"
+      }
+    ]
+  },
+  {
+    "id": "p24-forbidden-03",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "duplicate",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "invokes_workflow"
+      }
+    ]
+  },
+  {
+    "id": "p24-forbidden-04",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "expression",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "invokes_workflow"
+      }
+    ]
+  },
+  {
+    "id": "p24-forbidden-05",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "traversal",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "invokes_workflow"
+      }
+    ]
+  },
+  {
+    "id": "p24-forbidden-06",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "shell",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "invokes_workflow"
+      }
+    ]
+  },
+  {
+    "id": "p24-forbidden-07",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "execute",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "invokes_workflow"
+      }
+    ]
+  },
+  {
+    "id": "p24-forbidden-08",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "custom-tag",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "invokes_workflow"
+      }
+    ]
+  },
+  {
+    "id": "p24-forbidden-09",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "alias",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "invokes_workflow"
+      }
+    ]
+  },
+  {
+    "id": "p24-forbidden-10",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "duplicate",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "invokes_workflow"
+      }
+    ]
+  },
+  {
+    "id": "p24-forbidden-11",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "expression",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "invokes_workflow"
+      }
+    ]
+  },
+  {
+    "id": "p24-forbidden-12",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "traversal",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "invokes_workflow"
+      }
+    ]
+  },
+  {
+    "id": "p24-forbidden-13",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "shell",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "invokes_workflow"
+      }
+    ]
+  },
+  {
+    "id": "p24-forbidden-14",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "execute",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "invokes_workflow"
+      }
+    ]
+  },
+  {
+    "id": "p24-forbidden-15",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "custom-tag",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "invokes_workflow"
+      }
+    ]
+  },
+  {
+    "id": "p24-forbidden-16",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "alias",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "invokes_workflow"
+      }
+    ]
+  },
+  {
+    "id": "p24-forbidden-17",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "duplicate",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "invokes_workflow"
+      }
+    ]
+  },
+  {
+    "id": "p24-forbidden-18",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "expression",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "invokes_workflow"
+      }
+    ]
+  },
+  {
+    "id": "p24-forbidden-19",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "traversal",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "invokes_workflow"
+      }
+    ]
+  },
+  {
+    "id": "p24-forbidden-20",
+    "corpus": "actions-synthetic",
+    "capability": "actions-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "shell",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "invokes_workflow"
+      }
+    ]
+  }
+]
