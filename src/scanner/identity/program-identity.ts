@@ -34,6 +34,16 @@ export const reactNavigatorId = (path: string, localName: string): string =>
   `${pathIdentity('navigator:react-navigation', path)}#${encodeSegment(localName)}`;
 export const reactNavigationScreenId = (navigatorId: string, name: string): string =>
   `surface:route:react-navigation:${encodeSegment(navigatorId)}#${encodeSegment(name)}`;
+export const containerImageId = (reference: string): string =>
+  `artifact:container-image:${encodeSegment(reference)}`;
+export const containerStageId = (dockerfile: string, stage: string): string =>
+  `${pathIdentity('artifact:container-stage', dockerfile)}#${encodeSegment(stage)}`;
+export const containerContextId = (context: string): string =>
+  pathIdentity('artifact:container-context', context);
+export const composeServiceId = (composeFile: string, service: string): string =>
+  `${pathIdentity('artifact:compose-service', composeFile)}#${encodeSegment(service)}`;
+export const repositoryPathArtifactId = (path: string): string =>
+  pathIdentity('artifact:repository-path', path);
 
 export function programEdgeId(
   edgeType: EdgeType,

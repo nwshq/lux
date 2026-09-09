@@ -218,7 +218,11 @@ export class GeneralScanner {
         const ext = extname(sourceFile);
         const language = sourceFile.endsWith('.blade.php')
           ? 'blade'
-          : (EXTENSION_TO_LANGUAGE[ext] ?? 'unknown');
+          : /(?:^|\/)Dockerfile(?:\.[^/]*)?$/u.test(sourceFile)
+            ? 'dockerfile'
+            : /(?:docker-)?compose[^/]*\.ya?ml(?:\.tpl)?$/u.test(sourceFile)
+              ? 'compose'
+              : (EXTENSION_TO_LANGUAGE[ext] ?? 'unknown');
 
         let content: string;
         try {
@@ -253,7 +257,15 @@ export class GeneralScanner {
    * Discover source code files in a directory, respecting ignore patterns.
    */
   private async discoverSourceCodeFiles(rootPath: string): Promise<string[]> {
-    const extensionGlobs = SOURCE_CODE_EXTENSIONS.map((ext) => `**/*${ext}`);
+    const extensionGlobs = [
+      ...SOURCE_CODE_EXTENSIONS.map((ext) => `**/*${ext}`),
+      '**/Dockerfile',
+      '**/Dockerfile.*',
+      '**/compose*.yml.tpl',
+      '**/compose*.yaml.tpl',
+      '**/docker-compose*.yml.tpl',
+      '**/docker-compose*.yaml.tpl',
+    ];
     const files = await glob(extensionGlobs, {
       cwd: rootPath,
       ignore: this.ignorePatterns,

@@ -30,6 +30,7 @@ import { analyzeExpoContext } from '../react-native/expo/association-wrapper.js'
 import { analyzeNavigationContext } from '../react-native/navigation/association-wrapper.js';
 import { analyzeMobileContext } from '../framework/mobile/association-wrapper.js';
 import { analyzeEventBusContext } from '../framework/event-bus/association-wrapper.js';
+import { analyzeContainerContext } from '../infrastructure/containers/association-wrapper.js';
 import { resolveLivewire } from './framework/laravel/livewire-resolver.js';
 import { NovaAssociationResolver, resolveNova } from './framework/laravel/nova-resolver.js';
 import { AssociationEngine } from './engine.js';
@@ -294,6 +295,20 @@ export async function rebuildStructuralOverlay(
     const updatedAt = Math.floor(Date.now() / 1000);
     db.transaction(() => {
       for (const node of eventBus.nodes) db.upsertStructuralNode(toStructuralNode(node, updatedAt));
+    });
+    context.nodes = db.getStructuralNodesForFilePaths(
+      scan.knowledge.map((entry) =>
+        entry.filePath.startsWith(rootPath + '/')
+          ? entry.filePath.slice(rootPath.length + 1)
+          : entry.filePath
+      )
+    );
+  }
+
+  const containers = analyzeContainerContext(context);
+  if (containers.nodes.length) {
+    db.transaction(() => {
+      for (const node of containers.nodes) db.upsertStructuralNode(node);
     });
     context.nodes = db.getStructuralNodesForFilePaths(
       scan.knowledge.map((entry) =>

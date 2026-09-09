@@ -76,3 +76,5 @@ export { confinedRead, AdapterRefusal } from '../adapters/path-policy.js';
 export { ParseBudgetV1 } from '../adapters/infrastructure-types.js';
 export { InfrastructureConfigSchema } from '../infrastructure/config.js';
 export { HclArtifactAdapter } from '../adapters/hcl/index.js';
+
+export { ContainerAssociationResolver } from '../infrastructure/containers/association-wrapper.js';

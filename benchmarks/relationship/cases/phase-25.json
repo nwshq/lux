@@ -1,0 +1,844 @@
+[
+  {
+    "id": "p25-positive-01",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "stage",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#0",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i0",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": [],
+    "watchedMutations": [
+      {
+        "id": "execute-instruction",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p25-forbidden-01"
+      },
+      {
+        "id": "bridge-tag",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p25-forbidden-01"
+      },
+      {
+        "id": "similar-stage",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p25-forbidden-01"
+      },
+      {
+        "id": "trust-interpolation",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p25-forbidden-01"
+      },
+      {
+        "id": "read-env",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p25-forbidden-01"
+      },
+      {
+        "id": "skip-confinement",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p25-forbidden-01"
+      }
+    ]
+  },
+  {
+    "id": "p25-positive-02",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "image",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#1",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i1",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-03",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "copy",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#2",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i2",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-04",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "context",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#3",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i3",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-05",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "dockerfile",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#4",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i4",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-06",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "depends-list",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#5",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i5",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-07",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "depends-map",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#6",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i6",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-08",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "stage",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#7",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i7",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-09",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "image",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#8",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i8",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-10",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "copy",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#9",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i9",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-11",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "context",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#10",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i10",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-12",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "dockerfile",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#11",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i11",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-13",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "depends-list",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#12",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i12",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-14",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "depends-map",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#13",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i13",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-15",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "stage",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#14",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i14",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-16",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "image",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#15",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i15",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-17",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "copy",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#16",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i16",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-18",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "context",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#17",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i17",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-19",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "dockerfile",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#18",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i18",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-20",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "depends-list",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#19",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i19",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-21",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "depends-map",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#20",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i20",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-22",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "stage",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#21",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i21",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-23",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "image",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#22",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i22",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-24",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "copy",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#23",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i23",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-25",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "context",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#24",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i24",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-26",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "dockerfile",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#25",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i25",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-27",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "depends-list",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#26",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i26",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-28",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "depends-map",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#27",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i27",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-29",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "stage",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#28",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i28",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-positive-30",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "image",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:compose-service:c#29",
+        "type": "consumes_artifact",
+        "target": "artifact:container-image:i29",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p25-forbidden-01",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "interpolation",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "copies_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p25-forbidden-02",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "unknown-stage",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "copies_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p25-forbidden-03",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "remote-add",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "copies_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p25-forbidden-04",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "glob",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "copies_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p25-forbidden-05",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "traversal",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "copies_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p25-forbidden-06",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "env-read",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "copies_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p25-forbidden-07",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "execute",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "copies_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p25-forbidden-08",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "interpolation",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "copies_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p25-forbidden-09",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "unknown-stage",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "copies_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p25-forbidden-10",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "remote-add",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "copies_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p25-forbidden-11",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "glob",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "copies_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p25-forbidden-12",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "traversal",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "copies_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p25-forbidden-13",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "env-read",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "copies_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p25-forbidden-14",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "execute",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "copies_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p25-forbidden-15",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "interpolation",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "copies_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p25-forbidden-16",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "unknown-stage",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "copies_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p25-forbidden-17",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "remote-add",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "copies_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p25-forbidden-18",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "glob",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "copies_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p25-forbidden-19",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "traversal",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "copies_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p25-forbidden-20",
+    "corpus": "containers-synthetic",
+    "capability": "container-lineage",
+    "owner": "Example Maintainer",
+    "scenario": "env-read",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "copies_artifact"
+      }
+    ]
+  }
+]

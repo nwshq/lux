@@ -7,4 +7,6 @@ const moduleMap = {
   '@contact': moduleImports.contact,
 };
 const dynamic = import.meta.glob(pagePattern);
-export function resolve(name) { throw new Error(name); }
+export function resolve(name) {
+  throw new Error(name);
+}

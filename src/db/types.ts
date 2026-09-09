@@ -205,6 +205,13 @@ export type EdgeType =
   | 'uses_view_model'
   | 'publishes_bus_event'
   | 'subscribes_bus_event'
+  | 'references_resource'
+  | 'produces_artifact'
+  | 'consumes_artifact'
+  | 'invokes_workflow'
+  | 'uses_base_image'
+  | 'copies_artifact'
+  | 'depends_on_service'
   // Module-boundary evidence expansion edges
   | 'dispatches_job'
   | 'handles_job'
