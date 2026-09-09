@@ -1,0 +1,2592 @@
+[
+  {
+    "id": "p23-declaration-positive-01",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#declaration.0",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-declaration-positive-02",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#declaration.1",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-declaration-positive-03",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#declaration.2",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-declaration-positive-04",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#declaration.3",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-declaration-positive-05",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#declaration.4",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-declaration-positive-06",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#declaration.5",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-declaration-positive-07",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#declaration.6",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-declaration-positive-08",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#declaration.7",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-declaration-positive-09",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#declaration.8",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-declaration-positive-10",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#declaration.9",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-declaration-positive-11",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#declaration.10",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-declaration-positive-12",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#declaration.11",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-declaration-positive-13",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#declaration.12",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-declaration-positive-14",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#declaration.13",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-declaration-positive-15",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#declaration.14",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-declaration-forbidden-01",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-declaration-forbidden-02",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-declaration-forbidden-03",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-declaration-forbidden-04",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-declaration-forbidden-05",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-declaration-forbidden-06",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-declaration-forbidden-07",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-declaration-forbidden-08",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-declaration-forbidden-09",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-declaration-forbidden-10",
+    "corpus": "terraform-synthetic",
+    "capability": "declaration",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-resource-data-positive-01",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#resource-data.0",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-resource-data-positive-02",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#resource-data.1",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-resource-data-positive-03",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#resource-data.2",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-resource-data-positive-04",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#resource-data.3",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-resource-data-positive-05",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#resource-data.4",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-resource-data-positive-06",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#resource-data.5",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-resource-data-positive-07",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#resource-data.6",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-resource-data-positive-08",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#resource-data.7",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-resource-data-positive-09",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#resource-data.8",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-resource-data-positive-10",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#resource-data.9",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-resource-data-positive-11",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#resource-data.10",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-resource-data-positive-12",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#resource-data.11",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-resource-data-positive-13",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#resource-data.12",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-resource-data-positive-14",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#resource-data.13",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-resource-data-positive-15",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#resource-data.14",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-resource-data-forbidden-01",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-resource-data-forbidden-02",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-resource-data-forbidden-03",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-resource-data-forbidden-04",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-resource-data-forbidden-05",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-resource-data-forbidden-06",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-resource-data-forbidden-07",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-resource-data-forbidden-08",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-resource-data-forbidden-09",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-resource-data-forbidden-10",
+    "corpus": "terraform-synthetic",
+    "capability": "resource-data",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-variable-local-positive-01",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#variable-local.0",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-variable-local-positive-02",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#variable-local.1",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-variable-local-positive-03",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#variable-local.2",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-variable-local-positive-04",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#variable-local.3",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-variable-local-positive-05",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#variable-local.4",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-variable-local-positive-06",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#variable-local.5",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-variable-local-positive-07",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#variable-local.6",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-variable-local-positive-08",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#variable-local.7",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-variable-local-positive-09",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#variable-local.8",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-variable-local-positive-10",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#variable-local.9",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-variable-local-positive-11",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#variable-local.10",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-variable-local-positive-12",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#variable-local.11",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-variable-local-positive-13",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#variable-local.12",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-variable-local-positive-14",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#variable-local.13",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-variable-local-positive-15",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#variable-local.14",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-variable-local-forbidden-01",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-variable-local-forbidden-02",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-variable-local-forbidden-03",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-variable-local-forbidden-04",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-variable-local-forbidden-05",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-variable-local-forbidden-06",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-variable-local-forbidden-07",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-variable-local-forbidden-08",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-variable-local-forbidden-09",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-variable-local-forbidden-10",
+    "corpus": "terraform-synthetic",
+    "capability": "variable-local",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-output-positive-01",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#output.0",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-output-positive-02",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#output.1",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-output-positive-03",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#output.2",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-output-positive-04",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#output.3",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-output-positive-05",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#output.4",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-output-positive-06",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#output.5",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-output-positive-07",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#output.6",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-output-positive-08",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#output.7",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-output-positive-09",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#output.8",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-output-positive-10",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#output.9",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-output-positive-11",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#output.10",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-output-positive-12",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#output.11",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-output-positive-13",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#output.12",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-output-positive-14",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#output.13",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-output-positive-15",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#output.14",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-output-forbidden-01",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-output-forbidden-02",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-output-forbidden-03",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-output-forbidden-04",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-output-forbidden-05",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-output-forbidden-06",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-output-forbidden-07",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-output-forbidden-08",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-output-forbidden-09",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-output-forbidden-10",
+    "corpus": "terraform-synthetic",
+    "capability": "output",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-provider-positive-01",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#provider.0",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-provider-positive-02",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#provider.1",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-provider-positive-03",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#provider.2",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-provider-positive-04",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#provider.3",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-provider-positive-05",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#provider.4",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-provider-positive-06",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#provider.5",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-provider-positive-07",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#provider.6",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-provider-positive-08",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#provider.7",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-provider-positive-09",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#provider.8",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-provider-positive-10",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#provider.9",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-provider-positive-11",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#provider.10",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-provider-positive-12",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#provider.11",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-provider-positive-13",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#provider.12",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-provider-positive-14",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#provider.13",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-provider-positive-15",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#provider.14",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-provider-forbidden-01",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-provider-forbidden-02",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-provider-forbidden-03",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-provider-forbidden-04",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-provider-forbidden-05",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-provider-forbidden-06",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-provider-forbidden-07",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-provider-forbidden-08",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-provider-forbidden-09",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-provider-forbidden-10",
+    "corpus": "terraform-synthetic",
+    "capability": "provider",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-local-module-positive-01",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#local-module.0",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-local-module-positive-02",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#local-module.1",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-local-module-positive-03",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#local-module.2",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-local-module-positive-04",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#local-module.3",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-local-module-positive-05",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#local-module.4",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-local-module-positive-06",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#local-module.5",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-local-module-positive-07",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#local-module.6",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-local-module-positive-08",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#local-module.7",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-local-module-positive-09",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#local-module.8",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-local-module-positive-10",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#local-module.9",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-local-module-positive-11",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#local-module.10",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-local-module-positive-12",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#local-module.11",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-local-module-positive-13",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#local-module.12",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-local-module-positive-14",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#local-module.13",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-local-module-positive-15",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#local-module.14",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-local-module-forbidden-01",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-local-module-forbidden-02",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-local-module-forbidden-03",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-local-module-forbidden-04",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-local-module-forbidden-05",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-local-module-forbidden-06",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-local-module-forbidden-07",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-local-module-forbidden-08",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-local-module-forbidden-09",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-local-module-forbidden-10",
+    "corpus": "terraform-synthetic",
+    "capability": "local-module",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-remote-state-positive-01",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#remote-state.0",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-remote-state-positive-02",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#remote-state.1",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-remote-state-positive-03",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#remote-state.2",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-remote-state-positive-04",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#remote-state.3",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-remote-state-positive-05",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#remote-state.4",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-remote-state-positive-06",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#remote-state.5",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-remote-state-positive-07",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#remote-state.6",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-remote-state-positive-08",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#remote-state.7",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-remote-state-positive-09",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#remote-state.8",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-remote-state-positive-10",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#remote-state.9",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-remote-state-positive-11",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#remote-state.10",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-remote-state-positive-12",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#remote-state.11",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-remote-state-positive-13",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#remote-state.12",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-remote-state-positive-14",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#remote-state.13",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-remote-state-positive-15",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "references_resource",
+        "target": "resource:terraform:.#remote-state.14",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-remote-state-forbidden-01",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-remote-state-forbidden-02",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-remote-state-forbidden-03",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-remote-state-forbidden-04",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-remote-state-forbidden-05",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-remote-state-forbidden-06",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-remote-state-forbidden-07",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-remote-state-forbidden-08",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-remote-state-forbidden-09",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-remote-state-forbidden-10",
+    "corpus": "terraform-synthetic",
+    "capability": "remote-state",
+    "owner": "Example Maintainer",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  }
+]

@@ -1,0 +1,602 @@
+[
+  {
+    "id": "p23-example-rds-clusters-positive-01",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:edge:1",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.1",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-rds-clusters-positive-02",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:edge:2",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.2",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-rds-clusters-positive-03",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:edge:3",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.3",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-rds-clusters-positive-04",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:edge:4",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.4",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-rds-clusters-positive-05",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:edge:5",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.5",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-rds-clusters-positive-06",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:edge:6",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.6",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-rds-clusters-positive-07",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:edge:7",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.7",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-rds-clusters-positive-08",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:edge:8",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.8",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-rds-clusters-positive-09",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:edge:9",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.9",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-rds-clusters-positive-10",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:edge:10",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.10",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-rds-clusters-positive-11",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:edge:11",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.11",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-rds-clusters-positive-12",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:edge:12",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.12",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-rds-clusters-positive-13",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:edge:13",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.13",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-rds-clusters-positive-14",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:edge:14",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.14",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-rds-clusters-positive-15",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:edge:15",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.15",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-rds-clusters-positive-16",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:edge:16",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.16",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-rds-clusters-positive-17",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:edge:17",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.17",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-rds-clusters-positive-18",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:edge:18",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.18",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-rds-clusters-positive-19",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:edge:19",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.19",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-rds-clusters-positive-20",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:edge:20",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.20",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-rds-clusters-forbidden-01",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:forbidden:1",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-rds-clusters-forbidden-02",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:forbidden:2",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-rds-clusters-forbidden-03",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:forbidden:3",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-rds-clusters-forbidden-04",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:forbidden:4",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-rds-clusters-forbidden-05",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:forbidden:5",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-rds-clusters-forbidden-06",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:forbidden:6",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-rds-clusters-forbidden-07",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:forbidden:7",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-rds-clusters-forbidden-08",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:forbidden:8",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-rds-clusters-forbidden-09",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:forbidden:9",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-rds-clusters-forbidden-10",
+    "corpus": "example-rds-clusters",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
+    },
+    "sourceTruthId": "example-rds-clusters:forbidden:10",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  }
+]

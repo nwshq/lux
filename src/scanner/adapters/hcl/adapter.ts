@@ -1,5 +1,5 @@
-import { createRequire } from 'node:module';
-import { dirname, join, posix } from 'node:path';
+import { posix } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import Parser from 'web-tree-sitter';
 import type { AdapterInputV1 } from '../types.js';
 import type {
@@ -18,16 +18,11 @@ import type {
 import { ParseBudgetV1 } from '../infrastructure-types.js';
 import { confinedRead } from '../path-policy.js';
 import { hclRange, hclString } from './normalize.js';
-const require = createRequire(import.meta.url);
 let language: Promise<Parser.Language> | undefined;
 async function grammar() {
   await Parser.init();
-  return (language ??= Parser.Language.load(
-    join(
-      dirname(require.resolve('../../../../package.json')),
-      'src/scanner/adapters/hcl/tree-sitter-hcl.wasm'
-    )
-  ));
+  const asset = new URL(`./tree-sitter-hcl.wasm`, import.meta.url);
+  return (language ??= Parser.Language.load(fileURLToPath(asset)));
 }
 export class HclArtifactAdapter {
   readonly id = 'hcl-tree-sitter';
@@ -88,6 +83,8 @@ export class HclArtifactAdapter {
           range = hclRange(filePath, node),
           staticValue = [
             'source',
+            'alias',
+            'backend',
             'runtime',
             'handler',
             'filename',

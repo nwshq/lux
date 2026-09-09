@@ -31,6 +31,7 @@ import { analyzeNavigationContext } from '../react-native/navigation/association
 import { analyzeMobileContext } from '../framework/mobile/association-wrapper.js';
 import { analyzeEventBusContext } from '../framework/event-bus/association-wrapper.js';
 import { analyzeContainerContext } from '../infrastructure/containers/association-wrapper.js';
+import { analyzeTerraformContext } from '../infrastructure/terraform/association-wrapper.js';
 import { resolveLivewire } from './framework/laravel/livewire-resolver.js';
 import { NovaAssociationResolver, resolveNova } from './framework/laravel/nova-resolver.js';
 import { AssociationEngine } from './engine.js';
@@ -309,6 +310,20 @@ export async function rebuildStructuralOverlay(
   if (containers.nodes.length) {
     db.transaction(() => {
       for (const node of containers.nodes) db.upsertStructuralNode(node);
+    });
+    context.nodes = db.getStructuralNodesForFilePaths(
+      scan.knowledge.map((entry) =>
+        entry.filePath.startsWith(rootPath + '/')
+          ? entry.filePath.slice(rootPath.length + 1)
+          : entry.filePath
+      )
+    );
+  }
+
+  const terraform = await analyzeTerraformContext(context);
+  if (terraform.nodes.length) {
+    db.transaction(() => {
+      for (const node of terraform.nodes) db.upsertStructuralNode(node);
     });
     context.nodes = db.getStructuralNodesForFilePaths(
       scan.knowledge.map((entry) =>

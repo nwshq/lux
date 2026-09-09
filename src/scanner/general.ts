@@ -1,6 +1,6 @@
 import { readFileSync, existsSync } from 'fs';
 import { join, basename, extname } from 'path';
-import { glob } from 'glob';
+import { glob, globSync } from 'glob';
 import matter from 'gray-matter';
 import type { Frontmatter, ScannedKnowledge, ScanResult } from './types.js';
 import type { LuxDatabase } from '../db/index.js';
@@ -62,6 +62,9 @@ export const SOURCE_CODE_EXTENSIONS: string[] = [
   '.yaml',
   '.yml',
   '.toml',
+  '.tf',
+  '.tfvars',
+  '.hcl',
 ];
 
 /** Map file extension to language identifier. */
@@ -89,6 +92,9 @@ const EXTENSION_TO_LANGUAGE: Record<string, string> = {
   '.yaml': 'yaml',
   '.yml': 'yaml',
   '.toml': 'toml',
+  '.tf': 'hcl',
+  '.tfvars': 'hcl',
+  '.hcl': 'hcl',
 };
 
 /** Directory patterns to always exclude from content and source code scanning. */
@@ -107,6 +113,12 @@ export const SOURCE_CODE_IGNORE_PATTERNS: string[] = [
   'target/**',
   '**/*.min.js',
   '**/*.min.css',
+  '.terraform/**',
+  '**/*.tfstate',
+  '**/*.tfstate.*',
+  '**/*.tfplan',
+  '**/*.auto.tfvars',
+  '**/crash.log',
 ];
 
 /**
@@ -218,11 +230,7 @@ export class GeneralScanner {
         const ext = extname(sourceFile);
         const language = sourceFile.endsWith('.blade.php')
           ? 'blade'
-          : /(?:^|\/)Dockerfile(?:\.[^/]*)?$/u.test(sourceFile)
-            ? 'dockerfile'
-            : /(?:docker-)?compose[^/]*\.ya?ml(?:\.tpl)?$/u.test(sourceFile)
-              ? 'compose'
-              : (EXTENSION_TO_LANGUAGE[ext] ?? 'unknown');
+          : (EXTENSION_TO_LANGUAGE[ext] ?? 'unknown');
 
         let content: string;
         try {
@@ -250,22 +258,21 @@ export class GeneralScanner {
    * for common manifest/build files.
    */
   private isSourceCodeRepository(rootPath: string): boolean {
-    return SOURCE_CODE_MANIFEST_FILES.some((manifest) => existsSync(join(rootPath, manifest)));
+    return (
+      SOURCE_CODE_MANIFEST_FILES.some((manifest) => existsSync(join(rootPath, manifest))) ||
+      globSync(['**/*.tf', '**/*.hcl'], {
+        cwd: rootPath,
+        nodir: true,
+        ignore: this.ignorePatterns,
+      }).length > 0
+    );
   }
 
   /**
    * Discover source code files in a directory, respecting ignore patterns.
    */
   private async discoverSourceCodeFiles(rootPath: string): Promise<string[]> {
-    const extensionGlobs = [
-      ...SOURCE_CODE_EXTENSIONS.map((ext) => `**/*${ext}`),
-      '**/Dockerfile',
-      '**/Dockerfile.*',
-      '**/compose*.yml.tpl',
-      '**/compose*.yaml.tpl',
-      '**/docker-compose*.yml.tpl',
-      '**/docker-compose*.yaml.tpl',
-    ];
+    const extensionGlobs = SOURCE_CODE_EXTENSIONS.map((ext) => `**/*${ext}`);
     const files = await glob(extensionGlobs, {
       cwd: rootPath,
       ignore: this.ignorePatterns,

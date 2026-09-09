@@ -78,3 +78,5 @@ export { InfrastructureConfigSchema } from '../infrastructure/config.js';
 export { HclArtifactAdapter } from '../adapters/hcl/index.js';
 
 export { ContainerAssociationResolver } from '../infrastructure/containers/association-wrapper.js';
+
+export { TerraformAssociationResolver } from '../infrastructure/terraform/index.js';

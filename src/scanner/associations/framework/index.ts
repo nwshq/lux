@@ -21,6 +21,7 @@ import { ReactNavigationAssociationResolver } from '../../react-native/navigatio
 import { MobileArchitectureAssociationResolver } from '../../framework/mobile/association-wrapper.js';
 import { EventBusAssociationResolver } from '../../framework/event-bus/association-wrapper.js';
 import { ContainerAssociationResolver } from '../../infrastructure/containers/association-wrapper.js';
+import { TerraformAssociationResolver } from '../../infrastructure/terraform/association-wrapper.js';
 import type { FrontendFrameworkConfigV1 } from '../../config.js';
 import type { AssociationResolver } from '../types.js';
 
@@ -44,6 +45,7 @@ export function createDefaultResolvers(
     new MobileArchitectureAssociationResolver(),
     new EventBusAssociationResolver(),
     new ContainerAssociationResolver(),
+    new TerraformAssociationResolver(),
     new InertiaAssociationResolver({
       config: frameworks
         ? {

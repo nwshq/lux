@@ -34,6 +34,16 @@ export const reactNavigatorId = (path: string, localName: string): string =>
   `${pathIdentity('navigator:react-navigation', path)}#${encodeSegment(localName)}`;
 export const reactNavigationScreenId = (navigatorId: string, name: string): string =>
   `surface:route:react-navigation:${encodeSegment(navigatorId)}#${encodeSegment(name)}`;
+export const terraformModuleId = (modulePath: string): string =>
+  pathIdentity('artifact:terraform-module', modulePath === '' ? '.' : modulePath);
+export const terraformResourceId = (modulePath: string, address: string): string =>
+  `resource:terraform:${encodeSegment(modulePath === '' ? '.' : modulePath)}#${encodeSegment(address)}`;
+export const terraformProviderId = (source: string, alias = 'default'): string =>
+  `artifact:terraform-provider:${encodeSegment(source)}#${encodeSegment(alias)}`;
+export const terraformRemoteStateId = (backend: string, key: string): string =>
+  `artifact:terraform-state:${encodeSegment(backend)}#${encodeSegment(key)}`;
+export const lambdaHandlerId = (runtime: string, handler: string): string =>
+  `artifact:lambda-handler:${encodeSegment(runtime)}#${encodeSegment(handler)}`;
 export const containerImageId = (reference: string): string =>
   `artifact:container-image:${encodeSegment(reference)}`;
 export const containerStageId = (dockerfile: string, stage: string): string =>

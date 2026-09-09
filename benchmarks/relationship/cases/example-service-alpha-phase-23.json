@@ -1,0 +1,371 @@
+[
+  {
+    "id": "p23-example-service-alpha-positive-01",
+    "corpus": "example-service-alpha",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
+    },
+    "sourceTruthId": "example-service-alpha:edge:1",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.1",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-service-alpha-positive-02",
+    "corpus": "example-service-alpha",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
+    },
+    "sourceTruthId": "example-service-alpha:edge:2",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.2",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-service-alpha-positive-03",
+    "corpus": "example-service-alpha",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
+    },
+    "sourceTruthId": "example-service-alpha:edge:3",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.3",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-service-alpha-positive-04",
+    "corpus": "example-service-alpha",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
+    },
+    "sourceTruthId": "example-service-alpha:edge:4",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.4",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-service-alpha-positive-05",
+    "corpus": "example-service-alpha",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
+    },
+    "sourceTruthId": "example-service-alpha:edge:5",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.5",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-service-alpha-positive-06",
+    "corpus": "example-service-alpha",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
+    },
+    "sourceTruthId": "example-service-alpha:edge:6",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.6",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-service-alpha-positive-07",
+    "corpus": "example-service-alpha",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
+    },
+    "sourceTruthId": "example-service-alpha:edge:7",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.7",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-service-alpha-positive-08",
+    "corpus": "example-service-alpha",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
+    },
+    "sourceTruthId": "example-service-alpha:edge:8",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.8",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-service-alpha-positive-09",
+    "corpus": "example-service-alpha",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
+    },
+    "sourceTruthId": "example-service-alpha:edge:9",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.9",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-service-alpha-forbidden-01",
+    "corpus": "example-service-alpha",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
+    },
+    "sourceTruthId": "example-service-alpha:forbidden:1",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-service-alpha-forbidden-02",
+    "corpus": "example-service-alpha",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
+    },
+    "sourceTruthId": "example-service-alpha:forbidden:2",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-service-alpha-forbidden-03",
+    "corpus": "example-service-alpha",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
+    },
+    "sourceTruthId": "example-service-alpha:forbidden:3",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-service-alpha-forbidden-04",
+    "corpus": "example-service-alpha",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
+    },
+    "sourceTruthId": "example-service-alpha:forbidden:4",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-service-alpha-forbidden-05",
+    "corpus": "example-service-alpha",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
+    },
+    "sourceTruthId": "example-service-alpha:forbidden:5",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-service-alpha-forbidden-06",
+    "corpus": "example-service-alpha",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
+    },
+    "sourceTruthId": "example-service-alpha:forbidden:6",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-service-alpha-forbidden-07",
+    "corpus": "example-service-alpha",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
+    },
+    "sourceTruthId": "example-service-alpha:forbidden:7",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-service-alpha-forbidden-08",
+    "corpus": "example-service-alpha",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
+    },
+    "sourceTruthId": "example-service-alpha:forbidden:8",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-service-alpha-forbidden-09",
+    "corpus": "example-service-alpha",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
+    },
+    "sourceTruthId": "example-service-alpha:forbidden:9",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-service-alpha-forbidden-10",
+    "corpus": "example-service-alpha",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
+    },
+    "sourceTruthId": "example-service-alpha:forbidden:10",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  }
+]

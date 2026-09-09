@@ -1,0 +1,602 @@
+[
+  {
+    "id": "p23-example-infrastructure-positive-01",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:edge:1",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.1",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-infrastructure-positive-02",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:edge:2",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.2",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-infrastructure-positive-03",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:edge:3",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.3",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-infrastructure-positive-04",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:edge:4",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.4",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-infrastructure-positive-05",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:edge:5",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.5",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-infrastructure-positive-06",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:edge:6",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.6",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-infrastructure-positive-07",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:edge:7",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.7",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-infrastructure-positive-08",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:edge:8",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.8",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-infrastructure-positive-09",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:edge:9",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.9",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-infrastructure-positive-10",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:edge:10",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.10",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-infrastructure-positive-11",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:edge:11",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.11",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-infrastructure-positive-12",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:edge:12",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.12",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-infrastructure-positive-13",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:edge:13",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.13",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-infrastructure-positive-14",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:edge:14",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.14",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-infrastructure-positive-15",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:edge:15",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.15",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-infrastructure-positive-16",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:edge:16",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.16",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-infrastructure-positive-17",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:edge:17",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.17",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-infrastructure-positive-18",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:edge:18",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.18",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-infrastructure-positive-19",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:edge:19",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.19",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-infrastructure-positive-20",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:edge:20",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:terraform-module:.",
+        "type": "declares_resource",
+        "target": "resource:terraform:.#truth.20",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p23-example-infrastructure-forbidden-01",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:forbidden:1",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-infrastructure-forbidden-02",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:forbidden:2",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-infrastructure-forbidden-03",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:forbidden:3",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-infrastructure-forbidden-04",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:forbidden:4",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-infrastructure-forbidden-05",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:forbidden:5",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-infrastructure-forbidden-06",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:forbidden:6",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-infrastructure-forbidden-07",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:forbidden:7",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-infrastructure-forbidden-08",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:forbidden:8",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-infrastructure-forbidden-09",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:forbidden:9",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  },
+  {
+    "id": "p23-example-infrastructure-forbidden-10",
+    "corpus": "example-infrastructure",
+    "capability": "terraform-real",
+    "owner": "Example Maintainer",
+    "corpusPin": {
+      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "commit": "5007257de21666628eea904fc80cded436e40536"
+    },
+    "sourceTruthId": "example-infrastructure:forbidden:10",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "references_resource"
+      }
+    ]
+  }
+]
