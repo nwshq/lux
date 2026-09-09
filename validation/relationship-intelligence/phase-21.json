@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "phase": 21,
+  "implementationSha": "cc1d51284b99c64c2c21fd5508235abe2002e329",
+  "mergeSha": "5272bd5d52ec0cadb96ee7cf813dd694f51e7b72",
+  "baselineSha": "a99099dea10ab22ac6bcf9d3ab9cf9d366b07807",
+  "criteria": [
+    {
+      "id": "P21-C1",
+      "class": "mobile-architecture-graph",
+      "green": {
+        "command": "vitest run Phase 21 bounded adapter substrate production and acceptance focused suites; fixed-denominator synthetic scoring; watched-red controls; repeated stable-resolver checks",
+        "exitCode": 0,
+        "observable": "Focused production and independent tests passed 8/8; both repository/interface and ViewModel cohorts each passed 20 positive and 10 forbidden cases at precision/recall 1; all 6 watched mutations were detected."
+      },
+      "red": {
+        "mutation": "six-watched-implements-import-construction-hook-parameter-and-suffix-regressions",
+        "command": "vitest run src/integration/__tests__/phase-18-acceptance.test.ts with each watched mutation",
+        "exitCode": 1,
+        "observable": "Each of the 6 watched Phase 21 mutations produced a nonzero checker exit."
+      },
+      "verifiedBy": "independent-fixed-denominator-focused-watched-mutation-and-stable-resolver-validation"
+    },
+    {
+      "id": "P21-C2",
+      "class": "performance-and-compatibility",
+      "green": {
+        "command": "three warmups plus five measured Phase 21 resolver runs; GitHub PR #126 CI; focused propagation rerun; architecture, dead-code, documentation, and native-free gates",
+        "exitCode": 0,
+        "observable": "PR #126 full CI passed; focused production and acceptance suites passed; architecture, dead-code, native-free, and documentation gates passed in the release workflow."
+      },
+      "red": {
+        "mutation": "watched-mobile-architecture-semantics-regressions",
+        "command": "vitest run src/integration/__tests__/phase-18-acceptance.test.ts with watched mutations",
+        "exitCode": 1,
+        "observable": "The compatibility battery rejects all 5 watched bounded adapter substrate normalization and destination regressions with nonzero checker exits"
+      },
+      "verifiedBy": "github-ci-independent-performance-focused-propagation-architecture-dead-code-documentation-and-native-free-validation"
+    },
+    {
+      "id": "P21-C3",
+      "class": "review-and-release",
+      "green": {
+        "command": "GitHub PR #126 merge and release record; installed CLI/package and Goose plugin verification",
+        "exitCode": 0,
+        "observable": "PR #126 merged as 5272bd5d52ec0cadb96ee7cf813dd694f51e7b72; v2.37.0 release asset published with sha256:4582954e3f9220f97a9e50a563ff20e38255c71645ffb953fc11a362fd7b5451; installed CLI/package and MCP report 2.37.0 with 12 tools; Goose plugin is at 5272bd5."
+      },
+      "red": {
+        "mutation": "expect-prior-version",
+        "command": "installed CLI/package version check",
+        "exitCode": 1,
+        "observable": "installed 2.37.0 differs from prior 2.33.0 sentinel"
+      },
+      "verifiedBy": "github-ci-release-installed-cli-package-and-goose-plugin-verification"
+    }
+  ],
+  "knownBaselineFailures": [],
+  "review": {
+    "codeReview": "APPROVED",
+    "independentValidation": "APPROVED: production + independent focused 8/8; two 20-positive/10-forbidden cohorts at precision/recall 1; 6 watched mutations; PR full CI and static gates green; release/global CLI/MCP/plugin 2.37.0 verified.",
+    "acceptanceReview": "APPROVED"
+  },
+  "exemptions": []
+}
