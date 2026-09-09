@@ -13,7 +13,47 @@ export interface InfrastructureFactBaseV1 {
   filePath: string;
   range: SourceRangeV1;
 }
-export type InfrastructureFactV1 = InfrastructureFactBaseV1 & { family: string };
+export type HclBlockKindV1 =
+  | 'terraform'
+  | 'provider'
+  | 'resource'
+  | 'data'
+  | 'variable'
+  | 'locals'
+  | 'output'
+  | 'module'
+  | 'moved'
+  | 'import'
+  | 'check'
+  | 'unknown';
+export interface HclBlockFactV1 extends InfrastructureFactBaseV1 {
+  family: 'hcl-block';
+  blockKind: HclBlockKindV1;
+  labels: string[];
+  address?: string;
+  parentLocalId?: string;
+}
+export interface HclAttributeFactV1 extends InfrastructureFactBaseV1 {
+  family: 'hcl-attribute';
+  ownerLocalId: string;
+  name: string;
+  expressionRange: SourceRangeV1;
+  staticString?: string;
+  hasInterpolation: boolean;
+}
+export interface HclTraversalFactV1 extends InfrastructureFactBaseV1 {
+  family: 'hcl-traversal';
+  ownerLocalId: string;
+  root: string;
+  segments: Array<
+    | { kind: 'attribute'; name: string }
+    | { kind: 'literal-index'; value: string | number }
+    | { kind: 'dynamic-index' }
+  >;
+  baseAddress?: string;
+  fullyStatic: boolean;
+}
+export type InfrastructureFactV1 = HclBlockFactV1 | HclAttributeFactV1 | HclTraversalFactV1;
 export interface ArtifactAdapterOutputV1<T extends InfrastructureFactV1> extends AdapterOutputV1 {
   facts: SourceFactsV1;
   artifactFacts: T[];

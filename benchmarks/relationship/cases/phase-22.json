@@ -1,0 +1,599 @@
+[
+  {
+    "id": "p22-positive-01",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "block",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": [],
+    "watchedMutations": [
+      {
+        "id": "move-range-byte",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p22-positive-01"
+      },
+      {
+        "id": "dynamic-index-static",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p22-positive-07"
+      },
+      {
+        "id": "retain-variable-default",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p22-forbidden-01"
+      },
+      {
+        "id": "evaluate-template",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p22-forbidden-02"
+      },
+      {
+        "id": "allow-escaping-source",
+        "expectedCheckerExitCode": 1,
+        "expectedCase": "p22-forbidden-04"
+      }
+    ]
+  },
+  {
+    "id": "p22-positive-02",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "attribute",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-03",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "traversal",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-04",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "range",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-05",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "unicode",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-06",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "nested",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-07",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "index",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-08",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "template",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-09",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "function",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-10",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "for",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-11",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "dynamic",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-12",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "heredoc",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-13",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "comment",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-14",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "block",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-15",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "attribute",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-16",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "traversal",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-17",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "range",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-18",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "unicode",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-19",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "nested",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-20",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "index",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-21",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "template",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-22",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "function",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-23",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "for",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-24",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "dynamic",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-25",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "heredoc",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-26",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "comment",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-27",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "block",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-28",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "attribute",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-29",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "traversal",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-30",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "range",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-31",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "unicode",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-32",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "nested",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-33",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "index",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-34",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "template",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-positive-35",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "function",
+    "expectedOutcome": "answered",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-forbidden-01",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "secret",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-forbidden-02",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "evaluate-template",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-forbidden-03",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "dynamic-index",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-forbidden-04",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "escape-source",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-forbidden-05",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "absolute-source",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-forbidden-06",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "uri-source",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-forbidden-07",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "malformed",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-forbidden-08",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "limit",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-forbidden-09",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "secret",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-forbidden-10",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "evaluate-template",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-forbidden-11",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "dynamic-index",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-forbidden-12",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "escape-source",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-forbidden-13",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "absolute-source",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-forbidden-14",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "uri-source",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-forbidden-15",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "malformed",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-forbidden-16",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "limit",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-forbidden-17",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "secret",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-forbidden-18",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "evaluate-template",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-forbidden-19",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "dynamic-index",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p22-forbidden-20",
+    "corpus": "terraform-synthetic",
+    "capability": "hcl-facts",
+    "owner": "Example Maintainer",
+    "scenario": "escape-source",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": []
+  }
+]
