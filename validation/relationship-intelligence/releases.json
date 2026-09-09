@@ -216,6 +216,26 @@
       "status": "released-and-installed"
     },
     {
+      "phase": 23,
+      "pullRequest": 132,
+      "mergeSha": "09bd9f79cacce7a3d69a5628bc7503af108eb439",
+      "version": "2.40.0",
+      "releaseUrl": "https://github.com/nwshq/lux/releases/tag/v2.40.0",
+      "asset": "lux-v2.40.0-linux-x64.tar.gz",
+      "digest": "sha256:2a50a44f31a0ea12e9ede627d79ee9d5ae875bc969f72874d0ccfb4517c02333",
+      "status": "released-and-installed"
+    },
+    {
+      "phase": 24,
+      "pullRequest": 133,
+      "mergeSha": "a8e4c59ab5781b06c4b588469b6c74f80f2d8518",
+      "version": "2.41.0",
+      "releaseUrl": "https://github.com/nwshq/lux/releases/tag/v2.41.0",
+      "asset": "lux-v2.41.0-linux-x64.tar.gz",
+      "digest": "sha256:59dfac15bec391fd477568cfedf42ac949a88f7ef1167a4f56421ce5f02b85cb",
+      "status": "released-and-installed"
+    },
+    {
       "phase": 25,
       "pullRequest": 130,
       "mergeSha": "3ea748546aecdae0466398b00c64e47370b9fc57",

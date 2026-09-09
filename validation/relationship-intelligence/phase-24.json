@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "phase": 24,
+  "implementationSha": "55d132f",
+  "mergeSha": "a8e4c59ab5781b06c4b588469b6c74f80f2d8518",
+  "baselineSha": "09bd9f7",
+  "criteria": [
+    {
+      "id": "P24-C1",
+      "class": "mobile-architecture-graph",
+      "green": {
+        "command": "vitest run Phase 24 actions production and acceptance focused suites; fixed-denominator synthetic scoring; watched-red controls; repeated stable-resolver checks",
+        "exitCode": 0,
+        "observable": "Focused production and independent tests passed 8/8; both repository/interface and ViewModel cohorts each passed 20 positive and 10 forbidden cases at precision/recall 1; all 6 watched mutations were detected."
+      },
+      "red": {
+        "mutation": "six-watched-implements-import-construction-hook-parameter-and-suffix-regressions",
+        "command": "vitest run src/integration/__tests__/phase-18-acceptance.test.ts with each watched mutation",
+        "exitCode": 1,
+        "observable": "Each of the 6 watched Phase 24 mutations produced a nonzero checker exit."
+      },
+      "verifiedBy": "independent-fixed-denominator-focused-watched-mutation-and-stable-resolver-validation"
+    },
+    {
+      "id": "P24-C2",
+      "class": "performance-and-compatibility",
+      "green": {
+        "command": "three warmups plus five measured Phase 24 resolver runs; GitHub PR #133 CI; focused propagation rerun; architecture, dead-code, documentation, and native-free gates",
+        "exitCode": 0,
+        "observable": "PR #133 full CI passed; focused production and acceptance suites passed; architecture, dead-code, native-free, and documentation gates passed in the release workflow."
+      },
+      "red": {
+        "mutation": "watched-mobile-architecture-semantics-regressions",
+        "command": "vitest run src/integration/__tests__/phase-18-acceptance.test.ts with watched mutations",
+        "exitCode": 1,
+        "observable": "The compatibility battery rejects all 5 watched actions normalization and destination regressions with nonzero checker exits"
+      },
+      "verifiedBy": "github-ci-independent-performance-focused-propagation-architecture-dead-code-documentation-and-native-free-validation"
+    },
+    {
+      "id": "P24-C3",
+      "class": "review-and-release",
+      "green": {
+        "command": "GitHub PR #133 merge and release record; installed CLI/package and Goose plugin verification",
+        "exitCode": 0,
+        "observable": "PR #133 merged as a8e4c59ab5781b06c4b588469b6c74f80f2d8518; v2.41.0 release asset published with sha256:59dfac15bec391fd477568cfedf42ac949a88f7ef1167a4f56421ce5f02b85cb; installed CLI/package and MCP report 2.41.0 with 12 tools; Goose plugin is at a8e4c59."
+      },
+      "red": {
+        "mutation": "expect-prior-version",
+        "command": "installed CLI/package version check",
+        "exitCode": 1,
+        "observable": "installed 2.41.0 differs from prior 2.33.0 sentinel"
+      },
+      "verifiedBy": "github-ci-release-installed-cli-package-and-goose-plugin-verification"
+    }
+  ],
+  "knownBaselineFailures": [],
+  "review": {
+    "codeReview": "APPROVED",
+    "independentValidation": "APPROVED: production + independent focused 8/8; two 20-positive/10-forbidden cohorts at precision/recall 1; 6 watched mutations; PR full CI and static gates green; release/global CLI/MCP/plugin 2.41.0 verified.",
+    "acceptanceReview": "APPROVED"
+  },
+  "exemptions": []
+}
