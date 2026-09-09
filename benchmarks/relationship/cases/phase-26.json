@@ -1,0 +1,727 @@
+[
+  {
+    "id": "p26-positive-01",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "mapping",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:0",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.0",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-02",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "package",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:1",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.1",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-03",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "lambda",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:2",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.2",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-04",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "image-digest",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:3",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.3",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-05",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "terraform",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:4",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.4",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-06",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "mapping",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:5",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.5",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-07",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "package",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:6",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.6",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-08",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "lambda",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:7",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.7",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-09",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "image-digest",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:8",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.8",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-10",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "terraform",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:9",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.9",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-11",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "mapping",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:10",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.10",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-12",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "package",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:11",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.11",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-13",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "lambda",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:12",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.12",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-14",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "image-digest",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:13",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.13",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-15",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "terraform",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:14",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.14",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-16",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "mapping",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:15",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.15",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-17",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "package",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:16",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.16",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-18",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "lambda",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:17",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.17",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-19",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "image-digest",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:18",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.18",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-20",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "terraform",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:19",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.19",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-21",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "mapping",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:20",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.20",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-22",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "package",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:21",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.21",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-23",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "lambda",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:22",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.22",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-24",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "image-digest",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:23",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.23",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-positive-25",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "terraform",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "artifact:source:24",
+        "type": "produces_artifact",
+        "target": "resource:terraform:.#target.24",
+        "minConfidence": "artifact-backed"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p26-forbidden-01",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "basename",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unauthorized",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "produces_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p26-forbidden-02",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "near",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unauthorized",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "produces_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p26-forbidden-03",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "mutable-tag",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unauthorized",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "produces_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p26-forbidden-04",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "missing",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unauthorized",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "produces_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p26-forbidden-05",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "wrong-repo",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unauthorized",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "produces_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p26-forbidden-06",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "duplicate",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unauthorized",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "produces_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p26-forbidden-07",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "cycle",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unauthorized",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "produces_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p26-forbidden-08",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "stale",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unauthorized",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "produces_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p26-forbidden-09",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "schema",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unauthorized",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "produces_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p26-forbidden-10",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "fingerprint",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unauthorized",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "produces_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p26-forbidden-11",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "dirty",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unauthorized",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "produces_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p26-forbidden-12",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "escape",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unauthorized",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "produces_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p26-forbidden-13",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "unexported",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unauthorized",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "produces_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p26-forbidden-14",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "ineligible",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unauthorized",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "produces_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p26-forbidden-15",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "oversized",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unauthorized",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "produces_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p26-forbidden-16",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "embedding",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unauthorized",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "produces_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p26-forbidden-17",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "basename",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unauthorized",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "produces_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p26-forbidden-18",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "near",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unauthorized",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "produces_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p26-forbidden-19",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "mutable-tag",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unauthorized",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "produces_artifact"
+      }
+    ]
+  },
+  {
+    "id": "p26-forbidden-20",
+    "corpus": "federation-synthetic",
+    "capability": "infrastructure-federation",
+    "owner": "Example Maintainer",
+    "scenario": "missing",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unauthorized",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "produces_artifact"
+      }
+    ]
+  }
+]

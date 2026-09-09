@@ -82,3 +82,4 @@ export { ContainerAssociationResolver } from '../infrastructure/containers/assoc
 export { TerraformAssociationResolver } from '../infrastructure/terraform/index.js';
 
 export { ActionsAssociationResolver } from '../infrastructure/actions/association-wrapper.js';
+export { resolveInfrastructureFederation } from '../infrastructure/federation/index.js';
