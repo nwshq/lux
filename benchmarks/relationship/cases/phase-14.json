@@ -98,9 +98,9 @@
         "expectedCase": "p14-positive-19-duplicate-registration-deduplicated"
       },
       {
-        "id": "wrong-auctic-model",
+        "id": "wrong-acme-model",
         "expectedCheckerExitCode": 1,
-        "expectedCase": "p14-auctic-offer-model"
+        "expectedCase": "p14-acme-offer-model"
       },
       {
         "id": "remove-required-edge",
@@ -1497,36 +1497,36 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-core",
+    "corpus": "acme-core",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "remote": "https://github.com/acme-software/acme-core.git",
       "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
     },
-    "id": "p14-auctic-offers-provider",
+    "id": "p14-acme-offers-provider",
     "sourceFamily": "src/Module/Offers/ServiceProvider.php",
     "query": {
       "tool": "phase14NovaSeam",
       "args": {
         "registrationFile": "src/Module/Offers/ServiceProvider.php",
-        "source": "<?php\nnamespace acme\\Core\\Module\\Offers;\nuse Laravel\\Nova\\Nova;\nuse acme\\Core\\Module\\Offers\\Nova;\nclass ServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::resources([Nova\\Offer::class, Nova\\OfferChain::class]); } }\n",
+        "source": "<?php\nnamespace Acme\\Core\\Module\\Offers;\nuse Laravel\\Nova\\Nova;\nuse Acme\\Core\\Module\\Offers\\Nova;\nclass ServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::resources([Nova\\Offer::class, Nova\\OfferChain::class]); } }\n",
         "files": {
-          "src/Module/Offers/Nova/Offer.php": "<?php\nnamespace acme\\Core\\Module\\Offers\\Nova;\nuse Laravel\\Nova\\Resource;\nclass Offer extends Resource { public static $model = \\acme\\Core\\Module\\Offers\\Models\\Offer::class; }\n",
-          "src/Module/Offers/Nova/OfferChain.php": "<?php\nnamespace acme\\Core\\Module\\Offers\\Nova;\nuse Laravel\\Nova\\Resource;\nclass OfferChain extends Resource { public static $model = \\acme\\Core\\Module\\Offers\\Models\\OfferChain::class; }\n"
+          "src/Module/Offers/Nova/Offer.php": "<?php\nnamespace Acme\\Core\\Module\\Offers\\Nova;\nuse Laravel\\Nova\\Resource;\nclass Offer extends Resource { public static $model = \\Acme\\Core\\Module\\Offers\\Models\\Offer::class; }\n",
+          "src/Module/Offers/Nova/OfferChain.php": "<?php\nnamespace Acme\\Core\\Module\\Offers\\Nova;\nuse Laravel\\Nova\\Resource;\nclass OfferChain extends Resource { public static $model = \\Acme\\Core\\Module\\Offers\\Models\\OfferChain::class; }\n"
         },
         "firstPartyRoots": ["src"]
       }
     },
     "expectedEdges": [
       {
-        "source": "symbol:php:acme\\Core\\Module\\Offers\\ServiceProvider",
+        "source": "symbol:php:Acme\\Core\\Module\\Offers\\ServiceProvider",
         "type": "provides_capability",
-        "target": "symbol:php:acme\\Core\\Module\\Offers\\Nova\\Offer",
+        "target": "symbol:php:Acme\\Core\\Module\\Offers\\Nova\\Offer",
         "minConfidence": "framework-inferred"
       },
       {
-        "source": "symbol:php:acme\\Core\\Module\\Offers\\ServiceProvider",
+        "source": "symbol:php:Acme\\Core\\Module\\Offers\\ServiceProvider",
         "type": "provides_capability",
-        "target": "symbol:php:acme\\Core\\Module\\Offers\\Nova\\OfferChain",
+        "target": "symbol:php:Acme\\Core\\Module\\Offers\\Nova\\OfferChain",
         "minConfidence": "framework-inferred"
       }
     ],
@@ -1547,29 +1547,29 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-core",
+    "corpus": "acme-core",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "remote": "https://github.com/acme-software/acme-core.git",
       "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
     },
-    "id": "p14-auctic-offer-model",
+    "id": "p14-acme-offer-model",
     "sourceFamily": "src/Module/Offers/Nova/Offer.php",
     "query": {
       "tool": "phase14NovaSeam",
       "args": {
         "registrationFile": "src/Module/Offers/Nova/Offer.php",
-        "source": "<?php\nnamespace acme\\Core\\Module\\Offers\\Nova;\nuse Laravel\\Nova\\Resource;\nclass Offer extends Resource { public static $model = \\acme\\Core\\Module\\Offers\\Models\\Offer::class; }\n",
+        "source": "<?php\nnamespace Acme\\Core\\Module\\Offers\\Nova;\nuse Laravel\\Nova\\Resource;\nclass Offer extends Resource { public static $model = \\Acme\\Core\\Module\\Offers\\Models\\Offer::class; }\n",
         "files": {
-          "src/Module/Offers/Models/Offer.php": "<?php\nnamespace acme\\Core\\Module\\Offers\\Models;\n\nclass Offer {}\n"
+          "src/Module/Offers/Models/Offer.php": "<?php\nnamespace Acme\\Core\\Module\\Offers\\Models;\n\nclass Offer {}\n"
         },
         "firstPartyRoots": ["src"]
       }
     },
     "expectedEdges": [
       {
-        "source": "symbol:php:acme\\Core\\Module\\Offers\\Nova\\Offer",
+        "source": "symbol:php:Acme\\Core\\Module\\Offers\\Nova\\Offer",
         "type": "transforms_model",
-        "target": "symbol:php:acme\\Core\\Module\\Offers\\Models\\Offer",
+        "target": "symbol:php:Acme\\Core\\Module\\Offers\\Models\\Offer",
         "minConfidence": "framework-inferred"
       }
     ],
@@ -1590,29 +1590,29 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-core",
+    "corpus": "acme-core",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "remote": "https://github.com/acme-software/acme-core.git",
       "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
     },
-    "id": "p14-auctic-offer-chain-model",
+    "id": "p14-acme-offer-chain-model",
     "sourceFamily": "src/Module/Offers/Nova/OfferChain.php",
     "query": {
       "tool": "phase14NovaSeam",
       "args": {
         "registrationFile": "src/Module/Offers/Nova/OfferChain.php",
-        "source": "<?php\nnamespace acme\\Core\\Module\\Offers\\Nova;\nuse Laravel\\Nova\\Resource;\nclass OfferChain extends Resource { public static string $model = \\acme\\Core\\Module\\Offers\\Models\\OfferChain::class; }\n",
+        "source": "<?php\nnamespace Acme\\Core\\Module\\Offers\\Nova;\nuse Laravel\\Nova\\Resource;\nclass OfferChain extends Resource { public static string $model = \\Acme\\Core\\Module\\Offers\\Models\\OfferChain::class; }\n",
         "files": {
-          "src/Module/Offers/Models/OfferChain.php": "<?php\nnamespace acme\\Core\\Module\\Offers\\Models;\n\nclass OfferChain {}\n"
+          "src/Module/Offers/Models/OfferChain.php": "<?php\nnamespace Acme\\Core\\Module\\Offers\\Models;\n\nclass OfferChain {}\n"
         },
         "firstPartyRoots": ["src"]
       }
     },
     "expectedEdges": [
       {
-        "source": "symbol:php:acme\\Core\\Module\\Offers\\Nova\\OfferChain",
+        "source": "symbol:php:Acme\\Core\\Module\\Offers\\Nova\\OfferChain",
         "type": "transforms_model",
-        "target": "symbol:php:acme\\Core\\Module\\Offers\\Models\\OfferChain",
+        "target": "symbol:php:Acme\\Core\\Module\\Offers\\Models\\OfferChain",
         "minConfidence": "framework-inferred"
       }
     ],
@@ -1633,29 +1633,29 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-core",
+    "corpus": "acme-core",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "remote": "https://github.com/acme-software/acme-core.git",
       "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
     },
-    "id": "p14-auctic-contact-provider",
+    "id": "p14-acme-contact-provider",
     "sourceFamily": "src/Module/Contact/ServiceProvider.php",
     "query": {
       "tool": "phase14NovaSeam",
       "args": {
         "registrationFile": "src/Module/Contact/ServiceProvider.php",
-        "source": "<?php\nnamespace acme\\Core\\Module\\Contact;\nuse Laravel\\Nova\\Nova;\nuse acme\\Core\\Module\\Contact\\Nova;\nclass ServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::resources([Nova\\Contact::class]); } }\n",
+        "source": "<?php\nnamespace Acme\\Core\\Module\\Contact;\nuse Laravel\\Nova\\Nova;\nuse Acme\\Core\\Module\\Contact\\Nova;\nclass ServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::resources([Nova\\Contact::class]); } }\n",
         "files": {
-          "src/Module/Contact/Nova/Contact.php": "<?php\nnamespace acme\\Core\\Module\\Contact\\Nova;\nuse Laravel\\Nova\\Resource;\nclass Contact extends Resource { public static $model = \\acme\\Core\\Module\\Contact\\Models\\Contact::class; }\n"
+          "src/Module/Contact/Nova/Contact.php": "<?php\nnamespace Acme\\Core\\Module\\Contact\\Nova;\nuse Laravel\\Nova\\Resource;\nclass Contact extends Resource { public static $model = \\Acme\\Core\\Module\\Contact\\Models\\Contact::class; }\n"
         },
         "firstPartyRoots": ["src"]
       }
     },
     "expectedEdges": [
       {
-        "source": "symbol:php:acme\\Core\\Module\\Contact\\ServiceProvider",
+        "source": "symbol:php:Acme\\Core\\Module\\Contact\\ServiceProvider",
         "type": "provides_capability",
-        "target": "symbol:php:acme\\Core\\Module\\Contact\\Nova\\Contact",
+        "target": "symbol:php:Acme\\Core\\Module\\Contact\\Nova\\Contact",
         "minConfidence": "framework-inferred"
       }
     ],
@@ -1676,29 +1676,29 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-core",
+    "corpus": "acme-core",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "remote": "https://github.com/acme-software/acme-core.git",
       "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
     },
-    "id": "p14-auctic-contact-model",
+    "id": "p14-acme-contact-model",
     "sourceFamily": "src/Module/Contact/Nova/Contact.php",
     "query": {
       "tool": "phase14NovaSeam",
       "args": {
         "registrationFile": "src/Module/Contact/Nova/Contact.php",
-        "source": "<?php\nnamespace acme\\Core\\Module\\Contact\\Nova;\nuse Laravel\\Nova\\Resource;\nclass Contact extends Resource { public static $model = \\acme\\Core\\Module\\Contact\\Models\\Contact::class; }\n",
+        "source": "<?php\nnamespace Acme\\Core\\Module\\Contact\\Nova;\nuse Laravel\\Nova\\Resource;\nclass Contact extends Resource { public static $model = \\Acme\\Core\\Module\\Contact\\Models\\Contact::class; }\n",
         "files": {
-          "src/Module/Contact/Models/Contact.php": "<?php\nnamespace acme\\Core\\Module\\Contact\\Models;\n\nclass Contact {}\n"
+          "src/Module/Contact/Models/Contact.php": "<?php\nnamespace Acme\\Core\\Module\\Contact\\Models;\n\nclass Contact {}\n"
         },
         "firstPartyRoots": ["src"]
       }
     },
     "expectedEdges": [
       {
-        "source": "symbol:php:acme\\Core\\Module\\Contact\\Nova\\Contact",
+        "source": "symbol:php:Acme\\Core\\Module\\Contact\\Nova\\Contact",
         "type": "transforms_model",
-        "target": "symbol:php:acme\\Core\\Module\\Contact\\Models\\Contact",
+        "target": "symbol:php:Acme\\Core\\Module\\Contact\\Models\\Contact",
         "minConfidence": "framework-inferred"
       }
     ],
@@ -1719,36 +1719,36 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-core",
+    "corpus": "acme-core",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "remote": "https://github.com/acme-software/acme-core.git",
       "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
     },
-    "id": "p14-auctic-business-provider",
+    "id": "p14-acme-business-provider",
     "sourceFamily": "src/Module/BusinessEntity/ServiceProvider.php",
     "query": {
       "tool": "phase14NovaSeam",
       "args": {
         "registrationFile": "src/Module/BusinessEntity/ServiceProvider.php",
-        "source": "<?php\nnamespace acme\\Core\\Module\\BusinessEntity;\nuse Laravel\\Nova\\Nova;\nuse acme\\Core\\Module\\BusinessEntity\\Nova;\nclass ServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::resources([Nova\\BusinessEntity::class, Nova\\BusinessEntityAddress::class]); } }\n",
+        "source": "<?php\nnamespace Acme\\Core\\Module\\BusinessEntity;\nuse Laravel\\Nova\\Nova;\nuse Acme\\Core\\Module\\BusinessEntity\\Nova;\nclass ServiceProvider extends \\Illuminate\\Support\\ServiceProvider { public function boot(): void { Nova::resources([Nova\\BusinessEntity::class, Nova\\BusinessEntityAddress::class]); } }\n",
         "files": {
-          "src/Module/BusinessEntity/Nova/BusinessEntity.php": "<?php\nnamespace acme\\Core\\Module\\BusinessEntity\\Nova;\nuse Laravel\\Nova\\Resource;\nclass BusinessEntity extends Resource { public static $model = \\acme\\Core\\Module\\BusinessEntity\\Models\\BusinessEntity::class; }\n",
-          "src/Module/BusinessEntity/Nova/BusinessEntityAddress.php": "<?php\nnamespace acme\\Core\\Module\\BusinessEntity\\Nova;\nuse Laravel\\Nova\\Resource;\nclass BusinessEntityAddress extends Resource { public static $model = \\acme\\Core\\Module\\BusinessEntity\\Models\\BusinessEntityAddress::class; }\n"
+          "src/Module/BusinessEntity/Nova/BusinessEntity.php": "<?php\nnamespace Acme\\Core\\Module\\BusinessEntity\\Nova;\nuse Laravel\\Nova\\Resource;\nclass BusinessEntity extends Resource { public static $model = \\Acme\\Core\\Module\\BusinessEntity\\Models\\BusinessEntity::class; }\n",
+          "src/Module/BusinessEntity/Nova/BusinessEntityAddress.php": "<?php\nnamespace Acme\\Core\\Module\\BusinessEntity\\Nova;\nuse Laravel\\Nova\\Resource;\nclass BusinessEntityAddress extends Resource { public static $model = \\Acme\\Core\\Module\\BusinessEntity\\Models\\BusinessEntityAddress::class; }\n"
         },
         "firstPartyRoots": ["src"]
       }
     },
     "expectedEdges": [
       {
-        "source": "symbol:php:acme\\Core\\Module\\BusinessEntity\\ServiceProvider",
+        "source": "symbol:php:Acme\\Core\\Module\\BusinessEntity\\ServiceProvider",
         "type": "provides_capability",
-        "target": "symbol:php:acme\\Core\\Module\\BusinessEntity\\Nova\\BusinessEntity",
+        "target": "symbol:php:Acme\\Core\\Module\\BusinessEntity\\Nova\\BusinessEntity",
         "minConfidence": "framework-inferred"
       },
       {
-        "source": "symbol:php:acme\\Core\\Module\\BusinessEntity\\ServiceProvider",
+        "source": "symbol:php:Acme\\Core\\Module\\BusinessEntity\\ServiceProvider",
         "type": "provides_capability",
-        "target": "symbol:php:acme\\Core\\Module\\BusinessEntity\\Nova\\BusinessEntityAddress",
+        "target": "symbol:php:Acme\\Core\\Module\\BusinessEntity\\Nova\\BusinessEntityAddress",
         "minConfidence": "framework-inferred"
       }
     ],
@@ -1769,29 +1769,29 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-core",
+    "corpus": "acme-core",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "remote": "https://github.com/acme-software/acme-core.git",
       "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
     },
-    "id": "p14-auctic-business-model",
+    "id": "p14-acme-business-model",
     "sourceFamily": "src/Module/BusinessEntity/Nova/BusinessEntity.php",
     "query": {
       "tool": "phase14NovaSeam",
       "args": {
         "registrationFile": "src/Module/BusinessEntity/Nova/BusinessEntity.php",
-        "source": "<?php\nnamespace acme\\Core\\Module\\BusinessEntity\\Nova;\nuse Laravel\\Nova\\Resource;\nclass BusinessEntity extends Resource { public static $model = \\acme\\Core\\Module\\BusinessEntity\\Models\\BusinessEntity::class; }\n",
+        "source": "<?php\nnamespace Acme\\Core\\Module\\BusinessEntity\\Nova;\nuse Laravel\\Nova\\Resource;\nclass BusinessEntity extends Resource { public static $model = \\Acme\\Core\\Module\\BusinessEntity\\Models\\BusinessEntity::class; }\n",
         "files": {
-          "src/Module/BusinessEntity/Models/BusinessEntity.php": "<?php\nnamespace acme\\Core\\Module\\BusinessEntity\\Models;\n\nclass BusinessEntity {}\n"
+          "src/Module/BusinessEntity/Models/BusinessEntity.php": "<?php\nnamespace Acme\\Core\\Module\\BusinessEntity\\Models;\n\nclass BusinessEntity {}\n"
         },
         "firstPartyRoots": ["src"]
       }
     },
     "expectedEdges": [
       {
-        "source": "symbol:php:acme\\Core\\Module\\BusinessEntity\\Nova\\BusinessEntity",
+        "source": "symbol:php:Acme\\Core\\Module\\BusinessEntity\\Nova\\BusinessEntity",
         "type": "transforms_model",
-        "target": "symbol:php:acme\\Core\\Module\\BusinessEntity\\Models\\BusinessEntity",
+        "target": "symbol:php:Acme\\Core\\Module\\BusinessEntity\\Models\\BusinessEntity",
         "minConfidence": "framework-inferred"
       }
     ],
@@ -1812,29 +1812,29 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-core",
+    "corpus": "acme-core",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "remote": "https://github.com/acme-software/acme-core.git",
       "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
     },
-    "id": "p14-auctic-business-address-model",
+    "id": "p14-acme-business-address-model",
     "sourceFamily": "src/Module/BusinessEntity/Nova/BusinessEntityAddress.php",
     "query": {
       "tool": "phase14NovaSeam",
       "args": {
         "registrationFile": "src/Module/BusinessEntity/Nova/BusinessEntityAddress.php",
-        "source": "<?php\nnamespace acme\\Core\\Module\\BusinessEntity\\Nova;\nuse Laravel\\Nova\\Resource;\nclass BusinessEntityAddress extends Resource { public static string $model = \\acme\\Core\\Module\\BusinessEntity\\Models\\BusinessEntityAddress::class; }\n",
+        "source": "<?php\nnamespace Acme\\Core\\Module\\BusinessEntity\\Nova;\nuse Laravel\\Nova\\Resource;\nclass BusinessEntityAddress extends Resource { public static string $model = \\Acme\\Core\\Module\\BusinessEntity\\Models\\BusinessEntityAddress::class; }\n",
         "files": {
-          "src/Module/BusinessEntity/Models/BusinessEntityAddress.php": "<?php\nnamespace acme\\Core\\Module\\BusinessEntity\\Models;\n\nclass BusinessEntityAddress {}\n"
+          "src/Module/BusinessEntity/Models/BusinessEntityAddress.php": "<?php\nnamespace Acme\\Core\\Module\\BusinessEntity\\Models;\n\nclass BusinessEntityAddress {}\n"
         },
         "firstPartyRoots": ["src"]
       }
     },
     "expectedEdges": [
       {
-        "source": "symbol:php:acme\\Core\\Module\\BusinessEntity\\Nova\\BusinessEntityAddress",
+        "source": "symbol:php:Acme\\Core\\Module\\BusinessEntity\\Nova\\BusinessEntityAddress",
         "type": "transforms_model",
-        "target": "symbol:php:acme\\Core\\Module\\BusinessEntity\\Models\\BusinessEntityAddress",
+        "target": "symbol:php:Acme\\Core\\Module\\BusinessEntity\\Models\\BusinessEntityAddress",
         "minConfidence": "framework-inferred"
       }
     ],

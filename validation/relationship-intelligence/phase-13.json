@@ -11,7 +11,7 @@
       "green": {
         "command": "vitest run Phase 13 focused acceptance suites; synthetic and exact-pin cohort scoring; watched-red controls; repeated stable-digest checks",
         "exitCode": 0,
-        "observable": "All 30 focused tests passed; the synthetic battery passed 26 positive and 18 forbidden cases at precision 1 and recall 1; the exact-pin acme cohort was not_applicable with zero candidates outside synthetic scoring; all 8 watched mutations were detected; repeated observations produced equal stable digest 795d11ce93373a36ea8aed9169e1f1a88faaca156bbbbc510767725b1b63972c; production gaps for basename resolution, Volt, anonymous components, and producer classification were fixed"
+        "observable": "All 30 focused tests passed; the synthetic battery passed 26 positive and 18 forbidden cases at precision 1 and recall 1; the exact-pin Acme cohort was not_applicable with zero candidates outside synthetic scoring; all 8 watched mutations were detected; repeated observations produced equal stable digest 795d11ce93373a36ea8aed9169e1f1a88faaca156bbbbc510767725b1b63972c; production gaps for basename resolution, Volt, anonymous components, and producer classification were fixed"
       },
       "red": {
         "mutation": "eight-watched-livewire-view-mount-evidence-and-edge-contract-regressions",
@@ -57,7 +57,7 @@
   "knownBaselineFailures": [],
   "review": {
     "codeReview": "APPROVED",
-    "independentValidation": "Independent review and acceptance APPROVED; the synthetic battery passed 26 positive and 18 forbidden cases at precision/recall 1, exact-pin acme was not_applicable with zero candidates, all 8 watched mutations were detected, all 30 focused tests passed, independent reruns passed 17/17 after 2 unrelated concurrency timeouts in a normal full run, and bounded full Vitest passed 1989/13 skipped/0 failed; architecture lint checked 207 files/0 violations, architecture tests passed 5, dead-code validation checked 1093 exports/200 files, native-free and documentation gates passed, equal stable digest 795d11ce93373a36ea8aed9169e1f1a88faaca156bbbbc510767725b1b63972c, 3+5 performance median 279.81166599999983 ms with RSS 103809024 bytes, installed CLI/package and MCP 2.29.0 with 12 tools, and Goose plugin 13c57bd namespaced-Skill verification passed",
+    "independentValidation": "Independent review and acceptance APPROVED; the synthetic battery passed 26 positive and 18 forbidden cases at precision/recall 1, exact-pin Acme was not_applicable with zero candidates, all 8 watched mutations were detected, all 30 focused tests passed, independent reruns passed 17/17 after 2 unrelated concurrency timeouts in a normal full run, and bounded full Vitest passed 1989/13 skipped/0 failed; architecture lint checked 207 files/0 violations, architecture tests passed 5, dead-code validation checked 1093 exports/200 files, native-free and documentation gates passed, equal stable digest 795d11ce93373a36ea8aed9169e1f1a88faaca156bbbbc510767725b1b63972c, 3+5 performance median 279.81166599999983 ms with RSS 103809024 bytes, installed CLI/package and MCP 2.29.0 with 12 tools, and Goose plugin 13c57bd namespaced-Skill verification passed",
     "acceptanceReview": "APPROVED"
   },
   "exemptions": []

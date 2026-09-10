@@ -2,7 +2,7 @@
 //
 // SC-6 — scoped-refresh same-run timing check (spec 14 Part F).
 //
-// This is a LIVE post-build check on a REAL repo (auctic-core), NOT part of the green-before-commit
+// This is a LIVE post-build check on a REAL repo (acme-core), NOT part of the green-before-commit
 // unit gate (the equivalence oracle in src/scanner/associations/__tests__/ is that). It needs a real
 // repo with a built overlay, so it lives here and is recorded at ship, per the payload.
 //
@@ -12,8 +12,8 @@
 // cannot invalidate the criterion.
 //
 // Usage:
-//   npm run benchmark:scoped-refresh -- /abs/path/to/auctic-core [relPathToTouch]
-//   LUX_BENCH_REPO=/abs/path/to/auctic-core npm run benchmark:scoped-refresh
+//   npm run benchmark:scoped-refresh -- /abs/path/to/acme-core [relPathToTouch]
+//   LUX_BENCH_REPO=/abs/path/to/acme-core npm run benchmark:scoped-refresh
 
 import { execSync } from 'node:child_process';
 import { mkdtempSync, rmSync } from 'node:fs';

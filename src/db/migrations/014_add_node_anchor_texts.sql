@@ -1,7 +1,7 @@
 -- src/db/migrations/014_add_node_anchor_texts.sql
 -- 013_add_edge_ownership.sql is the latest landed migration (verified: migrations end at 013), so
 -- 014 is the next free integer. Phase-1 lexical claims 014; the Phase-3 embeddings table is 015.
--- RECONCILIATION: if any migration lands on main before this merges, renumber to the next free
+-- EXAMPLE_DASHBOARDCILIATION: if any migration lands on main before this merges, renumber to the next free
 -- integer at merge time (loadMigrations applies any file numbered > MAX(version); a gap never blocks).
 
 -- Prepared per-node text (Decision 5). One row per anchor-viable local node (Class/Function/Method),

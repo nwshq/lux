@@ -183,7 +183,7 @@ function extractContexts(state: FileState): ReactContextFactV1[] {
       ? namespace?.module === 'react' && namespace.imported === '*'
       : direct?.module === 'react' && direct.imported === 'createContext';
     if (!fromReact) continue;
-    // Contexts may be intentionally file-private (example-workspace DialogDepthContext). Their stable
+    // Contexts may be intentionally file-private (Example Workspace DialogDepthContext). Their stable
     // declaration identity remains file + local name; exported contexts use the public name.
     const exportName = state.localToExport.get(match[1]) ?? match[1];
     result.push({

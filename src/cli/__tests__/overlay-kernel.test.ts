@@ -44,18 +44,18 @@ afterEach(() => rmSync(root, { recursive: true, force: true }));
 
 describe('lux overlay ownership --kernel', () => {
   it('classifies against the vendored kernel index (JSON)', () => {
-    // kernel worktree (git) + composer.json (acme\Core) + a populated .lux
+    // kernel worktree (git) + composer.json (Acme\Core) + a populated .lux
     const kernelDir = join(root, 'core');
     mkdirSync(kernelDir, { recursive: true });
     writeFileSync(
       join(kernelDir, 'composer.json'),
-      JSON.stringify({ autoload: { 'psr-4': { 'acme\\Core\\': 'src/' } } })
+      JSON.stringify({ autoload: { 'psr-4': { 'Acme\\Core\\': 'src/' } } })
     );
     execSync('git init -q && git -c user.email=t@t -c user.name=t commit -q --allow-empty -m i', {
       cwd: kernelDir,
     });
     const kdb = new LuxDatabase(join(kernelDir, '.lux', 'lux.db'));
-    addRoute(kdb, 'surface:http:GET:/k1', 'acme\\Core\\C1'); // kernel-owned
+    addRoute(kdb, 'surface:http:GET:/k1', 'Acme\\Core\\C1'); // kernel-owned
     addRoute(kdb, 'surface:http:GET:/k2', 'App\\C2'); // client-override (implements)
     addRoute(kdb, 'surface:http:GET:/k3', 'App\\C3'); // client-gap
     kdb.close();

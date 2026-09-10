@@ -18,14 +18,14 @@ Implementation validated: one operator-facing CLI seam, `lux overlay operational
 SQLite needed writable sidecar space in this sandbox, so the live DB files were copied to `/tmp` while keeping `--corpus` pointed at the real repo roots for repo-root filtering:
 
 ```sh
-cp /path/to/auctic-core/vcs/.lux/lux.db /tmp/lux-auctic-core-operational.db
-cp /path/to/auctic-atlas/vcs/.lux/lux.db /tmp/lux-auctic-atlas-operational.db
+cp /path/to/acme-core/vcs/.lux/lux.db /tmp/lux-acme-core-operational.db
+cp /path/to/acme-atlas/vcs/.lux/lux.db /tmp/lux-acme-atlas-operational.db
 ```
 
-## acme Core
+## Acme Core
 
-Repo: `/path/to/auctic-core/vcs`
-DB copy: `/tmp/lux-auctic-core-operational.db`
+Repo: `/path/to/acme-core/vcs`
+DB copy: `/tmp/lux-acme-core-operational.db`
 
 ### What dispatches `App\Jobs\CreatePrivateOffer`?
 
@@ -33,8 +33,8 @@ Command:
 
 ```sh
 node --import tsx ./src/cli/index.ts \
-  --db /tmp/lux-auctic-core-operational.db \
-  --corpus /path/to/auctic-core/vcs \
+  --db /tmp/lux-acme-core-operational.db \
+  --corpus /path/to/acme-core/vcs \
   overlay operational ask "what dispatches App\\Jobs\\CreatePrivateOffer?" --json
 ```
 
@@ -48,26 +48,26 @@ Result:
 - Provenance: `src/Nova/Actions/PrivateOffer.php`
 - JSON contained top-level `primaryAnswer`, `trust`, `transport`, and `evidence`.
 
-### What listeners handle `acme\Core\Events\AuctionCreated`?
+### What listeners handle `Acme\Core\Events\AuctionCreated`?
 
 Command:
 
 ```sh
 node --import tsx ./src/cli/index.ts \
-  --db /tmp/lux-auctic-core-operational.db \
-  --corpus /path/to/auctic-core/vcs \
-  overlay operational ask "what listeners handle acme\\Core\\Events\\AuctionCreated?"
+  --db /tmp/lux-acme-core-operational.db \
+  --corpus /path/to/acme-core/vcs \
+  overlay operational ask "what listeners handle Acme\\Core\\Events\\AuctionCreated?"
 ```
 
 Result:
 
-- Primary answer: `AuctionCreatedListener handles event:acme\Core\Events\AuctionCreated.`
+- Primary answer: `AuctionCreatedListener handles event:Acme\Core\Events\AuctionCreated.`
 - Confidence: `high`
 - Target trust tier: `5`
 - Transport: `HANDLED_BY event-bus`
 - Evidence tier: `5`
 - Listener provenance: `src/Module/Webhooks/Listeners/AuctionCreatedListener.php`
-- Contract evidence: `opc:opb:event:acme\Core\Events\AuctionCreated:event tier=5`
+- Contract evidence: `opc:opb:event:Acme\Core\Events\AuctionCreated:event tier=5`
 
 ### Operational neighborhood around a known workflow boundary
 
@@ -75,8 +75,8 @@ Command:
 
 ```sh
 node --import tsx ./src/cli/index.ts \
-  --db /tmp/lux-auctic-core-operational.db \
-  --corpus /path/to/auctic-core/vcs \
+  --db /tmp/lux-acme-core-operational.db \
+  --corpus /path/to/acme-core/vcs \
   overlay operational ask "what operational boundaries can reach this workflow?" \
   --target "App\\Jobs\\CreatePrivateOffer"
 ```
@@ -91,10 +91,10 @@ Result:
   - `DISPATCHES sync tier=4`
 - Provenance includes `PrivateOffer -> job:App\Jobs\CreatePrivateOffer`.
 
-## acme Atlas
+## Acme Atlas
 
-Repo: `/path/to/auctic-atlas/vcs`
-DB copy: `/tmp/lux-auctic-atlas-operational.db`
+Repo: `/path/to/acme-atlas/vcs`
+DB copy: `/tmp/lux-acme-atlas-operational.db`
 
 ### What schedules `releases:sync`?
 
@@ -102,8 +102,8 @@ Command:
 
 ```sh
 node --import tsx ./src/cli/index.ts \
-  --db /tmp/lux-auctic-atlas-operational.db \
-  --corpus /path/to/auctic-atlas/vcs \
+  --db /tmp/lux-acme-atlas-operational.db \
+  --corpus /path/to/acme-atlas/vcs \
   overlay operational ask "what schedules releases:sync?" --json
 ```
 
@@ -124,8 +124,8 @@ Command:
 
 ```sh
 node --import tsx ./src/cli/index.ts \
-  --db /tmp/lux-auctic-atlas-operational.db \
-  --corpus /path/to/auctic-atlas/vcs \
+  --db /tmp/lux-acme-atlas-operational.db \
+  --corpus /path/to/acme-atlas/vcs \
   overlay operational ask "what command is triggered by command:data-lake:sync --source=github@routes/console.php:59?"
 ```
 
@@ -143,8 +143,8 @@ Command:
 
 ```sh
 node --import tsx ./src/cli/index.ts \
-  --db /tmp/lux-auctic-atlas-operational.db \
-  --corpus /path/to/auctic-atlas/vcs \
+  --db /tmp/lux-acme-atlas-operational.db \
+  --corpus /path/to/acme-atlas/vcs \
   overlay operational ask "what evidence and trust support command:data-lake:sync --source=github@routes/console.php:59?"
 ```
 

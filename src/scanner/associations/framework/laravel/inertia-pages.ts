@@ -281,10 +281,8 @@ function materializeRegistrations(
       const relative = componentFile.slice(root.root.length + 1, -'.vue'.length);
       const pageName = root.namespace ? `${root.namespace}::${relative}` : relative;
       registrations.push(registration(pageName, componentFile, root, configFile));
-      if (root.namespace === '@aucticcore') {
-        registrations.push(
-          registration(`@AucticCore::${relative}`, componentFile, root, configFile)
-        );
+      if (root.namespace === '@acmecore') {
+        registrations.push(registration(`@AcmeCore::${relative}`, componentFile, root, configFile));
       }
     }
   }

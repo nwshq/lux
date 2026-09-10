@@ -1,13 +1,13 @@
-// Surface detection integration test against auctic-core.
+// Surface detection integration test against acme-core.
 //
 // Validates that the LaravelHttpSurfaceDetector correctly recovers
-// representative routes from the auctic-core codebase — including
+// representative routes from the acme-core codebase — including
 // routes that were previously empty surfaces (no provider closure).
 //
 // Also computes an aggregate scorecard comparing against the pre-tranche
 // baseline (surfaceCount=634, withProviders=578, emptySurfaces=53).
 //
-// Test is skipped when auctic-core is not available.
+// Test is skipped when acme-core is not available.
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { existsSync, readFileSync, readdirSync, statSync } from 'fs';
@@ -15,16 +15,16 @@ import { join } from 'path';
 import { LaravelHttpSurfaceDetector } from '../../scanner/associations/detectors/laravel-http.js';
 import type { AssociationContext } from '../../scanner/associations/types.js';
 
-const AUCTIC_CORE_PATH = '/path/to/auctic-core/vcs';
-const pathExists = existsSync(AUCTIC_CORE_PATH);
+const ACME_CORE_PATH = '/path/to/acme-core/vcs';
+const pathExists = existsSync(ACME_CORE_PATH);
 
 // ---------------------------------------------------------------------------
-// Context builder — reads relevant PHP files from auctic-core
+// Context builder — reads relevant PHP files from acme-core
 // ---------------------------------------------------------------------------
 
 function toRelPath(absPath: string): string {
-  if (absPath.startsWith(AUCTIC_CORE_PATH + '/')) {
-    return absPath.slice(AUCTIC_CORE_PATH.length + 1);
+  if (absPath.startsWith(ACME_CORE_PATH + '/')) {
+    return absPath.slice(ACME_CORE_PATH.length + 1);
   }
   return absPath;
 }
@@ -57,7 +57,7 @@ function globPhpFiles(dir: string, recursive = true): string[] {
 //   - Root service providers (src/CoreServiceProvider.php)
 //   - Module RouteServiceProvider.php files under src/Module/
 //   - Module routes/*.php files under src/Module/
-function buildAucticContext(): AssociationContext {
+function buildAcmeContext(): AssociationContext {
   const entries: Array<{
     filePath: string;
     languageId: string;
@@ -81,15 +81,15 @@ function buildAucticContext(): AssociationContext {
   }
 
   // Root route files
-  const rootRoutes = globPhpFiles(join(AUCTIC_CORE_PATH, 'routes'), false);
+  const rootRoutes = globPhpFiles(join(ACME_CORE_PATH, 'routes'), false);
   addPhpFiles(rootRoutes);
 
   // Root service providers
-  const rootProviders = [join(AUCTIC_CORE_PATH, 'src/CoreServiceProvider.php')];
+  const rootProviders = [join(ACME_CORE_PATH, 'src/CoreServiceProvider.php')];
   addPhpFiles(rootProviders);
 
   // Module service providers and route files
-  const modulesDir = join(AUCTIC_CORE_PATH, 'src/Module');
+  const modulesDir = join(ACME_CORE_PATH, 'src/Module');
   if (existsSync(modulesDir)) {
     for (const moduleName of readdirSync(modulesDir)) {
       const moduleDir = join(modulesDir, moduleName);
@@ -106,7 +106,7 @@ function buildAucticContext(): AssociationContext {
   }
 
   return {
-    rootPath: AUCTIC_CORE_PATH,
+    rootPath: ACME_CORE_PATH,
     nodes: [],
     entries,
     dirtyFiles: [],
@@ -133,13 +133,13 @@ function surfaceWithId(
 // ---------------------------------------------------------------------------
 
 describe.skipIf(!pathExists)(
-  'auctic-core surface detection — representative holdout validation (T7)',
+  'acme-core surface detection — representative holdout validation (T7)',
   () => {
     const detector = new LaravelHttpSurfaceDetector();
     let batch: Awaited<ReturnType<LaravelHttpSurfaceDetector['detect']>>;
 
     beforeEach(async () => {
-      const ctx = buildAucticContext();
+      const ctx = buildAcmeContext();
       batch = await detector.detect(ctx);
     });
 
@@ -201,12 +201,12 @@ describe.skipIf(!pathExists)(
   }
 );
 
-describe.skipIf(!pathExists)('auctic-core surface detection — aggregate scorecard (T8)', () => {
+describe.skipIf(!pathExists)('acme-core surface detection — aggregate scorecard (T8)', () => {
   const detector = new LaravelHttpSurfaceDetector();
   let batch: Awaited<ReturnType<LaravelHttpSurfaceDetector['detect']>>;
 
   beforeEach(async () => {
-    const ctx = buildAucticContext();
+    const ctx = buildAcmeContext();
     batch = await detector.detect(ctx);
   });
 
@@ -230,7 +230,7 @@ describe.skipIf(!pathExists)('auctic-core surface detection — aggregate scorec
     //  differ from what we measure here due to consolidation and coverage expansion)
     const baseline = { surfaceCount: 634, withProviders: 578, emptySurfaces: 53 };
 
-    console.log('--- auctic-core surface scorecard ---');
+    console.log('--- acme-core surface scorecard ---');
     console.log(`  surfaceCount:     ${surfaceCount}  (baseline: ${baseline.surfaceCount})`);
     console.log(`  withProviders:    ${withProviders}  (baseline: ${baseline.withProviders})`);
     console.log(`  emptySurfaces:    ${emptySurfaces}  (baseline: ${baseline.emptySurfaces})`);

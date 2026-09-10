@@ -28,7 +28,7 @@ type MutationId =
   | 'reverse-model-edge'
   | 'bind-resource-by-basename'
   | 'emit-duplicate-edges'
-  | 'wrong-auctic-model'
+  | 'wrong-acme-model'
   | 'remove-required-edge'
   | 'inject-forbidden-edge';
 
@@ -341,7 +341,7 @@ function observe(testCase: PhaseCase, options: SeamOptions = {}): Observation {
     if (!target) diagnostics.push('nova-target-missing');
     else {
       let modelTarget = `symbol:php:${modelFqcn}`;
-      if (options.mutation === 'wrong-auctic-model' && testCase.corpus === 'auctic-core') {
+      if (options.mutation === 'wrong-acme-model' && testCase.corpus === 'acme-core') {
         modelTarget = modelTarget.replace(/\\Offer$/u, '\\OfferChain');
       }
       let candidate = edge(
@@ -575,7 +575,7 @@ function cohortScore(cases: readonly PhaseCase[], result: BatteryResult, corpus:
 }
 
 describe('Phase 14 independent Nova acceptance', () => {
-  it('pins portable schema-v1 synthetic and exact-commit acme owner gold', () => {
+  it('pins portable schema-v1 synthetic and exact-commit Acme owner gold', () => {
     const cases = loadCases();
     expect(cases).toHaveLength(42);
     expect(cases.every((item) => item.goldSchemaVersion === 1)).toBe(true);
@@ -585,8 +585,8 @@ describe('Phase 14 independent Nova acceptance', () => {
       remote: 'https://github.com/nwshq/lux.git',
       commit: LUX_PIN,
     });
-    expect(cases.find((item) => item.corpus === 'auctic-core')?.corpusPin).toEqual({
-      remote: 'https://github.com/auctic-software/auctic-core.git',
+    expect(cases.find((item) => item.corpus === 'acme-core')?.corpusPin).toEqual({
+      remote: 'https://github.com/acme-software/acme-core.git',
       commit: CORE_PIN,
     });
     expect(JSON.stringify(cases)).not.toMatch(/(?:\/Users\/|[A-Za-z]:\\|\/home\/)/u);
@@ -662,10 +662,10 @@ describe('Phase 14 independent Nova acceptance', () => {
     expect(result.danglingTargets).toBe(0);
   });
 
-  it('pins all eight required exact-pin acme source families with a perfect cohort score', () => {
+  it('pins all eight required exact-pin Acme source families with a perfect cohort score', () => {
     const cases = loadCases();
     expect(
-      cases.filter((item) => item.corpus === 'auctic-core').map((item) => item.sourceFamily)
+      cases.filter((item) => item.corpus === 'acme-core').map((item) => item.sourceFamily)
     ).toEqual([
       'src/Module/Offers/ServiceProvider.php',
       'src/Module/Offers/Nova/Offer.php',
@@ -676,7 +676,7 @@ describe('Phase 14 independent Nova acceptance', () => {
       'src/Module/BusinessEntity/Nova/BusinessEntity.php',
       'src/Module/BusinessEntity/Nova/BusinessEntityAddress.php',
     ]);
-    const scoreResult = cohortScore(cases, runBattery(cases), 'auctic-core');
+    const scoreResult = cohortScore(cases, runBattery(cases), 'acme-core');
     expect(scoreResult.recall).toBe(1);
     expect(scoreResult.precision).toBe(1);
   });
@@ -698,7 +698,7 @@ describe('Phase 14 independent Nova acceptance', () => {
     });
   });
 
-  it('executes every prescribed vendor/dynamic/direction/basename/duplicate/acme/remove/inject mutant red', () => {
+  it('executes every prescribed vendor/dynamic/direction/basename/duplicate/Acme/remove/inject mutant red', () => {
     const cases = loadCases();
     const controls = cases.flatMap((item) => item.watchedMutations ?? []);
     expect(controls.map((item) => item.id)).toEqual([
@@ -708,7 +708,7 @@ describe('Phase 14 independent Nova acceptance', () => {
       'reverse-model-edge',
       'bind-resource-by-basename',
       'emit-duplicate-edges',
-      'wrong-auctic-model',
+      'wrong-acme-model',
       'remove-required-edge',
       'inject-forbidden-edge',
     ]);

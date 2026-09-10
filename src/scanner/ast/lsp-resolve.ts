@@ -176,7 +176,7 @@ export async function resolveTypedReceiverEdges(
   const edges: StructuralRelationEdge[] = [];
   const seenEdge = new Set<string>();
 
-  // Reconcile symlinked paths before keying resolved targets. A composer path-repo
+  // Example Dashboardcile symlinked paths before keying resolved targets. A composer path-repo
   // kernel resolves through `vendor/<pkg>` (a directory symlink), while the scan
   // keyed those files by their realpath (`resolveFirstPartyRoots`), so the language
   // server's symlink-path definition and the scan's realpath key never match and

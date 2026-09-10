@@ -7,7 +7,7 @@ interface PromotionCase {
 }
 describe('Tranche3 integration promotion', () => {
   it('has independently thresholded exact corpora', () => {
-    for (const c of ['auctic-mobile', 'example-workspace', 'example-dashboard']) {
+    for (const c of ['acme-mobile', 'example-workspace', 'example-dashboard']) {
       const x = JSON.parse(
         readFileSync(
           new URL(`../../../benchmarks/relationship/cases/${c}-tranche-3.json`, import.meta.url),
@@ -18,7 +18,7 @@ describe('Tranche3 integration promotion', () => {
       expect(x.filter((value) => value.forbiddenEdges.length)).toHaveLength(15);
       expect(new Set(x.map((value) => value.sourceTruthId)).size).toBe(45);
       expect(x.every((value) => !('controlKind' in value))).toBe(true);
-      if (c !== 'auctic-mobile') {
+      if (c !== 'acme-mobile') {
         expect(
           x.every((value) =>
             /^.+:\d+:(?:renders_component|uses_hook|forbidden):/.test(value.sourceTruthId)

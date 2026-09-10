@@ -296,7 +296,7 @@ describe('module-boundary aggregation', () => {
       symbol_name: 'POST /api/listings/update-sold/{listing}',
     });
     upsertNode(db, {
-      id: 'symbol:php:acme\\Core\\Http\\Controllers\\Api\\ListingController',
+      id: 'symbol:php:Acme\\Core\\Http\\Controllers\\Api\\ListingController',
       node_type: 'symbol',
       file_path: 'src/Http/Controllers/Api/ListingController.php',
       symbol_name: 'ListingController',
@@ -325,7 +325,7 @@ describe('module-boundary aggregation', () => {
     upsertEdge(db, {
       id: 'surface->shared-controller',
       source_node_id: 'surface:http:POST:/api/listings/update-sold/{listing}',
-      target_node_id: 'symbol:php:acme\\Core\\Http\\Controllers\\Api\\ListingController',
+      target_node_id: 'symbol:php:Acme\\Core\\Http\\Controllers\\Api\\ListingController',
       edge_type: 'handled_by',
       confidence: 0.95,
       confidence_class: 'framework-inferred',

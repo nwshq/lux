@@ -3,9 +3,7 @@
     "lux": {
       "description": "Lux Knowledge Platform - CORPUS semantic search, knowledge retrieval, and expert panel",
       "command": "node",
-      "args": [
-        "/path/to/lux/dist/mcp/server.js"
-      ],
+      "args": ["/path/to/lux/dist/mcp/server.js"],
       "env": {
         "NODE_ENV": "production"
       }

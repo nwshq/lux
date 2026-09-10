@@ -137,7 +137,7 @@ describe('VueLspEnricher', () => {
 // SFC block flattening
 // ---------------------------------------------------------------------------
 // The shape below is the real tree @vue/language-server 2.2.12 returned for
-// auctic-core's UserDetails.vue: three block wrappers with everything useful
+// acme-core's UserDetails.vue: three block wrappers with everything useful
 // nested one level down. Symbol materialization takes only top-level symbols,
 // so unflattened this file contributes three wrappers and zero identifiers.
 

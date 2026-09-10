@@ -9,9 +9,9 @@
       "minRecall": 1
     },
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/(authenticated)/modal.tsx",
@@ -81,9 +81,9 @@
       "minRecall": 1
     },
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/auth/verify.tsx",
@@ -119,9 +119,9 @@
       "minRecall": 1
     },
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/+not-found.tsx",
@@ -157,9 +157,9 @@
       "minRecall": 1
     },
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/(authenticated)/_layout.tsx",
@@ -195,9 +195,9 @@
       "minRecall": 1
     },
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "components/SettingsIcon.tsx",
@@ -233,9 +233,9 @@
       "minRecall": 1
     },
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/(authenticated)/catalog/index.tsx",
@@ -271,9 +271,9 @@
       "minRecall": 1
     },
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/auth/login-qr-scanner.tsx",
@@ -309,9 +309,9 @@
       "minRecall": 1
     },
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/components/ListingCard.tsx",
@@ -347,9 +347,9 @@
       "minRecall": 1
     },
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/(authenticated)/catalog/qr-scanner.tsx",
@@ -385,9 +385,9 @@
       "minRecall": 1
     },
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/(authenticated)/catalog/listing/[id]/index.tsx",
@@ -423,9 +423,9 @@
       "minRecall": 1
     },
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/(authenticated)/catalog/qr-scanner.tsx",
@@ -461,9 +461,9 @@
       "minRecall": 1
     },
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/(authenticated)/catalog/qr-scanner.tsx",
@@ -499,9 +499,9 @@
       "minRecall": 1
     },
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/(authenticated)/catalog/qr-scanner.tsx",
@@ -537,9 +537,9 @@
       "minRecall": 1
     },
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/oauth.tsx",
@@ -575,9 +575,9 @@
       "minRecall": 1
     },
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "components/EditLink.tsx",
@@ -613,9 +613,9 @@
       "minRecall": 1
     },
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "components/EventCard.tsx",
@@ -651,9 +651,9 @@
       "minRecall": 1
     },
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "components/ImageWithFallback.tsx",
@@ -689,9 +689,9 @@
       "minRecall": 1
     },
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/auth/index.tsx",
@@ -1497,13 +1497,13 @@
       "minRecall": 1
     },
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/(authenticated)/settings/about.tsx",
-    "id": "p16-forbidden-auctic-open-url",
+    "id": "p16-forbidden-acme-open-url",
     "query": {
       "tool": "phase16ExpoRouterReferenceSeam",
       "args": {

@@ -6,7 +6,7 @@
   "corpusId": "example-app",
   "cases": [
     {
-      "id": "chirocat-status-overlay-complete",
+      "id": "example-app-status-overlay-complete",
       "surface": "status",
       "mode": "status",
       "question": "index status",
@@ -21,7 +21,7 @@
       }
     },
     {
-      "id": "chirocat-spec-evidence-deferred-event-seed",
+      "id": "example-app-spec-evidence-deferred-event-seed",
       "surface": "spec-evidence",
       "mode": "overlay",
       "question": "What source evidence supports this event?",
@@ -34,7 +34,7 @@
       }
     },
     {
-      "id": "chirocat-search-invalid-query",
+      "id": "example-app-search-invalid-query",
       "surface": "search",
       "mode": "search",
       "question": "\"unterminated phrase",
@@ -42,7 +42,7 @@
       "expect": { "exitCode": 1, "searchRefusalReason": "invalid-query" }
     },
     {
-      "id": "chirocat-search-content-scoped",
+      "id": "example-app-search-content-scoped",
       "surface": "search",
       "mode": "search",
       "question": "appointment",

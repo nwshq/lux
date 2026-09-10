@@ -557,18 +557,18 @@ describe('Phase 12 independent Inertia page-hydration acceptance', () => {
     expect(result.score.recall).toBeGreaterThanOrEqual(0.9);
   });
 
-  it('covers facade/helper/plain roots, acme namespaces, legacy names, globs, and module maps', () => {
+  it('covers facade/helper/plain roots, Acme namespaces, legacy names, globs, and module maps', () => {
     const ids = new Set(loadCases().map((item) => item.id));
     for (const required of [
       'p12-positive-01-facade-root',
       'p12-positive-02-helper-root',
       'p12-positive-07-second-root',
       'p12-positive-09-config-namespace',
-      'p12-positive-12-legacy-auctic-config',
+      'p12-positive-12-legacy-acme-config',
       'p12-positive-13-static-relative-glob',
       'p12-positive-15-module-map-direct',
-      'p12-positive-16-auctic-module-map',
-      'p12-positive-24-legacy-auctic-glob',
+      'p12-positive-16-acme-module-map',
+      'p12-positive-24-legacy-acme-glob',
     ]) {
       expect(ids.has(required), required).toBe(true);
     }

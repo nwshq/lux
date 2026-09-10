@@ -2,7 +2,7 @@
 //
 // Plain-JS cosine kernel (D7 — no ANN, no sqlite-vec: node-sqlite3-wasm ships zero loadExtension and
 // WASM cannot dlopen, so an in-process vector extension is not an option). The anchor-viable set on
-// auctic-core is ~40,915 nodes (03 §Population scope), and a full fp32 dot-product scan over that many
+// acme-core is ~40,915 nodes (03 §Population scope), and a full fp32 dot-product scan over that many
 // 384-dim vectors is the warm-path latency target (03 §Warm vs cold: an FTS hit + a full-scan cosine
 // in tens of ms, model + index resident). This is the exact read path the semantic half of the anchor
 // ranker uses: the shared CLI/MCP orchestration (cli/anchor-search.ts) calls topCosine, then hands the

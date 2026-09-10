@@ -256,13 +256,13 @@ function checkPathForbidden(
   line: number,
   importPath: string,
   suppressed: boolean,
-  dynamic: boolean,
+  dynamic: boolean
 ): Violation | undefined {
   if (!targetPath) return undefined;
   for (const rule of PATH_FORBIDDEN_RULES) {
     if (!targetPath.startsWith(rule.targetPrefix)) continue;
     const allowed = rule.allowedImporters.some((prefix) =>
-      prefix.endsWith('/') ? sourceRelPath.startsWith(prefix) : sourceRelPath === prefix,
+      prefix.endsWith('/') ? sourceRelPath.startsWith(prefix) : sourceRelPath === prefix
     );
     if (allowed) return undefined;
     return {
@@ -311,7 +311,7 @@ function analyzeFile(sourceFile: SourceFile): Violation[] {
       line,
       specifier,
       suppressed,
-      false,
+      false
     );
     if (pathViolation) violations.push(pathViolation);
 
@@ -375,7 +375,7 @@ function analyzeFile(sourceFile: SourceFile): Violation[] {
       line,
       specifier,
       suppressed,
-      false,
+      false
     );
     if (pathViolation) violations.push(pathViolation);
   }
@@ -425,7 +425,7 @@ function detectDynamicCrossModuleImports(sourceFile: SourceFile): Violation[] {
       line,
       specifier,
       suppressed,
-      true,
+      true
     );
     if (pathViolation) violations.push(pathViolation);
 
@@ -521,7 +521,7 @@ function main(): void {
     if (active.length === 0) {
       console.log(
         `Architecture lint passed. ${sourceFiles.length} files analyzed, 0 violations.` +
-          (suppressed.length > 0 ? ` (${suppressed.length} suppressed)` : ''),
+          (suppressed.length > 0 ? ` (${suppressed.length} suppressed)` : '')
       );
     } else {
       console.error(`\nArchitecture violations found:\n`);
@@ -534,7 +534,9 @@ function main(): void {
       }
       console.error(
         `${active.length} violation(s) in ${sourceFiles.length} files.` +
-          (suppressed.length > 0 ? ` (${suppressed.length} suppressed with @architecture-ignore)` : ''),
+          (suppressed.length > 0
+            ? ` (${suppressed.length} suppressed with @architecture-ignore)`
+            : '')
       );
     }
 

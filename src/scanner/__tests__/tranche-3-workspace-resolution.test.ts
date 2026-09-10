@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { resolveProjectModule } from '../project-resolution/resolver.js';
 describe('Tranche3 workspace gate', () => {
-  it('preserves example-workspace package resolution without name collapse', () => {
+  it('preserves Example Workspace package resolution without name collapse', () => {
     const p: any = {
       rootPath: '/r',
       sourceFiles: new Set(['packages/ui/src/a.ts']),
@@ -19,7 +19,11 @@ describe('Tranche3 workspace gate', () => {
     };
     expect(
       resolveProjectModule(
-        { importerFile: 'apps/desktop/src/a.ts', specifier: '@example-workspace/ui', mode: 'import' },
+        {
+          importerFile: 'apps/desktop/src/a.ts',
+          specifier: '@example-workspace/ui',
+          mode: 'import',
+        },
         p
       )
     ).toMatchObject({ status: 'resolved', targetFile: 'packages/ui/src/a.ts' });

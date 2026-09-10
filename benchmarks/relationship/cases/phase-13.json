@@ -1991,21 +1991,21 @@
     "expectedDiagnostics": ["livewire-dynamic-mount"]
   },
   {
-    "corpus": "auctic-core",
+    "corpus": "acme-core",
     "capability": "livewire-class-view-mount-bridge",
     "owner": "Example Maintainer",
     "goldSchemaVersion": 1,
     "fixtureSchemaVersion": 1,
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "remote": "https://github.com/acme-software/acme-core.git",
       "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
     },
-    "id": "p13-auctic-core-exact-pin-not-applicable",
+    "id": "p13-acme-core-exact-pin-not-applicable",
     "query": {
       "tool": "phase13LivewirePreflight",
       "args": {
-        "manifestCorpus": "auctic-core",
-        "resolvedRemote": "https://github.com/auctic-software/auctic-core.git",
+        "manifestCorpus": "acme-core",
+        "resolvedRemote": "https://github.com/acme-software/acme-core.git",
         "resolvedCommit": "3afee6c0a42808c905c6830e5073eb83386c8409",
         "candidateFiles": []
       }

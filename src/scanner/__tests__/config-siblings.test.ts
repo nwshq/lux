@@ -25,14 +25,14 @@ describe('validateSiblingsConfig (spec 10 Part A)', () => {
   it('parses package/path/db entries with role default peer', () => {
     const d = writeConfig(
       'siblings:\n' +
-        '  auctic-core:\n    package: acme/core\n' +
+        '  acme-core:\n    package: acme/core\n' +
         '  res:\n    path: ../res\n' +
         '  cached:\n    db: ./artifacts/res.db\n'
     );
     const cfg = loadLspConfig(d);
     expect(cfg.siblings).toBeDefined();
-    expect(cfg.siblings!['auctic-core'].package).toBe('acme/core');
-    expect(cfg.siblings!['auctic-core'].role).toBe('peer');
+    expect(cfg.siblings!['acme-core'].package).toBe('acme/core');
+    expect(cfg.siblings!['acme-core'].role).toBe('peer');
     expect(cfg.siblings!['res'].path).toBe('../res');
     expect(cfg.siblings!['res'].role).toBe('peer');
     expect(cfg.siblings!['cached'].db).toBe('./artifacts/res.db');

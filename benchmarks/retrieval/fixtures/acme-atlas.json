@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "goldSchemaVersion": 1,
   "owner": "Example Maintainer",
-  "repoId": "auctic-atlas",
-  "corpusId": "auctic-atlas",
+  "repoId": "acme-atlas",
+  "corpusId": "acme-atlas",
   "cases": [
     {
       "id": "atlas-operational-dispatch-refresh-client-status",

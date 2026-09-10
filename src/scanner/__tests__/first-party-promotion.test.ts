@@ -29,11 +29,11 @@ describe('first-party promotion (multi-root overlay)', () => {
     write(join(kernel, 'composer.json'), `{ "name": "acme/core" }\n`);
 
     // Kernel package (promoted as first-party): its provider registers routes under
-    // the acme\Core controller namespace; routes reference an App\ controller
+    // the Acme\Core controller namespace; routes reference an App\ controller
     // (the client's) and the kernel's own controller.
     write(
       join(kernel, 'src/CoreServiceProvider.php'),
-      `<?php\nRoute::namespace("acme\\Core\\Http\\Controllers")->group(__DIR__ . '/../routes/web.php');\n`
+      `<?php\nRoute::namespace("Acme\\Core\\Http\\Controllers")->group(__DIR__ . '/../routes/web.php');\n`
     );
     write(
       join(kernel, 'routes/web.php'),
@@ -44,7 +44,7 @@ describe('first-party promotion (multi-root overlay)', () => {
     );
     write(
       join(kernel, 'src/Http/Controllers/Api/AdminController.php'),
-      `<?php\nnamespace acme\\Core\\Http\\Controllers\\Api;\nclass AdminController { public function index() {} }\n`
+      `<?php\nnamespace Acme\\Core\\Http\\Controllers\\Api;\nclass AdminController { public function index() {} }\n`
     );
 
     // Client app (scan root): provides EventsController but NOT GhostController.
@@ -84,7 +84,7 @@ describe('first-party promotion (multi-root overlay)', () => {
     );
     // /inventory → client's App\ EventsController = client-override
     expect(breakdown['client-override'] ?? 0).toBeGreaterThanOrEqual(1);
-    // /admin → kernel's acme\Core AdminController = kernel-owned
+    // /admin → kernel's Acme\Core AdminController = kernel-owned
     expect(breakdown['kernel-owned'] ?? 0).toBeGreaterThanOrEqual(1);
     // /missing → App\ GhostController the client doesn't implement = client-gap
     expect(breakdown['client-gap'] ?? 0).toBeGreaterThanOrEqual(1);

@@ -15,7 +15,7 @@ export type Tranche3MutationKind =
   | 'disable-framework-producer';
 export interface Tranche3MutationV1 {
   id: string;
-  corpus: 'auctic-mobile' | 'example-workspace' | 'example-dashboard' | 'synthetic';
+  corpus: 'acme-mobile' | 'example-workspace' | 'example-dashboard' | 'synthetic';
   kind: Tranche3MutationKind;
   files: string[];
   expectedFailedChecks: string[];

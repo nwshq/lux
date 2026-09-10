@@ -30,8 +30,8 @@ npm run benchmark:retrieval -- --preflight-only
 npm run benchmark:retrieval -- \
   --manifest benchmarks/corpora/manifest.json \
   --checkout-overrides /absolute/path/to/checkouts.json \
-  --fixture benchmarks/retrieval/fixtures/auctic-core.json \
-  --fixture benchmarks/retrieval/fixtures/auctic-core-anchors.json \
+  --fixture benchmarks/retrieval/fixtures/acme-core.json \
+  --fixture benchmarks/retrieval/fixtures/acme-core-anchors.json \
   --out benchmarks/retrieval/results/manual
 
 npm run benchmark:bootstrap -- \
@@ -45,17 +45,17 @@ The override file is strict JSON containing only a corpus-ID-to-path map, for ex
 ```json
 {
   "lux": "~/Code/lux/vcs",
-  "auctic-core": "/work/checkouts/auctic-core"
+  "acme-core": "/work/checkouts/acme-core"
 }
 ```
 
 Unknown IDs, non-string values, unsafe IDs, unknown fixture fields required by a newer schema,
 owner/schema/gold-version mismatches, duplicate case IDs, and unmet manifest `minimumCases` refuse
-the whole run. Multiple retrieval fixture files may target one corpus (for example `auctic-core` and
+the whole run. Multiple retrieval fixture files may target one corpus (for example `acme-core` and
 its anchors fixture): their case counts are aggregated and that corpus appears only once in batch
 preflight.
 
-Historical `auctic-atlas` and `example-app` fixtures remain portable but are intentionally noncanonical.
+Historical `acme-atlas` and `example-app` fixtures remain portable but are intentionally noncanonical.
 They are never selected by default and explicit selection refuses unless an owner-approved supplied
 manifest includes their pins. Do not add local or guessed pins to the canonical manifest.
 

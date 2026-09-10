@@ -32,7 +32,7 @@
     "validate:dead-code": "tsx scripts/validate-dead-code.ts",
     "verify:native-free": "tsx scripts/verify-native-free.ts",
     "verify:docs-surface": "tsx scripts/verify-docs-surface.ts",
-    "check": "npm run lint && npm run format:check && npm run verify:parser-assets && npm run build && npm test && npm run lint:architecture && npm run test:architecture && npm run validate:dead-code && npm run verify:native-free && npm run verify:docs-surface",
+    "check": "npm run lint && npm run format:check && npm run verify:parser-assets && npm run build && npm test && npm run lint:architecture && npm run test:architecture && npm run validate:dead-code && npm run verify:native-free && npm run verify:docs-surface && npm run verify:public-hygiene",
     "start": "node dist/cli/index.js",
     "mcp": "node dist/mcp/server.js",
     "benchmark:retrieval": "npm run build && tsx benchmarks/retrieval/run.ts",
@@ -40,7 +40,8 @@
     "benchmark:scoped-refresh": "npm run build && tsx benchmarks/retrieval/scoped-refresh-timing.ts",
     "benchmark:bootstrap": "tsx benchmarks/bootstrap/run.ts",
     "validate:tranche-3": "vitest run benchmarks/relationship/__tests__ src/scanner/__tests__/tranche-3-*.test.ts src/integration/__tests__/phase-{15,16,17,18,19}-acceptance.test.ts",
-    "verify:parser-assets": "tsx scripts/verify-parser-assets.ts"
+    "verify:parser-assets": "tsx scripts/verify-parser-assets.ts",
+    "verify:public-hygiene": "tsx scripts/verify-public-hygiene.ts"
   },
   "keywords": [
     "mcp",

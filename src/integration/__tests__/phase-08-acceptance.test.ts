@@ -121,7 +121,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const benchmarkFile = resolve(here, '../../../benchmarks/relationship/cases/phase-08.json');
 const LUX_PIN = '5a0d0822d3592d0b34a2cae744ab28e38de6168d';
 const CORE_PIN = '3afee6c0a42808c905c6830e5073eb83386c8409';
-const PULSE_PIN = '5e57f6be9c20a5973b305e0980ada2ff8ebeec4b';
+const EXAMPLE_WORKSPACE_PIN = '5e57f6be9c20a5973b305e0980ada2ff8ebeec4b';
 
 const REQUIRED_SYNTHETIC_LAYOUT = [
   'tsconfig.json',
@@ -224,7 +224,7 @@ const SYNTHETIC_EXPORTS: Readonly<Record<string, string>> = {
   '@npm/pkg': 'packages/npm-pkg/src/index.ts',
 };
 
-const PULSE_EXPORTS: Readonly<Record<string, string>> = {
+const EXAMPLE_WORKSPACE_EXPORTS: Readonly<Record<string, string>> = {
   '@example-workspace/store': 'packages/store/src/index.ts',
   '@example-workspace/sync': 'packages/sync/src/index.ts',
   '@example-workspace/ui/primitives': 'packages/ui/src/primitives/index.ts',
@@ -339,7 +339,7 @@ const referenceResolver: ResolverSeam = {
       return resolution(target.endsWith('.ts') ? target : `${target}.ts`, 'relative');
     }
 
-    if (corpus === 'auctic-core') {
+    if (corpus === 'acme-core') {
       if (specifier.startsWith('@/')) {
         return resolution(`resources/js/${specifier.slice(2)}`, 'vite', 'vite.config.js');
       }
@@ -352,7 +352,7 @@ const referenceResolver: ResolverSeam = {
     }
 
     if (corpus === 'example-workspace') {
-      const target = PULSE_EXPORTS[specifier];
+      const target = EXAMPLE_WORKSPACE_EXPORTS[specifier];
       if (target) {
         const root = packageRoot(specifier)!;
         const manifest = WORKSPACE_MANIFESTS[root];
@@ -689,7 +689,7 @@ function cohortScores(cases: readonly PhaseCase[], result: BatteryResult, corpus
 }
 
 describe('Phase 8 independent project-resolution acceptance', () => {
-  it('pins portable synthetic, acme Core, and example-workspace owner gold without absolute paths', () => {
+  it('pins portable synthetic, Acme Core, and Example Workspace owner gold without absolute paths', () => {
     const cases = loadCases();
     expect(cases).toHaveLength(65);
     expect(cases.every((testCase) => testCase.fixtureSchemaVersion === 1)).toBe(true);
@@ -698,9 +698,13 @@ describe('Phase 8 independent project-resolution acceptance', () => {
     expect(
       cases.find((item) => item.corpus === 'phase-08-project-synthetic')?.corpusPin.commit
     ).toBe(LUX_PIN);
-    expect(cases.find((item) => item.corpus === 'auctic-core')?.corpusPin.commit).toBe(CORE_PIN);
-    expect(cases.find((item) => item.corpus === 'example-workspace')?.corpusPin.commit).toBe(PULSE_PIN);
-    expect(new Set(cases.map((testCase) => testCase.owner))).toEqual(new Set(['Example Maintainer']));
+    expect(cases.find((item) => item.corpus === 'acme-core')?.corpusPin.commit).toBe(CORE_PIN);
+    expect(cases.find((item) => item.corpus === 'example-workspace')?.corpusPin.commit).toBe(
+      EXAMPLE_WORKSPACE_PIN
+    );
+    expect(new Set(cases.map((testCase) => testCase.owner))).toEqual(
+      new Set(['Example Maintainer'])
+    );
     const serialized = JSON.stringify(cases);
     expect(serialized).not.toMatch(/(?:\/Users\/|[A-Za-z]:\\|\/home\/)/u);
   });
@@ -746,15 +750,15 @@ describe('Phase 8 independent project-resolution acceptance', () => {
       expect(ids.has(required), required).toBe(true);
   });
 
-  it('meets acme Core alias recall and example-workspace workspace/export precision and recall gates', () => {
+  it('meets Acme Core alias recall and Example Workspace workspace/export precision and recall gates', () => {
     const cases = loadCases();
     const result = runBattery(cases);
-    const core = cohortScores(cases, result, 'auctic-core');
-    const example-workspace = cohortScores(cases, result, 'example-workspace');
+    const core = cohortScores(cases, result, 'acme-core');
+    const workspace = cohortScores(cases, result, 'example-workspace');
     expect(core.recall).toBeGreaterThanOrEqual(0.95);
     expect(core.precision).toBe(1);
-    expect(example-workspace.recall).toBeGreaterThanOrEqual(0.9);
-    expect(example-workspace.precision).toBeGreaterThanOrEqual(0.95);
+    expect(workspace.recall).toBeGreaterThanOrEqual(0.9);
+    expect(workspace.precision).toBeGreaterThanOrEqual(0.95);
     expect(
       result.observations
         .filter((item) => item.caseId.startsWith('p08-core-'))

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { scoreCohort } from '../validate.js';
 import type { RelationshipBenchmarkCaseV1 } from '../../../src/scanner/contracts/program.js';
 describe('Tranche3 promotion scorer', () => {
-  for (const corpus of ['auctic-mobile', 'example-workspace', 'example-dashboard'])
+  for (const corpus of ['acme-mobile', 'example-workspace', 'example-dashboard'])
     it(`${corpus} passes its own fixed denominator`, () => {
       const cases = JSON.parse(
           readFileSync(new URL(`../cases/${corpus}-tranche-3.json`, import.meta.url), 'utf8')

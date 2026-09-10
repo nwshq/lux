@@ -18,7 +18,7 @@ export function resolveOwnershipIntersection(
   const touchedSymbols = new Set(touch.symbolIds);
   const kernelCfg = loadLspConfig(ctx.corpusPath).overlay?.kernel;
 
-  // (b) cross-area recompute — the auctic-res path (SC-4)
+  // (b) cross-area recompute — the acme-res path (SC-4)
   if (kernelCfg?.package) {
     try {
       const kernel = resolveKernel(ctx.corpusPath, kernelCfg, ctx.kernelOverride);

@@ -12,18 +12,18 @@
       "minimumCases": 1
     },
     {
-      "id": "auctic-core",
-      "remote": "https://github.com/auctic-software/auctic-core.git",
-      "checkoutHints": ["~/Code/auctic-core"],
+      "id": "acme-core",
+      "remote": "https://github.com/acme-software/acme-core.git",
+      "checkoutHints": ["~/Code/acme-core"],
       "commit": "3afee6c0a42808c905c6830e5073eb83386c8409",
       "fixtureSchemaVersion": 1,
       "goldSchemaVersion": 1,
       "minimumCases": 1
     },
     {
-      "id": "auctic-mobile",
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
-      "checkoutHints": ["~/Code/auctic-mobile"],
+      "id": "acme-mobile",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
+      "checkoutHints": ["~/Code/acme-mobile"],
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7",
       "fixtureSchemaVersion": 1,
       "goldSchemaVersion": 1,
@@ -49,7 +49,7 @@
     },
     {
       "id": "example-infrastructure",
-      "remote": "https://github.com/auctic-software/example-infrastructure.git",
+      "remote": "https://github.com/acme-software/example-infrastructure.git",
       "checkoutHints": ["~/Code/example-infrastructure"],
       "commit": "5007257de21666628eea904fc80cded436e40536",
       "fixtureSchemaVersion": 1,
@@ -58,7 +58,7 @@
     },
     {
       "id": "example-rds-clusters",
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "checkoutHints": ["~/Code/example-rds-clusters"],
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9",
       "fixtureSchemaVersion": 1,
@@ -67,7 +67,7 @@
     },
     {
       "id": "example-service-alpha",
-      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "remote": "https://github.com/acme-software/example-service-alpha.git",
       "checkoutHints": ["~/Code/example-service-alpha"],
       "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f",
       "fixtureSchemaVersion": 1,
@@ -76,7 +76,7 @@
     },
     {
       "id": "example-service-beta",
-      "remote": "https://github.com/auctic-software/example-service-beta.git",
+      "remote": "https://github.com/acme-software/example-service-beta.git",
       "checkoutHints": ["~/Code/example-service-beta"],
       "commit": "12b41d82dd2a5e4ccda0cccfab19e0bb94076d6b",
       "fixtureSchemaVersion": 1,

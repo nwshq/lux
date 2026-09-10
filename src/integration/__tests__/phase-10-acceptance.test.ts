@@ -752,12 +752,12 @@ describe('Phase 10 independent Vue composable/store acceptance', () => {
       remote: 'https://github.com/nwshq/lux.git',
       commit: LUX_PIN,
     });
-    expect(cases.find((item) => item.corpus === 'auctic-core')?.corpusPin).toEqual({
-      remote: 'https://github.com/auctic-software/auctic-core.git',
+    expect(cases.find((item) => item.corpus === 'acme-core')?.corpusPin).toEqual({
+      remote: 'https://github.com/acme-software/acme-core.git',
       commit: CORE_PIN,
     });
     expect(JSON.stringify(cases)).not.toMatch(/(?:\/Users\/|[A-Za-z]:\\\\|\/home\/)/u);
-    const realCases = cases.filter((item) => item.corpus === 'auctic-core');
+    const realCases = cases.filter((item) => item.corpus === 'acme-core');
     expect(realCases).toHaveLength(4);
     for (const testCase of realCases) {
       expect(testCase.realGold).toMatchObject({

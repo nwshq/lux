@@ -2,19 +2,19 @@
   "schemaVersion": 1,
   "goldSchemaVersion": 1,
   "owner": "Example Maintainer",
-  "repoId": "auctic-core",
-  "corpusId": "auctic-core",
+  "repoId": "acme-core",
+  "corpusId": "acme-core",
   "cases": [
     {
       "id": "core-operational-listener-auction-created",
       "surface": "operational",
       "mode": "overlay",
-      "question": "what listeners handle acme\\Core\\Events\\AuctionCreated?",
+      "question": "what listeners handle Acme\\Core\\Events\\AuctionCreated?",
       "expect": {
         "exitCode": 0,
         "resolution": "resolved",
         "intent": "event-listeners",
-        "targetId": "opb:event:acme\\Core\\Events\\AuctionCreated",
+        "targetId": "opb:event:Acme\\Core\\Events\\AuctionCreated",
         "summaryIncludes": "AuctionCreatedListener",
         "minDirectEvidence": 1,
         "overlayNativeJson": true,

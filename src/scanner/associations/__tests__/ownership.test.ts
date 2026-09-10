@@ -40,7 +40,7 @@ function handlerEdge(surface: string, target: string): StructuralRelationEdge {
 }
 
 describe('classifyOwnership', () => {
-  const kernelId = 'symbol:php:acme\\Core\\Http\\Controllers\\Foo';
+  const kernelId = 'symbol:php:Acme\\Core\\Http\\Controllers\\Foo';
   const appId = 'symbol:php:App\\Http\\Controllers\\Foo';
   const vendorId = 'symbol:php:Laravel\\Jetstream\\TeamController';
 
@@ -72,10 +72,10 @@ describe('classifyHandlerOwnership', () => {
     mkdirSync(testDir, { recursive: true });
     db = new LuxDatabase(join(testDir, 'test.db'));
 
-    // present targets: kernel (local, acme\Core), client override (local, App\),
+    // present targets: kernel (local, Acme\Core), client override (local, App\),
     // and a MERGED VENDOR controller (vendor-pack origin) — must NOT be kernel-owned.
     db.upsertStructuralNode(
-      symbolNode('symbol:php:acme\\Core\\Http\\Controllers\\KernelFoo', 'local')
+      symbolNode('symbol:php:Acme\\Core\\Http\\Controllers\\KernelFoo', 'local')
     );
     db.upsertStructuralNode(symbolNode('symbol:php:App\\Http\\Controllers\\ClientFoo', 'local'));
     db.upsertStructuralNode(
@@ -83,7 +83,7 @@ describe('classifyHandlerOwnership', () => {
     );
 
     AssociationEngine.persistEdges(db, [
-      handlerEdge('surface:http:GET:/a', 'symbol:php:acme\\Core\\Http\\Controllers\\KernelFoo'), // kernel-owned (present, local)
+      handlerEdge('surface:http:GET:/a', 'symbol:php:Acme\\Core\\Http\\Controllers\\KernelFoo'), // kernel-owned (present, local)
       handlerEdge('surface:http:GET:/b', 'symbol:php:App\\Http\\Controllers\\ClientFoo'), // client-override (present App)
       handlerEdge('surface:http:GET:/c', 'symbol:php:App\\Http\\Controllers\\MissingFoo'), // client-gap (absent App)
       handlerEdge('surface:http:GET:/d', 'symbol:php:Laravel\\Jetstream\\TeamController'), // external (absent)

@@ -11,7 +11,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/[id]/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/[id]/page.tsx:102:renders_component:component:react:admin-dashboard%2Fcomponents%2Fevaluations%2Fevaluation-status-badge.tsx#EvaluationStatusBadge",
-    "id": "t3-recon-positive-01",
+    "id": "t3-example-dashboard-positive-01",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -42,7 +42,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/[id]/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/[id]/page.tsx:103:renders_component:component:react:admin-dashboard%2Fcomponents%2Fevaluations%2Ftrigger-badge.tsx#TriggerBadge",
-    "id": "t3-recon-positive-02",
+    "id": "t3-example-dashboard-positive-02",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -73,7 +73,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/[id]/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/[id]/page.tsx:127:renders_component:component:react:admin-dashboard%2Fcomponents%2Fevaluations%2Fdetail%2Fevaluation-actions.tsx#EvaluationActions",
-    "id": "t3-recon-positive-03",
+    "id": "t3-example-dashboard-positive-03",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -104,7 +104,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/[id]/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/[id]/page.tsx:137:renders_component:component:react:admin-dashboard%2Fcomponents%2Fevaluations%2Fdetail%2Fpipeline-stepper.tsx#PipelineStepper",
-    "id": "t3-recon-positive-04",
+    "id": "t3-example-dashboard-positive-04",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -135,7 +135,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/[id]/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/[id]/page.tsx:140:renders_component:component:react:admin-dashboard%2Fcomponents%2Fevaluations%2Fdetail%2Ftriage-card.tsx#TriageCard",
-    "id": "t3-recon-positive-05",
+    "id": "t3-example-dashboard-positive-05",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -166,7 +166,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/[id]/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/[id]/page.tsx:141:renders_component:component:react:admin-dashboard%2Fcomponents%2Fevaluations%2Fdetail%2Fassessment-card.tsx#AssessmentCard",
-    "id": "t3-recon-positive-06",
+    "id": "t3-example-dashboard-positive-06",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -197,7 +197,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/[id]/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/[id]/page.tsx:144:renders_component:component:react:admin-dashboard%2Fcomponents%2Fevaluations%2Fdetail%2Fpushback-questions-card.tsx#PushbackQuestionsCard",
-    "id": "t3-recon-positive-07",
+    "id": "t3-example-dashboard-positive-07",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -228,7 +228,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/[id]/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/[id]/page.tsx:147:renders_component:component:react:admin-dashboard%2Fcomponents%2Fevaluations%2Fdetail%2Fverification-card.tsx#VerificationCard",
-    "id": "t3-recon-positive-08",
+    "id": "t3-example-dashboard-positive-08",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -259,7 +259,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/[id]/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/[id]/page.tsx:150:renders_component:component:react:admin-dashboard%2Fcomponents%2Fevaluations%2Fdetail%2Fexploration-card.tsx#ExplorationCard",
-    "id": "t3-recon-positive-09",
+    "id": "t3-example-dashboard-positive-09",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -290,7 +290,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:71:renders_component:component:react:admin-dashboard%2Fcomponents%2Fevaluations%2Fevaluations-filters.tsx#EvaluationsFilters",
-    "id": "t3-recon-positive-10",
+    "id": "t3-example-dashboard-positive-10",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -321,7 +321,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:81:renders_component:component:react:admin-dashboard%2Fcomponents%2Fui%2Ftable.tsx#Table",
-    "id": "t3-recon-positive-11",
+    "id": "t3-example-dashboard-positive-11",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -352,7 +352,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:82:renders_component:component:react:admin-dashboard%2Fcomponents%2Fui%2Ftable.tsx#TableHeader",
-    "id": "t3-recon-positive-12",
+    "id": "t3-example-dashboard-positive-12",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -383,7 +383,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:83:renders_component:component:react:admin-dashboard%2Fcomponents%2Fui%2Ftable.tsx#TableRow",
-    "id": "t3-recon-positive-13",
+    "id": "t3-example-dashboard-positive-13",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -414,7 +414,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:84:renders_component:component:react:admin-dashboard%2Fcomponents%2Fui%2Ftable.tsx#TableHead",
-    "id": "t3-recon-positive-14",
+    "id": "t3-example-dashboard-positive-14",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -445,7 +445,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:85:renders_component:component:react:admin-dashboard%2Fcomponents%2Fui%2Ftable.tsx#TableHead",
-    "id": "t3-recon-positive-15",
+    "id": "t3-example-dashboard-positive-15",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -476,7 +476,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:86:renders_component:component:react:admin-dashboard%2Fcomponents%2Fui%2Ftable.tsx#TableHead",
-    "id": "t3-recon-positive-16",
+    "id": "t3-example-dashboard-positive-16",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -507,7 +507,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:87:renders_component:component:react:admin-dashboard%2Fcomponents%2Fui%2Ftable.tsx#TableHead",
-    "id": "t3-recon-positive-17",
+    "id": "t3-example-dashboard-positive-17",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -538,7 +538,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:88:renders_component:component:react:admin-dashboard%2Fcomponents%2Fui%2Ftable.tsx#TableHead",
-    "id": "t3-recon-positive-18",
+    "id": "t3-example-dashboard-positive-18",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -569,7 +569,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:89:renders_component:component:react:admin-dashboard%2Fcomponents%2Fui%2Ftable.tsx#TableHead",
-    "id": "t3-recon-positive-19",
+    "id": "t3-example-dashboard-positive-19",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -600,7 +600,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:90:renders_component:component:react:admin-dashboard%2Fcomponents%2Fui%2Ftable.tsx#TableHead",
-    "id": "t3-recon-positive-20",
+    "id": "t3-example-dashboard-positive-20",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -631,7 +631,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:93:renders_component:component:react:admin-dashboard%2Fcomponents%2Fui%2Ftable.tsx#TableBody",
-    "id": "t3-recon-positive-21",
+    "id": "t3-example-dashboard-positive-21",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -662,7 +662,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:95:renders_component:component:react:admin-dashboard%2Fcomponents%2Fui%2Ftable.tsx#TableRow",
-    "id": "t3-recon-positive-22",
+    "id": "t3-example-dashboard-positive-22",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -693,7 +693,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:96:renders_component:component:react:admin-dashboard%2Fcomponents%2Fui%2Ftable.tsx#TableCell",
-    "id": "t3-recon-positive-23",
+    "id": "t3-example-dashboard-positive-23",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -724,7 +724,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:105:renders_component:component:react:admin-dashboard%2Fcomponents%2Fui%2Ftable.tsx#TableRow",
-    "id": "t3-recon-positive-24",
+    "id": "t3-example-dashboard-positive-24",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -755,7 +755,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:106:renders_component:component:react:admin-dashboard%2Fcomponents%2Fui%2Ftable.tsx#TableCell",
-    "id": "t3-recon-positive-25",
+    "id": "t3-example-dashboard-positive-25",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -786,7 +786,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:107:renders_component:component:react:admin-dashboard%2Fcomponents%2Fevaluations%2Fevaluation-status-badge.tsx#EvaluationStatusBadge",
-    "id": "t3-recon-positive-26",
+    "id": "t3-example-dashboard-positive-26",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -817,7 +817,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:109:renders_component:component:react:admin-dashboard%2Fcomponents%2Fui%2Ftable.tsx#TableCell",
-    "id": "t3-recon-positive-27",
+    "id": "t3-example-dashboard-positive-27",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -848,7 +848,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:122:renders_component:component:react:admin-dashboard%2Fcomponents%2Fui%2Ftable.tsx#TableCell",
-    "id": "t3-recon-positive-28",
+    "id": "t3-example-dashboard-positive-28",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -879,7 +879,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:123:renders_component:component:react:admin-dashboard%2Fcomponents%2Fevaluations%2Ftrigger-badge.tsx#TriggerBadge",
-    "id": "t3-recon-positive-29",
+    "id": "t3-example-dashboard-positive-29",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -910,7 +910,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:125:renders_component:component:react:admin-dashboard%2Fcomponents%2Fui%2Ftable.tsx#TableCell",
-    "id": "t3-recon-positive-30",
+    "id": "t3-example-dashboard-positive-30",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -941,7 +941,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/[id]/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/[id]/page.tsx:90:forbidden:external-render",
-    "id": "t3-recon-forbidden-01-external-render",
+    "id": "t3-example-dashboard-forbidden-01-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -970,7 +970,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/[id]/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/[id]/page.tsx:94:forbidden:external-render",
-    "id": "t3-recon-forbidden-02-external-render",
+    "id": "t3-example-dashboard-forbidden-02-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -999,7 +999,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:70:forbidden:external-render",
-    "id": "t3-recon-forbidden-03-external-render",
+    "id": "t3-example-dashboard-forbidden-03-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1028,7 +1028,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:110:forbidden:external-render",
-    "id": "t3-recon-forbidden-04-external-render",
+    "id": "t3-example-dashboard-forbidden-04-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1057,7 +1057,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/evaluations/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/evaluations/page.tsx:148:forbidden:external-render",
-    "id": "t3-recon-forbidden-05-external-render",
+    "id": "t3-example-dashboard-forbidden-05-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1086,7 +1086,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/page.tsx:20:forbidden:external-render",
-    "id": "t3-recon-forbidden-06-external-render",
+    "id": "t3-example-dashboard-forbidden-06-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1115,7 +1115,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/page.tsx:31:forbidden:external-render",
-    "id": "t3-recon-forbidden-07-external-render",
+    "id": "t3-example-dashboard-forbidden-07-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1144,7 +1144,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/page.tsx:44:forbidden:external-render",
-    "id": "t3-recon-forbidden-08-external-render",
+    "id": "t3-example-dashboard-forbidden-08-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1173,7 +1173,7 @@
     },
     "sourceFamily": "admin-dashboard/app/(dashboard)/page.tsx",
     "sourceTruthId": "admin-dashboard/app/(dashboard)/page.tsx:55:forbidden:external-render",
-    "id": "t3-recon-forbidden-09-external-render",
+    "id": "t3-example-dashboard-forbidden-09-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1202,7 +1202,7 @@
     },
     "sourceFamily": "admin-dashboard/components/evaluations/detail/evaluation-actions.tsx",
     "sourceTruthId": "admin-dashboard/components/evaluations/detail/evaluation-actions.tsx:24:forbidden:external-hook",
-    "id": "t3-recon-forbidden-10-external-hook",
+    "id": "t3-example-dashboard-forbidden-10-external-hook",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1231,7 +1231,7 @@
     },
     "sourceFamily": "admin-dashboard/components/evaluations/detail/evaluation-actions.tsx",
     "sourceTruthId": "admin-dashboard/components/evaluations/detail/evaluation-actions.tsx:77:forbidden:callback-prop",
-    "id": "t3-recon-forbidden-11-callback-prop",
+    "id": "t3-example-dashboard-forbidden-11-callback-prop",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1260,7 +1260,7 @@
     },
     "sourceFamily": "admin-dashboard/components/evaluations/detail/evaluation-actions.tsx",
     "sourceTruthId": "admin-dashboard/components/evaluations/detail/evaluation-actions.tsx:87:forbidden:callback-prop",
-    "id": "t3-recon-forbidden-12-callback-prop",
+    "id": "t3-example-dashboard-forbidden-12-callback-prop",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1289,7 +1289,7 @@
     },
     "sourceFamily": "admin-dashboard/components/evaluations/detail/pipeline-stepper.tsx",
     "sourceTruthId": "admin-dashboard/components/evaluations/detail/pipeline-stepper.tsx:66:forbidden:external-render",
-    "id": "t3-recon-forbidden-13-external-render",
+    "id": "t3-example-dashboard-forbidden-13-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1318,7 +1318,7 @@
     },
     "sourceFamily": "admin-dashboard/components/evaluations/detail/pipeline-stepper.tsx",
     "sourceTruthId": "admin-dashboard/components/evaluations/detail/pipeline-stepper.tsx:68:forbidden:external-render",
-    "id": "t3-recon-forbidden-14-external-render",
+    "id": "t3-example-dashboard-forbidden-14-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1347,7 +1347,7 @@
     },
     "sourceFamily": "admin-dashboard/components/evaluations/detail/pipeline-stepper.tsx",
     "sourceTruthId": "admin-dashboard/components/evaluations/detail/pipeline-stepper.tsx:70:forbidden:external-render",
-    "id": "t3-recon-forbidden-15-external-render",
+    "id": "t3-example-dashboard-forbidden-15-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {

@@ -4,10 +4,7 @@
     "maxDepth": 8,
     "maxNodes": 2000,
     "maxFanout": 64,
-    "edgeTypes": [
-      "calls",
-      "references"
-    ],
+    "edgeTypes": ["calls", "references"],
     "minConfidenceClass": "framework-inferred",
     "includeExternal": true
   },

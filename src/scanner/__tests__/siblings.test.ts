@@ -30,7 +30,7 @@ afterEach(() => rmSync(root, { recursive: true, force: true }));
 
 /** A git worktree with a composer namespace, optionally carrying a built (current-schema) .lux. */
 function makeWorktree(dir: string, opts: { indexed?: boolean; ns?: string } = {}): void {
-  const ns = opts.ns ?? 'acme\\Core';
+  const ns = opts.ns ?? 'Acme\\Core';
   mkdirSync(dir, { recursive: true });
   writeFileSync(
     join(dir, 'composer.json'),
@@ -68,9 +68,9 @@ function vendorSymlink(corpus: string, pkg: string, kernelDir: string): void {
 
 describe('siblingAlias / packageToSiblingName', () => {
   it('derives the sib_ alias and the sugar registry name', () => {
-    expect(siblingAlias('auctic-core')).toBe('sib_auctic_core');
+    expect(siblingAlias('acme-core')).toBe('sib_acme_core');
     expect(siblingAlias('res')).toBe('sib_res');
-    expect(packageToSiblingName('acme/core')).toBe('auctic-core');
+    expect(packageToSiblingName('acme/core')).toBe('acme-core');
   });
 });
 
@@ -82,10 +82,10 @@ describe('resolveSibling (per mode)', () => {
     mkdirSync(corpus, { recursive: true });
     vendorSymlink(corpus, 'acme/core', kernel);
 
-    const s = resolveSibling(corpus, 'auctic-core', { package: 'acme/core', role: 'kernel' });
-    expect(s.alias).toBe('sib_auctic_core');
+    const s = resolveSibling(corpus, 'acme-core', { package: 'acme/core', role: 'kernel' });
+    expect(s.alias).toBe('sib_acme_core');
     expect(s.role).toBe('kernel');
-    expect(s.namespace).toBe('acme\\Core');
+    expect(s.namespace).toBe('Acme\\Core');
     expect(s.dbPath.endsWith(join('.lux', 'lux.db'))).toBe(true);
     expect(s.headCommit).toMatch(/^[0-9a-f]{40}$/);
     expect(typeof s.schemaVersion).toBe('number');
@@ -93,7 +93,7 @@ describe('resolveSibling (per mode)', () => {
 
   it('resolves path mode (peer role → no namespace)', () => {
     const res = join(root, 'res');
-    makeWorktree(res, { ns: 'acme\\Res' });
+    makeWorktree(res, { ns: 'Acme\\Res' });
     const corpus = join(root, 'client');
     mkdirSync(corpus, { recursive: true });
 
@@ -124,7 +124,7 @@ describe('resolveSiblings (degrade per sibling — SC-8, never throws)', () => {
 
     // registered, resolvable
     const res = join(root, 'res');
-    makeWorktree(res, { ns: 'acme\\Res' });
+    makeWorktree(res, { ns: 'Acme\\Res' });
     // registered, worktree present but no .lux → db-absent
     const noidx = join(root, 'noidx');
     makeWorktree(noidx, { indexed: false });
@@ -212,7 +212,7 @@ describe('buildSiblingRegistry (kernel sugar)', () => {
     mkdirSync(corpus, { recursive: true });
     writeFileSync(join(corpus, 'lux.yaml'), 'overlay:\n  kernel:\n    package: acme/core\n');
     const registry = buildSiblingRegistry(loadLspConfig(corpus));
-    expect(registry['auctic-core']).toEqual({ package: 'acme/core', role: 'kernel' });
+    expect(registry['acme-core']).toEqual({ package: 'acme/core', role: 'kernel' });
   });
 
   it('does not inject sugar when an explicit role: kernel already exists', () => {

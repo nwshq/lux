@@ -27,7 +27,7 @@
       "green": {
         "command": "three warmups plus five measured runs for each exact-pin corpus; npm run check; npm run typecheck:benchmarks; dist worker probe",
         "exitCode": 0,
-        "observable": "After 3 warmups, Lux median wall was 105.791 ms across 5 measured runs with observed process RSS 199507968 bytes; after 3 warmups, acme Core median wall was 117.261 ms across 5 measured runs with observed process RSS 216104960 bytes; no prior JavaScript baseline existed because JavaScript was unsupported; final full suite passed 1682 with 13 skipped and 0 failed; architecture lint 177 files/0 violations, architecture tests 5/5, dead-code validation 991 exports/171 files, native-free and docs-surface passed"
+        "observable": "After 3 warmups, Lux median wall was 105.791 ms across 5 measured runs with observed process RSS 199507968 bytes; after 3 warmups, Acme Core median wall was 117.261 ms across 5 measured runs with observed process RSS 216104960 bytes; no prior JavaScript baseline existed because JavaScript was unsupported; final full suite passed 1682 with 13 skipped and 0 failed; architecture lint 177 files/0 violations, architecture tests 5/5, dead-code validation 991 exports/171 files, native-free and docs-surface passed"
       },
       "red": {
         "mutation": "lower-parser-resource-bound-or-disable-worker-termination",

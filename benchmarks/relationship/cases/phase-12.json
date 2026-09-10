@@ -647,18 +647,18 @@
       "minPositiveCases": 20,
       "minForbiddenCases": 10
     },
-    "id": "p12-positive-12-legacy-auctic-config",
+    "id": "p12-positive-12-legacy-acme-config",
     "query": {
       "tool": "phase12InertiaSeam",
       "args": {
         "parentPath": "app/Http/Controllers/CoreController.php",
-        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass CoreController { public function dashboard() { return inertia('@AucticCore::Shared/Dashboard'); } }\n",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass CoreController { public function dashboard() { return inertia('@AcmeCore::Shared/Dashboard'); } }\n",
         "files": {
           "resources/js/core/Shared/Dashboard.vue": "<template><main /></template>"
         },
         "pageRoots": [],
         "namespaces": {
-          "@aucticcore": ["resources/js/core"]
+          "@acmecore": ["resources/js/core"]
         },
         "configFile": "lux.yaml",
         "registrySources": [],
@@ -873,12 +873,12 @@
       "minPositiveCases": 20,
       "minForbiddenCases": 10
     },
-    "id": "p12-positive-16-auctic-module-map",
+    "id": "p12-positive-16-acme-module-map",
     "query": {
       "tool": "phase12InertiaSeam",
       "args": {
         "parentPath": "app/Http/Controllers/BusinessController.php",
-        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass BusinessController { public function index() { return inertia('@AucticCore::Business/Index'); } }\n",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass BusinessController { public function index() { return inertia('@AcmeCore::Business/Index'); } }\n",
         "files": {
           "resources/js/modules/core/Business/Index.vue": "<template><main /></template>"
         },
@@ -888,11 +888,11 @@
         "registrySources": [
           {
             "filePath": "resources/js/app.js",
-            "source": "const moduleImports = { aucticCore: import.meta.glob('@aucticCore/**/*.vue') }; const moduleMap = {'@AucticCore': moduleImports.aucticCore};"
+            "source": "const moduleImports = { acmeCore: import.meta.glob('@acmeCore/**/*.vue') }; const moduleMap = {'@AcmeCore': moduleImports.acmeCore};"
           }
         ],
         "aliases": {
-          "@aucticCore": {
+          "@acmeCore": {
             "root": "resources/js/modules/core",
             "configFile": "jsconfig.json"
           }
@@ -1313,12 +1313,12 @@
       "minPositiveCases": 20,
       "minForbiddenCases": 10
     },
-    "id": "p12-positive-24-legacy-auctic-glob",
+    "id": "p12-positive-24-legacy-acme-glob",
     "query": {
       "tool": "phase12InertiaSeam",
       "args": {
         "parentPath": "app/Http/Controllers/SharedController.php",
-        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass SharedController { public function index() { return Inertia::render('@AucticCore::Shared/Index'); } }\n",
+        "source": "<?php\nnamespace App\\Http\\Controllers;\nuse Inertia\\Inertia;\nclass SharedController { public function index() { return Inertia::render('@AcmeCore::Shared/Index'); } }\n",
         "files": {
           "resources/js/core/Shared/Index.vue": "<template><main /></template>"
         },
@@ -1328,7 +1328,7 @@
         "registrySources": [
           {
             "filePath": "resources/js/resolve.js",
-            "source": "const corePages = import.meta.glob('@core/**/*.vue'); const moduleMap = {'@AucticCore': corePages};"
+            "source": "const corePages = import.meta.glob('@core/**/*.vue'); const moduleMap = {'@AcmeCore': corePages};"
           }
         ],
         "aliases": {

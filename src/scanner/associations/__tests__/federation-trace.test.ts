@@ -1,9 +1,9 @@
 // Walk-level union trace across two real `.lux` fixtures (spec 13 / Decisions 2,3,5 / SC-3,4,9).
 // The cross-DB proof of the id-portability law:
-//   - SC-3 union: a trace from an App\ handler --with the kernel reaches acme\Core\* nodes absent
+//   - SC-3 union: a trace from an App\ handler --with the kernel reaches Acme\Core\* nodes absent
 //     from the single-index trace, carrying kernel repo attribution + bridged marks.
 //   - SC-4 false-merge (walk level): colliding file:/symbol:ts:/bare symbol:php:helper stay as TWO
-//     distinct (repo,id) nodes; a namespace-qualified symbol:php:acme\Core\* MERGES to one node.
+//     distinct (repo,id) nodes; a namespace-qualified symbol:php:Acme\Core\* MERGES to one node.
 //   - regression: with zero siblings the node/edge set equals traceFrom(primary,…) projected.
 //   - edge provenance + interleaved global budget.
 
@@ -78,9 +78,9 @@ const KERNEL_BLOCK: FederationBlock = {
 // repo-local ids present in BOTH repos.
 const SHOW = 'symbol:php:App\\Http\\OfferController::show';
 const SETTLE = 'symbol:php:App\\Services\\OfferService::settle';
-const ENGINE = 'symbol:php:acme\\Core\\Settlement\\Engine::run'; // portable, in BOTH
-const LEDGER = 'symbol:php:acme\\Core\\Settlement\\Ledger::post'; // portable, kernel-only
-const SHARED = 'symbol:php:acme\\Core\\Shared::z'; // portable, in BOTH (edge-provenance)
+const ENGINE = 'symbol:php:Acme\\Core\\Settlement\\Engine::run'; // portable, in BOTH
+const LEDGER = 'symbol:php:Acme\\Core\\Settlement\\Ledger::post'; // portable, kernel-only
+const SHARED = 'symbol:php:Acme\\Core\\Shared::z'; // portable, in BOTH (edge-provenance)
 const HELPER = 'symbol:php:helper'; // bare — repo-local, in BOTH
 const WEB = 'file:routes/web.php'; // repo-local, in BOTH
 const TS = 'symbol:ts:src/index.ts#main'; // repo-local, in BOTH
@@ -90,8 +90,8 @@ function buildPrimary(): LuxDatabase {
   const db = makeDb('client');
   addNode(db, SHOW, { qualified_name: 'App\\Http\\OfferController::show', symbol_name: 'show' });
   addNode(db, SETTLE, { qualified_name: 'App\\Services\\OfferService::settle' });
-  addNode(db, ENGINE, { qualified_name: 'acme\\Core\\Settlement\\Engine::run' });
-  addNode(db, SHARED, { qualified_name: 'acme\\Core\\Shared::z' });
+  addNode(db, ENGINE, { qualified_name: 'Acme\\Core\\Settlement\\Engine::run' });
+  addNode(db, SHARED, { qualified_name: 'Acme\\Core\\Shared::z' });
   addNode(db, HELPER, { symbol_name: 'helper' });
   addNode(db, WEB);
   addNode(db, TS);
@@ -108,9 +108,9 @@ function buildPrimary(): LuxDatabase {
  *  colliding ids (its own copies) reached from Engine. */
 function buildKernel(): LuxDatabase {
   const db = makeDb('kernel');
-  addNode(db, ENGINE, { qualified_name: 'acme\\Core\\Settlement\\Engine::run' });
-  addNode(db, LEDGER, { qualified_name: 'acme\\Core\\Settlement\\Ledger::post' });
-  addNode(db, SHARED, { qualified_name: 'acme\\Core\\Shared::z' });
+  addNode(db, ENGINE, { qualified_name: 'Acme\\Core\\Settlement\\Engine::run' });
+  addNode(db, LEDGER, { qualified_name: 'Acme\\Core\\Settlement\\Ledger::post' });
+  addNode(db, SHARED, { qualified_name: 'Acme\\Core\\Shared::z' });
   addNode(db, HELPER, { symbol_name: 'helper' });
   addNode(db, WEB);
   addNode(db, TS);

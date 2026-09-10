@@ -36,7 +36,7 @@ function makeWorktree(dir: string, opts: { indexed?: boolean; skew?: boolean } =
   mkdirSync(dir, { recursive: true });
   writeFileSync(
     join(dir, 'composer.json'),
-    JSON.stringify({ autoload: { 'psr-4': { 'acme\\X\\': 'src/' } } })
+    JSON.stringify({ autoload: { 'psr-4': { 'Acme\\X\\': 'src/' } } })
   );
   execSync('git init -q && git -c user.email=t@t -c user.name=t commit -q --allow-empty -m init', {
     cwd: dir,

@@ -56,7 +56,7 @@ describe('Inertia PHP tree-sitter facts', () => {
         ['Users/Index', 'facade', 'facade'],
         ['Reports/Show', 'helper', 'helper'],
         ['@contact::Web/ContactIndex', 'namespacePage', 'facade'],
-        ['@AucticCore::Shared/Dashboard', 'legacy', 'helper'],
+        ['@AcmeCore::Shared/Dashboard', 'legacy', 'helper'],
         ['Landing', 'landing', 'helper'],
       ]
     );
@@ -165,14 +165,14 @@ describe('static Inertia page registry', () => {
     expect(registry.dependencies).toContain('resources/js/pages.js');
   });
 
-  it('supports acme legacy namespace exactly when backed by its static glob', () => {
+  it('supports Acme legacy namespace exactly when backed by its static glob', () => {
     const component = 'resources/js/Shared/Dashboard.vue';
     const registry = buildInertiaPageRegistry({
       project: project(
         [component],
         [
           {
-            pattern: '@aucticCore/*',
+            pattern: '@acmeCore/*',
             targets: ['resources/js/*'],
             source: 'jsconfig',
             configFile: 'jsconfig.json',
@@ -183,11 +183,11 @@ describe('static Inertia page registry', () => {
       sources: [
         {
           filePath: 'resources/js/app.js',
-          content: `const core = import.meta.glob('@aucticCore/**/*.vue'); const moduleMap = {'@aucticCore': core};`,
+          content: `const core = import.meta.glob('@acmeCore/**/*.vue'); const moduleMap = {'@acmeCore': core};`,
         },
       ],
     });
-    expect(registry.resolve('@AucticCore::Shared/Dashboard')?.componentFile).toBe(component);
+    expect(registry.resolve('@AcmeCore::Shared/Dashboard')?.componentFile).toBe(component);
   });
 
   it('refuses ambiguous configured roots instead of selecting by global suffix', () => {

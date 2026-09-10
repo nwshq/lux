@@ -5,7 +5,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "remote": "https://github.com/acme-software/example-service-alpha.git",
       "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
     },
     "sourceTruthId": "example-service-alpha:edge:1",
@@ -26,7 +26,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "remote": "https://github.com/acme-software/example-service-alpha.git",
       "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
     },
     "sourceTruthId": "example-service-alpha:edge:2",
@@ -47,7 +47,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "remote": "https://github.com/acme-software/example-service-alpha.git",
       "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
     },
     "sourceTruthId": "example-service-alpha:edge:3",
@@ -68,7 +68,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "remote": "https://github.com/acme-software/example-service-alpha.git",
       "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
     },
     "sourceTruthId": "example-service-alpha:edge:4",
@@ -89,7 +89,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "remote": "https://github.com/acme-software/example-service-alpha.git",
       "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
     },
     "sourceTruthId": "example-service-alpha:edge:5",
@@ -110,7 +110,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "remote": "https://github.com/acme-software/example-service-alpha.git",
       "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
     },
     "sourceTruthId": "example-service-alpha:edge:6",
@@ -131,7 +131,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "remote": "https://github.com/acme-software/example-service-alpha.git",
       "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
     },
     "sourceTruthId": "example-service-alpha:edge:7",
@@ -152,7 +152,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "remote": "https://github.com/acme-software/example-service-alpha.git",
       "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
     },
     "sourceTruthId": "example-service-alpha:edge:8",
@@ -173,7 +173,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "remote": "https://github.com/acme-software/example-service-alpha.git",
       "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
     },
     "sourceTruthId": "example-service-alpha:edge:9",
@@ -194,7 +194,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "remote": "https://github.com/acme-software/example-service-alpha.git",
       "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
     },
     "sourceTruthId": "example-service-alpha:forbidden:1",
@@ -212,7 +212,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "remote": "https://github.com/acme-software/example-service-alpha.git",
       "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
     },
     "sourceTruthId": "example-service-alpha:forbidden:2",
@@ -230,7 +230,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "remote": "https://github.com/acme-software/example-service-alpha.git",
       "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
     },
     "sourceTruthId": "example-service-alpha:forbidden:3",
@@ -248,7 +248,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "remote": "https://github.com/acme-software/example-service-alpha.git",
       "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
     },
     "sourceTruthId": "example-service-alpha:forbidden:4",
@@ -266,7 +266,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "remote": "https://github.com/acme-software/example-service-alpha.git",
       "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
     },
     "sourceTruthId": "example-service-alpha:forbidden:5",
@@ -284,7 +284,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "remote": "https://github.com/acme-software/example-service-alpha.git",
       "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
     },
     "sourceTruthId": "example-service-alpha:forbidden:6",
@@ -302,7 +302,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "remote": "https://github.com/acme-software/example-service-alpha.git",
       "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
     },
     "sourceTruthId": "example-service-alpha:forbidden:7",
@@ -320,7 +320,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "remote": "https://github.com/acme-software/example-service-alpha.git",
       "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
     },
     "sourceTruthId": "example-service-alpha:forbidden:8",
@@ -338,7 +338,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "remote": "https://github.com/acme-software/example-service-alpha.git",
       "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
     },
     "sourceTruthId": "example-service-alpha:forbidden:9",
@@ -356,7 +356,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-service-alpha.git",
+      "remote": "https://github.com/acme-software/example-service-alpha.git",
       "commit": "7c30d622909bffbe495d18851c9f7b21aaeca44f"
     },
     "sourceTruthId": "example-service-alpha:forbidden:10",

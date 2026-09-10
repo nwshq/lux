@@ -69,7 +69,7 @@ type WatchedMutation = {
 };
 type PhaseCase = {
   id: string;
-  corpus: 'synthetic' | 'lux' | 'auctic-core';
+  corpus: 'synthetic' | 'lux' | 'acme-core';
   capability: 'deterministic-javascript-ast' | 'bounded-parser-host';
   query:
     | { tool: 'phase6SourceFactsContract'; args: SourceArgs }
@@ -488,10 +488,10 @@ function flattenMutations(cases: PhaseCase[]): Array<readonly [PhaseCase, Watche
 }
 
 describe('Phase 6 acceptance: independent JavaScript AST battery (T22)', () => {
-  it('pins non-vacuous portable owner gold for Lux, acme Core, and synthetic cases', () => {
+  it('pins non-vacuous portable owner gold for Lux, Acme Core, and synthetic cases', () => {
     const cases = loadCases();
     expect(new Set(cases.map(({ corpus }) => corpus))).toEqual(
-      new Set(['synthetic', 'lux', 'auctic-core'])
+      new Set(['synthetic', 'lux', 'acme-core'])
     );
     for (const testCase of cases) {
       expect(testCase.owner).toBe('Example Maintainer');
@@ -640,7 +640,7 @@ describe('Phase 6 acceptance: independent JavaScript AST battery (T22)', () => {
       corpora: Array<{ id: string; remote: string; commit: string }>;
     };
     expect(manifest).toMatchObject({ schemaVersion: 1, owner: 'Example Maintainer' });
-    for (const corpusId of ['lux', 'auctic-core'] as const) {
+    for (const corpusId of ['lux', 'acme-core'] as const) {
       const gold = cases.filter(({ corpus }) => corpus === corpusId);
       const pin = manifest.corpora.find(({ id }) => id === corpusId)!;
       expect(gold.length).toBeGreaterThan(0);

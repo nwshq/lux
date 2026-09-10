@@ -42,9 +42,7 @@ cp config/mcporter.json ~/.mcporter/mcporter.json
     "lux": {
       "description": "Lux Knowledge Platform - CORPUS semantic search and knowledge retrieval",
       "command": "node",
-      "args": [
-        "/absolute/path/to/your/lux/dist/mcp/server.js"
-      ],
+      "args": ["/absolute/path/to/your/lux/dist/mcp/server.js"],
       "env": {
         "NODE_ENV": "production"
       }

@@ -1,17 +1,17 @@
 <script lang="ts">
-import LegacyChild from './Child.vue'
-import { defineComponent } from 'vue'
+import LegacyChild from './Child.vue';
+import { defineComponent } from 'vue';
 export default defineComponent({
   components: { LegacyChild, Alias: LegacyChild },
-  emits: ['ready']
-})
+  emits: ['ready'],
+});
 </script>
 <script setup lang="ts">
-import SetupChild from './Child.vue'
-import { useThing as aliasedThing } from './useThing'
-const café = aliasedThing('static')
-const emit = defineEmits<{ (event: 'saved'): void; changed: [] }>()
-emit('saved')
+import SetupChild from './Child.vue';
+import { useThing as aliasedThing } from './useThing';
+const café = aliasedThing('static');
+const emit = defineEmits<{ (event: 'saved'): void; changed: [] }>();
+emit('saved');
 </script>
 <template>
   <!-- 😀 UTF-16 before the observed element -->

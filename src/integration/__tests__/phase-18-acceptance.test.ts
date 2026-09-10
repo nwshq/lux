@@ -75,10 +75,13 @@ describe('Phase18 independent architecture acceptance', () => {
       expect(x.filter((i) => i.forbiddenEdges.length)).toHaveLength(10);
     }
   });
-  it('pins acme owner gold', () =>
+  it('pins Acme owner gold', () =>
     expect(
       load().every(
-        (c) => c.owner === 'Example Maintainer' && c.goldSchemaVersion === 1 && c.fixtureSchemaVersion === 1
+        (c) =>
+          c.owner === 'Example Maintainer' &&
+          c.goldSchemaVersion === 1 &&
+          c.fixtureSchemaVersion === 1
       )
     ).toBe(true));
   it('is perfect and stable', () => {

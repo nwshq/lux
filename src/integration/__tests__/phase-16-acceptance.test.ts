@@ -65,7 +65,7 @@ interface Observation {
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturePath = resolve(here, '../../../benchmarks/relationship/cases/phase-16.json');
 const LUX_PIN = '241685c091e71f744c38e89d87635708f04a565a';
-const AUCTIC_PIN = '609ac51c752448b6fba368da656a8c6f4e0842d7';
+const ACME_PIN = '609ac51c752448b6fba368da656a8c6f4e0842d7';
 const loadCases = (): PhaseCase[] => JSON.parse(readFileSync(fixturePath, 'utf8')) as PhaseCase[];
 
 function encode(value: string): string {
@@ -275,7 +275,7 @@ function run(cases: readonly PhaseCase[], mutation?: Mutation) {
 }
 
 describe('Phase 16/T62 independent Expo Router acceptance', () => {
-  it('pins portable schema-v1 Lux and acme Mobile owner gold', () => {
+  it('pins portable schema-v1 Lux and Acme Mobile owner gold', () => {
     const cases = loadCases();
     expect(cases).toHaveLength(40);
     expect(cases.every((item) => item.owner === 'Example Maintainer')).toBe(true);
@@ -290,9 +290,9 @@ describe('Phase 16/T62 independent Expo Router acceptance', () => {
     ).toEqual(new Set([LUX_PIN]));
     expect(
       new Set(
-        cases.filter((item) => item.corpus === 'auctic-mobile').map((item) => item.corpusPin.commit)
+        cases.filter((item) => item.corpus === 'acme-mobile').map((item) => item.corpusPin.commit)
       )
-    ).toEqual(new Set([AUCTIC_PIN]));
+    ).toEqual(new Set([ACME_PIN]));
     expect(JSON.stringify(cases)).not.toMatch(/(?:\/Users\/|[A-Za-z]:\\|\/home\/)/u);
   });
 
@@ -306,12 +306,12 @@ describe('Phase 16/T62 independent Expo Router acceptance', () => {
     expect(result.score).toEqual({ precision: 1, recall: 1 });
   });
 
-  it('uses only actual listed acme paths and scores each exact-pin cohort', () => {
+  it('uses only actual listed Acme paths and scores each exact-pin cohort', () => {
     const cases = loadCases();
-    const aucticPaths = cases
-      .filter((item) => item.corpus === 'auctic-mobile')
+    const acmePaths = cases
+      .filter((item) => item.corpus === 'acme-mobile')
       .map((item) => item.sourceFamily);
-    expect(new Set(aucticPaths)).toEqual(
+    expect(new Set(acmePaths)).toEqual(
       new Set([
         'app/(authenticated)/_layout.tsx',
         'app/(authenticated)/catalog/index.tsx',
@@ -332,7 +332,7 @@ describe('Phase 16/T62 independent Expo Router acceptance', () => {
       ])
     );
     const result = run(cases);
-    for (const corpus of ['phase-16-expo-synthetic', 'auctic-mobile']) {
+    for (const corpus of ['phase-16-expo-synthetic', 'acme-mobile']) {
       const selected = cases.filter((item) => item.corpus === corpus);
       const ids = new Set(selected.map((item) => item.id));
       expect(

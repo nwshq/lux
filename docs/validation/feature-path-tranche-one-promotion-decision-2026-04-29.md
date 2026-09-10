@@ -138,17 +138,17 @@ Five CLI tests added in `src/cli/__tests__/overlay-feature-path-cli.test.ts`:
 
 - All 1360 tests pass (was 1353 before the narrow pass — 7 new tests).
 - All 127 feature-path tests pass (was 125 — 2 new resolver regressions).
-- The gating benchmark question `what handles POST /private-offers?` against the acme Core DB now returns `Resolution: unresolved` with a candidate suggestion list and exit code 1, instead of the pre-fix `Lux resolved GET / but did not recover a handler. Resolution Match: contains` confident mis-target.
-- A known-good route (`what handles POST /login?`) still resolves correctly via the `contains` tier (the acme Core dangling-edge substrate issue, Miss class A in the validation report, persists — explicitly out of scope for this pass).
+- The gating benchmark question `what handles POST /private-offers?` against the Acme Core DB now returns `Resolution: unresolved` with a candidate suggestion list and exit code 1, instead of the pre-fix `Lux resolved GET / but did not recover a handler. Resolution Match: contains` confident mis-target.
+- A known-good route (`what handles POST /login?`) still resolves correctly via the `contains` tier (the Acme Core dangling-edge substrate issue, Miss class A in the validation report, persists — explicitly out of scope for this pass).
 
 ### Promotion bar — assessment
 
-| Gate | Status |
-|---|---|
-| Both narrow-pass items shipped | ✅ |
-| Benchmark rerun shows English-wrapped questions either resolve correctly or refuse with an explicit failure class | ✅ refuses with `unresolved-target` failure |
-| CLI seam answers the benchmark questions verbatim from the harness's output | ✅ same answer object, rendered identically |
-| No regression in the feature-path tests | ✅ 127/127 pass |
-| No silent expansion of the answer contract | ✅ no schema bump, no new failure class, no new direct-evidence kinds |
+| Gate                                                                                                              | Status                                                                |
+| ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Both narrow-pass items shipped                                                                                    | ✅                                                                    |
+| Benchmark rerun shows English-wrapped questions either resolve correctly or refuse with an explicit failure class | ✅ refuses with `unresolved-target` failure                           |
+| CLI seam answers the benchmark questions verbatim from the harness's output                                       | ✅ same answer object, rendered identically                           |
+| No regression in the feature-path tests                                                                           | ✅ 127/127 pass                                                       |
+| No silent expansion of the answer contract                                                                        | ✅ no schema bump, no new failure class, no new direct-evidence kinds |
 
 Per the promotion bar in this document, the tranche is now ready for promotion into a broader `ask` / router surface in the next tranche. Promotion itself remains scoped to its own tranche — this pass shipped only the gates.

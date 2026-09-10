@@ -152,7 +152,7 @@ describe('LaravelHttpSurfaceDetector.detect() — surface nodes', () => {
       {
         filePath: 'src/CoreServiceProvider.php',
         languageId: 'php',
-        content: `Route::prefix('api')->middleware('api')->namespace("acme\\Core\\Http\\Controllers")->group(__DIR__ . '/../routes/api.php');`,
+        content: `Route::prefix('api')->middleware('api')->namespace("Acme\\Core\\Http\\Controllers")->group(__DIR__ . '/../routes/api.php');`,
       },
       {
         filePath: 'routes/api.php',
@@ -166,7 +166,7 @@ describe('LaravelHttpSurfaceDetector.detect() — surface nodes', () => {
     expect(batch.surfaces[0].id).toBe('surface:http:POST:/api/listing/create');
     expect(batch.surfaces[0].metadata.path).toBe('/api/listing/create');
     expect(batch.surfaces[0].metadata.explicitProvider).toBe(
-      'acme\\Core\\Http\\Controllers\\Api\\QuickAdminListingController'
+      'Acme\\Core\\Http\\Controllers\\Api\\QuickAdminListingController'
     );
     expect(batch.surfaces[0].metadata.controllerMethod).toBe('create');
     expect(batch.surfaces[0].metadata.routeName).toBe('admin.listing.create');
@@ -177,7 +177,7 @@ describe('LaravelHttpSurfaceDetector.detect() — surface nodes', () => {
       {
         filePath: 'src/CoreServiceProvider.php',
         languageId: 'php',
-        content: `Route::prefix('api')->middleware('api')->namespace("acme\\Core\\Http\\Controllers")->group(__DIR__ . '/../routes/api.php');`,
+        content: `Route::prefix('api')->middleware('api')->namespace("Acme\\Core\\Http\\Controllers")->group(__DIR__ . '/../routes/api.php');`,
       },
       {
         filePath: 'routes/api.php',
@@ -191,7 +191,7 @@ describe('LaravelHttpSurfaceDetector.detect() — surface nodes', () => {
     expect(batch.surfaces[0].id).toBe('surface:http:GET:/api/users/dropdown/{query?}');
     expect(batch.surfaces[0].metadata.path).toBe('/api/users/dropdown/{query?}');
     expect(batch.surfaces[0].metadata.explicitProvider).toBe(
-      'acme\\Core\\Http\\Controllers\\Api\\UserController'
+      'Acme\\Core\\Http\\Controllers\\Api\\UserController'
     );
     expect(batch.surfaces[0].metadata.routeName).toBe('admin.users.dropdown');
   });
@@ -319,7 +319,7 @@ describe('LaravelHttpSurfaceDetector.detect() — boundary edges', () => {
         filePath: 'src/Module/Payments/routes.php',
         languageId: 'php',
         content:
-          `use acme\\Core\\Module\\Payments\\Http\\Controllers\\Api;\n` +
+          `use Acme\\Core\\Module\\Payments\\Http\\Controllers\\Api;\n` +
           `Route::post('/client-token', [Api\\GetClientTokenController::class, '__invoke']);`,
       },
     ]);
@@ -327,7 +327,7 @@ describe('LaravelHttpSurfaceDetector.detect() — boundary edges', () => {
     const batch = await detector.detect(ctx);
     const surface = batch.surfaces.find((s) => s.id === 'surface:http:POST:/client-token');
     expect(surface!.metadata.explicitProvider).toBe(
-      'acme\\Core\\Module\\Payments\\Http\\Controllers\\Api\\GetClientTokenController'
+      'Acme\\Core\\Module\\Payments\\Http\\Controllers\\Api\\GetClientTokenController'
     );
   });
 
@@ -336,19 +336,19 @@ describe('LaravelHttpSurfaceDetector.detect() — boundary edges', () => {
       {
         filePath: 'src/CoreServiceProvider.php',
         languageId: 'php',
-        content: `Route::namespace("acme\\Core\\Http\\Controllers")->group(__DIR__ . '/../routes/api.php');`,
+        content: `Route::namespace("Acme\\Core\\Http\\Controllers")->group(__DIR__ . '/../routes/api.php');`,
       },
       {
         filePath: 'routes/api.php',
         languageId: 'php',
-        content: `Route::get('/addr', 'acme\\Core\\Http\\Controllers\\Api\\AucticAddressController@countryStates');`,
+        content: `Route::get('/addr', 'Acme\\Core\\Http\\Controllers\\Api\\AcmeAddressController@countryStates');`,
       },
     ]);
 
     const batch = await detector.detect(ctx);
     const surface = batch.surfaces.find((s) => s.id === 'surface:http:GET:/addr');
     expect(surface!.metadata.explicitProvider).toBe(
-      'acme\\Core\\Http\\Controllers\\Api\\AucticAddressController'
+      'Acme\\Core\\Http\\Controllers\\Api\\AcmeAddressController'
     );
   });
 
@@ -357,7 +357,7 @@ describe('LaravelHttpSurfaceDetector.detect() — boundary edges', () => {
       {
         filePath: 'src/CoreServiceProvider.php',
         languageId: 'php',
-        content: `Route::namespace("acme\\Core\\Http\\Controllers")->group(__DIR__ . '/../routes/api.php');`,
+        content: `Route::namespace("Acme\\Core\\Http\\Controllers")->group(__DIR__ . '/../routes/api.php');`,
       },
       {
         filePath: 'routes/api.php',
@@ -371,7 +371,7 @@ describe('LaravelHttpSurfaceDetector.detect() — boundary edges', () => {
     // Laravel prefixes STRING controllers with the group namespace and does NOT
     // apply the `use Some\Vendor\Api;` import — E3 alias expansion must not leak here.
     expect(surface!.metadata.explicitProvider).toBe(
-      'acme\\Core\\Http\\Controllers\\Api\\LegacyController'
+      'Acme\\Core\\Http\\Controllers\\Api\\LegacyController'
     );
   });
 });
@@ -979,7 +979,7 @@ describe('LaravelHttpSurfaceDetector — module registration-context inheritance
         languageId: 'php',
         content: [
           "Route::prefix('admin/accounting')",
-          "    ->namespace('acme\\Module\\Accounting\\Http\\Controllers')",
+          "    ->namespace('Acme\\Module\\Accounting\\Http\\Controllers')",
           '    ->group(function () {',
           "        $this->loadRoutesFrom(__DIR__ . '/../routes/admin.php');",
           '    });',
@@ -997,7 +997,7 @@ describe('LaravelHttpSurfaceDetector — module registration-context inheritance
     expect(batch.surfaces[0].id).toBe('surface:http:GET:/admin/accounting/ledger');
     expect(batch.surfaces[0].metadata.path).toBe('/admin/accounting/ledger');
     expect(batch.surfaces[0].metadata.explicitProvider).toBe(
-      'acme\\Module\\Accounting\\Http\\Controllers\\LedgerController'
+      'Acme\\Module\\Accounting\\Http\\Controllers\\LedgerController'
     );
   });
 
@@ -1008,7 +1008,7 @@ describe('LaravelHttpSurfaceDetector — module registration-context inheritance
         languageId: 'php',
         content: [
           "Route::prefix('admin/reporting')",
-          "    ->namespace('acme\\Module\\Reporting\\Http\\Controllers')",
+          "    ->namespace('Acme\\Module\\Reporting\\Http\\Controllers')",
           '    ->group(function () {',
           "        $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');",
           '    });',

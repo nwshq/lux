@@ -1,22 +1,23 @@
 # Concept→Node Anchor Battery — Owner & Calibration Record
 
 **Owner:** Example Maintainer (`maintainer@example.com`) — accountable for the gold node ids drifting with the
-auctic-core fixture, and for re-validating them after a structural refactor.
+acme-core fixture, and for re-validating them after a structural refactor.
 
-**Battery file:** `benchmarks/retrieval/fixtures/auctic-core-anchors.json`
+**Battery file:** `benchmarks/retrieval/fixtures/acme-core-anchors.json`
 **Metric:** concept→structural-node hit@k / MRR (Decision 10), scored against **node ids** (the anchor
 surface's contract — deterministic `astSymbolIdentity`), not file paths.
 
 ## Adequacy (Decision 10 — sized so a lift is detectable)
 
-| Requirement | Minimum | This battery |
-|---|---|---|
-| Total concept→node cases | N ≥ 20 | **25** |
-| Genuine vocabulary-mismatch cases (query/target share no token) | ≥ 6 | **7** (`knownMiss`) |
-| Exact-identifier protection cases | ≥ 1 | **3** (`minMrr ≥ 0.5`) |
-| Named owner per case set | required | **Example Maintainer** (every case) |
+| Requirement                                                     | Minimum  | This battery                        |
+| --------------------------------------------------------------- | -------- | ----------------------------------- |
+| Total concept→node cases                                        | N ≥ 20   | **25**                              |
+| Genuine vocabulary-mismatch cases (query/target share no token) | ≥ 6      | **7** (`knownMiss`)                 |
+| Exact-identifier protection cases                               | ≥ 1      | **3** (`minMrr ≥ 0.5`)              |
+| Named owner per case set                                        | required | **Example Maintainer** (every case) |
 
 Case classes (spec 12 §Part H):
+
 1. **Anchored (lexical-closable)** — name/path/identifier-derivable gold; the lexical tier is expected
    to close these in Phase 1 (`anchorHit` + `minMrr`). Includes the CA q1/q2 gold as node cases
    (`anchors-q2-payment-gateway`, `anchors-q1-settlement`).
@@ -32,9 +33,9 @@ Case classes (spec 12 §Part H):
 5. **Confidence-floor (1)** — a thin token-collision query (`"handles"`, present only in doc-comments)
    → `lowConfidence:true`, exit 0.
 
-> **Gold node ids are owner-validated against the live auctic-core index.** The FQNs here follow the
+> **Gold node ids are owner-validated against the live acme-core index.** The FQNs here follow the
 > exploration's domain design (the CA battery + payload spec 12 seeds). The owner re-confirms each
-> `expectNodeIdsTopK` against `lux index rebuild` on `auctic-core/vcs` and corrects any drift. The
+> `expectNodeIdsTopK` against `lux index rebuild` on `acme-core/vcs` and corrects any drift. The
 > harness counts the seeded cases at run time (`knownMiss.{total,open,closable}` in `summary.json`), so
 > an under-powered or drifted battery is a visible, recorded fact — never a silent weak gate.
 
@@ -53,16 +54,16 @@ Pick the floor as the value that separates the two bands.
 
 **Measured (calibration corpus, 15 nodes):**
 
-| Query | Class | Top weighted-bm25 |
-|---|---|---|
-| `payment gateway` | confident (name split) | **-7.58** |
-| `stripe service` | confident (name/identifier) | **-4.59** |
-| `braintree` | confident (identifier) | **-4.39** |
-| `EmailEventRegistrants` | confident (exact id) | **-4.15** |
-| `StripeService` | confident (exact id) | **-4.09** |
-| `user` | confident (exact name) | **-3.47** |
-| `handles` | thin (context-only collision) | **-1.29** |
-| `class` | thin (matches ~all contexts, IDF≈0) | **0** |
+| Query                   | Class                               | Top weighted-bm25 |
+| ----------------------- | ----------------------------------- | ----------------- |
+| `payment gateway`       | confident (name split)              | **-7.58**         |
+| `stripe service`        | confident (name/identifier)         | **-4.59**         |
+| `braintree`             | confident (identifier)              | **-4.39**         |
+| `EmailEventRegistrants` | confident (exact id)                | **-4.15**         |
+| `StripeService`         | confident (exact id)                | **-4.09**         |
+| `user`                  | confident (exact name)              | **-3.47**         |
+| `handles`               | thin (context-only collision)       | **-1.29**         |
+| `class`                 | thin (matches ~all contexts, IDF≈0) | **0**             |
 
 Confident hits land at **≤ -3.4**; thin collisions at **≥ -1.3**. The pinned floor sits in the gap:
 
@@ -80,7 +81,7 @@ confidence (e.g. "stripe service" measures ≈ -1.94 on a 3-node overlay vs -4.5
 That is benign: `lowConfidence` is a soft warning and the results are still returned. Net: the floor is
 conservative for overlays **≥ the calibration size** and merely over-cautious for tiny ones — so a
 production-scale overlay never under-flags a thin match, which is the property that matters. The -2.0
-value's live-index (auctic-core) validation is **deferred to the owner-run T1.8 battery in Phase 2**.
+value's live-index (acme-core) validation is **deferred to the owner-run T1.8 battery in Phase 2**.
 Guarded meanwhile by the deterministic vitest cases in
 `src/scanner/anchors/__tests__/anchor-search.test.ts` ("a confident name hit is NOT lowConfidence" /
 "a thin context-only token collision IS lowConfidence") and the pinned-value assertion in

@@ -3,8 +3,8 @@ import { LuxSqlite } from '../dist/db/sqlite-adapter.js';
 import { LuxDatabase } from '../dist/db/index.js';
 import { rebuildWithOverlay } from '../dist/scanner/rebuild-orchestrator.js';
 
-const rootPath = '/path/to/auctic-core/vcs';
-const dbPath = '/tmp/lux-auctic-module-routes.db';
+const rootPath = '/path/to/acme-core/vcs';
+const dbPath = '/tmp/lux-acme-module-routes.db';
 
 if (existsSync(dbPath)) rmSync(dbPath, { force: true });
 
@@ -48,16 +48,22 @@ const counts = {
   `),
 };
 
-const providerFiles = db.prepare(`
+const providerFiles = db
+  .prepare(
+    `
   select file_path, count(*) as surfaces
   from structural_nodes
   where node_type = 'capability-surface'
     and file_path like '%Provider.php'
   group by file_path
   order by surfaces desc, file_path asc
-`).all();
+`
+  )
+  .all();
 
-const externalSample = db.prepare(`
+const externalSample = db
+  .prepare(
+    `
   select file_path, symbol_name, json_extract(metadata, '$.path') as path,
          json_extract(metadata, '$.explicitProvider') as provider,
          json_extract(metadata, '$.routeName') as route_name
@@ -66,7 +72,9 @@ const externalSample = db.prepare(`
     and json_extract(metadata, '$.path') like '/api/external/%'
   order by path asc
   limit 50
-`).all();
+`
+  )
+  .all();
 
 console.log('[counts]', JSON.stringify(counts));
 console.log('[provider-files]', JSON.stringify(providerFiles));

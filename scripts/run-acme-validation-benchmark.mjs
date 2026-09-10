@@ -5,9 +5,10 @@ import { LuxDatabase } from '../dist/db/index.js';
 import { rebuildWithOverlay } from '../dist/scanner/rebuild-orchestrator.js';
 
 const [targetRepoPathArg, dbPathArg, benchmarkPathArg] = process.argv.slice(2);
-const targetRepoPath = targetRepoPathArg ?? '/path/to/auctic-core/vcs';
-const dbPath = dbPathArg ?? '/tmp/lux-auctic-validation-benchmark.db';
-const benchmarkPath = benchmarkPathArg ?? new URL('./benchmarks/auctic-validation-benchmark.json', import.meta.url);
+const targetRepoPath = targetRepoPathArg ?? '/path/to/acme-core/vcs';
+const dbPath = dbPathArg ?? '/tmp/lux-acme-validation-benchmark.db';
+const benchmarkPath =
+  benchmarkPathArg ?? new URL('./benchmarks/acme-validation-benchmark.json', import.meta.url);
 
 const benchmark = JSON.parse(readFileSync(benchmarkPath, 'utf8'));
 
@@ -20,7 +21,9 @@ luxDb.close();
 
 const db = new LuxSqlite(dbPath, { readonly: true });
 
-const allSurfaces = db.prepare(`
+const allSurfaces = db
+  .prepare(
+    `
   select id,
          file_path,
          symbol_name,
@@ -29,7 +32,9 @@ const allSurfaces = db.prepare(`
          upper(coalesce(json_extract(metadata, '$.method'), substr(symbol_name, 1, instr(symbol_name, ' ') - 1))) as method
   from structural_nodes
   where node_type = 'capability-surface'
-`).all();
+`
+  )
+  .all();
 
 const surfacesByKey = new Map();
 for (const surface of allSurfaces) {
@@ -39,30 +44,50 @@ for (const surface of allSurfaces) {
 }
 
 const providerBySurfaceId = new Map(
-  db.prepare(`
+  db
+    .prepare(
+      `
     select source_node_id as surface_id, target_node_id as provider_id
     from structural_edges
     where edge_type = 'handled_by'
-  `).all().map((row) => [row.surface_id, row.provider_id])
+  `
+    )
+    .all()
+    .map((row) => [row.surface_id, row.provider_id])
 );
 
 const validatorProviderIds = new Set(
-  db.prepare(`select distinct source_node_id as provider_id from structural_edges where edge_type = 'validates_with'`).all().map((row) => row.provider_id)
+  db
+    .prepare(
+      `select distinct source_node_id as provider_id from structural_edges where edge_type = 'validates_with'`
+    )
+    .all()
+    .map((row) => row.provider_id)
 );
 
 const responseProviderIds = new Set(
-  db.prepare(`select distinct source_node_id as provider_id from structural_edges where edge_type = 'returns_contract'`).all().map((row) => row.provider_id)
+  db
+    .prepare(
+      `select distinct source_node_id as provider_id from structural_edges where edge_type = 'returns_contract'`
+    )
+    .all()
+    .map((row) => row.provider_id)
 );
 
 const consumersBySurfaceId = new Map();
-for (const row of db.prepare(`
+for (const row of db
+  .prepare(
+    `
   select e.target_node_id as surface_id, n.file_path as consumer_file
   from structural_edges e
   join structural_nodes n on n.id = e.source_node_id
   where e.edge_type = 'calls_surface'
     and e.confidence >= 0.75
-`).all()) {
-  if (!consumersBySurfaceId.has(row.surface_id)) consumersBySurfaceId.set(row.surface_id, new Set());
+`
+  )
+  .all()) {
+  if (!consumersBySurfaceId.has(row.surface_id))
+    consumersBySurfaceId.set(row.surface_id, new Set());
   consumersBySurfaceId.get(row.surface_id).add(row.consumer_file);
 }
 
@@ -73,17 +98,18 @@ function evaluateSurface(surface) {
   const hasValidator = providerId ? validatorProviderIds.has(providerId) : false;
   const hasResponse = providerId ? responseProviderIds.has(providerId) : false;
   const hasConsumer = consumerFiles.length > 0;
-  const level = hasConsumer && hasProvider && hasValidator && hasResponse
-    ? 'L5'
-    : hasConsumer && hasProvider
-      ? 'L4'
-      : hasProvider && (hasValidator || hasResponse)
-        ? 'L3'
-        : hasProvider
-          ? 'L2'
-          : surface.id
-            ? 'L1'
-            : 'Miss';
+  const level =
+    hasConsumer && hasProvider && hasValidator && hasResponse
+      ? 'L5'
+      : hasConsumer && hasProvider
+        ? 'L4'
+        : hasProvider && (hasValidator || hasResponse)
+          ? 'L3'
+          : hasProvider
+            ? 'L2'
+            : surface.id
+              ? 'L1'
+              : 'Miss';
 
   return {
     id: surface.id,
@@ -124,7 +150,12 @@ function evaluateExemplar(exemplar) {
   if (exemplar.routeName) {
     const exactRoute = candidates.find((c) => c.routeName === exemplar.routeName);
     if (exactRoute) {
-      return { ...exactRoute, targetLevel: exemplar.targetLevel, stretchLevel: exemplar.stretchLevel ?? null, expectedConsumerFiles: exemplar.consumerFiles ?? [] };
+      return {
+        ...exactRoute,
+        targetLevel: exemplar.targetLevel,
+        stretchLevel: exemplar.stretchLevel ?? null,
+        expectedConsumerFiles: exemplar.consumerFiles ?? [],
+      };
     }
   }
   const first = candidates[0];
@@ -145,7 +176,12 @@ function evaluateExemplar(exemplar) {
       symbolName: null,
     };
   }
-  return { ...first, targetLevel: exemplar.targetLevel, stretchLevel: exemplar.stretchLevel ?? null, expectedConsumerFiles: exemplar.consumerFiles ?? [] };
+  return {
+    ...first,
+    targetLevel: exemplar.targetLevel,
+    stretchLevel: exemplar.stretchLevel ?? null,
+    expectedConsumerFiles: exemplar.consumerFiles ?? [],
+  };
 }
 
 const result = {

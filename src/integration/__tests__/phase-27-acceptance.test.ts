@@ -39,5 +39,6 @@ describe('Phase27 Go acceptance', () => {
     ])
       expect(s.has(x)).toBe(true);
   });
-  it('has owner gold', () => expect(load().every((x) => x.owner === 'Example Maintainer')).toBe(true));
+  it('has owner gold', () =>
+    expect(load().every((x) => x.owner === 'Example Maintainer')).toBe(true));
 });

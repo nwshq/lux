@@ -1,6 +1,8 @@
 import { LuxSqlite } from '../dist/db/sqlite-adapter.js';
-const db = new LuxSqlite('/tmp/lux-auctic-module-routes.db', { readonly: true });
-const rows = db.prepare(`
+const db = new LuxSqlite('/tmp/lux-acme-module-routes.db', { readonly: true });
+const rows = db
+  .prepare(
+    `
   select file_path, symbol_name,
          json_extract(metadata, '$.path') as path,
          json_extract(metadata, '$.localFragment') as local_fragment,
@@ -11,6 +13,8 @@ const rows = db.prepare(`
   where node_type = 'capability-surface'
     and file_path = 'src/Module/ExternalApi/RouteServiceProvider.php'
   order by path asc, symbol_name asc
-`).all();
+`
+  )
+  .all();
 console.log(JSON.stringify(rows, null, 2));
 db.close();

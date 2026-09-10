@@ -26,9 +26,9 @@ const REPO_ROOT = resolve(__dirname, '..', '..', '..');
 const DIST_SERVER = join(REPO_ROOT, 'dist', 'mcp', 'server.js');
 
 const SHOW = 'symbol:php:App\\Http\\Ctrl::show';
-const ENGINE = 'symbol:php:acme\\Core\\Engine::run';
-const LEDGER = 'symbol:php:acme\\Core\\Ledger::post';
-const CALLER = 'symbol:php:acme\\Core\\Caller::invoke';
+const ENGINE = 'symbol:php:Acme\\Core\\Engine::run';
+const LEDGER = 'symbol:php:Acme\\Core\\Ledger::post';
+const CALLER = 'symbol:php:Acme\\Core\\Caller::invoke';
 
 function node(db: LuxDatabase, id: string, qualified_name: string): void {
   db.upsertStructuralNode({
@@ -61,7 +61,7 @@ function makeFixture(root: string): { corpus: string; dbPath: string; siblingDbP
   const dbPath = join(corpus, '.lux', 'lux.db');
   const primary = new LuxDatabase(dbPath);
   node(primary, SHOW, 'App\\Http\\Ctrl::show');
-  node(primary, ENGINE, 'acme\\Core\\Engine::run');
+  node(primary, ENGINE, 'Acme\\Core\\Engine::run');
   edge(primary, SHOW, ENGINE);
   primary.insertKnowledgeEntry({
     type: 'documentation',
@@ -73,9 +73,9 @@ function makeFixture(root: string): { corpus: string; dbPath: string; siblingDbP
 
   const siblingDbPath = join(root, 'core', '.lux', 'lux.db');
   const sibling = new LuxDatabase(siblingDbPath);
-  node(sibling, ENGINE, 'acme\\Core\\Engine::run');
-  node(sibling, LEDGER, 'acme\\Core\\Ledger::post');
-  node(sibling, CALLER, 'acme\\Core\\Caller::invoke');
+  node(sibling, ENGINE, 'Acme\\Core\\Engine::run');
+  node(sibling, LEDGER, 'Acme\\Core\\Ledger::post');
+  node(sibling, CALLER, 'Acme\\Core\\Caller::invoke');
   edge(sibling, ENGINE, LEDGER);
   edge(sibling, CALLER, ENGINE);
   sibling.insertKnowledgeEntry({

@@ -1,7 +1,7 @@
 -- src/db/migrations/015_add_node_embeddings.sql
 -- 014_add_node_anchor_texts.sql is the latest landed migration (verified: migrations run 001..014,
 -- no gaps), so 015 is the next free integer. Phase-1 lexical claimed 014; this is the Phase-3 vector
--- plane. RECONCILIATION: loadMigrations auto-discovers by filename regex, sorts, and applies any
+-- plane. EXAMPLE_DASHBOARDCILIATION: loadMigrations auto-discovers by filename regex, sorts, and applies any
 -- version above MAX(version) (migrations.ts:69-109), so a gap never blocks a later file. If any
 -- migration lands on main before this merges, renumber to the next free integer at merge time; the
 -- table shape and code are unaffected.

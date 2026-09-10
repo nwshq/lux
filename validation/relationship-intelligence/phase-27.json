@@ -9,9 +9,9 @@
       "id": "P27-C1",
       "class": "deterministic-go",
       "green": {
-        "command": "focused Docker, Compose, and Phase 27 acceptance suites; exact-pin Dev Infrastructure scan",
+        "command": "focused Docker, Compose, and Phase 27 acceptance suites; exact-pin Example Infrastructure scan",
         "exitCode": 0,
-        "observable": "Production adapter tests and independent acceptance tests passed 5/5; synthetic battery contains 30 positive and 20 forbidden cases; exact-pin Dev Infrastructure three-template scan produced 44 facts, 22 nodes, and 28 edges; one rollout template with a structural placeholder was truthfully diagnosed unsupported."
+        "observable": "Production adapter tests and independent acceptance tests passed 5/5; synthetic battery contains 30 positive and 20 forbidden cases; exact-pin Example Infrastructure three-template scan produced 44 facts, 22 nodes, and 28 edges; one rollout template with a structural placeholder was truthfully diagnosed unsupported."
       },
       "red": {
         "mutation": "six-watched-container-execution-tag-stage-interpolation-env-and-confinement-regressions",
@@ -57,7 +57,7 @@
   "knownBaselineFailures": [],
   "review": {
     "codeReview": "APPROVED",
-    "independentValidation": "APPROVED: Docker/Compose production and acceptance focused tests 5/5; synthetic 30 positive/20 forbidden with six watched controls; exact-pin Dev Infrastructure yielded 44 facts/22 nodes/28 edges and truthfully refused the structurally templated rollout case; PR full CI and release/global install passed.",
+    "independentValidation": "APPROVED: Docker/Compose production and acceptance focused tests 5/5; synthetic 30 positive/20 forbidden with six watched controls; exact-pin Example Infrastructure yielded 44 facts/22 nodes/28 edges and truthfully refused the structurally templated rollout case; PR full CI and release/global install passed.",
     "acceptanceReview": "APPROVED"
   },
   "exemptions": []

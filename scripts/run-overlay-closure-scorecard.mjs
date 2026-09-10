@@ -5,14 +5,18 @@ import { LuxSqlite } from '../dist/db/sqlite-adapter.js';
 
 const [luxRepoPath, targetRepoPath, dbPath] = process.argv.slice(2);
 if (!luxRepoPath || !targetRepoPath || !dbPath) {
-  console.error('usage: node scripts/run-overlay-closure-scorecard.mjs <luxRepoPath> <targetRepoPath> <dbPath>');
+  console.error(
+    'usage: node scripts/run-overlay-closure-scorecard.mjs <luxRepoPath> <targetRepoPath> <dbPath>'
+  );
   process.exit(1);
 }
 
 if (existsSync(dbPath)) rmSync(dbPath, { force: true });
 
 const { LuxDatabase } = await import(pathToFileURL(join(luxRepoPath, 'dist/db/index.js')).href);
-const { rebuildWithOverlay } = await import(pathToFileURL(join(luxRepoPath, 'dist/scanner/rebuild-orchestrator.js')).href);
+const { rebuildWithOverlay } = await import(
+  pathToFileURL(join(luxRepoPath, 'dist/scanner/rebuild-orchestrator.js')).href
+);
 
 const luxDb = new LuxDatabase(dbPath);
 await rebuildWithOverlay(luxDb, targetRepoPath);
@@ -229,7 +233,9 @@ function topProviderQuality(limit = 10) {
 const result = {
   allSurfaces: cohortMetrics(),
   providerDeclared: cohortMetrics(`file_path like ${quote('%Provider.php')}`),
-  externalApiProvider: cohortMetrics(`file_path = ${quote('src/Module/ExternalApi/RouteServiceProvider.php')}`),
+  externalApiProvider: cohortMetrics(
+    `file_path = ${quote('src/Module/ExternalApi/RouteServiceProvider.php')}`
+  ),
   topProviderQuality: topProviderQuality(10),
 };
 

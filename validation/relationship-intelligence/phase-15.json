@@ -9,9 +9,9 @@
       "id": "P15-C1",
       "class": "static-react-graph",
       "green": {
-        "command": "vitest run Phase 15 production and acceptance focused suites; fixed-denominator synthetic and exact-pin example-workspace/example-dashboard cohort scoring; isolated exact-pin preflight; acme production probe; watched-red controls; repeated stable-resolver checks",
+        "command": "vitest run Phase 15 production and acceptance focused suites; fixed-denominator synthetic and exact-pin Example Workspace/Example Dashboard cohort scoring; isolated exact-pin preflight; Acme production probe; watched-red controls; repeated stable-resolver checks",
         "exitCode": 0,
-        "observable": "All 14 focused tests passed; the synthetic battery passed 30 positive and 15 forbidden cases at precision 1 and recall 1; the pinned example-workspace and example-dashboard battery passed 20 positive and 10 forbidden cases, all 20 selected production edges matched, and each corpus met precision >= 0.95 and recall >= 0.90; isolated exact-pin preflight passed for all three corpora; the acme production probe returned 421 edges; all 6 watched mutations were detected; repeated resolution produced an equal stable digest beginning 206c69"
+        "observable": "All 14 focused tests passed; the synthetic battery passed 30 positive and 15 forbidden cases at precision 1 and recall 1; the pinned Example Workspace and Example Dashboard battery passed 20 positive and 10 forbidden cases, all 20 selected production edges matched, and each corpus met precision >= 0.95 and recall >= 0.90; isolated exact-pin preflight passed for all three corpora; the Acme production probe returned 421 edges; all 6 watched mutations were detected; repeated resolution produced an equal stable digest beginning 206c69"
       },
       "red": {
         "mutation": "six-watched-render-hook-lazy-context-callback-and-component-identity-regressions",
@@ -19,7 +19,7 @@
         "exitCode": 1,
         "observable": "Each of the 6 watched rendered-JSX removal, custom-hook misuse, dynamic-lazy, unresolved-context, callback-artifact, and component-identity-collapse mutations produced a nonzero checker exit"
       },
-      "verifiedBy": "independent-production-cohort-exact-pin-preflight-auctic-probe-watched-mutation-and-stable-resolver-validation"
+      "verifiedBy": "independent-production-cohort-exact-pin-preflight-acme-probe-watched-mutation-and-stable-resolver-validation"
     },
     {
       "id": "P15-C2",
@@ -57,7 +57,7 @@
   "knownBaselineFailures": [],
   "review": {
     "codeReview": "APPROVED",
-    "independentValidation": "Review and implementation acceptance APPROVED after performance correction; all 14 focused tests passed; the synthetic battery passed 30 positive and 15 forbidden cases at precision/recall 1; the pinned example-workspace and example-dashboard battery passed 20 positive and 10 forbidden cases, all 20 selected production edges matched, and each corpus met precision >= 0.95 and recall >= 0.90; isolated exact-pin preflight passed for all three corpora; the acme production probe returned 421 edges; all 6 watched mutations were detected; the final npm run check exited 0 with 2058 passed/13 skipped/0 failed across all gates, architecture lint 220 files/0 violations, architecture tests 5, dead-code validation 1161 exports/213 files, and native-free/documentation verification passed; repeated resolution produced an equal stable digest beginning 206c69; 3+5 performance median was 29.126084 ms with RSS 91013120 bytes, below the Phase 14 baseline; installed CLI/package and MCP 2.31.0 with 12 tools and Goose plugin 571dfe0 namespaced Skill verification passed.",
+    "independentValidation": "Review and implementation acceptance APPROVED after performance correction; all 14 focused tests passed; the synthetic battery passed 30 positive and 15 forbidden cases at precision/recall 1; the pinned Example Workspace and Example Dashboard battery passed 20 positive and 10 forbidden cases, all 20 selected production edges matched, and each corpus met precision >= 0.95 and recall >= 0.90; isolated exact-pin preflight passed for all three corpora; the Acme production probe returned 421 edges; all 6 watched mutations were detected; the final npm run check exited 0 with 2058 passed/13 skipped/0 failed across all gates, architecture lint 220 files/0 violations, architecture tests 5, dead-code validation 1161 exports/213 files, and native-free/documentation verification passed; repeated resolution produced an equal stable digest beginning 206c69; 3+5 performance median was 29.126084 ms with RSS 91013120 bytes, below the Phase 14 baseline; installed CLI/package and MCP 2.31.0 with 12 tools and Goose plugin 571dfe0 namespaced Skill verification passed.",
     "acceptanceReview": "APPROVED"
   },
   "exemptions": []

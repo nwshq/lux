@@ -29,9 +29,11 @@ npm run test:coverage
 ## Test Structure
 
 ### Constructor Tests
+
 - Scanner initialization with and without root path
 
 ### scan() Method Tests
+
 - **Basic Scanning**: Clients, projects, communications, and knowledge entries
 - **File Discovery**: Multiple candidate files (README.md, AGENTS.md, CLAUDE.md)
 - **Frontmatter Parsing**: YAML frontmatter extraction and metadata handling
@@ -41,6 +43,7 @@ npm run test:coverage
 - **Edge Cases**: Empty content directory, missing files, directory-only references
 
 ### index() Method Tests
+
 - **Validation**: Input validation for database and scan results
 - **Entity Indexing**: Correct insertion of all entity types
 - **Dependency Tracking**: Client/project relationships and foreign keys
@@ -49,6 +52,7 @@ npm run test:coverage
 - **Metadata Preservation**: Frontmatter and content passthrough
 
 ### Private Helper Methods Tests
+
 - `slugToTitle()`: Slug to title case conversion
 - `extractTitleFromFilename()`: Date prefix removal and title extraction
 - `inferCommType()`: Communication type inference from filename
@@ -89,6 +93,7 @@ Tests create temporary directories for isolated testing. These are automatically
 ## Coverage Notes
 
 Uncovered lines (~10%) primarily consist of:
+
 - Error path branches that are difficult to trigger in tests
 - Edge cases in error message formatting
 - Non-critical logging or debug paths

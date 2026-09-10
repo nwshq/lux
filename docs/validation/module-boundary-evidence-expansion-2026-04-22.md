@@ -51,9 +51,9 @@ Result:
 
 ## Repo-scale validation
 
-### acme Core
+### Acme Core
 
-- Repo: `/path/to/auctic-core/vcs`
+- Repo: `/path/to/acme-core/vcs`
 - Rebuild date: 2026-04-22
 - Trust: `overlay-complete`
 - Rebuild result:
@@ -111,13 +111,13 @@ Probe outcomes:
 
 Assessment:
 
-- the tranche-2 architectural gap is fixed on acme Core
+- the tranche-2 architectural gap is fixed on Acme Core
 - projection is now real at repo scale
 - the recovered paths remain explainable and transit-preserving instead of collapsing into a `Global` or root-route hub
 
-### acme Atlas
+### Acme Atlas
 
-- Repo: `/path/to/auctic-atlas/vcs`
+- Repo: `/path/to/acme-atlas/vcs`
 - Rebuild date: 2026-04-22
 - Trust: `degraded-overlay`
 - Rebuild result:
@@ -147,23 +147,23 @@ Assessment:
 - `R4` / `R5`: fixed by making projection survive multi-step glue transit without promoting route files or shared controllers into dominant module nodes
 - `R1` / `R12`: fixed by persisting glue-origin evidence into the canonical overlay substrate instead of export-only logic
 - `R2` / `R6` / `R7`: preserved because projected paths remain distinct, transit provenance is retained, and operator-facing kinds are still `depends-on` / `interacts-with` / `adjacent-to`
-- `R10` / `R11`: validated on acme Core isolate probes and re-checked on acme Atlas without overfitting
+- `R10` / `R11`: validated on Acme Core isolate probes and re-checked on Acme Atlas without overfitting
 - `R14`: calibration delta recorded explicitly here
 - `R15`: focused tests and build passed
 
 ## Open mismatches
 
-- `Analytics` and `Permission` still do not appear in acme Core aggregates
+- `Analytics` and `Permission` still do not appear in Acme Core aggregates
   - no weak heuristics were added to force them in
   - follow-up should start by checking whether their real coupling is still hidden behind shared services, policy/permission infrastructure, or evidence families not yet modeled strongly enough
 - current repo-scale projected paths are concentrated around the shared `ListingController` flow
   - this is a real improvement, not fake density
   - but it also shows that shared-controller recovery is still sparse outside the strongest Listing-adjacent glue flows
-- acme Atlas remains limited by `degraded-overlay`
+- Acme Atlas remains limited by `degraded-overlay`
 
 ## Tranche-3 candidates
 
-- recover additional shared-controller and policy/permission flows for modules still missing from acme Core, especially `Analytics` and `Permission`, only where persisted evidence is real
+- recover additional shared-controller and policy/permission flows for modules still missing from Acme Core, especially `Analytics` and `Permission`, only where persisted evidence is real
 - consider broader shared-controller service/request/resource recovery where existing glue controllers mediate module-owned behavior but still do not emit enough owned-target evidence
 - improve Atlas symbol recovery before expecting projection improvements there
 
@@ -176,7 +176,7 @@ Tranche 3 reviewed the two remaining high-salience missing modules from tranche 
 
 The task was not to force them into the graph.
 
-The task was to determine whether acme Core contains real module-to-module evidence for them that Lux was still failing to recover.
+The task was to determine whether Acme Core contains real module-to-module evidence for them that Lux was still failing to recover.
 
 ## Tranche-3 changes
 
@@ -192,7 +192,7 @@ The investigation showed that changing calibration here would be the wrong move:
 
 - `Analytics` is not being hidden by projection thresholds
 - `Permission` is not being hidden by reinforcement thresholds
-- both modules currently lack persisted owned-module cross-boundary evidence in acme Core
+- both modules currently lack persisted owned-module cross-boundary evidence in Acme Core
 
 Payload calibration notes under `CORPUS` remain outside the writable sandbox, and tranche 3 did not produce a calibration delta that needed separate recording.
 
@@ -212,9 +212,9 @@ Result:
 
 ## Tranche-3 repo-scale validation
 
-### acme Core
+### Acme Core
 
-- Repo: `/path/to/auctic-core/vcs`
+- Repo: `/path/to/acme-core/vcs`
 - Rebuild date: 2026-04-22
 - Trust: `overlay-complete`
 - Rebuild result:
@@ -235,8 +235,8 @@ Boundary comparison:
   - route declaration
   - route handler mapping
   - same-module typed request validation
-- no cross-module owned consumer of `Analytics` routes or services was found in acme Core
-- no cross-module imports of `acme\\Core\\Module\\Analytics\\...` were found outside `CoreServiceProvider` and the module itself
+- no cross-module owned consumer of `Analytics` routes or services was found in Acme Core
+- no cross-module imports of `Acme\\Core\\Module\\Analytics\\...` were found outside `CoreServiceProvider` and the module itself
 - the module’s deeper runtime work is mostly:
   - internal job dispatch
   - cache/bus infrastructure
@@ -250,10 +250,10 @@ Boundary comparison:
   - route handler mapping
   - same-module request validation
   - same-module JS service calls to Permission-owned admin API surfaces
-- no cross-module imports of `acme\\Core\\Module\\Permission\\...` were found outside `CoreServiceProvider` and the module itself
-- the broader permission system in acme Core is implemented mostly through global/shared infrastructure rather than through the `Permission` module:
+- no cross-module imports of `Acme\\Core\\Module\\Permission\\...` were found outside `CoreServiceProvider` and the module itself
+- the broader permission system in Acme Core is implemented mostly through global/shared infrastructure rather than through the `Permission` module:
   - `src/Enums/UserPermissionEnum.php`
-  - `acme\\Core\\User`
+  - `Acme\\Core\\User`
   - Spatie role/permission models and registrar
   - shared permission utilities consumed by other modules
 - result: `Permission` remains structurally absent from module aggregates in this repo cut
@@ -266,18 +266,18 @@ Assessment:
 - no weak ownership remap was added from global permission infrastructure into the `Permission` module
 - no heuristic remap was added from global models or passive external surfaces into `Analytics`
 
-### acme Atlas
+### Acme Atlas
 
 - not re-run in tranche 3
 - rationale:
-  - the tranche-3 question was an acme Core isolate review for two specific modules
+  - the tranche-3 question was an Acme Core isolate review for two specific modules
   - Atlas remained `degraded-overlay` in tranche 2 and does not currently expose enough symbol-backed structure to validate this missing-module question meaningfully
 
 ## Tranche-3 requirement traceability
 
 - `R2` / `R6` / `R7`: preserved by refusing to upgrade self-contained route/controller glue into fake cross-module truth
 - `R4` / `R5`: preserved because no additional hub promotion or global ownership remap was introduced
-- `R10` / `R11`: satisfied by explicit acme Core isolate review of `Analytics` and `Permission`
+- `R10` / `R11`: satisfied by explicit Acme Core isolate review of `Analytics` and `Permission`
 - `R14`: no calibration delta; the key outcome is the explicit finding that these modules are presently absent for structural reasons, not because of hidden weights
 - `R15`: focused tests and build passed
 
@@ -291,7 +291,7 @@ Assessment:
 
 Why:
 
-- `Analytics` is currently a passive module with self-contained routes/services and global-model or infrastructure dependencies, but no persisted owned-module cross-boundary path in acme Core
+- `Analytics` is currently a passive module with self-contained routes/services and global-model or infrastructure dependencies, but no persisted owned-module cross-boundary path in Acme Core
 - `Permission` currently owns a role-management UI/API slice, while the repo’s broader authorization infrastructure lives in global/shared enum, user, and Spatie surfaces rather than in Permission-owned module files
 
 ## Recommended tranche-4 candidates
@@ -306,7 +306,7 @@ Tranche 4 re-ran the open question from tranche 3 with a hard artifact requireme
 
 - does Lux now need an explicit shared/global substrate treatment in boundary interpretation or export surfaces before another export test, especially for authorization/permission infrastructure?
 
-This tranche was not allowed to solve the question by forcing fake ownership, promoting `Global` into a hub, or adding an Auctic-only special case.
+This tranche was not allowed to solve the question by forcing fake ownership, promoting `Global` into a hub, or adding an Acme-only special case.
 
 ## Tranche-4 investigation
 
@@ -318,23 +318,23 @@ What was investigated:
 - `src/cli/overlay.ts`
   - reviewed the current operator/export surface for `overlay boundaries`
   - confirmed that the surface already exports direct vs projected vs supporting evidence without inventing a separate shared-substrate owner
-- acme Core authorization and analytics ownership surfaces
+- Acme Core authorization and analytics ownership surfaces
   - `src/Module/Permission/RouteServiceProvider.php`
   - `src/Enums/UserPermissionEnum.php`
-  - `src/Console/Commands/SetAucticPermissions.php`
+  - `src/Console/Commands/SetAcmePermissions.php`
   - `src/CoreServiceProvider.php`
-  - targeted repo search for `acme\\Core\\Module\\Permission\\...`, `acme\\Core\\Module\\Analytics\\...`, `UserPermissionEnum`, `PermissionRegistrar`, and broad `hasPermissionTo()` / `can()` usage
+  - targeted repo search for `Acme\\Core\\Module\\Permission\\...`, `Acme\\Core\\Module\\Analytics\\...`, `UserPermissionEnum`, `PermissionRegistrar`, and broad `hasPermissionTo()` / `can()` usage
 
 What the repo evidence showed:
 
 - `Permission` still primarily owns the role-management UI/API slice under `src/Module/Permission/...`
-- the broader authorization substrate in acme Core still lives mostly in shared/global surfaces such as:
+- the broader authorization substrate in Acme Core still lives mostly in shared/global surfaces such as:
   - `src/Enums/UserPermissionEnum.php`
   - `src/User.php`
   - shared controllers, middleware, and policies outside `src/Module/Permission`
   - Spatie role/permission models and registrar usage
 - targeted namespace search still did not show broad cross-module imports of module-owned `Permission` or `Analytics` implementation surfaces outside module registration/self-use
-- a current rerun of `overlay boundaries --json` and `overlay boundaries --direct-only --json` against `/path/to/auctic-core/vcs/.lux/lux.db` returned zero aggregates involving `Permission` or `Analytics`
+- a current rerun of `overlay boundaries --json` and `overlay boundaries --direct-only --json` against `/path/to/acme-core/vcs/.lux/lux.db` returned zero aggregates involving `Permission` or `Analytics`
 
 Assessment:
 
@@ -374,23 +374,23 @@ Commands run:
 - `npm run build`
 - `npm test -- src/experts/__tests__/module-boundary-analysis.test.ts`
 - `npm test -- src/cli/__tests__/overlay-boundaries-cli.test.ts`
-- `node --import tsx ./src/cli/index.ts --corpus /path/to/auctic-core/vcs overlay boundaries --json`
-- `node --import tsx ./src/cli/index.ts --corpus /path/to/auctic-core/vcs overlay boundaries --direct-only --json`
+- `node --import tsx ./src/cli/index.ts --corpus /path/to/acme-core/vcs overlay boundaries --json`
+- `node --import tsx ./src/cli/index.ts --corpus /path/to/acme-core/vcs overlay boundaries --direct-only --json`
 
 Result:
 
 - build passed
 - focused tests passed
 - the new regression passed
-- acme Core remained `overlay-complete`
+- Acme Core remained `overlay-complete`
 - both projected and direct-only boundary exports still showed no aggregates involving `Permission` or `Analytics`
 
 ## Tranche-4 conclusion
 
 - what was investigated:
   - current ownership/projection/export behavior in Lux
-  - current acme Core authorization and analytics ownership reality
-  - current export output on the live acme Core overlay DB
+  - current Acme Core authorization and analytics ownership reality
+  - current export output on the live Acme Core overlay DB
 - whether shared/global substrate treatment changed:
   - **no**
 - whether code changed or did not change:
@@ -412,7 +412,7 @@ Requirement traceability:
 - `R2` / `R6` / `R7`: preserved by keeping the export evidence-tiered and explainable instead of flattening shared authorization substrate into module truth
 - `R4` / `R5`: preserved by refusing hub promotion or fake ownership remap for global/shared authorization files
 - `R1` / `R12`: preserved because tranche 4 did not introduce export-only sidecar ontology or non-overlay ownership overrides
-- `R10` / `R11`: satisfied by an explicit acme Core rerun centered on the high-salience `Permission` / `Analytics` probe question
+- `R10` / `R11`: satisfied by an explicit Acme Core rerun centered on the high-salience `Permission` / `Analytics` probe question
 - `R14`: satisfied by recording the no-change decision, the rationale, and the caveats explicitly
 - `R15`: satisfied by the regression assertion, focused tests, and passing build
 

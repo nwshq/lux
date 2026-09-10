@@ -26,7 +26,7 @@ function makeKernelWorktree(
   dir: string,
   opts: { indexed: boolean; ns?: string } = { indexed: true }
 ): void {
-  const ns = opts.ns ?? 'acme\\Core';
+  const ns = opts.ns ?? 'Acme\\Core';
   mkdirSync(dir, { recursive: true });
   writeFileSync(
     join(dir, 'composer.json'),
@@ -57,7 +57,7 @@ describe('resolveKernel', () => {
     const r = resolveKernel(corpus, { package: 'acme/core' });
     expect(existsSync(r.dbPath)).toBe(true);
     expect(r.dbPath.endsWith(join('.lux', 'lux.db'))).toBe(true);
-    expect(r.namespace).toBe('acme\\Core');
+    expect(r.namespace).toBe('Acme\\Core');
     expect(r.headCommit).toMatch(/^[0-9a-f]{40}$/);
   });
 

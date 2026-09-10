@@ -17,7 +17,7 @@ const PEER: FederationRepo = { name: 'sib_res', role: 'peer' };
 
 describe('idPortability', () => {
   it('is portable ONLY for a namespace-qualified PHP FQCN', () => {
-    expect(idPortability('symbol:php:acme\\Core\\OfferController::show')).toBe('portable');
+    expect(idPortability('symbol:php:Acme\\Core\\OfferController::show')).toBe('portable');
     expect(idPortability('symbol:php:App\\Http\\Kernel')).toBe('portable');
   });
 
@@ -41,7 +41,7 @@ describe('idPortability', () => {
 
 describe('federationKey — the three-class law (Decision 3)', () => {
   it('portable id keys bare in every repo (one logical node)', () => {
-    const id = 'symbol:php:acme\\Core\\X';
+    const id = 'symbol:php:Acme\\Core\\X';
     expect(federationKey(MAIN, id)).toBe(id);
     expect(federationKey(KERNEL, id)).toBe(id);
     expect(federationKey(PEER, id)).toBe(id); // portable merges across ALL repos
@@ -74,7 +74,7 @@ describe('federationKey — the three-class law (Decision 3)', () => {
 
 describe('idBridges — which repos a node may expand into', () => {
   it('portable bridges anywhere; bare-name PHP + path-relative bridge nowhere', () => {
-    expect(idBridges('symbol:php:acme\\Core\\X', MAIN, PEER)).toBe(true);
+    expect(idBridges('symbol:php:Acme\\Core\\X', MAIN, PEER)).toBe(true);
     expect(idBridges('symbol:php:helper', MAIN, KERNEL)).toBe(false);
     expect(idBridges('file:routes/web.php', MAIN, KERNEL)).toBe(false);
     expect(idBridges('symbol:ts:src/index.ts#main', MAIN, PEER)).toBe(false);

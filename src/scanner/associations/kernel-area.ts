@@ -14,7 +14,7 @@ export interface ResolvedKernel {
   dbPath: string;
   /** `realpath(<corpus>/vendor/<package>)` — the kernel worktree the client actually vendors. */
   worktree: string;
-  /** The kernel's root PHP namespace (e.g. `acme\\Core`), from its composer.json. */
+  /** The kernel's root PHP namespace (e.g. `Acme\\Core`), from its composer.json. */
   namespace: string;
   /** The kernel index's `last_indexed_commit`, if recorded. */
   indexedCommit?: string;

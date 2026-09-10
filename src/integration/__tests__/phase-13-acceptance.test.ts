@@ -10,7 +10,7 @@ import { bladeTemplateId, programEdgeId } from '../../scanner/identity/program-i
  * Independent Phase 13 contract battery (T50).
  *
  * The reference seam intentionally imports no Phase 13 production leaf. T49/T51
- * may replace it while owner gold, fail-closed negatives, acme applicability,
+ * may replace it while owner gold, fail-closed negatives, Acme applicability,
  * invalidation checks, integrity controls, and watched-red mutants stay fixed.
  */
 
@@ -139,8 +139,8 @@ interface ViewNamespace {
 const here = dirname(fileURLToPath(import.meta.url));
 const benchmarkPath = resolve(here, '../../../benchmarks/relationship/cases/phase-13.json');
 const LUX_PIN = 'adbb7c141c700c13a1a54c71893fb9303cc65ba2';
-const AUCTIC_PIN = '3afee6c0a42808c905c6830e5073eb83386c8409';
-const AUCTIC_REMOTE = 'https://github.com/auctic-software/auctic-core.git';
+const ACME_PIN = '3afee6c0a42808c905c6830e5073eb83386c8409';
+const ACME_REMOTE = 'https://github.com/acme-software/acme-core.git';
 const PRODUCER = 'laravel-livewire';
 
 function loadCases(): PhaseCase[] {
@@ -530,7 +530,7 @@ function observe(
 ): Observation {
   const original = testCase.query?.args as unknown as QueryArgs;
   const args = { ...original, ...override };
-  if (testCase.corpus === 'auctic-core') {
+  if (testCase.corpus === 'acme-core') {
     const candidates = args.candidateFiles ?? [];
     return {
       caseId: testCase.id,
@@ -733,7 +733,7 @@ function watchedMutationResult(cases: readonly PhaseCase[], mutation: MutationId
 }
 
 describe('Phase 13 independent Livewire class/view/mount acceptance', () => {
-  it('pins portable owner gold and exact synthetic/acme corpora', () => {
+  it('pins portable owner gold and exact synthetic/Acme corpora', () => {
     const cases = loadCases();
     expect(cases).toHaveLength(45);
     expect(cases.every((item) => item.owner === 'Example Maintainer')).toBe(true);
@@ -818,14 +818,14 @@ describe('Phase 13 independent Livewire class/view/mount acceptance', () => {
     ).toContain('lux.yaml');
   });
 
-  it('reports exact-pin acme Core not_applicable with zero candidates outside synthetic scoring', () => {
+  it('reports exact-pin Acme Core not_applicable with zero candidates outside synthetic scoring', () => {
     const testCase = loadCases().find(
-      (item) => item.id === 'p13-auctic-core-exact-pin-not-applicable'
+      (item) => item.id === 'p13-acme-core-exact-pin-not-applicable'
     )!;
     const args = testCase.query?.args as unknown as QueryArgs;
-    expect(testCase.corpusPin).toEqual({ remote: AUCTIC_REMOTE, commit: AUCTIC_PIN });
-    expect(args.resolvedRemote).toBe(AUCTIC_REMOTE);
-    expect(args.resolvedCommit).toBe(AUCTIC_PIN);
+    expect(testCase.corpusPin).toEqual({ remote: ACME_REMOTE, commit: ACME_PIN });
+    expect(args.resolvedRemote).toBe(ACME_REMOTE);
+    expect(args.resolvedCommit).toBe(ACME_PIN);
     const observation = observe(testCase);
     expect(observation).toMatchObject({
       outcome: 'unsupported',

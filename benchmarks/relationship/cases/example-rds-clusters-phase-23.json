@@ -5,7 +5,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:edge:1",
@@ -26,7 +26,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:edge:2",
@@ -47,7 +47,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:edge:3",
@@ -68,7 +68,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:edge:4",
@@ -89,7 +89,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:edge:5",
@@ -110,7 +110,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:edge:6",
@@ -131,7 +131,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:edge:7",
@@ -152,7 +152,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:edge:8",
@@ -173,7 +173,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:edge:9",
@@ -194,7 +194,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:edge:10",
@@ -215,7 +215,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:edge:11",
@@ -236,7 +236,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:edge:12",
@@ -257,7 +257,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:edge:13",
@@ -278,7 +278,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:edge:14",
@@ -299,7 +299,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:edge:15",
@@ -320,7 +320,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:edge:16",
@@ -341,7 +341,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:edge:17",
@@ -362,7 +362,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:edge:18",
@@ -383,7 +383,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:edge:19",
@@ -404,7 +404,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:edge:20",
@@ -425,7 +425,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:forbidden:1",
@@ -443,7 +443,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:forbidden:2",
@@ -461,7 +461,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:forbidden:3",
@@ -479,7 +479,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:forbidden:4",
@@ -497,7 +497,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:forbidden:5",
@@ -515,7 +515,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:forbidden:6",
@@ -533,7 +533,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:forbidden:7",
@@ -551,7 +551,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:forbidden:8",
@@ -569,7 +569,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:forbidden:9",
@@ -587,7 +587,7 @@
     "capability": "terraform-real",
     "owner": "Example Maintainer",
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/example-rds-clusters.git",
+      "remote": "https://github.com/acme-software/example-rds-clusters.git",
       "commit": "6c5fea9e89d9edf2c7b1c5395227066326b9a5a9"
     },
     "sourceTruthId": "example-rds-clusters:forbidden:10",

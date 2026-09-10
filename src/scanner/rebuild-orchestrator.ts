@@ -280,7 +280,7 @@ function classifyResult(
 }
 
 /**
- * Reconcile the surface total against the provider-kind breakdown.
+ * Example Dashboardcile the surface total against the provider-kind breakdown.
  *
  * These were sourced differently — the total from the detector's in-run tally,
  * the breakdown from the rows actually persisted — and printed together as a

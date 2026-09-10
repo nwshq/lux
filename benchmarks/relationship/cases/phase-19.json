@@ -12,9 +12,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/context/EventContext.tsx",
@@ -94,9 +94,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/hooks/useEvents.ts",
@@ -137,9 +137,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/hooks/useEvent.ts",
@@ -180,9 +180,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/domain/events/IAppEventEmitter.ts",
@@ -223,9 +223,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/infrastructure/events/AppEventEmitter.ts",
@@ -266,9 +266,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/_layout.tsx",
@@ -309,9 +309,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/components/ListingCard.tsx",
@@ -352,9 +352,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/(authenticated)/index.tsx",
@@ -395,9 +395,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/(authenticated)/catalog/[id].tsx",
@@ -438,9 +438,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/infrastructure/services/NetworkStatusService.ts",
@@ -481,9 +481,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/context/EventContext.tsx",
@@ -524,9 +524,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/hooks/useEvents.ts",
@@ -567,9 +567,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/hooks/useEvent.ts",
@@ -610,9 +610,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/domain/events/IAppEventEmitter.ts",
@@ -653,9 +653,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/infrastructure/events/AppEventEmitter.ts",
@@ -696,9 +696,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/_layout.tsx",
@@ -739,9 +739,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/components/ListingCard.tsx",
@@ -782,9 +782,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/(authenticated)/index.tsx",
@@ -825,9 +825,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/(authenticated)/catalog/[id].tsx",
@@ -868,9 +868,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/infrastructure/services/NetworkStatusService.ts",
@@ -911,9 +911,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/context/EventContext.tsx",
@@ -954,9 +954,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/hooks/useEvents.ts",
@@ -997,9 +997,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/hooks/useEvent.ts",
@@ -1040,9 +1040,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/domain/events/IAppEventEmitter.ts",
@@ -1083,9 +1083,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": ["EVENT_BUS_DYNAMIC_KEY"],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/infrastructure/events/AppEventEmitter.ts",
@@ -1126,9 +1126,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/_layout.tsx",
@@ -1169,9 +1169,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/components/ListingCard.tsx",
@@ -1212,9 +1212,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/(authenticated)/index.tsx",
@@ -1255,9 +1255,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "app/(authenticated)/catalog/[id].tsx",
@@ -1298,9 +1298,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": ["EVENT_BUS_DYNAMIC_KEY"],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/infrastructure/services/NetworkStatusService.ts",
@@ -1341,9 +1341,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/context/EventContext.tsx",
@@ -1384,9 +1384,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/hooks/useEvents.ts",
@@ -1427,9 +1427,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/hooks/useEvent.ts",
@@ -1470,9 +1470,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": [],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/domain/events/IAppEventEmitter.ts",
@@ -1513,9 +1513,9 @@
     },
     "expectedCoverage": "active",
     "expectedDiagnostics": ["EVENT_BUS_DYNAMIC_KEY"],
-    "corpus": "auctic-mobile",
+    "corpus": "acme-mobile",
     "corpusPin": {
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7"
     },
     "sourceFamily": "modules/shared/infrastructure/events/AppEventEmitter.ts",

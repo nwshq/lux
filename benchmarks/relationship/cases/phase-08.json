@@ -2074,13 +2074,13 @@
     }
   },
   {
-    "corpus": "auctic-core",
+    "corpus": "acme-core",
     "capability": "project-module-resolution",
     "owner": "Example Maintainer",
     "goldSchemaVersion": 1,
     "fixtureSchemaVersion": 1,
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "remote": "https://github.com/acme-software/acme-core.git",
       "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
     },
     "thresholds": {
@@ -2115,13 +2115,13 @@
     }
   },
   {
-    "corpus": "auctic-core",
+    "corpus": "acme-core",
     "capability": "project-module-resolution",
     "owner": "Example Maintainer",
     "goldSchemaVersion": 1,
     "fixtureSchemaVersion": 1,
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "remote": "https://github.com/acme-software/acme-core.git",
       "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
     },
     "thresholds": {
@@ -2156,13 +2156,13 @@
     }
   },
   {
-    "corpus": "auctic-core",
+    "corpus": "acme-core",
     "capability": "project-module-resolution",
     "owner": "Example Maintainer",
     "goldSchemaVersion": 1,
     "fixtureSchemaVersion": 1,
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "remote": "https://github.com/acme-software/acme-core.git",
       "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
     },
     "thresholds": {
@@ -2197,13 +2197,13 @@
     }
   },
   {
-    "corpus": "auctic-core",
+    "corpus": "acme-core",
     "capability": "project-module-resolution",
     "owner": "Example Maintainer",
     "goldSchemaVersion": 1,
     "fixtureSchemaVersion": 1,
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "remote": "https://github.com/acme-software/acme-core.git",
       "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
     },
     "thresholds": {
@@ -2238,13 +2238,13 @@
     }
   },
   {
-    "corpus": "auctic-core",
+    "corpus": "acme-core",
     "capability": "project-module-resolution",
     "owner": "Example Maintainer",
     "goldSchemaVersion": 1,
     "fixtureSchemaVersion": 1,
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "remote": "https://github.com/acme-software/acme-core.git",
       "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
     },
     "thresholds": {
@@ -2279,13 +2279,13 @@
     }
   },
   {
-    "corpus": "auctic-core",
+    "corpus": "acme-core",
     "capability": "project-module-resolution",
     "owner": "Example Maintainer",
     "goldSchemaVersion": 1,
     "fixtureSchemaVersion": 1,
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "remote": "https://github.com/acme-software/acme-core.git",
       "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
     },
     "thresholds": {
@@ -2320,13 +2320,13 @@
     }
   },
   {
-    "corpus": "auctic-core",
+    "corpus": "acme-core",
     "capability": "project-module-resolution",
     "owner": "Example Maintainer",
     "goldSchemaVersion": 1,
     "fixtureSchemaVersion": 1,
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "remote": "https://github.com/acme-software/acme-core.git",
       "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
     },
     "thresholds": {
@@ -2361,13 +2361,13 @@
     }
   },
   {
-    "corpus": "auctic-core",
+    "corpus": "acme-core",
     "capability": "project-module-resolution",
     "owner": "Example Maintainer",
     "goldSchemaVersion": 1,
     "fixtureSchemaVersion": 1,
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "remote": "https://github.com/acme-software/acme-core.git",
       "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
     },
     "thresholds": {
@@ -2417,7 +2417,7 @@
       "minPositiveCases": 0,
       "minForbiddenCases": 0
     },
-    "id": "p08-pulse-01",
+    "id": "p08-example-workspace-01",
     "query": {
       "tool": "phase8ProjectResolver",
       "args": {
@@ -2427,7 +2427,7 @@
     },
     "expectedEdges": [
       {
-        "source": "symbol:typescript:apps/cli/src/services/store.ts#p08-pulse-01",
+        "source": "symbol:typescript:apps/cli/src/services/store.ts#p08-example-workspace-01",
         "type": "references",
         "target": "file:packages/store/src/index.ts",
         "minConfidence": "framework-inferred"
@@ -2458,7 +2458,7 @@
       "minPositiveCases": 0,
       "minForbiddenCases": 0
     },
-    "id": "p08-pulse-02",
+    "id": "p08-example-workspace-02",
     "query": {
       "tool": "phase8ProjectResolver",
       "args": {
@@ -2468,7 +2468,7 @@
     },
     "expectedEdges": [
       {
-        "source": "symbol:typescript:apps/desktop/src/main/services/sync.ts#p08-pulse-02",
+        "source": "symbol:typescript:apps/desktop/src/main/services/sync.ts#p08-example-workspace-02",
         "type": "references",
         "target": "file:packages/sync/src/index.ts",
         "minConfidence": "framework-inferred"
@@ -2499,7 +2499,7 @@
       "minPositiveCases": 0,
       "minForbiddenCases": 0
     },
-    "id": "p08-pulse-03",
+    "id": "p08-example-workspace-03",
     "query": {
       "tool": "phase8ProjectResolver",
       "args": {
@@ -2509,7 +2509,7 @@
     },
     "expectedEdges": [
       {
-        "source": "symbol:typescript:apps/desktop/src/renderer/App.tsx#p08-pulse-03",
+        "source": "symbol:typescript:apps/desktop/src/renderer/App.tsx#p08-example-workspace-03",
         "type": "references",
         "target": "file:packages/ui/src/primitives/index.ts",
         "minConfidence": "framework-inferred"
@@ -2540,7 +2540,7 @@
       "minPositiveCases": 0,
       "minForbiddenCases": 0
     },
-    "id": "p08-pulse-04",
+    "id": "p08-example-workspace-04",
     "query": {
       "tool": "phase8ProjectResolver",
       "args": {
@@ -2550,7 +2550,7 @@
     },
     "expectedEdges": [
       {
-        "source": "symbol:typescript:apps/desktop/src/pages/Inbox.tsx#p08-pulse-04",
+        "source": "symbol:typescript:apps/desktop/src/pages/Inbox.tsx#p08-example-workspace-04",
         "type": "references",
         "target": "file:packages/ui/src/components/index.ts",
         "minConfidence": "framework-inferred"
@@ -2581,7 +2581,7 @@
       "minPositiveCases": 0,
       "minForbiddenCases": 0
     },
-    "id": "p08-pulse-05",
+    "id": "p08-example-workspace-05",
     "query": {
       "tool": "phase8ProjectResolver",
       "args": {
@@ -2591,7 +2591,7 @@
     },
     "expectedEdges": [
       {
-        "source": "symbol:typescript:apps/desktop/src/components/CompanyDetail.tsx#p08-pulse-05",
+        "source": "symbol:typescript:apps/desktop/src/components/CompanyDetail.tsx#p08-example-workspace-05",
         "type": "references",
         "target": "file:packages/ui/src/lib/utils.ts",
         "minConfidence": "framework-inferred"
@@ -2622,7 +2622,7 @@
       "minPositiveCases": 0,
       "minForbiddenCases": 0
     },
-    "id": "p08-pulse-06",
+    "id": "p08-example-workspace-06",
     "query": {
       "tool": "phase8ProjectResolver",
       "args": {
@@ -2632,7 +2632,7 @@
     },
     "expectedEdges": [
       {
-        "source": "symbol:typescript:apps/desktop/src/pages/Inbox.tsx#p08-pulse-06",
+        "source": "symbol:typescript:apps/desktop/src/pages/Inbox.tsx#p08-example-workspace-06",
         "type": "references",
         "target": "file:packages/core/src/browser.ts",
         "minConfidence": "framework-inferred"
@@ -2663,7 +2663,7 @@
       "minPositiveCases": 0,
       "minForbiddenCases": 0
     },
-    "id": "p08-pulse-07",
+    "id": "p08-example-workspace-07",
     "query": {
       "tool": "phase8ProjectResolver",
       "args": {
@@ -2673,7 +2673,7 @@
     },
     "expectedEdges": [
       {
-        "source": "symbol:typescript:apps/desktop/src/main/ipc.ts#p08-pulse-07",
+        "source": "symbol:typescript:apps/desktop/src/main/ipc.ts#p08-example-workspace-07",
         "type": "references",
         "target": "file:packages/core/src/index.ts",
         "minConfidence": "framework-inferred"
@@ -2704,7 +2704,7 @@
       "minPositiveCases": 0,
       "minForbiddenCases": 0
     },
-    "id": "p08-pulse-08",
+    "id": "p08-example-workspace-08",
     "query": {
       "tool": "phase8ProjectResolver",
       "args": {
@@ -2714,7 +2714,7 @@
     },
     "expectedEdges": [
       {
-        "source": "symbol:typescript:apps/desktop/src/main/services/mcp.ts#p08-pulse-08",
+        "source": "symbol:typescript:apps/desktop/src/main/services/mcp.ts#p08-example-workspace-08",
         "type": "references",
         "target": "file:packages/mcp/src/index.ts",
         "minConfidence": "framework-inferred"
@@ -2730,13 +2730,13 @@
     }
   },
   {
-    "corpus": "auctic-core",
+    "corpus": "acme-core",
     "capability": "project-module-resolution",
     "owner": "Example Maintainer",
     "goldSchemaVersion": 1,
     "fixtureSchemaVersion": 1,
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "remote": "https://github.com/acme-software/acme-core.git",
       "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
     },
     "thresholds": {

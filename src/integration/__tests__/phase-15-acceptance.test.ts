@@ -188,7 +188,7 @@ function score(selected: readonly Case[], observations: readonly Observation[]) 
 }
 
 describe('Phase 15 independent React acceptance', () => {
-  it('pins portable owner-approved schemas and exact example-workspace/example-dashboard commits', () => {
+  it('pins portable owner-approved schemas and exact Example Workspace/Example Dashboard commits', () => {
     const all = cases();
     expect(all).toHaveLength(75);
     expect(
@@ -200,10 +200,18 @@ describe('Phase 15 independent React acceptance', () => {
       )
     ).toBe(true);
     expect(
-      new Set(all.filter((item) => item.corpus === 'example-workspace').map((item) => item.corpusPin.commit))
+      new Set(
+        all
+          .filter((item) => item.corpus === 'example-workspace')
+          .map((item) => item.corpusPin.commit)
+      )
     ).toEqual(new Set(['5e57f6be9c20a5973b305e0980ada2ff8ebeec4b']));
     expect(
-      new Set(all.filter((item) => item.corpus === 'example-dashboard').map((item) => item.corpusPin.commit))
+      new Set(
+        all
+          .filter((item) => item.corpus === 'example-dashboard')
+          .map((item) => item.corpusPin.commit)
+      )
     ).toEqual(new Set(['4c5a1e63fff73696c0ab062cf0d422644aaaf4c5']));
     expect(JSON.stringify(all)).not.toMatch(/(?:\/Users\/|[A-Za-z]:\\|\/home\/)/u);
   });
@@ -219,7 +227,9 @@ describe('Phase 15 independent React acceptance', () => {
   it('executes 20 pinned real positives and 10 forbiddens above per-real threshold', () => {
     const all = cases();
     const result = run(all);
-    const real = all.filter((item) => item.corpus === 'example-workspace' || item.corpus === 'example-dashboard');
+    const real = all.filter(
+      (item) => item.corpus === 'example-workspace' || item.corpus === 'example-dashboard'
+    );
     expect(real.filter((item) => item.expectedEdges.length)).toHaveLength(20);
     expect(real.filter((item) => item.forbiddenEdges.length)).toHaveLength(10);
     for (const corpus of ['example-workspace', 'example-dashboard']) {

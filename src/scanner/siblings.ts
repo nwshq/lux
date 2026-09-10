@@ -80,7 +80,7 @@ export function siblingAlias(name: string): string {
   return 'sib_' + name.replace(/-/g, '_');
 }
 
-/** Derived registry name for the overlay.kernel.package sugar (`acme/core` → `auctic-core`). */
+/** Derived registry name for the overlay.kernel.package sugar (`acme/core` → `acme-core`). */
 export function packageToSiblingName(pkg: string): string {
   return pkg.replace(/\//g, '-');
 }

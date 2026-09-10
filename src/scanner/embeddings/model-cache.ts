@@ -13,7 +13,7 @@ import { join, resolve } from 'node:path';
 import { ANCHOR_EMBED_MODEL_ARTIFACTS } from './model-pin.js';
 
 /**
- * The three pinned artifact filenames. Reconciled to the CURRENT model-pin.ts (Exec A / Phase-3
+ * The three pinned artifact filenames. Example Dashboardciled to the CURRENT model-pin.ts (Exec A / Phase-3
  * pins): the shipped q8 export names its weight file `model_quantized.onnx` (NOT the spec-15
  * placeholder `model.onnx`) — see ANCHOR_EMBED_MODEL_ARTIFACTS.files.
  */

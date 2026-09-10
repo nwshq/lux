@@ -4,7 +4,7 @@ Branch: `feat/feature-path-retrieval-tranche-1`
 Benchmark: `docs/benchmarks/feature-path-questions.md`
 Contract: `src/scanner/associations/feature-path/contract.ts` (`FEATURE_PATH_ANSWER_SCHEMA_VERSION = 1`)
 
-This run validates the tranche-one feature-path answer surface on a backend-centered repo (acme Core) and a mixed-language repo (example-app). Per R12 / R13, both repos are exercised; per R15, misses are classified using the shared `FeaturePathFailureClass` vocabulary.
+This run validates the tranche-one feature-path answer surface on a backend-centered repo (Acme Core) and a mixed-language repo (Example App). Per R12 / R13, both repos are exercised; per R15, misses are classified using the shared `FeaturePathFailureClass` vocabulary.
 
 ## Scope guard
 
@@ -18,25 +18,25 @@ This run validates the tranche-one feature-path answer surface on a backend-cent
 Both repos copied to `/tmp` so SQLite has writable sidecar space:
 
 ```sh
-cp /path/to/auctic-core/vcs/.lux/lux.db /tmp/lux-auctic-core-feature-path.db
-cp /path/to/example-app/vcs/.lux/lux.db   /tmp/lux-chirocat-feature-path.db
+cp /path/to/acme-core/vcs/.lux/lux.db /tmp/lux-acme-core-feature-path.db
+cp /path/to/example-app/vcs/.lux/lux.db   /tmp/lux-example-app-feature-path.db
 ```
 
-The example-app copy required a fresh `rebuildWithOverlay` because its persisted overlay was at schema version 10 (pre-feature-path) with zero `structural_nodes`. Rebuilt via `scripts/run-feature-path-benchmark.ts` substrate, producing 20,602 nodes including 830 capability-surfaces.
+The Example App copy required a fresh `rebuildWithOverlay` because its persisted overlay was at schema version 10 (pre-feature-path) with zero `structural_nodes`. Rebuilt via `scripts/run-feature-path-benchmark.ts` substrate, producing 20,602 nodes including 830 capability-surfaces.
 
 A small TS harness (`scripts/run-feature-path-benchmark.ts`) wires `resolveFeaturePathTarget` → `inferFeaturePathIntent` → `assembleFeaturePathAnswer` → `renderFeaturePathAnswerText|Json`. The CLI seam for feature-path retrieval is intentionally NOT wired in this tranche; the harness exercises the same code path the seam will route to.
 
-## acme Core (backend-centered)
+## Acme Core (backend-centered)
 
-Repo: `/path/to/auctic-core/vcs`
-DB copy: `/tmp/lux-auctic-core-feature-path.db`
+Repo: `/path/to/acme-core/vcs`
+DB copy: `/tmp/lux-acme-core-feature-path.db`
 
 ### AC-handler-01 / AC-ownership-01 — POST /admin/api/listings/eligible-for-invoice
 
 ```sh
 node --import tsx scripts/run-feature-path-benchmark.ts \
-  --db /tmp/lux-auctic-core-feature-path.db \
-  --repo /path/to/auctic-core/vcs \
+  --db /tmp/lux-acme-core-feature-path.db \
+  --repo /path/to/acme-core/vcs \
   --question "POST /admin/api/listings/eligible-for-invoice"
 ```
 
@@ -58,8 +58,8 @@ Outcome: passes AC-handler-01 and AC-ownership-01 cleanly. Handler, contracts, o
 
 ```sh
 node --import tsx scripts/run-feature-path-benchmark.ts \
-  --db /tmp/lux-auctic-core-feature-path.db \
-  --repo /path/to/auctic-core/vcs \
+  --db /tmp/lux-acme-core-feature-path.db \
+  --repo /path/to/acme-core/vcs \
   --question "POST /api/listing-media-conversions"
 ```
 
@@ -67,7 +67,7 @@ node --import tsx scripts/run-feature-path-benchmark.ts \
 - `primaryAnswer.confidence`: `high`
 - `contracts.request.shapeConfidence`: `exact` (`store inline validator`); `validator-attachment` direct-evidence item present at tier 4 — passes the AC-contract-01 invariant (no `exact` shape without a validator attachment).
 - `contracts.response.shapeConfidence`: `exact`.
-- `downstreamStep`: `ListingMediaConversionController -> acme\Core\Jobs\GenerateMediaConversions`, edgeType `DISPATCHES`, transport `async`, trust tier 4. Single bounded hop (R8). Rationale: "The only persisted dispatches edge from the recovered handler."
+- `downstreamStep`: `ListingMediaConversionController -> Acme\Core\Jobs\GenerateMediaConversions`, edgeType `DISPATCHES`, transport `async`, trust tier 4. Single bounded hop (R8). Rationale: "The only persisted dispatches edge from the recovered handler."
 - `crossLanguage.status`: `refused-naming-only`. Refusal rationale: "All cross-language associations are naming-only; no artifact-backed or schema-backed bridge exists."
 - Context includes `resources/js/Shared/Admin/ListingMediaManager.vue` as `nearby-consumer` — the Vue file is NOT lifted to direct evidence (T10 invariant holds).
 - `failures`: `weak-ownership`, `cross-language-below-promotion-threshold`.
@@ -78,8 +78,8 @@ Outcome: passes AC-downstream-01 — single bounded `DISPATCHES` step at tier 4,
 
 ```sh
 node --import tsx scripts/run-feature-path-benchmark.ts \
-  --db /tmp/lux-auctic-core-feature-path.db \
-  --repo /path/to/auctic-core/vcs \
+  --db /tmp/lux-acme-core-feature-path.db \
+  --repo /path/to/acme-core/vcs \
   --question "GET /inventory"
 ```
 
@@ -93,8 +93,8 @@ Outcome: honest refusal. The persisted `handled_by` edge from this surface point
 
 ```sh
 node --import tsx scripts/run-feature-path-benchmark.ts \
-  --db /tmp/lux-auctic-core-feature-path.db \
-  --repo /path/to/auctic-core/vcs \
+  --db /tmp/lux-acme-core-feature-path.db \
+  --repo /path/to/acme-core/vcs \
   --question "what handles POST /private-offers?"
 ```
 
@@ -103,23 +103,23 @@ node --import tsx scripts/run-feature-path-benchmark.ts \
 
 Outcome: resolver fall-through. The English-wrapped question does not appear among any surface's `semanticForms()`, so `resolveFeaturePathTarget` falls through to the `contains` tier, where every multi-route question matches `GET /` (because `/` is a single-character semantic form and `normalizedQuery.includes(form)` is true for any path-bearing query). Classified as **resolver weakness on English-wrapped questions** under T13.
 
-## example-app (mixed-language)
+## Example App (mixed-language)
 
 Repo: `/path/to/example-app/vcs`
-DB copy: `/tmp/lux-chirocat-feature-path.db`
+DB copy: `/tmp/lux-example-app-feature-path.db`
 
 ### CC-handler-01 — GET /calendar
 
 ```sh
 node --import tsx scripts/run-feature-path-benchmark.ts \
-  --db /tmp/lux-chirocat-feature-path.db \
+  --db /tmp/lux-example-app-feature-path.db \
   --repo /path/to/example-app/vcs \
   --question "GET /calendar"
 ```
 
 - `primaryAnswer.summary`: `GET /calendar is handled by CalendarController and belongs to app.`
 - `primaryAnswer.confidence`: `high`
-- `ownership`: `app` via `directory-led` at trust tier 3 (no module boundary; example-app is a flat-namespaced Laravel app).
+- `ownership`: `app` via `directory-led` at trust tier 3 (no module boundary; Example App is a flat-namespaced Laravel app).
 - `contracts.response.label`: `coarse(page-response)`; `interactionKind`: `page`.
 - Direct evidence: `route-declaration` tier 5, `handler-recovery` tier 3, `response-contract` tier 3.
 - `failures`: empty.
@@ -130,7 +130,7 @@ Outcome: passes CC-handler-01. Coarse response shape is correct — the controll
 
 ```sh
 node --import tsx scripts/run-feature-path-benchmark.ts \
-  --db /tmp/lux-chirocat-feature-path.db \
+  --db /tmp/lux-example-app-feature-path.db \
   --repo /path/to/example-app/vcs \
   --question "POST /events/check-overlaps"
 ```
@@ -145,7 +145,7 @@ node --import tsx scripts/run-feature-path-benchmark.ts \
 - Direct evidence contains NO `high-trust-cross-language-association` items (T10 invariant: refused associations stay out of direct evidence).
 - `failures`: `cross-language-below-promotion-threshold` — the failure is the success criterion for this question (CC-cross-language-02).
 
-Outcome: passes CC-cross-language-02. The handler-side answer is fully recovered (handler + validator + response contract + bounded downstream), the JS consumers appear in `context` as adjacency only, and the cross-language section refuses promotion honestly because example-app has no generated-types or schema-backed bridge between the JS and the PHP handler.
+Outcome: passes CC-cross-language-02. The handler-side answer is fully recovered (handler + validator + response contract + bounded downstream), the JS consumers appear in `context` as adjacency only, and the cross-language section refuses promotion honestly because Example App has no generated-types or schema-backed bridge between the JS and the PHP handler.
 
 ### Mixed-language full-coverage spot check — POST /patients/{patient}/billing/payment
 
@@ -153,8 +153,8 @@ Same shape as CC-cross-language-02: handler resolved, validator/response contrac
 
 ## Validation bar (against `11-VALIDATION-AND-PROMOTION-PLAN.md`)
 
-- ✅ At least one route-centered answer is strong on a real repo: AC-handler-01 (acme Core) and CC-handler-01 (example-app).
-- ✅ Ownership is visible and non-hand-wavy: `module:Listing` (module-boundary tier 4) on acme Core; `app` (directory-led tier 3) on example-app. Both basis values are explicit.
+- ✅ At least one route-centered answer is strong on a real repo: AC-handler-01 (Acme Core) and CC-handler-01 (Example App).
+- ✅ Ownership is visible and non-hand-wavy: `module:Listing` (module-boundary tier 4) on Acme Core; `app` (directory-led tier 3) on Example App. Both basis values are explicit.
 - ✅ Direct evidence and context remain clearly separate in every observed answer: AC-downstream-01 keeps `ListingMediaManager.vue` in `context` only; CC-cross-language-02 keeps JS files in `context` only; the `high-trust-cross-language-association` direct-evidence kind never fires for refused statuses.
 - ✅ At least one downstream step is included without overstating confidence: AC-downstream-01 (DISPATCHES tier 4) and CC-cross-language-02 (DISPATCHES tier 4). Both rendered as a single bounded hop with a rationale.
 - ✅ At least one mixed-language answer either succeeds honestly or refuses honestly: CC-cross-language-02 refuses honestly with `refused-naming-only` and the corresponding `cross-language-below-promotion-threshold` failure.
@@ -167,9 +167,9 @@ Recorded against the shared `FeaturePathFailureClass` vocabulary. Each entry cit
 
 ### Miss class A — substrate dangling-edge (`missing-handler-recovery`)
 
-- Affected: `GET /inventory`, `POST /login` (acme Core); `GET /patients` (example-app). Likely affects more.
+- Affected: `GET /inventory`, `POST /login` (Acme Core); `GET /patients` (Example App). Likely affects more.
 - Symptom: a `handled_by` edge exists with a target id that has no matching row in `structural_nodes`. `getSurfaceFeaturePath` returns an empty `providers[]`, so `buildHandlerEvidence` returns null and the assembler honestly summarizes "did not recover a handler."
-- Example: surface `surface:http:POST:/login` has `handled_by → symbol:php:App\Http\Controllers\Auth\LoginController`, but the actual node persisted is `symbol:php:acme\Core\Http\Controllers\Auth\LoginController` (different namespace). The substrate's namespace resolution is the root cause, not the feature-path module.
+- Example: surface `surface:http:POST:/login` has `handled_by → symbol:php:App\Http\Controllers\Auth\LoginController`, but the actual node persisted is `symbol:php:Acme\Core\Http\Controllers\Auth\LoginController` (different namespace). The substrate's namespace resolution is the root cause, not the feature-path module.
 - Failure class: `missing-handler-recovery` (correctly classified by the assembler).
 - Tranche-one assessment: feature-path retrieval behaves correctly — refusal is honest and the failure is classified explicitly. Fixing the dangling-edge issue is **outside this tranche**: it lives in the structural overlay's namespace resolution.
 
@@ -182,7 +182,7 @@ Recorded against the shared `FeaturePathFailureClass` vocabulary. Each entry cit
 
 ### Miss class C — cross-language refusal cannot fire when handler resolution fails
 
-- Affected: example-app `GET /patients` (handler dangling-edge as in Miss A, JS consumers present).
+- Affected: Example App `GET /patients` (handler dangling-edge as in Miss A, JS consumers present).
 - Symptom: `evaluateCrossLanguagePromotion` early-exits when `handlerLanguageId` is null (which happens when `featurePath.providers[0]` is missing). Cross-language consumers appear under `context.nearby-consumer` instead of being explicitly refused.
 - Failure class: `missing-handler-recovery` is classified, but `cross-language-below-promotion-threshold` is NOT — even though the JS consumers exist and would otherwise be naming-only.
 - Tranche-one assessment: tolerable. The handler-recovery failure is the upstream cause, and reporting both would be redundant. Once Miss A is addressed in the substrate, Miss C resolves automatically.
@@ -197,6 +197,7 @@ npm test
 ```
 
 Notes:
+
 - All 125 feature-path unit + integration tests pass.
 - Linter clean.
 - Validation harness `scripts/run-feature-path-benchmark.ts` is intentionally a script, not a CLI command; promotion into `lux overlay feature-path ask <question>` is a tranche-end decision (T14).
@@ -209,6 +210,6 @@ Saved under `/tmp/feature-path-validation/` for cross-reference (text + JSON ren
 - `AC-downstream-01.txt` / `AC-downstream-01.json` — full-coverage answer including bounded downstream and cross-language refusal.
 - `AC-handler-no-module.txt` — `GET /inventory` substrate dangling-edge case.
 - `AC-english-wrapped.txt` — resolver fall-through case.
-- `CC-handler-01.txt` — example-app coarse-response answer.
-- `CC-cross-language-02.txt` / `CC-cross-language-02.json` — example-app refused-naming-only with bounded downstream.
+- `CC-handler-01.txt` — Example App coarse-response answer.
+- `CC-cross-language-02.txt` / `CC-cross-language-02.json` — Example App refused-naming-only with bounded downstream.
 - `CC-cross-language-billing.txt` — same-language consumers, cross-language section correctly omitted.

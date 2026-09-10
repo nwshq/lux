@@ -33,14 +33,7 @@ const ROOT = resolve(import.meta.dirname ?? '.', '..');
 const SRC = resolve(ROOT, 'src');
 
 /** Recognized top-level modules under src/. */
-const ALLOWED_MODULES = new Set([
-  'cli',
-  'db',
-  'integration',
-  'mcp',
-  'scanner',
-  'utils',
-]);
+const ALLOWED_MODULES = new Set(['cli', 'db', 'integration', 'mcp', 'scanner', 'utils']);
 
 /** Intentional root entry points under src/. */
 const ALLOWED_ROOT_TS_FILES = new Set(['index.ts']);
@@ -60,7 +53,12 @@ const KEBAB_CASE_PATTERN = /^[a-z][a-z0-9]*(-[a-z0-9]+)*\.ts$/;
 
 interface Violation {
   file: string;
-  check: 'module-boundary' | 'test-colocation' | 'cli-naming' | 'migration-naming' | 'architecture-fence';
+  check:
+    | 'module-boundary'
+    | 'test-colocation'
+    | 'cli-naming'
+    | 'migration-naming'
+    | 'architecture-fence';
   message: string;
 }
 
@@ -331,7 +329,7 @@ function fenceFixture(relPathFromSrc: string, code: string) {
 /** Run both analyzers over one fixture and return only its (unsuppressed) path-forbidden hits. */
 function pathForbiddenHits(sf: ReturnType<typeof fenceFixture>): LintViolation[] {
   return [...analyzeFile(sf), ...detectDynamicCrossModuleImports(sf)].filter(
-    (v) => v.rule === 'path-forbidden',
+    (v) => v.rule === 'path-forbidden'
   );
 }
 
@@ -367,8 +365,8 @@ function checkArchitectureFence(): CheckResult {
     'src/cli/anchor-search.ts (permitted importer — anchors orchestration on the allowlist)',
     fenceFixture(
       'cli/anchor-search.ts',
-      `import { topCosine } from '../scanner/embeddings/cosine.js';\ntopCosine;\n`,
-    ),
+      `import { topCosine } from '../scanner/embeddings/cosine.js';\ntopCosine;\n`
+    )
   );
 
   // Case 2 — FORBIDDEN importer, static import, cross-module: src/cli/trace.ts is a structural CLI
@@ -379,8 +377,8 @@ function checkArchitectureFence(): CheckResult {
     'src/cli/trace.ts (forbidden importer, static import)',
     fenceFixture(
       'cli/trace.ts',
-      `import { cosineSimilarity } from '../scanner/embeddings/cosine.js';\ncosineSimilarity;\n`,
-    ),
+      `import { cosineSimilarity } from '../scanner/embeddings/cosine.js';\ncosineSimilarity;\n`
+    )
   );
 
   // Case 3 — FORBIDDEN importer, static import, SAME top-level module: src/scanner/associations/
@@ -391,8 +389,8 @@ function checkArchitectureFence(): CheckResult {
     'src/scanner/associations/foo.ts (forbidden importer, same top-level module)',
     fenceFixture(
       'scanner/associations/foo.ts',
-      `import { cosineSimilarity } from '../embeddings/cosine.js';\ncosineSimilarity;\n`,
-    ),
+      `import { cosineSimilarity } from '../embeddings/cosine.js';\ncosineSimilarity;\n`
+    )
   );
 
   // Case 4 — FORBIDDEN importer, dynamic import(): detectDynamicCrossModuleImports must catch this
@@ -401,8 +399,8 @@ function checkArchitectureFence(): CheckResult {
     'src/scanner/associations/bar.ts (forbidden importer, dynamic import)',
     fenceFixture(
       'scanner/associations/bar.ts',
-      `export async function loadCosine() {\n  const mod = await import('../embeddings/cosine.js');\n  return mod;\n}\n`,
-    ),
+      `export async function loadCosine() {\n  const mod = await import('../embeddings/cosine.js');\n  return mod;\n}\n`
+    )
   );
 
   // Case 5 — @architecture-ignore still suppresses a path-forbidden hit (lint-architecture.ts:107
@@ -412,7 +410,7 @@ function checkArchitectureFence(): CheckResult {
   {
     const suppressedFixture = fenceFixture(
       'scanner/associations/baz.ts',
-      `import { cosineSimilarity } from '../embeddings/cosine.js'; // @architecture-ignore\ncosineSimilarity;\n`,
+      `import { cosineSimilarity } from '../embeddings/cosine.js'; // @architecture-ignore\ncosineSimilarity;\n`
     );
     const hits = pathForbiddenHits(suppressedFixture);
     const label = 'src/scanner/associations/baz.ts (@architecture-ignore)';
@@ -434,8 +432,8 @@ function checkArchitectureFence(): CheckResult {
     'src/scanner/anchors/lexical-ranker.ts (non-fenced lexical half must stay embedding-free)',
     fenceFixture(
       'scanner/anchors/lexical-ranker.ts',
-      `import { cosineSimilarity } from '../embeddings/cosine.js';\ncosineSimilarity;\n`,
-    ),
+      `import { cosineSimilarity } from '../embeddings/cosine.js';\ncosineSimilarity;\n`
+    )
   );
 
   // Case 7 — FORBIDDEN importer, `export { x } from` NAMED re-export: getImportDeclarations() does not
@@ -446,8 +444,8 @@ function checkArchitectureFence(): CheckResult {
     'src/scanner/associations/reexport-named.ts (forbidden `export { x } from` re-export)',
     fenceFixture(
       'scanner/associations/reexport-named.ts',
-      `export { cosineSimilarity } from '../embeddings/cosine.js';\n`,
-    ),
+      `export { cosineSimilarity } from '../embeddings/cosine.js';\n`
+    )
   );
 
   // Case 8 — FORBIDDEN importer, `export * from` STAR re-export: the same laundering via a namespace
@@ -456,8 +454,8 @@ function checkArchitectureFence(): CheckResult {
     'src/scanner/associations/reexport-star.ts (forbidden `export * from` re-export)',
     fenceFixture(
       'scanner/associations/reexport-star.ts',
-      `export * from '../embeddings/cosine.js';\n`,
-    ),
+      `export * from '../embeddings/cosine.js';\n`
+    )
   );
 
   // Case 9 — PERMITTED re-export: the fenced barrel (scanner/embeddings/index.ts) re-exporting its own
@@ -465,10 +463,7 @@ function checkArchitectureFence(): CheckResult {
   // an allowlisted path stays clean — the export-from walk must NOT over-fire on the allowlisted case.
   expectNoHit(
     'src/scanner/embeddings/index.ts (permitted internal re-export — barrel on the allowlist)',
-    fenceFixture(
-      'scanner/embeddings/index.ts',
-      `export * from './cosine.js';\n`,
-    ),
+    fenceFixture('scanner/embeddings/index.ts', `export * from './cosine.js';\n`)
   );
 
   return {
@@ -530,12 +525,10 @@ function main(): void {
 
     console.log('');
     if (allPassed) {
-      console.log(
-        `Architecture tests passed. ${results.length} checks, 0 violations.`,
-      );
+      console.log(`Architecture tests passed. ${results.length} checks, 0 violations.`);
     } else {
       console.error(
-        `${allViolations.length} violation(s) across ${results.filter((r) => !r.passed).length} check(s).`,
+        `${allViolations.length} violation(s) across ${results.filter((r) => !r.passed).length} check(s).`
       );
     }
   }

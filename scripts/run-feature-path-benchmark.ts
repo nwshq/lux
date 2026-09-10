@@ -2,8 +2,8 @@
 //
 // Usage:
 //   tsx scripts/run-feature-path-benchmark.ts \
-//     --db /tmp/lux-auctic-core-feature-path.db \
-//     --repo /path/to/auctic-core/vcs \
+//     --db /tmp/lux-acme-core-feature-path.db \
+//     --repo /path/to/acme-core/vcs \
 //     --question "what handles POST /private-offers?" \
 //     [--json]
 //
@@ -67,7 +67,9 @@ try {
     resolution,
     repoRoot: args.repo,
   });
-  process.stdout.write(args.json ? renderFeaturePathAnswerJson(answer) : renderFeaturePathAnswerText(answer));
+  process.stdout.write(
+    args.json ? renderFeaturePathAnswerJson(answer) : renderFeaturePathAnswerText(answer)
+  );
   process.stdout.write('\n');
 } finally {
   db.close();

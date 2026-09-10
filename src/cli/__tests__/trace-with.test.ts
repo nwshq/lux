@@ -25,9 +25,9 @@ function runCli(corpus: string, args: string[]) {
 }
 
 const SHOW = 'symbol:php:App\\Http\\Ctrl::show';
-const ENGINE = 'symbol:php:acme\\Core\\Engine::run';
-const LEDGER = 'symbol:php:acme\\Core\\Ledger::post';
-const CALLER = 'symbol:php:acme\\Core\\Caller::invoke';
+const ENGINE = 'symbol:php:Acme\\Core\\Engine::run';
+const LEDGER = 'symbol:php:Acme\\Core\\Ledger::post';
+const CALLER = 'symbol:php:Acme\\Core\\Caller::invoke';
 
 function addNode(db: LuxDatabase, id: string, qualified_name?: string): void {
   db.upsertStructuralNode({
@@ -62,10 +62,10 @@ beforeEach(() => {
   corpus = join(root, 'client');
   mkdirSync(corpus, { recursive: true });
 
-  // primary: an App handler that calls a portable acme\Core FQCN.
+  // primary: an App handler that calls a portable Acme\Core FQCN.
   const primary = new LuxDatabase(join(corpus, '.lux', 'lux.db'));
   addNode(primary, SHOW, 'App\\Http\\Ctrl::show');
-  addNode(primary, ENGINE, 'acme\\Core\\Engine::run');
+  addNode(primary, ENGINE, 'Acme\\Core\\Engine::run');
   addEdge(primary, SHOW, ENGINE);
   primary.close();
 
@@ -73,9 +73,9 @@ beforeEach(() => {
   const kernelDir = join(root, 'core');
   siblingDbPath = join(kernelDir, '.lux', 'lux.db');
   const kernel = new LuxDatabase(siblingDbPath);
-  addNode(kernel, ENGINE, 'acme\\Core\\Engine::run');
-  addNode(kernel, LEDGER, 'acme\\Core\\Ledger::post');
-  addNode(kernel, CALLER, 'acme\\Core\\Caller::invoke');
+  addNode(kernel, ENGINE, 'Acme\\Core\\Engine::run');
+  addNode(kernel, LEDGER, 'Acme\\Core\\Ledger::post');
+  addNode(kernel, CALLER, 'Acme\\Core\\Caller::invoke');
   addEdge(kernel, ENGINE, LEDGER);
   addEdge(kernel, CALLER, ENGINE);
   kernel.close();
@@ -85,7 +85,7 @@ beforeEach(() => {
 afterEach(() => rmSync(root, { recursive: true, force: true }));
 
 describe('lux trace --with', () => {
-  it('unions into the kernel: reaches the bridged acme\\Core\\Ledger node (--json + federation)', () => {
+  it('unions into the kernel: reaches the bridged Acme\\Core\\Ledger node (--json + federation)', () => {
     const res = runCli(corpus, ['--corpus', corpus, 'trace', SHOW, '--with', 'core', '--json']);
     expect(res.status).toBe(0);
     const result = JSON.parse(res.stdout) as {
@@ -174,7 +174,7 @@ describe('lux trace --with', () => {
     expect(res.status).toBe(0);
     expect(res.stdout).toContain('Federated trace');
     expect(res.stdout).toContain('[core]');
-    expect(res.stdout).toContain('acme\\Core\\Ledger::post');
+    expect(res.stdout).toContain('Acme\\Core\\Ledger::post');
     expect(res.stdout).toContain('bridged');
   });
 

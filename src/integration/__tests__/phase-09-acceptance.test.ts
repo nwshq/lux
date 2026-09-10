@@ -159,7 +159,7 @@ interface BatteryResult {
 interface MappingSpike {
   verdict: 'HOLDS';
   malformedCorrection: string;
-  corpus: 'auctic-core';
+  corpus: 'acme-core';
   remote: string;
   commit: string;
   owner: string;
@@ -181,7 +181,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const benchmarkPath = resolve(here, '../../../benchmarks/relationship/cases/phase-09.json');
 const LUX_PIN = '9796d27b43b67e1b2f1c4d7adb35ef44c48c60db';
 const CORE_PIN = '3afee6c0a42808c905c6830e5073eb83386c8409';
-const USER_DETAILS_SHA256 = '195f72d4a182e38cfaf4a3e08f2a0bc4c44ca546143114997b8d60541b61f0c1';
+const USER_DETAILS_SHA256 = '3b8c42faed5835f28cd6dc7c534a93435417619c806bdb4eb3ef29f344b4deb5';
 const PRODUCER = 'vue-component';
 
 const NATIVE_TAGS = new Set(['a', 'button', 'div', 'i', 'p', 'path', 'section', 'span', 'svg']);
@@ -773,7 +773,7 @@ function cohortScore(cases: readonly PhaseCase[], result: BatteryResult, corpus:
 
 function repeatMappingSpike(spike: MappingSpike, shift: number) {
   const sourceCase = loadCases().find(
-    (item) => item.id === 'p09-auctic-user-details-renders-children'
+    (item) => item.id === 'p09-acme-user-details-renders-children'
   );
   if (!sourceCase) throw new Error('missing pinned UserDetails owner gold');
   const source = (sourceCase.query?.args as unknown as QueryArgs).source;
@@ -798,7 +798,7 @@ function mutationResult(cases: readonly PhaseCase[], mutation: MutationId): Batt
 }
 
 describe('Phase 9 independent Vue component acceptance', () => {
-  it('pins portable schema-v1 synthetic and exact-commit acme owner gold', () => {
+  it('pins portable schema-v1 synthetic and exact-commit Acme owner gold', () => {
     const cases = loadCases();
     expect(cases).toHaveLength(67);
     expect(cases.every((item) => item.fixtureSchemaVersion === 1)).toBe(true);
@@ -808,8 +808,8 @@ describe('Phase 9 independent Vue component acceptance', () => {
       remote: 'https://github.com/nwshq/lux.git',
       commit: LUX_PIN,
     });
-    expect(cases.find((item) => item.corpus === 'auctic-core')?.corpusPin).toEqual({
-      remote: 'https://github.com/auctic-software/auctic-core.git',
+    expect(cases.find((item) => item.corpus === 'acme-core')?.corpusPin).toEqual({
+      remote: 'https://github.com/acme-software/acme-core.git',
       commit: CORE_PIN,
     });
     expect(JSON.stringify(cases)).not.toMatch(/(?:\/Users\/|[A-Za-z]:\\|\/home\/)/u);
@@ -958,13 +958,13 @@ describe('Phase 9 independent Vue component acceptance', () => {
     ).toBe(true);
   });
 
-  it('pins acme UserDetails owner gold and the MainPanel parent-to-child path', () => {
+  it('pins Acme UserDetails owner gold and the MainPanel parent-to-child path', () => {
     const cases = loadCases();
     const result = runBattery(cases);
-    const score = cohortScore(cases, result, 'auctic-core');
+    const score = cohortScore(cases, result, 'acme-core');
     expect(score).toEqual({ expected: 8, returned: 8, recall: 1, precision: 1 });
     const parent = result.observations.find(
-      (item) => item.caseId === 'p09-auctic-main-panel-renders-user-details'
+      (item) => item.caseId === 'p09-acme-main-panel-renders-user-details'
     );
     expect(
       parent?.edges.some(
@@ -976,7 +976,7 @@ describe('Phase 9 independent Vue component acceptance', () => {
       )
     ).toBe(true);
     const details = result.observations.find(
-      (item) => item.caseId === 'p09-auctic-user-details-renders-children'
+      (item) => item.caseId === 'p09-acme-user-details-renders-children'
     );
     expect(details?.edges.map((item) => item.target).sort()).toEqual(
       [

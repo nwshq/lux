@@ -30,7 +30,8 @@ describe('Phase23 Terraform graph acceptance', () => {
       expect(x.filter((i) => i.forbiddenEdges.length)).toHaveLength(10);
     }
   });
-  it('pins owner gold', () => expect(load().every((x) => x.owner === 'Example Maintainer')).toBe(true));
+  it('pins owner gold', () =>
+    expect(load().every((x) => x.owner === 'Example Maintainer')).toBe(true));
 });
 
 describe('Phase23 owner-approved real minima', () => {

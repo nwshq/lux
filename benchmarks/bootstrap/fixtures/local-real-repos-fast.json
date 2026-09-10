@@ -6,13 +6,13 @@
       "schemaVersion": 1,
       "goldSchemaVersion": 1,
       "owner": "Example Maintainer",
-      "corpusId": "auctic-atlas"
+      "corpusId": "acme-atlas"
     },
     {
       "schemaVersion": 1,
       "goldSchemaVersion": 1,
       "owner": "Example Maintainer",
-      "corpusId": "auctic-core"
+      "corpusId": "acme-core"
     }
   ]
 }

@@ -11,6 +11,7 @@ Minimal accurate doc set.
 - `./MCP-TOOLS.md`: live MCP tools only
 
 If any of these diverge from code, trust:
+
 - `src/cli/*.ts`
 - `src/mcp/server.ts`
 - `src/utils/runtime-paths.ts`

@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "corpora": [
     {
-      "id": "auctic-mobile",
-      "remote": "https://github.com/nwshq/auctic-mobile.git",
-      "checkoutHints": ["~/Code/auctic-mobile"],
+      "id": "acme-mobile",
+      "remote": "https://github.com/nwshq/acme-mobile.git",
+      "checkoutHints": ["~/Code/acme-mobile"],
       "commit": "609ac51c752448b6fba368da656a8c6f4e0842d7",
       "owner": "Example Maintainer",
       "driftPolicy": "exact"

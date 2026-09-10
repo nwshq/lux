@@ -9,9 +9,9 @@
       "id": "P08-C1",
       "class": "project-and-workspace-resolution",
       "green": {
-        "command": "vitest run Phase 8 focused and expanded acceptance suites; synthetic resolution corpus; exact-pin acme Core and example-workspace probes; repeated stable-digest checks",
+        "command": "vitest run Phase 8 focused and expanded acceptance suites; synthetic resolution corpus; exact-pin Acme Core and Example Workspace probes; repeated stable-digest checks",
         "exitCode": 0,
-        "observable": "32/32 synthetic positive cases and 16/16 forbidden cases scored precision 1 and recall 1; 9/9 exact-pin acme Core cases and 8/8 exact-pin example-workspace cases passed; 230/230 focused tests passed before the final expanded battery also passed; repeated observations produced stable digests"
+        "observable": "32/32 synthetic positive cases and 16/16 forbidden cases scored precision 1 and recall 1; 9/9 exact-pin Acme Core cases and 8/8 exact-pin Example Workspace cases passed; 230/230 focused tests passed before the final expanded battery also passed; repeated observations produced stable digests"
       },
       "red": {
         "mutation": "project-config-workspace-export-provenance-containment-or-edge-contract-regressions",
@@ -27,7 +27,7 @@
       "green": {
         "command": "three warmups plus five measured resolver runs for each exact-pin corpus; npm run check; architecture, dead-code, native-free, and docs-surface gates",
         "exitCode": 0,
-        "observable": "After 3 warmups, acme Core median wall was 16.298 ms and example-workspace median wall was 2.568 ms across 5 measured runs each, with stable digests; the recorded final full suite passed 1867 with 13 skipped and 0 failed; architecture lint checked 188 files with 0 violations, architecture tests passed, dead-code validation checked 1028 exports across 182 files, and all remaining gates passed"
+        "observable": "After 3 warmups, Acme Core median wall was 16.298 ms and Example Workspace median wall was 2.568 ms across 5 measured runs each, with stable digests; the recorded final full suite passed 1867 with 13 skipped and 0 failed; architecture lint checked 188 files with 0 violations, architecture tests passed, dead-code validation checked 1028 exports across 182 files, and all remaining gates passed"
       },
       "red": {
         "mutation": "watched-project-and-workspace-resolution-contract-regressions",
@@ -57,7 +57,7 @@
   "knownBaselineFailures": [],
   "review": {
     "codeReview": "APPROVED",
-    "independentValidation": "32/32 synthetic positive and 16/16 forbidden cases at precision/recall 1, 12 watched-red records, 9/9 acme Core and 8/8 example-workspace exact-pin cases, 230/230 focused tests followed by the passing final expanded battery, 1867 passed/13 skipped/0 failed recorded final full suite, architecture lint 188 files/0 violations, architecture tests, dead-code validation 1028 exports/182 files, all remaining gates, stable digests, 3+5 performance medians, and installed-plugin release verification passed",
+    "independentValidation": "32/32 synthetic positive and 16/16 forbidden cases at precision/recall 1, 12 watched-red records, 9/9 Acme Core and 8/8 Example Workspace exact-pin cases, 230/230 focused tests followed by the passing final expanded battery, 1867 passed/13 skipped/0 failed recorded final full suite, architecture lint 188 files/0 violations, architecture tests, dead-code validation 1028 exports/182 files, all remaining gates, stable digests, 3+5 performance medians, and installed-plugin release verification passed",
     "acceptanceReview": "APPROVED"
   },
   "exemptions": []

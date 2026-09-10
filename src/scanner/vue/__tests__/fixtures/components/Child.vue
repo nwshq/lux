@@ -1,4 +1,6 @@
 <script setup lang="ts">
-const emit = defineEmits(['saved'])
+const emit = defineEmits(['saved']);
 </script>
-<template><button @click="emit('saved')"><slot /></button></template>
+<template>
+  <button @click="emit('saved')"><slot /></button>
+</template>

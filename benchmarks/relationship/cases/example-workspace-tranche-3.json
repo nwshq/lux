@@ -11,7 +11,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/CompanyList.tsx",
     "sourceTruthId": "apps/desktop/src/components/CompanyList.tsx:117:uses_hook:hook:react:apps%2Fdesktop%2Fsrc%2Fstores%2FcompanyStore.ts#useCompanyStore",
-    "id": "t3-pulse-positive-01",
+    "id": "t3-example-workspace-positive-01",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -42,7 +42,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/CompanyList.tsx",
     "sourceTruthId": "apps/desktop/src/components/CompanyList.tsx:120:uses_hook:hook:react:apps%2Fdesktop%2Fsrc%2Fstores%2FcompanyStore.ts#useCompanyStore",
-    "id": "t3-pulse-positive-02",
+    "id": "t3-example-workspace-positive-02",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -73,7 +73,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/PeopleList.tsx",
     "sourceTruthId": "apps/desktop/src/components/PeopleList.tsx:121:uses_hook:hook:react:apps%2Fdesktop%2Fsrc%2Fstores%2FpeopleStore.ts#usePeopleStore",
-    "id": "t3-pulse-positive-03",
+    "id": "t3-example-workspace-positive-03",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -104,7 +104,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/PeopleList.tsx",
     "sourceTruthId": "apps/desktop/src/components/PeopleList.tsx:124:uses_hook:hook:react:apps%2Fdesktop%2Fsrc%2Fstores%2FpeopleStore.ts#usePeopleStore",
-    "id": "t3-pulse-positive-04",
+    "id": "t3-example-workspace-positive-04",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -135,7 +135,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/PersonDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/PersonDetail.tsx:257:renders_component:component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FSubtypeBadge.tsx#SubtypeBadge",
-    "id": "t3-pulse-positive-05",
+    "id": "t3-example-workspace-positive-05",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -166,7 +166,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/PersonDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/PersonDetail.tsx:410:renders_component:component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FSubtypeBadge.tsx#SubtypeBadge",
-    "id": "t3-pulse-positive-06",
+    "id": "t3-example-workspace-positive-06",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -197,7 +197,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/PersonDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/PersonDetail.tsx:415:renders_component:component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FSubtypeBadge.tsx#SubtypeBadge",
-    "id": "t3-pulse-positive-07",
+    "id": "t3-example-workspace-positive-07",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -228,7 +228,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/PersonDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/PersonDetail.tsx:418:renders_component:component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FSubtypeBadge.tsx#SubtypeBadge",
-    "id": "t3-pulse-positive-08",
+    "id": "t3-example-workspace-positive-08",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -259,7 +259,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/PersonDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/PersonDetail.tsx:421:renders_component:component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FSubtypeBadge.tsx#SubtypeBadge",
-    "id": "t3-pulse-positive-09",
+    "id": "t3-example-workspace-positive-09",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -290,7 +290,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/PersonDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/PersonDetail.tsx:424:renders_component:component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FSubtypeBadge.tsx#SubtypeBadge",
-    "id": "t3-pulse-positive-10",
+    "id": "t3-example-workspace-positive-10",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -321,7 +321,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/PersonDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/PersonDetail.tsx:427:renders_component:component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FSubtypeBadge.tsx#SubtypeBadge",
-    "id": "t3-pulse-positive-11",
+    "id": "t3-example-workspace-positive-11",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -352,7 +352,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/PersonDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/PersonDetail.tsx:430:renders_component:component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FSubtypeBadge.tsx#SubtypeBadge",
-    "id": "t3-pulse-positive-12",
+    "id": "t3-example-workspace-positive-12",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -383,7 +383,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/PersonDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/PersonDetail.tsx:510:renders_component:component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FMergeEntityDialog.tsx#MergeEntityDialog",
-    "id": "t3-pulse-positive-13",
+    "id": "t3-example-workspace-positive-13",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -414,7 +414,7 @@
     },
     "sourceFamily": "apps/desktop/src/pages/Inbox.tsx",
     "sourceTruthId": "apps/desktop/src/pages/Inbox.tsx:1766:renders_component:component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FSenderContextPanel.tsx#SenderContextPanel",
-    "id": "t3-pulse-positive-14",
+    "id": "t3-example-workspace-positive-14",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -445,7 +445,7 @@
     },
     "sourceFamily": "apps/desktop/src/pages/Inbox.tsx",
     "sourceTruthId": "apps/desktop/src/pages/Inbox.tsx:1813:renders_component:component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FPeopleList.tsx#PeopleList",
-    "id": "t3-pulse-positive-15",
+    "id": "t3-example-workspace-positive-15",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -476,7 +476,7 @@
     },
     "sourceFamily": "apps/desktop/src/pages/Inbox.tsx",
     "sourceTruthId": "apps/desktop/src/pages/Inbox.tsx:1823:renders_component:component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FPersonDetail.tsx#PersonDetail",
-    "id": "t3-pulse-positive-16",
+    "id": "t3-example-workspace-positive-16",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -507,7 +507,7 @@
     },
     "sourceFamily": "apps/desktop/src/pages/Inbox.tsx",
     "sourceTruthId": "apps/desktop/src/pages/Inbox.tsx:1838:renders_component:component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FCompanyList.tsx#CompanyList",
-    "id": "t3-pulse-positive-17",
+    "id": "t3-example-workspace-positive-17",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -538,7 +538,7 @@
     },
     "sourceFamily": "apps/desktop/src/pages/Inbox.tsx",
     "sourceTruthId": "apps/desktop/src/pages/Inbox.tsx:1848:renders_component:component:react:apps%2Fdesktop%2Fsrc%2Fcomponents%2FCompanyDetail.tsx#CompanyDetail",
-    "id": "t3-pulse-positive-18",
+    "id": "t3-example-workspace-positive-18",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -569,7 +569,7 @@
     },
     "sourceFamily": "apps/desktop/src/pages/Inbox.tsx",
     "sourceTruthId": "apps/desktop/src/pages/Inbox.tsx:1900:renders_component:component:react:apps%2Fdesktop%2Fsrc%2Fpages%2FSettings.tsx#Settings",
-    "id": "t3-pulse-positive-19",
+    "id": "t3-example-workspace-positive-19",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -600,7 +600,7 @@
     },
     "sourceFamily": "apps/desktop/src/pages/Inbox.tsx",
     "sourceTruthId": "apps/desktop/src/pages/Inbox.tsx:265:uses_hook:hook:react:apps%2Fdesktop%2Fsrc%2Fstores%2FinboxStore.ts#useInboxStore",
-    "id": "t3-pulse-positive-20",
+    "id": "t3-example-workspace-positive-20",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -631,7 +631,7 @@
     },
     "sourceFamily": "apps/desktop/src/pages/Inbox.tsx",
     "sourceTruthId": "apps/desktop/src/pages/Inbox.tsx:277:uses_hook:hook:react:apps%2Fdesktop%2Fsrc%2Fstores%2FsyncStore.ts#useSyncStore",
-    "id": "t3-pulse-positive-21",
+    "id": "t3-example-workspace-positive-21",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -662,7 +662,7 @@
     },
     "sourceFamily": "apps/desktop/src/pages/Inbox.tsx",
     "sourceTruthId": "apps/desktop/src/pages/Inbox.tsx:279:uses_hook:hook:react:apps%2Fdesktop%2Fsrc%2Fstores%2FthreadStore.ts#useThreadStore",
-    "id": "t3-pulse-positive-22",
+    "id": "t3-example-workspace-positive-22",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -693,7 +693,7 @@
     },
     "sourceFamily": "apps/desktop/src/pages/Inbox.tsx",
     "sourceTruthId": "apps/desktop/src/pages/Inbox.tsx:288:uses_hook:hook:react:apps%2Fdesktop%2Fsrc%2Fstores%2FfolderStore.ts#useFolderStore",
-    "id": "t3-pulse-positive-23",
+    "id": "t3-example-workspace-positive-23",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -724,7 +724,7 @@
     },
     "sourceFamily": "apps/desktop/src/pages/Inbox.tsx",
     "sourceTruthId": "apps/desktop/src/pages/Inbox.tsx:290:uses_hook:hook:react:apps%2Fdesktop%2Fsrc%2Fstores%2FaccountStore.ts#useAccountStore",
-    "id": "t3-pulse-positive-24",
+    "id": "t3-example-workspace-positive-24",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -755,7 +755,7 @@
     },
     "sourceFamily": "apps/desktop/src/pages/Inbox.tsx",
     "sourceTruthId": "apps/desktop/src/pages/Inbox.tsx:296:uses_hook:hook:react:apps%2Fdesktop%2Fsrc%2Fstores%2FconfigStore.ts#useConfigStore",
-    "id": "t3-pulse-positive-25",
+    "id": "t3-example-workspace-positive-25",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -786,7 +786,7 @@
     },
     "sourceFamily": "apps/desktop/src/pages/Inbox.tsx",
     "sourceTruthId": "apps/desktop/src/pages/Inbox.tsx:299:uses_hook:hook:react:apps%2Fdesktop%2Fsrc%2Fstores%2FpeopleStore.ts#usePeopleStore",
-    "id": "t3-pulse-positive-26",
+    "id": "t3-example-workspace-positive-26",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -817,7 +817,7 @@
     },
     "sourceFamily": "apps/desktop/src/pages/Inbox.tsx",
     "sourceTruthId": "apps/desktop/src/pages/Inbox.tsx:896:uses_hook:hook:react:apps%2Fdesktop%2Fsrc%2Fhooks%2FuseKeyboardNavigation.ts#useKeyboardNavigation",
-    "id": "t3-pulse-positive-27",
+    "id": "t3-example-workspace-positive-27",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -848,7 +848,7 @@
     },
     "sourceFamily": "apps/desktop/src/pages/Settings.tsx",
     "sourceTruthId": "apps/desktop/src/pages/Settings.tsx:64:renders_component:component:react:apps%2Fdesktop%2Fsrc%2Fpages%2Fsettings%2Ftabs%2Findex.ts#AccountsTab",
-    "id": "t3-pulse-positive-28",
+    "id": "t3-example-workspace-positive-28",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -879,7 +879,7 @@
     },
     "sourceFamily": "apps/desktop/src/pages/settings/tabs/AccountsTab.tsx",
     "sourceTruthId": "apps/desktop/src/pages/settings/tabs/AccountsTab.tsx:84:uses_hook:hook:react:apps%2Fdesktop%2Fsrc%2Fstores%2Findex.ts#useAccountStore",
-    "id": "t3-pulse-positive-29",
+    "id": "t3-example-workspace-positive-29",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -910,7 +910,7 @@
     },
     "sourceFamily": "apps/desktop/src/pages/settings/tabs/AccountsTab.tsx",
     "sourceTruthId": "apps/desktop/src/pages/settings/tabs/AccountsTab.tsx:85:uses_hook:hook:react:apps%2Fdesktop%2Fsrc%2Fstores%2Findex.ts#useInboxStore",
-    "id": "t3-pulse-positive-30",
+    "id": "t3-example-workspace-positive-30",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -941,7 +941,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/CompanyDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/CompanyDetail.tsx:59:forbidden:external-render",
-    "id": "t3-pulse-forbidden-01-external-render",
+    "id": "t3-example-workspace-forbidden-01-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -970,7 +970,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/CompanyDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/CompanyDetail.tsx:61:forbidden:external-render",
-    "id": "t3-pulse-forbidden-02-external-render",
+    "id": "t3-example-workspace-forbidden-02-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -999,7 +999,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/CompanyDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/CompanyDetail.tsx:63:forbidden:external-render",
-    "id": "t3-pulse-forbidden-03-external-render",
+    "id": "t3-example-workspace-forbidden-03-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1028,7 +1028,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/CompanyDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/CompanyDetail.tsx:178:forbidden:external-render",
-    "id": "t3-pulse-forbidden-04-external-render",
+    "id": "t3-example-workspace-forbidden-04-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1057,7 +1057,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/CompanyDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/CompanyDetail.tsx:188:forbidden:external-render",
-    "id": "t3-pulse-forbidden-05-external-render",
+    "id": "t3-example-workspace-forbidden-05-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1086,7 +1086,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/CompanyDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/CompanyDetail.tsx:224:forbidden:external-render",
-    "id": "t3-pulse-forbidden-06-external-render",
+    "id": "t3-example-workspace-forbidden-06-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1115,7 +1115,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/CompanyDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/CompanyDetail.tsx:239:forbidden:external-render",
-    "id": "t3-pulse-forbidden-07-external-render",
+    "id": "t3-example-workspace-forbidden-07-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1144,7 +1144,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/CompanyDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/CompanyDetail.tsx:243:forbidden:external-render",
-    "id": "t3-pulse-forbidden-08-external-render",
+    "id": "t3-example-workspace-forbidden-08-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1173,7 +1173,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/CompanyDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/CompanyDetail.tsx:251:forbidden:external-render",
-    "id": "t3-pulse-forbidden-09-external-render",
+    "id": "t3-example-workspace-forbidden-09-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1202,7 +1202,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/CompanyDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/CompanyDetail.tsx:252:forbidden:external-render",
-    "id": "t3-pulse-forbidden-10-external-render",
+    "id": "t3-example-workspace-forbidden-10-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1231,7 +1231,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/CompanyDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/CompanyDetail.tsx:256:forbidden:external-render",
-    "id": "t3-pulse-forbidden-11-external-render",
+    "id": "t3-example-workspace-forbidden-11-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1260,7 +1260,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/CompanyDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/CompanyDetail.tsx:273:forbidden:external-render",
-    "id": "t3-pulse-forbidden-12-external-render",
+    "id": "t3-example-workspace-forbidden-12-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1289,7 +1289,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/CompanyDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/CompanyDetail.tsx:274:forbidden:external-render",
-    "id": "t3-pulse-forbidden-13-external-render",
+    "id": "t3-example-workspace-forbidden-13-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1318,7 +1318,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/CompanyDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/CompanyDetail.tsx:280:forbidden:external-render",
-    "id": "t3-pulse-forbidden-14-external-render",
+    "id": "t3-example-workspace-forbidden-14-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {
@@ -1347,7 +1347,7 @@
     },
     "sourceFamily": "apps/desktop/src/components/CompanyDetail.tsx",
     "sourceTruthId": "apps/desktop/src/components/CompanyDetail.tsx:285:forbidden:external-render",
-    "id": "t3-pulse-forbidden-15-external-render",
+    "id": "t3-example-workspace-forbidden-15-external-render",
     "query": {
       "tool": "tranche3PersistedGraph",
       "args": {

@@ -764,8 +764,8 @@
     "watchedMutations": []
   },
   {
-    "id": "auctic-core-owner-gold-offer-rule-declarations",
-    "corpus": "auctic-core",
+    "id": "acme-core-owner-gold-offer-rule-declarations",
+    "corpus": "acme-core",
     "capability": "deterministic-javascript-ast",
     "query": {
       "tool": "phase6SourceFactsContract",
@@ -862,7 +862,7 @@
     "owner": "Example Maintainer",
     "fixtureSchemaVersion": 1,
     "corpusPin": {
-      "remote": "https://github.com/auctic-software/auctic-core.git",
+      "remote": "https://github.com/acme-software/acme-core.git",
       "commit": "3afee6c0a42808c905c6830e5073eb83386c8409"
     },
     "forms": ["js", "real-owner-gold", "function-declaration", "named-export", "bare-call"],

@@ -11,31 +11,31 @@ This document is the named benchmark referenced by R12 and consumed by tranche-o
 
 Tranche-one feature-path retrieval answers exactly five intents:
 
-| Intent | Question shape |
-|--------|----------------|
-| `route-handler` | what handles this endpoint? |
-| `route-ownership` | what part of the system owns this route or workflow? |
-| `route-callers` | where is this route called from? |
-| `route-contract` | what request and response shape does this imply? |
-| `route-downstream` | what downstream work does this feature trigger? |
+| Intent             | Question shape                                       |
+| ------------------ | ---------------------------------------------------- |
+| `route-handler`    | what handles this endpoint?                          |
+| `route-ownership`  | what part of the system owns this route or workflow? |
+| `route-callers`    | where is this route called from?                     |
+| `route-contract`   | what request and response shape does this imply?     |
+| `route-downstream` | what downstream work does this feature trigger?      |
 
 Detector expansion is NOT a tranche-one success criterion (R11). New question classes require their own tranche.
 
 ## Repos
 
-| Repo | Role | Why |
-|------|------|-----|
-| acme Core | backend-centered | Real Laravel monolith with module boundaries, jobs, listeners, schedules. Exercises every backend dimension of the answer (handler, ownership, contracts, bounded downstream). |
-| example-app | mixed-language | Real PHP + JS/TS mixed-language repo with `calls_surface` edges. Exercises cross-language promotion: at least one promoted path AND at least one honest refusal. |
-| example-dashboard | tiebreak only | Used only if acme Core leaves a backend dimension unproven. |
+| Repo              | Role             | Why                                                                                                                                                                            |
+| ----------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Acme Core         | backend-centered | Real Laravel monolith with module boundaries, jobs, listeners, schedules. Exercises every backend dimension of the answer (handler, ownership, contracts, bounded downstream). |
+| Example App       | mixed-language   | Real PHP + JS/TS mixed-language repo with `calls_surface` edges. Exercises cross-language promotion: at least one promoted path AND at least one honest refusal.               |
+| Example Dashboard | tiebreak only    | Used only if Acme Core leaves a backend dimension unproven.                                                                                                                    |
 
-R13 requires both at least one backend-centered repo AND at least one mixed-language repo. acme Core + example-app satisfies the bar; example-dashboard is optional follow-on.
+R13 requires both at least one backend-centered repo AND at least one mixed-language repo. Acme Core + Example App satisfies the bar; Example Dashboard is optional follow-on.
 
 ## Question entry shape
 
 Each question below specifies:
 
-- **id**: stable identifier (`AC-<intent>-NN` for acme Core, `CC-<intent>-NN` for example-app).
+- **id**: stable identifier (`AC-<intent>-NN` for Acme Core, `CC-<intent>-NN` for Example App).
 - **intent**: one of the five tranche-one intents.
 - **target kind**: expected `FeaturePathTarget.kind` — `route-surface` or `handler-symbol`.
 - **must-have answer dimensions**: which top-level fields of `FeaturePathAnswer` are expected to be populated and non-trivial when the answer is healthy.
@@ -45,15 +45,15 @@ Each question below specifies:
 
 The benchmark is intentionally prescriptive about what MUST be present and what MUST NOT be reported as proof; that is the point of a benchmark question set rather than a freeform sample.
 
-## acme Core (backend-centered)
+## Acme Core (backend-centered)
 
 DB copy pattern (mirrors `docs/validation/operational-operator-surface-2026-04-27.md`):
 
 ```sh
-cp /path/to/auctic-core/vcs/.lux/lux.db /tmp/lux-auctic-core-feature-path.db
+cp /path/to/acme-core/vcs/.lux/lux.db /tmp/lux-acme-core-feature-path.db
 ```
 
-All commands below use `--corpus /path/to/auctic-core/vcs --db /tmp/lux-auctic-core-feature-path.db`.
+All commands below use `--corpus /path/to/acme-core/vcs --db /tmp/lux-acme-core-feature-path.db`.
 
 ### AC-handler-01 — Module-controlled POST route
 
@@ -159,17 +159,17 @@ All commands below use `--corpus /path/to/auctic-core/vcs --db /tmp/lux-auctic-c
   overlay operational ask "what downstream work does GET /private-offers trigger?" --json
   ```
 
-## example-app (mixed-language)
+## Example App (mixed-language)
 
 DB copy pattern:
 
 ```sh
-cp /path/to/example-app/vcs/.lux/lux.db /tmp/lux-chirocat-feature-path.db
+cp /path/to/example-app/vcs/.lux/lux.db /tmp/lux-example-app-feature-path.db
 ```
 
-All commands below use `--corpus /path/to/example-app/vcs --db /tmp/lux-chirocat-feature-path.db`.
+All commands below use `--corpus /path/to/example-app/vcs --db /tmp/lux-example-app-feature-path.db`.
 
-If the example-app path differs locally, substitute the actual repo root and DB sidecar path; the question semantics are independent of layout.
+If the Example App path differs locally, substitute the actual repo root and DB sidecar path; the question semantics are independent of layout.
 
 ### CC-handler-01 — PHP handler behind an API route
 

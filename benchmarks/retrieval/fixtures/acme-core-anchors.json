@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "goldSchemaVersion": 1,
   "owner": "Example Maintainer",
-  "repoId": "auctic-core-anchors",
-  "corpusId": "auctic-core",
+  "repoId": "acme-core-anchors",
+  "corpusId": "acme-core",
   "cases": [
     {
       "id": "anchors-q2-payment-gateway",

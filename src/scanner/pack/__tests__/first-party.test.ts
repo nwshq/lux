@@ -21,10 +21,7 @@ describe('resolveFirstPartyRoots', () => {
   afterEach(() => rmSync(testDir, { recursive: true, force: true }));
 
   it('returns [] for empty globs', () => {
-    const corpus = setup(
-      [{ name: 'acme/core', 'install-path': '../acme/core' }],
-      ['acme/core']
-    );
+    const corpus = setup([{ name: 'acme/core', 'install-path': '../acme/core' }], ['acme/core']);
     expect(resolveFirstPartyRoots(corpus, [])).toEqual([]);
   });
 

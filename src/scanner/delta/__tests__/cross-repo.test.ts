@@ -1,6 +1,6 @@
 // Cross-repo delta — computeCrossRepoImpact + `delta --against` (spec 14 Parts B/C/D / T3.2,3.3 /
 // Decisions 6,8,9 / SC-6,8,9). A primary-side diff seeds the shipped walkDownstream INSIDE a
-// sibling's read-only graph: a touched acme\Core\* handler FQCN that a sibling route delegates to
+// sibling's read-only graph: a touched Acme\Core\* handler FQCN that a sibling route delegates to
 // reports that sibling's affected HTTP surface. Portable seeds only (bare-name PHP + path-relative
 // excluded); a peer receives portable FQCNs, a kernel additionally receives http surfaces. Every
 // resolve-time refusal class degrades in analysis mode and refuses under --check (no silent pass).
@@ -19,7 +19,7 @@ import type { DeltaOptions, DeltaTouchSet } from '../types.js';
 import type { DownstreamBudget } from '../downstream.js';
 import type { ConfidenceClass, EdgeType, StructuralNodeType } from '../../../db/types.js';
 
-const FQCN = 'symbol:php:acme\\Core\\OfferService::show';
+const FQCN = 'symbol:php:Acme\\Core\\OfferService::show';
 const CTRL = 'symbol:php:App\\Http\\OfferController::show';
 const ROUTE = 'surface:http:GET:/offer/{offerId}';
 const HELPER = 'symbol:php:helper'; // bare-name (no namespace separator) → repo-local

@@ -1950,7 +1950,7 @@
       "remote": "https://github.com/nwshq/example-workspace.git",
       "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
     },
-    "id": "p15-pulse-positive-01",
+    "id": "p15-example-workspace-positive-01",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -1994,7 +1994,7 @@
       "remote": "https://github.com/nwshq/example-workspace.git",
       "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
     },
-    "id": "p15-pulse-positive-02",
+    "id": "p15-example-workspace-positive-02",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2038,7 +2038,7 @@
       "remote": "https://github.com/nwshq/example-workspace.git",
       "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
     },
-    "id": "p15-pulse-positive-03",
+    "id": "p15-example-workspace-positive-03",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2082,7 +2082,7 @@
       "remote": "https://github.com/nwshq/example-workspace.git",
       "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
     },
-    "id": "p15-pulse-positive-04",
+    "id": "p15-example-workspace-positive-04",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2126,7 +2126,7 @@
       "remote": "https://github.com/nwshq/example-workspace.git",
       "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
     },
-    "id": "p15-pulse-positive-05",
+    "id": "p15-example-workspace-positive-05",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2170,7 +2170,7 @@
       "remote": "https://github.com/nwshq/example-workspace.git",
       "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
     },
-    "id": "p15-pulse-positive-06",
+    "id": "p15-example-workspace-positive-06",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2214,7 +2214,7 @@
       "remote": "https://github.com/nwshq/example-workspace.git",
       "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
     },
-    "id": "p15-pulse-positive-07",
+    "id": "p15-example-workspace-positive-07",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2258,7 +2258,7 @@
       "remote": "https://github.com/nwshq/example-workspace.git",
       "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
     },
-    "id": "p15-pulse-positive-08",
+    "id": "p15-example-workspace-positive-08",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2302,7 +2302,7 @@
       "remote": "https://github.com/nwshq/example-workspace.git",
       "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
     },
-    "id": "p15-pulse-positive-09",
+    "id": "p15-example-workspace-positive-09",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2346,7 +2346,7 @@
       "remote": "https://github.com/nwshq/example-workspace.git",
       "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
     },
-    "id": "p15-pulse-positive-10",
+    "id": "p15-example-workspace-positive-10",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2390,7 +2390,7 @@
       "remote": "https://github.com/nwshq/example-dashboard.git",
       "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
     },
-    "id": "p15-recon-positive-01",
+    "id": "p15-example-dashboard-positive-01",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2434,7 +2434,7 @@
       "remote": "https://github.com/nwshq/example-dashboard.git",
       "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
     },
-    "id": "p15-recon-positive-02",
+    "id": "p15-example-dashboard-positive-02",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2478,7 +2478,7 @@
       "remote": "https://github.com/nwshq/example-dashboard.git",
       "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
     },
-    "id": "p15-recon-positive-03",
+    "id": "p15-example-dashboard-positive-03",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2522,7 +2522,7 @@
       "remote": "https://github.com/nwshq/example-dashboard.git",
       "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
     },
-    "id": "p15-recon-positive-04",
+    "id": "p15-example-dashboard-positive-04",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2566,7 +2566,7 @@
       "remote": "https://github.com/nwshq/example-dashboard.git",
       "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
     },
-    "id": "p15-recon-positive-05",
+    "id": "p15-example-dashboard-positive-05",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2610,7 +2610,7 @@
       "remote": "https://github.com/nwshq/example-dashboard.git",
       "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
     },
-    "id": "p15-recon-positive-06",
+    "id": "p15-example-dashboard-positive-06",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2654,7 +2654,7 @@
       "remote": "https://github.com/nwshq/example-dashboard.git",
       "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
     },
-    "id": "p15-recon-positive-07",
+    "id": "p15-example-dashboard-positive-07",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2698,7 +2698,7 @@
       "remote": "https://github.com/nwshq/example-dashboard.git",
       "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
     },
-    "id": "p15-recon-positive-08",
+    "id": "p15-example-dashboard-positive-08",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2742,7 +2742,7 @@
       "remote": "https://github.com/nwshq/example-dashboard.git",
       "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
     },
-    "id": "p15-recon-positive-09",
+    "id": "p15-example-dashboard-positive-09",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2786,7 +2786,7 @@
       "remote": "https://github.com/nwshq/example-dashboard.git",
       "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
     },
-    "id": "p15-recon-positive-10",
+    "id": "p15-example-dashboard-positive-10",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2830,7 +2830,7 @@
       "remote": "https://github.com/nwshq/example-workspace.git",
       "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
     },
-    "id": "p15-pulse-forbidden-01-external-hook",
+    "id": "p15-example-workspace-forbidden-01-external-hook",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2868,7 +2868,7 @@
       "remote": "https://github.com/nwshq/example-workspace.git",
       "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
     },
-    "id": "p15-pulse-forbidden-02-callback",
+    "id": "p15-example-workspace-forbidden-02-callback",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2906,7 +2906,7 @@
       "remote": "https://github.com/nwshq/example-workspace.git",
       "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
     },
-    "id": "p15-pulse-forbidden-03-intrinsic",
+    "id": "p15-example-workspace-forbidden-03-intrinsic",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2944,7 +2944,7 @@
       "remote": "https://github.com/nwshq/example-workspace.git",
       "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
     },
-    "id": "p15-pulse-forbidden-04-import-unused",
+    "id": "p15-example-workspace-forbidden-04-import-unused",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -2982,7 +2982,7 @@
       "remote": "https://github.com/nwshq/example-workspace.git",
       "commit": "5e57f6be9c20a5973b305e0980ada2ff8ebeec4b"
     },
-    "id": "p15-pulse-forbidden-05-unresolved-import",
+    "id": "p15-example-workspace-forbidden-05-unresolved-import",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -3020,7 +3020,7 @@
       "remote": "https://github.com/nwshq/example-dashboard.git",
       "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
     },
-    "id": "p15-recon-forbidden-01-external-hook",
+    "id": "p15-example-dashboard-forbidden-01-external-hook",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -3058,7 +3058,7 @@
       "remote": "https://github.com/nwshq/example-dashboard.git",
       "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
     },
-    "id": "p15-recon-forbidden-02-callback",
+    "id": "p15-example-dashboard-forbidden-02-callback",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -3096,7 +3096,7 @@
       "remote": "https://github.com/nwshq/example-dashboard.git",
       "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
     },
-    "id": "p15-recon-forbidden-03-intrinsic",
+    "id": "p15-example-dashboard-forbidden-03-intrinsic",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -3134,7 +3134,7 @@
       "remote": "https://github.com/nwshq/example-dashboard.git",
       "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
     },
-    "id": "p15-recon-forbidden-04-import-unused",
+    "id": "p15-example-dashboard-forbidden-04-import-unused",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {
@@ -3172,7 +3172,7 @@
       "remote": "https://github.com/nwshq/example-dashboard.git",
       "commit": "4c5a1e63fff73696c0ab062cf0d422644aaaf4c5"
     },
-    "id": "p15-recon-forbidden-05-unresolved-import",
+    "id": "p15-example-dashboard-forbidden-05-unresolved-import",
     "query": {
       "tool": "phase15ReactReferenceSeam",
       "args": {

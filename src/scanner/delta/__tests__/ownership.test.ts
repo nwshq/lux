@@ -49,18 +49,18 @@ function addRoute(
 
 describe('delta ownership intersection (spec 13 Part A, Phase 2b)', () => {
   it('reports a cross-area transition for a touched App\\ handler (source: cross-area-recompute)', () => {
-    // kernel worktree: composer.json (acme\Core) + git HEAD + a populated .lux
+    // kernel worktree: composer.json (Acme\Core) + git HEAD + a populated .lux
     const kernelDir = join(root, 'core');
     mkdirSync(kernelDir, { recursive: true });
     writeFileSync(
       join(kernelDir, 'composer.json'),
-      JSON.stringify({ autoload: { 'psr-4': { 'acme\\Core\\': 'src/' } } })
+      JSON.stringify({ autoload: { 'psr-4': { 'Acme\\Core\\': 'src/' } } })
     );
     execSync('git init -q && git -c user.email=t@t -c user.name=t commit -q --allow-empty -m i', {
       cwd: kernelDir,
     });
     const kdb = new LuxDatabase(join(kernelDir, '.lux', 'lux.db'));
-    addRoute(kdb, 'surface:http:GET:/k1', 'acme\\Core\\C1'); // kernel-owned
+    addRoute(kdb, 'surface:http:GET:/k1', 'Acme\\Core\\C1'); // kernel-owned
     addRoute(kdb, 'surface:http:GET:/k2', 'App\\C2'); // client-override (implements)
     addRoute(kdb, 'surface:http:GET:/k3', 'App\\C3'); // client-gap
     kdb.close();
@@ -128,7 +128,7 @@ describe('delta ownership intersection (spec 13 Part A, Phase 2b)', () => {
     mkdirSync(kernelDir, { recursive: true });
     writeFileSync(
       join(kernelDir, 'composer.json'),
-      JSON.stringify({ autoload: { 'psr-4': { 'acme\\Core\\': 'src/' } } })
+      JSON.stringify({ autoload: { 'psr-4': { 'Acme\\Core\\': 'src/' } } })
     );
 
     const client = join(root, 'unindexed');

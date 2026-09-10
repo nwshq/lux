@@ -46,13 +46,13 @@ afterEach(() => rmSync(root, { recursive: true, force: true }));
 
 describe('#5 --check gate through computeDelta (client-gap-created glue, run.ts:102-126)', () => {
   it('fires client-gap-created (exit 1) when the diff deletes a client-override handler', () => {
-    // kernel worktree: composer.json (acme\Core) + git HEAD + a populated .lux with a route whose
+    // kernel worktree: composer.json (Acme\Core) + git HEAD + a populated .lux with a route whose
     // handler is the client's App\C2 (→ classified client-override).
     const kernelDir = join(root, 'core');
     mkdirSync(kernelDir, { recursive: true });
     writeFileSync(
       join(kernelDir, 'composer.json'),
-      JSON.stringify({ autoload: { 'psr-4': { 'acme\\Core\\': 'src/' } } })
+      JSON.stringify({ autoload: { 'psr-4': { 'Acme\\Core\\': 'src/' } } })
     );
     git(kernelDir, 'init -q');
     git(kernelDir, 'config user.email t@t');

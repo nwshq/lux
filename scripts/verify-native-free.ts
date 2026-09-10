@@ -55,12 +55,28 @@ const PACKAGE_LOCK = resolve(ROOT, 'package-lock.json');
  * (e.g. `@esbuild/linux-x64`, `lightningcss-darwin-arm64`, `@rollup/rollup-win32-x64-msvc`).
  */
 const PLATFORM_TOKENS = [
-  'darwin', 'linux', 'win32', 'android', 'freebsd', 'openbsd', 'sunos', 'aix',
+  'darwin',
+  'linux',
+  'win32',
+  'android',
+  'freebsd',
+  'openbsd',
+  'sunos',
+  'aix',
 ] as const;
 
 /** Architecture tokens that pair with a platform token in that same convention. */
 const ARCH_TOKENS = [
-  'x64', 'ia32', 'arm64', 'arm', 'ppc64', 'ppc64le', 's390x', 'mips64el', 'riscv64', 'universal',
+  'x64',
+  'ia32',
+  'arm64',
+  'arm',
+  'ppc64',
+  'ppc64le',
+  's390x',
+  'mips64el',
+  'riscv64',
+  'universal',
 ] as const;
 
 /**
@@ -72,7 +88,7 @@ const ARCH_TOKENS = [
  */
 const PLATFORM_PACKAGE_NAME_RE = new RegExp(
   `(?:^|[-/])(?:${PLATFORM_TOKENS.join('|')})-(?:${ARCH_TOKENS.join('|')})(?:-[a-z0-9]+)?$`,
-  'i',
+  'i'
 );
 
 // ---------------------------------------------------------------------------
@@ -168,7 +184,7 @@ export function scanTree(nodeModulesRoot: string): Violation[] {
     const unscopedName = declaredName?.includes('/') ? declaredName.split('/').pop() : declaredName;
     const dirName = basename(resolve(filePath, '..'));
     const nameCandidates = [unscopedName, dirName].filter(
-      (n): n is string => typeof n === 'string' && n.length > 0,
+      (n): n is string => typeof n === 'string' && n.length > 0
     );
     const matchedName = nameCandidates.find((n) => PLATFORM_PACKAGE_NAME_RE.test(n));
     if (matchedName) {
@@ -273,15 +289,15 @@ function report(violations: Violation[], opts: { json: boolean }): void {
           summary: { violationCount: violations.length, clean: violations.length === 0 },
         },
         null,
-        2,
-      ),
+        2
+      )
     );
     return;
   }
 
   if (violations.length === 0) {
     console.log(
-      'Native-free check passed. Zero native addons, zero platform-scoped packages in the production install tree.',
+      'Native-free check passed. Zero native addons, zero platform-scoped packages in the production install tree.'
     );
     return;
   }
@@ -294,7 +310,7 @@ function report(violations: Violation[], opts: { json: boolean }): void {
   }
   console.error(
     `${violations.length} violation(s). The production install tree is NOT native-free — ` +
-      'remove or replace the offending dependency (18-SPEC-FENCE-AND-NATIVE-FREE-CI.md Part 2/A).',
+      'remove or replace the offending dependency (18-SPEC-FENCE-AND-NATIVE-FREE-CI.md Part 2/A).'
   );
 }
 
