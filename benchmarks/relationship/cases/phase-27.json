@@ -1,0 +1,897 @@
+[
+  {
+    "id": "p27-positive-01",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "module",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f0",
+        "type": "calls",
+        "target": "package:go:m/p#g0",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-02",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "package",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f1",
+        "type": "calls",
+        "target": "package:go:m/p#g1",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-03",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "import",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f2",
+        "type": "calls",
+        "target": "package:go:m/p#g2",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-04",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "external",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f3",
+        "type": "calls",
+        "target": "package:go:m/p#g3",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-05",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "function",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f4",
+        "type": "calls",
+        "target": "package:go:m/p#g4",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-06",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "method",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f5",
+        "type": "calls",
+        "target": "package:go:m/p#g5",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-07",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "type",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f6",
+        "type": "calls",
+        "target": "package:go:m/p#g6",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-08",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "call",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f7",
+        "type": "calls",
+        "target": "package:go:m/p#g7",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-09",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "module",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f8",
+        "type": "calls",
+        "target": "package:go:m/p#g8",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-10",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "package",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f9",
+        "type": "calls",
+        "target": "package:go:m/p#g9",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-11",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "import",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f10",
+        "type": "calls",
+        "target": "package:go:m/p#g10",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-12",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "external",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f11",
+        "type": "calls",
+        "target": "package:go:m/p#g11",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-13",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "function",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f12",
+        "type": "calls",
+        "target": "package:go:m/p#g12",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-14",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "method",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f13",
+        "type": "calls",
+        "target": "package:go:m/p#g13",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-15",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "type",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f14",
+        "type": "calls",
+        "target": "package:go:m/p#g14",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-16",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "call",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f15",
+        "type": "calls",
+        "target": "package:go:m/p#g15",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-17",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "module",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f16",
+        "type": "calls",
+        "target": "package:go:m/p#g16",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-18",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "package",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f17",
+        "type": "calls",
+        "target": "package:go:m/p#g17",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-19",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "import",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f18",
+        "type": "calls",
+        "target": "package:go:m/p#g18",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-20",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "external",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f19",
+        "type": "calls",
+        "target": "package:go:m/p#g19",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-21",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "function",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f20",
+        "type": "calls",
+        "target": "package:go:m/p#g20",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-22",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "method",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f21",
+        "type": "calls",
+        "target": "package:go:m/p#g21",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-23",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "type",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f22",
+        "type": "calls",
+        "target": "package:go:m/p#g22",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-24",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "call",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f23",
+        "type": "calls",
+        "target": "package:go:m/p#g23",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-25",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "module",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f24",
+        "type": "calls",
+        "target": "package:go:m/p#g24",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-26",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "package",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f25",
+        "type": "calls",
+        "target": "package:go:m/p#g25",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-27",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "import",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f26",
+        "type": "calls",
+        "target": "package:go:m/p#g26",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-28",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "external",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f27",
+        "type": "calls",
+        "target": "package:go:m/p#g27",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-29",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "function",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f28",
+        "type": "calls",
+        "target": "package:go:m/p#g28",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-30",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "method",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f29",
+        "type": "calls",
+        "target": "package:go:m/p#g29",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-31",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "type",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f30",
+        "type": "calls",
+        "target": "package:go:m/p#g30",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-32",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "call",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f31",
+        "type": "calls",
+        "target": "package:go:m/p#g31",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-33",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "module",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f32",
+        "type": "calls",
+        "target": "package:go:m/p#g32",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-34",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "package",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f33",
+        "type": "calls",
+        "target": "package:go:m/p#g33",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-positive-35",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "import",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#f34",
+        "type": "calls",
+        "target": "package:go:m/p#g34",
+        "minConfidence": "framework-inferred"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p27-forbidden-01",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "malformed",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p27-forbidden-02",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "utf8",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p27-forbidden-03",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "bytes",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p27-forbidden-04",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "depth",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p27-forbidden-05",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "nodes",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p27-forbidden-06",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "refs",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p27-forbidden-07",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "timeout",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p27-forbidden-08",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "result",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p27-forbidden-09",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "symlink",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p27-forbidden-10",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "replace-escape",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p27-forbidden-11",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "conflict",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p27-forbidden-12",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "conditional",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p27-forbidden-13",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "same-name",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p27-forbidden-14",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "dot",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p27-forbidden-15",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "blank",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p27-forbidden-16",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "generated",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p27-forbidden-17",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "malformed",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p27-forbidden-18",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "utf8",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p27-forbidden-19",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "bytes",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p27-forbidden-20",
+    "corpus": "go-synthetic",
+    "capability": "go-deterministic",
+    "owner": "Example Maintainer",
+    "scenario": "depth",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "unsupported",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  }
+]

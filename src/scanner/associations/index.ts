@@ -83,3 +83,5 @@ export { TerraformAssociationResolver } from '../infrastructure/terraform/index.
 
 export { ActionsAssociationResolver } from '../infrastructure/actions/association-wrapper.js';
 export { resolveInfrastructureFederation } from '../infrastructure/federation/index.js';
+
+export { GoAssociationResolver } from '../go/association-wrapper.js';

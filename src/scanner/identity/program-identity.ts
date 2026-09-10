@@ -54,6 +54,12 @@ export const workflowArtifactId = (path: string, name: string): string =>
 export const actionId = (uses: string): string => `artifact:action:${encodeSegment(uses)}`;
 export const repositoryPathArtifactId = (path: string): string =>
   pathIdentity('artifact:repository-path', path);
+export const goPackageId = (module: string, pkg: string): string =>
+  `package:go:${encodeSegment(module)}/${encodeSegment(pkg)}`;
+export const goInterfaceId = (module: string, pkg: string, name: string): string =>
+  `${goPackageId(module, pkg)}#interface:${encodeSegment(name)}`;
+export const goSymbolId = (module: string, pkg: string, name: string, receiver?: string): string =>
+  `${goPackageId(module, pkg)}#${receiver ? `${encodeSegment(receiver)}.` : ''}${encodeSegment(name)}`;
 export const containerImageId = (reference: string): string =>
   `artifact:container-image:${encodeSegment(reference)}`;
 export const containerStageId = (dockerfile: string, stage: string): string =>

@@ -23,6 +23,7 @@ import { EventBusAssociationResolver } from '../../framework/event-bus/associati
 import { ContainerAssociationResolver } from '../../infrastructure/containers/association-wrapper.js';
 import { TerraformAssociationResolver } from '../../infrastructure/terraform/association-wrapper.js';
 import { ActionsAssociationResolver } from '../../infrastructure/actions/association-wrapper.js';
+import { GoAssociationResolver } from '../../go/association-wrapper.js';
 import type { FrontendFrameworkConfigV1 } from '../../config.js';
 import type { AssociationResolver } from '../types.js';
 
@@ -48,6 +49,7 @@ export function createDefaultResolvers(
     new ContainerAssociationResolver(),
     new TerraformAssociationResolver(),
     new ActionsAssociationResolver(),
+    new GoAssociationResolver(),
     new InertiaAssociationResolver({
       config: frameworks
         ? {

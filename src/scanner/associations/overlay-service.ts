@@ -33,6 +33,7 @@ import { analyzeEventBusContext } from '../framework/event-bus/association-wrapp
 import { analyzeContainerContext } from '../infrastructure/containers/association-wrapper.js';
 import { analyzeTerraformContext } from '../infrastructure/terraform/association-wrapper.js';
 import { analyzeActionsContext } from '../infrastructure/actions/association-wrapper.js';
+import { analyzeGoContext } from '../go/association-wrapper.js';
 import { resolveLivewire } from './framework/laravel/livewire-resolver.js';
 import { NovaAssociationResolver, resolveNova } from './framework/laravel/nova-resolver.js';
 import { AssociationEngine } from './engine.js';
@@ -339,6 +340,20 @@ export async function rebuildStructuralOverlay(
   if (actions.nodes.length) {
     db.transaction(() => {
       for (const node of actions.nodes) db.upsertStructuralNode(node);
+    });
+    context.nodes = db.getStructuralNodesForFilePaths(
+      scan.knowledge.map((entry) =>
+        entry.filePath.startsWith(rootPath + '/')
+          ? entry.filePath.slice(rootPath.length + 1)
+          : entry.filePath
+      )
+    );
+  }
+
+  const go = await analyzeGoContext(context);
+  if (go?.nodes.length) {
+    db.transaction(() => {
+      for (const node of go.nodes) db.upsertStructuralNode(node);
     });
     context.nodes = db.getStructuralNodesForFilePaths(
       scan.knowledge.map((entry) =>
