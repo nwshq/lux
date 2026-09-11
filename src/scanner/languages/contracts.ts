@@ -86,3 +86,23 @@ export interface DeterministicLanguageAdapterV1 {
   ): Promise<LanguageResolutionV1>;
   toSourceFacts(fact: LanguageFileFactsV1): SourceFactsV1;
 }
+export interface DefinitionQueryV1 {
+  filePath: string;
+  line: number;
+  character: number;
+  sourceId: string;
+  edgeType: 'calls' | 'references' | 'declares_resource';
+}
+export interface DefinitionAnswerV1 {
+  query: DefinitionQueryV1;
+  targetFile: string;
+  targetLine: number;
+  targetCharacter: number;
+  producer: 'gopls' | 'pyright';
+}
+export interface GoImplementationEvidenceV1 {
+  implementationId: string;
+  interfaceId: string;
+  producer: 'gopls';
+  locations: readonly SourceLocationV1[];
+}

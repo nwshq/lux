@@ -1,0 +1,567 @@
+[
+  {
+    "id": "p28-positive-01",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "interface",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#x0",
+        "type": "declares_resource",
+        "target": "package:go:m/p#y0",
+        "minConfidence": "proven"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p28-positive-02",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "typed-call",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#x1",
+        "type": "calls",
+        "target": "package:go:m/p#y1",
+        "minConfidence": "proven"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p28-positive-03",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "interface",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#x2",
+        "type": "declares_resource",
+        "target": "package:go:m/p#y2",
+        "minConfidence": "proven"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p28-positive-04",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "typed-call",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#x3",
+        "type": "calls",
+        "target": "package:go:m/p#y3",
+        "minConfidence": "proven"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p28-positive-05",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "interface",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#x4",
+        "type": "declares_resource",
+        "target": "package:go:m/p#y4",
+        "minConfidence": "proven"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p28-positive-06",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "typed-call",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#x5",
+        "type": "calls",
+        "target": "package:go:m/p#y5",
+        "minConfidence": "proven"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p28-positive-07",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "interface",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#x6",
+        "type": "declares_resource",
+        "target": "package:go:m/p#y6",
+        "minConfidence": "proven"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p28-positive-08",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "typed-call",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#x7",
+        "type": "calls",
+        "target": "package:go:m/p#y7",
+        "minConfidence": "proven"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p28-positive-09",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "interface",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#x8",
+        "type": "declares_resource",
+        "target": "package:go:m/p#y8",
+        "minConfidence": "proven"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p28-positive-10",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "typed-call",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#x9",
+        "type": "calls",
+        "target": "package:go:m/p#y9",
+        "minConfidence": "proven"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p28-positive-11",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "interface",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#x10",
+        "type": "declares_resource",
+        "target": "package:go:m/p#y10",
+        "minConfidence": "proven"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p28-positive-12",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "typed-call",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#x11",
+        "type": "calls",
+        "target": "package:go:m/p#y11",
+        "minConfidence": "proven"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p28-positive-13",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "interface",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#x12",
+        "type": "declares_resource",
+        "target": "package:go:m/p#y12",
+        "minConfidence": "proven"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p28-positive-14",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "typed-call",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#x13",
+        "type": "calls",
+        "target": "package:go:m/p#y13",
+        "minConfidence": "proven"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p28-positive-15",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "interface",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#x14",
+        "type": "declares_resource",
+        "target": "package:go:m/p#y14",
+        "minConfidence": "proven"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p28-positive-16",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "typed-call",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#x15",
+        "type": "calls",
+        "target": "package:go:m/p#y15",
+        "minConfidence": "proven"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p28-positive-17",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "interface",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#x16",
+        "type": "declares_resource",
+        "target": "package:go:m/p#y16",
+        "minConfidence": "proven"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p28-positive-18",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "typed-call",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#x17",
+        "type": "calls",
+        "target": "package:go:m/p#y17",
+        "minConfidence": "proven"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p28-positive-19",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "interface",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#x18",
+        "type": "declares_resource",
+        "target": "package:go:m/p#y18",
+        "minConfidence": "proven"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p28-positive-20",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "typed-call",
+    "expectedOutcome": "answered",
+    "expectedEdges": [
+      {
+        "source": "package:go:m/p#x19",
+        "type": "calls",
+        "target": "package:go:m/p#y19",
+        "minConfidence": "proven"
+      }
+    ],
+    "forbiddenEdges": []
+  },
+  {
+    "id": "p28-forbidden-01",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "missing",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "partial",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p28-forbidden-02",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "timeout",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "partial",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p28-forbidden-03",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "crash",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "partial",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p28-forbidden-04",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "outside",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "partial",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p28-forbidden-05",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "ambiguous",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "partial",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p28-forbidden-06",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "missing",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "partial",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p28-forbidden-07",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "timeout",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "partial",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p28-forbidden-08",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "crash",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "partial",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p28-forbidden-09",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "outside",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "partial",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p28-forbidden-10",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "ambiguous",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "partial",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p28-forbidden-11",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "missing",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "partial",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p28-forbidden-12",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "timeout",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "partial",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p28-forbidden-13",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "crash",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "partial",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p28-forbidden-14",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "outside",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "partial",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  },
+  {
+    "id": "p28-forbidden-15",
+    "corpus": "go-gopls-synthetic",
+    "capability": "go-semantics",
+    "owner": "Example Maintainer",
+    "scenario": "ambiguous",
+    "expectedOutcome": "refused",
+    "expectedRefusalReason": "partial",
+    "expectedEdges": [],
+    "forbiddenEdges": [
+      {
+        "type": "calls"
+      }
+    ]
+  }
+]
