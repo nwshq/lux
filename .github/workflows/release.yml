@@ -16,11 +16,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+
+      - name: Reject tracked credentials and generated output
+        run: bash scripts/verify-repository-hygiene.sh
+
+      - name: Scan all reachable history for secrets
+        run: bash scripts/scan-secrets.sh
 
       - name: Install dependencies
         run: npm ci

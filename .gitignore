@@ -1,7 +1,15 @@
 node_modules/
 dist/
 *.log
-.env
+
+# Local credentials and generated framework output
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.sample
+!**/.env.template
+**/.next/
+
 .DS_Store
 *.db
 *.db-journal

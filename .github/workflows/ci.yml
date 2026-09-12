@@ -10,6 +10,20 @@ permissions:
   contents: read
 
 jobs:
+  secret-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reject tracked credentials and generated output
+        run: bash scripts/verify-repository-hygiene.sh
+
+      - name: Scan all reachable history for secrets
+        run: bash scripts/scan-secrets.sh
+
   pr-title:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -26,8 +40,8 @@ jobs:
           fi
 
   ci:
-    needs: pr-title
-    if: always() && (github.event_name != 'pull_request' || needs.pr-title.result == 'success')
+    needs: [secret-scan, pr-title]
+    if: always() && needs.secret-scan.result == 'success' && (github.event_name != 'pull_request' || needs.pr-title.result == 'success')
     runs-on: ubuntu-latest
 
     steps:
