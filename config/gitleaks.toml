@@ -1,0 +1,4 @@
+title = "Lux secret scanning policy"
+
+[extend]
+useDefault = true

@@ -9,8 +9,11 @@
 The repository enforces these rules with:
 
 - `npm run verify:repository-hygiene` for deterministic tracked-path checks.
-- `npm run scan:secrets` for a redacted Gitleaks scan of every reachable Git ref.
-- The CI `secret-scan` job, which fetches full history before running both checks.
+- `npm run scan:secrets` for a redacted Gitleaks scan of every ref available in the local clone.
+- `npm run test:security-gates` for synthetic mutation tests covering path rejection, scanner suppression resistance, and output redaction.
+- The CI `secret-scan` job, which fetches complete branch/tag history before running the checks.
+
+GitHub-managed `refs/pull/*` are not reliably fetched by ordinary Actions checkout. After a sensitive-history rewrite, deleting and recreating the repository or obtaining a GitHub Support purge is still required; passing CI alone does not prove old pull-request refs are absent.
 
 ## Local pre-push protection
 

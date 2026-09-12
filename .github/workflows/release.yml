@@ -5,21 +5,20 @@ on:
     branches: [main]
 
 permissions:
-  contents: write
-  issues: write
-  pull-requests: write
-  packages: write
+  contents: read
 
 jobs:
   ci:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: npm
@@ -27,8 +26,11 @@ jobs:
       - name: Reject tracked credentials and generated output
         run: bash scripts/verify-repository-hygiene.sh
 
-      - name: Scan all reachable history for secrets
+      - name: Scan fetched branch and tag history for secrets
         run: bash scripts/scan-secrets.sh
+
+      - name: Mutation-test security gates
+        run: bash scripts/test-security-gates.sh
 
       - name: Install dependencies
         run: npm ci
@@ -60,18 +62,29 @@ jobs:
   release:
     needs: ci
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      packages: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: npm
           registry-url: https://npm.pkg.github.com
           scope: '@nwshq'
+
+      - name: Reject tracked credentials and generated output
+        run: bash scripts/verify-repository-hygiene.sh
+
+      - name: Rescan fetched branch and tag history before running write-capable release code
+        run: bash scripts/scan-secrets.sh
 
       - name: Install dependencies
         run: npm ci
